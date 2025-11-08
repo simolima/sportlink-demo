@@ -1,0 +1,77 @@
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client { provider = "prisma-client-js" }
+
+enum Role { ATHLETE CLUB AGENT DIRECTOR }
+
+model User { id String @id @default(uuid()) email String @unique role Role createdAt DateTime @default(now()) profile Profile? }
+model Profile {
+  id String @id @default(uuid())
+  userId String @unique
+  handle String @unique
+  displayName String
+  bio String?
+  country String?
+  city String?
+  languages String[]
+  avatarUrl String?
+  verified Boolean @default(false)
+  athlete Athlete?
+  club Club?
+  agent Agent?
+  @@index([handle])
+}
+model Athlete {
+  id String @id @default(uuid())
+  profileId String @unique
+  sport String
+  position String?
+  level String?
+  age Int?
+  heightCm Int?
+  weightKg Int?
+  currentClub String?
+  contract String?
+  highlights String?
+  stats Json?
+  profile Profile @relation(fields: [profileId], references: [id])
+}
+model Club {
+  id String @id @default(uuid())
+  profileId String @unique
+  name String
+  sport String
+  league String?
+  level String?
+  needs Json?
+  profile Profile @relation(fields: [profileId], references: [id])
+}
+model Agent {
+  id String @id @default(uuid())
+  profileId String @unique
+  licenseId String?
+  regions String[]
+  sports String[]
+  yearsExp Int?
+  profile Profile @relation(fields: [profileId], references: [id])
+}
+model Need {
+  id String @id @default(uuid())
+  ownerType String
+  ownerId String
+  sport String
+  position String?
+  ageMin Int?
+  ageMax Int?
+  level String?
+  location String?
+  createdAt DateTime @default(now())
+}
+model MatchSuggestion {
+  id String @id @default(uuid())
+  needId String
+  athleteId String
+  score Int
+  why Json
+  createdAt DateTime @default(now())
+  @@index([needId])
+}

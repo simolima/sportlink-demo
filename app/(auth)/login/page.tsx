@@ -1,1 +1,0 @@
-export default function Login(){return <div>Login demo: per la demo usiamo accesso libero, nessun auth.</div>;}

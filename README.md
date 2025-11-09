@@ -66,10 +66,10 @@ Configura il branch main come produzione.
 git checkout main
 git pull origin main
 git checkout -b feature/<descrizione-breve>
+
 Oppure per bugfix:
 
-bash
-Copia codice
+
 git checkout -b fix/<descrizione-breve>
 
 # Lavorare e commitare

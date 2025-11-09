@@ -34,19 +34,14 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 (aggiungi altre variabili se previste)
 
-Esegui le migrazioni (se applicabili):
 
-
-pnpm db:migrate
-(Facoltativo) Esegui lo seed del database:
-
-
-pnpm db:seed
 
 # Avvia il server in sviluppo:
 
+Da terminale 
 
 pnpm dev
+
 Visita http://localhost:3000 per vedere l’app in azione.
 
 Per il deploy (es. su Vercel):

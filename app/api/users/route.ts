@@ -45,6 +45,7 @@ export async function POST(req: Request) {
             firstName: body.firstName ?? '',
             lastName: body.lastName ?? '',
             email,
+            birthDate: body.birthDate ?? null,
             currentRole: body.currentRole ?? '',
             bio: body.bio ?? '',
             avatarUrl: body.avatarUrl ?? null,

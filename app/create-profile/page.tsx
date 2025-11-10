@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 export default function CreateProfile() {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
+    const [birthDate, setBirthDate] = useState('')
     const [currentRole, setCurrentRole] = useState('')
     const [email, setEmail] = useState('')
     const [bio, setBio] = useState('')
@@ -17,7 +18,7 @@ export default function CreateProfile() {
     }
 
     const submit = async () => {
-        const payload = { firstName, lastName, currentRole, bio, experiences, email }
+        const payload = { firstName, lastName, birthDate, currentRole, bio, experiences, email }
         const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         if (!res.ok) {
             if (res.status === 409) return alert('Questa email è già registrata')
@@ -37,6 +38,7 @@ export default function CreateProfile() {
             <div className="grid grid-cols-1 gap-3">
                 <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Nome" className="p-2 border rounded" />
                 <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Cognome" className="p-2 border rounded" />
+                <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} placeholder="Data di nascita" className="p-2 border rounded" />
                 <input value={currentRole} onChange={e => setCurrentRole(e.target.value)} placeholder="Ruolo attuale (es. Giocatore - Centrocampista)" className="p-2 border rounded" />
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="p-2 border rounded" />
                 <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Breve bio" className="p-2 border rounded" />

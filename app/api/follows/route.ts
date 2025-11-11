@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-export const runtime = 'node'
+export const runtime = 'nodejs'
 
 const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
 

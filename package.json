@@ -8,14 +8,18 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.0.18",
     "@prisma/client": "^5.19.0",
     "@supabase/supabase-js": "^2.45.0",
-    "@heroicons/react": "^2.0.18",
     "@tanstack/react-query": "^5.56.2",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
     "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -24,12 +28,14 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.0.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20.11.0",
     "@types/react": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "daisyui": "^3.1.3",
     "postcss": "^8.4.38",
     "prisma": "^5.19.0",
-    "daisyui": "^3.1.3",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4"

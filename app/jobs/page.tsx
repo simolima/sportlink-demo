@@ -274,8 +274,8 @@ export default function JobsPage() {
                             key={cat.value}
                             onClick={() => setSelectedCategory(cat.value)}
                             className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition ${selectedCategory === cat.value
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {cat.label}
@@ -297,15 +297,15 @@ export default function JobsPage() {
                         ) : (
                             filteredJobs.map(job => (
                                 <button
-                                  key={job.id}
-                                  onClick={() => setSelectedJobId(job.id)}
-                                  className={`w-full text-left bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 border ${String(selectedJobId) === String(job.id) ? 'border-blue-500' : 'border-transparent'}`}
+                                    key={job.id}
+                                    onClick={() => setSelectedJobId(job.id)}
+                                    className={`w-full text-left bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 border ${String(selectedJobId) === String(job.id) ? 'border-blue-500' : 'border-transparent'}`}
                                 >
                                     <div className="flex items-center gap-3 mb-1">
                                         <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${job.category === 'player' ? 'bg-blue-100 text-blue-700' :
-                                                job.category === 'coach' ? 'bg-green-100 text-green-700' :
-                                                    job.category === 'staff' ? 'bg-purple-100 text-purple-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                            job.category === 'coach' ? 'bg-green-100 text-green-700' :
+                                                job.category === 'staff' ? 'bg-purple-100 text-purple-700' :
+                                                    'bg-gray-100 text-gray-700'
                                             }`}>
                                             {CATEGORIES.find(c => c.value === job.category)?.label || job.category}
                                         </span>
@@ -363,9 +363,9 @@ export default function JobsPage() {
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedJob.category === 'player' ? 'bg-blue-100 text-blue-700' :
-                                                    selectedJob.category === 'coach' ? 'bg-green-100 text-green-700' :
-                                                        selectedJob.category === 'staff' ? 'bg-purple-100 text-purple-700' :
-                                                            'bg-gray-100 text-gray-700'
+                                                selectedJob.category === 'coach' ? 'bg-green-100 text-green-700' :
+                                                    selectedJob.category === 'staff' ? 'bg-purple-100 text-purple-700' :
+                                                        'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {CATEGORIES.find(c => c.value === selectedJob.category)?.label || selectedJob.category}
                                             </span>

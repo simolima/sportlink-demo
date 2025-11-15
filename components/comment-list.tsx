@@ -55,9 +55,9 @@ export default function CommentList({ postId, refreshKey }: CommentListProps) {
             {comments.map(comment => (
                 <div key={comment.id} className="flex gap-3">
                     <a
-                      href={`/profile/${comment.authorId}`}
-                      className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 ring-0 hover:ring-2 hover:ring-blue-400 transition"
-                      title="Vai al profilo"
+                        href={`/profile/${comment.authorId}`}
+                        className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 ring-0 hover:ring-2 hover:ring-blue-400 transition"
+                        title="Vai al profilo"
                     >
                         <UserCircleIcon className="w-6 h-6 text-gray-400" />
                     </a>

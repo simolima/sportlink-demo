@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
+import Avatar from './avatar'
 
 interface SharePostModalProps {
     postId: number
@@ -107,15 +108,17 @@ export default function SharePostModal({ postId, onClose, onShared }: SharePostM
                         <div
                             key={user.id}
                             onClick={() => setSelectedUserId(String(user.id))}
-                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition ${
-                                String(selectedUserId) === String(user.id)
-                                    ? 'bg-blue-100 border-2 border-blue-500'
-                                    : 'hover:bg-gray-100'
-                            }`}
+                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition ${String(selectedUserId) === String(user.id)
+                                ? 'bg-blue-100 border-2 border-blue-500'
+                                : 'hover:bg-gray-100'
+                                }`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-semibold">
-                                {(user.firstName?.[0] || 'U').toUpperCase()}
-                            </div>
+                            <Avatar
+                                src={user.avatarUrl}
+                                alt={`${user.firstName} ${user.lastName}`}
+                                size="md"
+                                fallbackText={user.firstName?.[0] || 'U'}
+                            />
                             <div className="flex-1">
                                 <p className="font-semibold text-gray-900">
                                     {user.firstName || ''} {user.lastName || ''}

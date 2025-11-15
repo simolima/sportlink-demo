@@ -1,12 +1,18 @@
 'use client'
-import { UserCircleIcon, PencilSquareIcon } from '@heroicons/react/24/outline'
+import { PencilSquareIcon } from '@heroicons/react/24/outline'
+import Avatar from './avatar'
 
 export default function ProfileHeader({ user }: { user: any }) {
+    console.log('ProfileHeader avatarUrl:', user?.avatarUrl)
     return (
         <div className="bg-white p-6 rounded shadow flex gap-6">
-            <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-                {user?.avatarUrl ? <img src={user.avatarUrl} className="w-full h-full object-cover" /> : <UserCircleIcon className="w-16 h-16 text-gray-400" />}
-            </div>
+            <Avatar
+                src={user?.avatarUrl}
+                alt={`${user?.firstName} ${user?.lastName}`}
+                size="xl"
+                fallbackText={user?.firstName?.[0] || 'U'}
+                className="w-28 h-28"
+            />
             <div className="flex-1">
                 <div className="flex justify-between items-start">
                     <div>

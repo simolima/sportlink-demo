@@ -3,6 +3,7 @@ import path from 'path'
 import FollowButton from '@/components/follow-button'
 import FollowStats from '@/components/follow-stats'
 import Link from 'next/link'
+import Avatar from '@/components/avatar'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
 const POSTS_PATH = path.join(process.cwd(), 'data', 'posts.json')
@@ -33,7 +34,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     return (
         <div className="max-w-5xl mx-auto p-6">
             <div className="bg-white p-6 rounded shadow flex gap-6">
-                <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden" />
+                <div>
+                    <Avatar
+                        src={user.avatarUrl}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        size="xl"
+                        fallbackText={user.firstName?.[0] || 'U'}
+                        className="w-28 h-28"
+                    />
+                </div>
                 <div className="flex-1">
                     <div className="flex justify-between">
                         <div>

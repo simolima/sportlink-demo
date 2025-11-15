@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { uploadService } from '@/lib/upload-service'
+import Avatar from '@/components/avatar'
+import { CameraIcon } from '@heroicons/react/24/outline'
 
 export default function CreateProfile() {
     const [firstName, setFirstName] = useState('')
@@ -10,6 +13,9 @@ export default function CreateProfile() {
     const [email, setEmail] = useState('')
     const [bio, setBio] = useState('')
     const [experiences, setExperiences] = useState([{ title: '', company: '', from: '', to: '' }])
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+    const [uploading, setUploading] = useState(false)
     const router = useRouter()
 
     const addExp = () => setExperiences(s => [...s, { title: '', company: '', from: '', to: '' }])
@@ -17,19 +23,85 @@ export default function CreateProfile() {
         setExperiences(s => s.map((e, idx) => idx === i ? { ...e, [field]: value } : e))
     }
 
-    const submit = async () => {
-        const payload = { firstName, lastName, birthDate, currentRole, bio, experiences, email }
-        const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        if (!res.ok) {
-            if (res.status === 409) return alert('Questa email è già registrata')
-            return alert('Errore creazione profilo')
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file')
+                return
+            }
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size must be less than 5MB')
+                return
+            }
+            setAvatarFile(file)
+            // Create preview
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
         }
-        const user = await res.json()
-        // save small auth in localStorage for demo
-        localStorage.setItem('currentUserId', String(user.id))
-        localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
-        localStorage.setItem('currentUserEmail', String(user.email ?? ''))
-        router.push('/')
+    }
+
+    const submit = async () => {
+        setUploading(true)
+        try {
+            // Upload avatar first if selected
+            let avatarUrl = null
+            if (avatarFile) {
+                const result = await uploadService.uploadFile(avatarFile, 'avatars')
+                if (result.success) {
+                    avatarUrl = result.url
+                } else {
+                    alert('Errore durante upload immagine: ' + result.error)
+                    setUploading(false)
+                    return
+                }
+            }
+
+            // Create user profile with avatar URL
+            const payload = {
+                firstName,
+                lastName,
+                birthDate,
+                currentRole,
+                bio,
+                experiences,
+                email,
+                avatarUrl
+            }
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            if (!res.ok) {
+                if (res.status === 409) {
+                    alert('Questa email è già registrata')
+                    setUploading(false)
+                    return
+                }
+                alert('Errore creazione profilo')
+                setUploading(false)
+                return
+            }
+            const user = await res.json()
+            // save small auth in localStorage for demo
+            localStorage.setItem('currentUserId', String(user.id))
+            localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
+            localStorage.setItem('currentUserEmail', String(user.email ?? ''))
+            if (user.avatarUrl) {
+                localStorage.setItem('currentUserAvatar', user.avatarUrl)
+            }
+            router.push('/')
+        } catch (error) {
+            console.error('Error creating profile:', error)
+            alert('Errore durante la creazione del profilo')
+            setUploading(false)
+        }
     }
 
     return (
@@ -38,6 +110,35 @@ export default function CreateProfile() {
                 <div className="w-full">
                     <div className="bg-white rounded-lg shadow-lg p-6">
                         <h1 className="text-2xl font-semibold mb-4">Crea il tuo profilo</h1>
+
+                        {/* Avatar upload section */}
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="relative">
+                                <Avatar
+                                    src={avatarPreview}
+                                    alt="Profile preview"
+                                    size="xl"
+                                    fallbackText={firstName?.[0] || '?'}
+                                />
+                                <label
+                                    htmlFor="avatar-upload"
+                                    className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
+                                >
+                                    <CameraIcon className="w-4 h-4" />
+                                </label>
+                                <input
+                                    id="avatar-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
+                            </div>
+                            <p className="text-sm text-gray-500 mt-2">
+                                {avatarFile ? avatarFile.name : 'Clicca per aggiungere una foto profilo'}
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 gap-3">
                             <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Nome" className="w-full p-3 border rounded" />
                             <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Cognome" className="w-full p-3 border rounded" />
@@ -63,8 +164,20 @@ export default function CreateProfile() {
                             </div>
 
                             <div className="flex gap-2 mt-4">
-                                <button onClick={submit} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Crea profilo</button>
-                                <button onClick={() => router.push('/')} className="px-4 py-2 border rounded">Annulla</button>
+                                <button
+                                    onClick={submit}
+                                    disabled={uploading}
+                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition"
+                                >
+                                    {uploading ? 'Caricamento...' : 'Crea profilo'}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/')}
+                                    disabled={uploading}
+                                    className="px-4 py-2 border rounded disabled:opacity-50"
+                                >
+                                    Annulla
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -79,8 +79,8 @@ export default function ProfilePage() {
                         {/* Profile Info - Overlapping Avatar */}
                         <div className="flex items-end gap-6 -mt-24 mb-6 pb-6 border-b">
                             <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
-                                {user.profilePhoto ? (
-                                    <img src={user.profilePhoto} alt={user.firstName} className="w-full h-full object-cover" />
+                                {user.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
                                 ) : (
                                     <UserCircleIcon className="w-20 h-20 text-gray-400" />
                                 )}

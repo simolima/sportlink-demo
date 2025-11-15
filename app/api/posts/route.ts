@@ -23,6 +23,17 @@ function readPosts() {
     }
 }
 
+function readUsers() {
+    const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
+    if (!fs.existsSync(USERS_PATH)) return []
+    try {
+        const raw = fs.readFileSync(USERS_PATH, 'utf8')
+        return JSON.parse(raw || '[]')
+    } catch (e) {
+        return []
+    }
+}
+
 function writePosts(posts: any[]) {
     ensureFile()
     fs.writeFileSync(POSTS_PATH, JSON.stringify(posts, null, 2))
@@ -30,7 +41,18 @@ function writePosts(posts: any[]) {
 
 export async function GET() {
     const posts = readPosts()
-    return NextResponse.json(posts)
+    const users = readUsers()
+
+    // Enrich posts with author avatar
+    const enrichedPosts = posts.map((post: any) => {
+        const author = users.find((u: any) => String(u.id) === String(post.authorId))
+        return {
+            ...post,
+            authorAvatar: author?.avatarUrl || null
+        }
+    })
+
+    return NextResponse.json(enrichedPosts)
 }
 
 export async function POST(req: Request) {

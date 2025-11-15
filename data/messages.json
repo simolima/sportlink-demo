@@ -48,5 +48,14 @@
     "text": "ciao",
     "timestamp": "2025-11-15T19:48:00.305Z",
     "read": true
+  },
+  {
+    "id": 1763236856816,
+    "senderId": "1763208207090",
+    "receiverId": "1763232355493",
+    "text": "[Post condiviso]",
+    "timestamp": "2025-11-15T20:00:56.816Z",
+    "read": false,
+    "sharedPostId": 1763236828106
   }
 ]

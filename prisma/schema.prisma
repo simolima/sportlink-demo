@@ -86,28 +86,4 @@ model Agent {
   profile   Profile   @relation(fields: [profileId], references: [id])
 }
 
-model Need {
-  id        String   @id @default(uuid())
-  ownerType String
-  ownerId   String
-  sport     String
-  position  String?
-  ageMin    Int?
-  ageMax    Int?
-  level     String?
-  location  String?
-  createdAt DateTime @default(now())
-}
-
-model MatchSuggestion {
-  id        String   @id @default(uuid())
-  needId    String
-  athleteId String
-  score     Int
-  why       Json
-  createdAt DateTime @default(now())
-
-  @@index([needId])
-}
-
 

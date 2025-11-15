@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import FollowButton from '@/components/follow-button'
+import FollowStats from '@/components/follow-stats'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
 const POSTS_PATH = path.join(process.cwd(), 'data', 'posts.json')
@@ -21,7 +22,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     if (!user) return (<div className="max-w-3xl mx-auto p-6">Utente non trovato</div>)
 
     const userPosts = posts.filter((p: any) => p.authorId === id)
-    const followers = follows.filter((f: any) => f.followeeId === id).length
+    // Updated field names: followers are entries where followingId === id.
+    const followers = follows.filter((f: any) => f.followingId === id).length
     const following = follows.filter((f: any) => f.followerId === id).length
 
     return (
@@ -35,13 +37,12 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             <div className="text-sm text-gray-600">{user.currentRole}</div>
                             <div className="text-sm text-gray-500 mt-1">{user.email}</div>
                             <div className="text-sm text-gray-700 mt-3">{user.bio}</div>
-                            <div className="flex gap-4 text-sm text-gray-600 mt-3">
-                                <div>{followers} follower</div>
-                                <div>{following} following</div>
+                            <div className="mt-3">
+                                <FollowStats userId={id} />
                             </div>
                         </div>
                         <div>
-                            <FollowButton authorId={id} />
+                            <FollowButton targetId={id} />
                         </div>
                     </div>
                     <div className="mt-4">

@@ -1,19 +1,14 @@
 import "./globals.css";
-import Link from "next/link";
+import Navbar from '@/components/navbar';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <header className="border-b">
-          <nav className="mx-auto max-w-5xl p-4 flex gap-6">
-            <Link href="/" className="font-semibold">ALMA Sport</Link>
-            <div className="ml-auto flex gap-4">
-              <Link href="/search">Search</Link>
-              <Link href="/needs">Needs</Link>
-            </div>
-          </nav>
+    <html lang="it">
+      <body className="bg-gray-50">
+        <header>
+          <Navbar />
         </header>
-        <main className="mx-auto max-w-5xl p-6">{children}</main>
+        <main className="min-h-screen">{children}</main>
       </body>
     </html>
   );

@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": 1763211683209,
+    "content": "Ma quanta è bella l'aria fresca!",
+    "imageUrl": null,
+    "authorName": "Test icolo",
+    "authorId": 1763211292551,
+    "createdAt": "2025-11-15T13:01:23.209Z"
+  },
+  {
+    "id": 1763210046999,
+    "content": "Hello world!",
+    "imageUrl": null,
+    "authorName": "Simone Lima",
+    "authorId": 1763208207090,
+    "createdAt": "2025-11-15T12:34:06.999Z"
+  },
+  {
+    "id": 1763208400544,
+    "content": "Questo è il primo post di un sito che cambierà il mondo! Un gruppo di 4 founder sta iniziando qualcosa di epico",
+    "imageUrl": null,
+    "authorName": "Simone Lima",
+    "authorId": 1763208207090,
+    "createdAt": "2025-11-15T12:06:40.544Z"
+  }
+]

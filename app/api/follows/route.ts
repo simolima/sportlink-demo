@@ -1,3 +1,4 @@
+// Clean, single implementation of follow/unfollow API.
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
@@ -19,36 +20,73 @@ function readFollows() {
     try { return JSON.parse(raw || '[]') } catch { return [] }
 }
 
-function writeFollows(items: any[]) {
+function writeFollows(follows: any[]) {
     ensureFile()
-    fs.writeFileSync(FOLLOWS_PATH, JSON.stringify(items, null, 2))
+    fs.writeFileSync(FOLLOWS_PATH, JSON.stringify(follows, null, 2))
 }
 
-export async function GET() {
-    const items = readFollows()
-    return NextResponse.json(items)
+// GET /api/follows?followerId=XXX | followingId=YYY
+export async function GET(req: Request) {
+    const url = new URL(req.url)
+    const followerId = url.searchParams.get('followerId')
+    const followingId = url.searchParams.get('followingId')
+    const follows = readFollows()
+
+    if (followerId) {
+        return NextResponse.json(follows.filter((f: any) => String(f.followerId) === String(followerId)))
+    }
+    if (followingId) {
+        return NextResponse.json(follows.filter((f: any) => String(f.followingId) === String(followingId)))
+    }
+    return NextResponse.json(follows)
 }
 
+// POST body: { followerId, followingId } -> create follow (no toggle here; use DELETE to unfollow)
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-        const followerId = body.followerId
-        const followeeId = body.followeeId
-        if (!followerId || !followeeId) return NextResponse.json({ error: 'missing ids' }, { status: 400 })
-
-        const items = readFollows()
-        const exists = items.find((it: any) => it.followerId === followerId && it.followeeId === followeeId)
-        if (exists) {
-            // unfollow
-            const updated = items.filter((it: any) => !(it.followerId === followerId && it.followeeId === followeeId))
-            writeFollows(updated)
-            return NextResponse.json({ action: 'unfollow' })
-        } else {
-            items.push({ id: Date.now(), followerId, followeeId, createdAt: new Date().toISOString() })
-            writeFollows(items)
-            return NextResponse.json({ action: 'follow' })
+        const followerId = body.followerId?.toString().trim()
+        const followingId = body.followingId?.toString().trim()
+        if (!followerId || !followingId) {
+            return NextResponse.json({ error: 'followerId_and_followingId_required' }, { status: 400 })
         }
+        if (followerId === followingId) {
+            return NextResponse.json({ error: 'cannot_follow_self' }, { status: 400 })
+        }
+
+        const follows = readFollows()
+        const exists = follows.find((f: any) => f.followerId === followerId && f.followingId === followingId)
+        if (exists) {
+            return NextResponse.json({ error: 'already_following' }, { status: 409 })
+        }
+        const newFollow = { id: Date.now(), followerId, followingId, createdAt: new Date().toISOString() }
+        follows.unshift(newFollow)
+        writeFollows(follows)
+        return NextResponse.json(newFollow, { status: 201 })
     } catch (err) {
-        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+        return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
+    }
+}
+
+// DELETE body: { followerId, followingId }
+export async function DELETE(req: Request) {
+    try {
+        const body = await req.json()
+        const followerId = body.followerId?.toString().trim()
+        const followingId = body.followingId?.toString().trim()
+        if (!followerId || !followingId) {
+            return NextResponse.json({ error: 'followerId_and_followingId_required' }, { status: 400 })
+        }
+        let follows = readFollows()
+        const before = follows.length
+        follows = follows.filter((f: any) => !(f.followerId === followerId && f.followingId === followingId))
+        writeFollows(follows)
+        const removed = before - follows.length
+        if (!removed) {
+            return NextResponse.json({ removed: 0, warning: 'relation_not_found' }, { status: 404 })
+        }
+        return NextResponse.json({ removed })
+    } catch (err) {
+        return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
     }
 }

@@ -1,10 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+
+import { useCallback } from 'react'
 import { HeartIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import FollowButton from './follow-button'
 import CommentComposer from './comment-composer'
 import CommentList from './comment-list'
+import { getCommentCount } from '@/lib/comment-count'
 
 export default function PostCard({ post }: { post: any }) {
     const author = post.authorName || post.author || `User ${post.authorId}`
@@ -13,21 +16,25 @@ export default function PostCard({ post }: { post: any }) {
 
     const [showComments, setShowComments] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
+    const [commentCount, setCommentCount] = useState<number>(0)
+
+    const fetchCommentCount = useCallback(async () => {
+        const count = await getCommentCount(post.id)
+        setCommentCount(count)
+    }, [post.id])
 
     // Like state
     const [isLiked, setIsLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(0)
     const [likeLoading, setLikeLoading] = useState(false)
 
-    // Carica lo stato dei like al mount
+    // Carica lo stato dei like e dei commenti al mount/refresh
     useEffect(() => {
         const fetchLikes = async () => {
             try {
                 const res = await fetch(`/api/likes?postId=${post.id}`)
                 const data = await res.json()
                 setLikeCount(data.count || 0)
-
-                // Controlla se l'utente corrente ha già messo like
                 if (currentUserId && data.likes) {
                     const userLiked = data.likes.some((l: any) => String(l.userId) === String(currentUserId))
                     setIsLiked(userLiked)
@@ -37,7 +44,8 @@ export default function PostCard({ post }: { post: any }) {
             }
         }
         fetchLikes()
-    }, [post.id, currentUserId])
+        fetchCommentCount()
+    }, [post.id, currentUserId, fetchCommentCount, refreshKey])
 
     const toggleLike = async () => {
         if (!currentUserId) {
@@ -92,8 +100,7 @@ export default function PostCard({ post }: { post: any }) {
                 <button
                     onClick={toggleLike}
                     disabled={likeLoading}
-                    className={`flex items-center gap-2 text-sm transition ${isLiked ? 'text-red-500 font-semibold' : 'text-gray-600 hover:text-red-500'
-                        }`}
+                    className={`flex items-center gap-2 text-sm transition ${isLiked ? 'text-red-500 font-semibold' : 'text-gray-600 hover:text-red-500'}`}
                 >
                     {isLiked ? (
                         <HeartIconSolid className="w-5 h-5" />
@@ -109,6 +116,7 @@ export default function PostCard({ post }: { post: any }) {
                 >
                     <ChatBubbleLeftRightIcon className="w-5 h-5" />
                     <span>Commenta</span>
+                    {commentCount > 0 && <span className="text-xs">({commentCount})</span>}
                 </button>
             </div>
 

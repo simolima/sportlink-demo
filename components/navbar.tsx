@@ -8,12 +8,34 @@ const LogoutButton = dynamic(() => import('./logout-button'), { ssr: false })
 export default function Navbar() {
     const [loggedIn, setLoggedIn] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(0)
 
     useEffect(() => {
         if (typeof window === 'undefined') return
-        setLoggedIn(Boolean(localStorage.getItem('currentUserId')))
+        const id = localStorage.getItem('currentUserId')
+        setLoggedIn(Boolean(id))
         setIsLoaded(true)
     }, [])
+
+    useEffect(() => {
+        if (!loggedIn) return
+        const fetchUnread = async () => {
+            try {
+                const id = localStorage.getItem('currentUserId')
+                if (!id) return
+                const res = await fetch(`/api/messages?userId=${id}`)
+                const data = await res.json()
+                // data: array conversazioni { peerId, lastMessage, unread }
+                const total = data.reduce((sum: number, c: any) => sum + (c.unread || 0), 0)
+                setUnreadCount(total)
+            } catch (e) {
+                // silenzioso
+            }
+        }
+        fetchUnread()
+        const interval = setInterval(fetchUnread, 15000)
+        return () => clearInterval(interval)
+    }, [loggedIn])
 
     if (!isLoaded) return null
 
@@ -27,6 +49,12 @@ export default function Navbar() {
                             <Link href="/home" className="text-sm text-gray-600 hover:text-gray-900 transition">Feed</Link>
                             <Link href="/people" className="text-sm text-gray-600 hover:text-gray-900 transition">Scopri</Link>
                             <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900 transition">Lavoro</Link>
+                            <Link href="/messages" className="relative text-sm text-gray-600 hover:text-gray-900 transition">
+                                Messaggi
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                                )}
+                            </Link>
                             <Link href="/profile" className="text-sm text-gray-600 hover:text-gray-900 transition">Profilo</Link>
                             <LogoutButton />
                         </>

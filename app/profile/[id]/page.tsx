@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import FollowButton from '@/components/follow-button'
 import FollowStats from '@/components/follow-stats'
+import Link from 'next/link'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
 const POSTS_PATH = path.join(process.cwd(), 'data', 'posts.json')
@@ -26,6 +27,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     const followers = follows.filter((f: any) => f.followingId === id).length
     const following = follows.filter((f: any) => f.followerId === id).length
 
+    const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('currentUserId') : null
+    const isOwn = currentUserId && String(currentUserId) === String(user.id)
+
     return (
         <div className="max-w-5xl mx-auto p-6">
             <div className="bg-white p-6 rounded shadow flex gap-6">
@@ -41,8 +45,11 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 <FollowStats userId={id} />
                             </div>
                         </div>
-                        <div>
-                            <FollowButton targetId={id} />
+                        <div className="flex flex-col items-end gap-2">
+                            {!isOwn && <FollowButton targetId={id} />}
+                            {!isOwn && (
+                                <Link href={`/messages/${id}`} className="text-xs px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 transition">Messaggia</Link>
+                            )}
                         </div>
                     </div>
                     <div className="mt-4">

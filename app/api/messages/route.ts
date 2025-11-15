@@ -80,20 +80,21 @@ export async function GET(req: Request) {
 }
 
 // POST /api/messages
-// Body: { senderId, receiverId, text }
+// Body: { senderId, receiverId, text, sharedPostId? }
 export async function POST(req: Request) {
     try {
         const body = await req.json()
         const senderId = normalizeId(body.senderId)
         const receiverId = normalizeId(body.receiverId)
         const text = (body.text || '').toString().trim()
+        const sharedPostId = body.sharedPostId ? Number(body.sharedPostId) : undefined
 
         if (!senderId || !receiverId || !text) {
             return NextResponse.json({ error: 'senderId, receiverId, text required' }, { status: 400 })
         }
 
         const messages = readMessages()
-        const newMessage = {
+        const newMessage: any = {
             id: Date.now(),
             senderId,
             receiverId,
@@ -101,6 +102,12 @@ export async function POST(req: Request) {
             timestamp: new Date().toISOString(),
             read: false
         }
+
+        // Add sharedPostId if provided
+        if (sharedPostId !== undefined) {
+            newMessage.sharedPostId = sharedPostId
+        }
+
         messages.push(newMessage)
         writeMessages(messages)
         return NextResponse.json(newMessage, { status: 201 })

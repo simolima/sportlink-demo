@@ -5,6 +5,40 @@
     "receiverId": "1763211292551",
     "text": "Ciao bello complimenti!",
     "timestamp": "2025-11-15T16:17:32.821Z",
-    "read": false
+    "read": true
+  },
+  {
+    "id": 1763225473760,
+    "senderId": "1763208207090",
+    "receiverId": "1763211292551",
+    "text": "Com'è andata la galera?",
+    "timestamp": "2025-11-15T16:51:13.760Z",
+    "read": true
+  },
+  {
+    "id": 1763225676537,
+    "senderId": "1763211292551",
+    "receiverId": "1763208207090",
+    "text": "tutto bene dai grazie",
+    "timestamp": "2025-11-15T16:54:36.537Z",
+    "read": true
+  },
+  {
+    "id": 1763232166160,
+    "senderId": "1763208207090",
+    "receiverId": "1763211292551",
+    "text": "[Post condiviso]",
+    "timestamp": "2025-11-15T18:42:46.160Z",
+    "read": false,
+    "sharedPostId": 1763211683209
+  },
+  {
+    "id": 1763232438200,
+    "senderId": "1763232355493",
+    "receiverId": "1763211292551",
+    "text": "[Post condiviso]",
+    "timestamp": "2025-11-15T18:47:18.200Z",
+    "read": false,
+    "sharedPostId": 1763210046999
   }
 ]

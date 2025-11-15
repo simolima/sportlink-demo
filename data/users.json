@@ -1,5 +1,24 @@
 [
   {
+    "id": 1763232355493,
+    "firstName": "Marco",
+    "lastName": "Gregorio",
+    "email": "marco.gregorio1997@gmail.com",
+    "birthDate": "1997-08-04",
+    "currentRole": "Difensore",
+    "bio": "Terzino di spinta ambidestro con preferenza a giocare a destra",
+    "avatarUrl": null,
+    "experiences": [
+      {
+        "title": "Terzino DX",
+        "company": "Basiglio",
+        "from": "2006",
+        "to": "2013"
+      }
+    ],
+    "createdAt": "2025-11-15T18:45:55.493Z"
+  },
+  {
     "id": 1763211292551,
     "firstName": "Test",
     "lastName": "icolo",

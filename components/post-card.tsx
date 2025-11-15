@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react'
 
 import { useCallback } from 'react'
-import { HeartIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import { HeartIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import FollowButton from './follow-button'
 import CommentComposer from './comment-composer'
 import CommentList from './comment-list'
+import SharePostModal from './share-post-modal'
 import { getCommentCount } from '@/lib/comment-count'
 
 export default function PostCard({ post }: { post: any }) {
@@ -17,6 +18,7 @@ export default function PostCard({ post }: { post: any }) {
     const [showComments, setShowComments] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
     const [commentCount, setCommentCount] = useState<number>(0)
+    const [showShareModal, setShowShareModal] = useState(false)
 
     const fetchCommentCount = useCallback(async () => {
         const count = await getCommentCount(post.id)
@@ -118,6 +120,13 @@ export default function PostCard({ post }: { post: any }) {
                     <span>Commenta</span>
                     {commentCount > 0 && <span className="text-xs">({commentCount})</span>}
                 </button>
+                <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-500 transition"
+                >
+                    <PaperAirplaneIcon className="w-5 h-5" />
+                    <span>Condividi</span>
+                </button>
             </div>
 
             {/* Comments section */}
@@ -132,6 +141,18 @@ export default function PostCard({ post }: { post: any }) {
                         refreshKey={refreshKey}
                     />
                 </div>
+            )}
+
+            {/* Share modal */}
+            {showShareModal && (
+                <SharePostModal
+                    postId={post.id}
+                    onClose={() => setShowShareModal(false)}
+                    onShared={() => {
+                        alert('Post condiviso con successo!')
+                        setShowShareModal(false)
+                    }}
+                />
             )}
         </article>
     )

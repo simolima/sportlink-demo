@@ -5,6 +5,7 @@ import path from 'path'
 export const runtime = 'nodejs'
 
 const JOBS_PATH = path.join(process.cwd(), 'data', 'jobs.json')
+const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
 
 function ensureFile() {
     if (!fs.existsSync(JOBS_PATH)) {
@@ -22,6 +23,11 @@ function readJobs() {
 function writeJobs(jobs: any[]) {
     ensureFile()
     fs.writeFileSync(JOBS_PATH, JSON.stringify(jobs, null, 2))
+}
+
+function readUsers() {
+    if (!fs.existsSync(USERS_PATH)) return []
+    try { return JSON.parse(fs.readFileSync(USERS_PATH, 'utf8') || '[]') } catch { return [] }
 }
 
 export async function GET(req: Request) {
@@ -59,13 +65,66 @@ export async function POST(req: Request) {
             authorName: authorName || 'Utente',
             contactEmail: contactEmail || null,
             createdAt: new Date().toISOString(),
-            active: true
+            active: true,
+            applications: []
         }
 
         jobs.unshift(newJob)
         writeJobs(jobs)
 
         return NextResponse.json(newJob, { status: 201 })
+    } catch (err) {
+        return NextResponse.json({ error: 'invalid request' }, { status: 400 })
+    }
+}
+
+// PATCH actions:
+// - Apply to job: { action: 'apply', jobId, applicantId }
+//   Will append application with profile data to job.applications
+// - Send message: { action: 'message', jobId, fromUserId, text }
+//   Will append a message to job.messages
+export async function PATCH(req: Request) {
+    try {
+        const body = await req.json()
+        const { action } = body || {}
+        if (!action) return NextResponse.json({ error: 'action required' }, { status: 400 })
+
+        const jobs = readJobs()
+        const jobId = body.jobId
+        if (!jobId) return NextResponse.json({ error: 'jobId required' }, { status: 400 })
+        const job = jobs.find((j: any) => String(j.id) === String(jobId))
+        if (!job) return NextResponse.json({ error: 'job not found' }, { status: 404 })
+
+        if (action === 'apply') {
+            const applicantId = body.applicantId
+            if (!applicantId) return NextResponse.json({ error: 'applicantId required' }, { status: 400 })
+
+            job.applications = Array.isArray(job.applications) ? job.applications : []
+            const already = job.applications.find((a: any) => String(a.applicantId) === String(applicantId))
+            if (already) {
+                return NextResponse.json({ error: 'already_applied' }, { status: 409 })
+            }
+
+            const users = readUsers()
+            const user = users.find((u: any) => String(u.id) === String(applicantId))
+            const applicantName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || (user.username ?? 'Utente') : 'Utente'
+            const application = {
+                id: Date.now(),
+                applicantId: String(applicantId),
+                applicantName,
+                applicantEmail: user?.email ?? null,
+                profileBio: user?.bio ?? null,
+                experiences: Array.isArray(user?.experiences) ? user.experiences : [],
+                createdAt: new Date().toISOString()
+            }
+            job.applications.unshift(application)
+            writeJobs(jobs)
+            return NextResponse.json({ ok: true, job })
+        }
+
+        // no job-level chat; chat will be implemented separately between users
+
+        return NextResponse.json({ error: 'unknown action' }, { status: 400 })
     } catch (err) {
         return NextResponse.json({ error: 'invalid request' }, { status: 400 })
     }

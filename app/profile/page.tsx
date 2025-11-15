@@ -98,7 +98,7 @@ export default function ProfilePage() {
                                 ) : (
                                     <>
                                         <button
-                                            onClick={() => router.push('/create-profile')}
+                                            onClick={() => router.push('/profile/edit')}
                                             className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-semibold"
                                         >
                                             <PencilSquareIcon className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function ProfilePage() {
                             <div className="text-center py-8 text-gray-500">
                                 <p>Nessuna esperienza registrata</p>
                                 <button
-                                    onClick={() => router.push('/create-profile')}
+                                    onClick={() => router.push('/profile/edit')}
                                     className="text-blue-600 hover:text-blue-700 font-semibold mt-2"
                                 >
                                     Aggiungi esperienze

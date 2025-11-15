@@ -59,3 +59,35 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'invalid body' }, { status: 400 })
     }
 }
+
+export async function PATCH(req: Request) {
+    try {
+        const body = await req.json()
+        const id = body.id ?? null
+        if (!id) return NextResponse.json({ error: 'id_required' }, { status: 400 })
+
+        const users = readUsers()
+        const idx = users.findIndex((u: any) => String(u.id) === String(id))
+        if (idx === -1) return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
+        const current = users[idx]
+        const updated = {
+            ...current,
+            firstName: body.firstName ?? current.firstName,
+            lastName: body.lastName ?? current.lastName,
+            email: body.email ?? current.email,
+            birthDate: body.birthDate ?? current.birthDate,
+            currentRole: body.currentRole ?? current.currentRole,
+            bio: body.bio ?? current.bio,
+            avatarUrl: body.avatarUrl ?? current.avatarUrl,
+            username: body.username ?? current.username,
+            experiences: Array.isArray(body.experiences) ? body.experiences : current.experiences,
+            updatedAt: new Date().toISOString(),
+        }
+        users[idx] = updated
+        writeUsers(users)
+        return NextResponse.json(updated)
+    } catch (err) {
+        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+    }
+}

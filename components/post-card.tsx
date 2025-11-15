@@ -8,6 +8,7 @@ import FollowButton from './follow-button'
 import CommentComposer from './comment-composer'
 import CommentList from './comment-list'
 import SharePostModal from './share-post-modal'
+import Avatar from './avatar'
 import { getCommentCount } from '@/lib/comment-count'
 
 export default function PostCard({ post }: { post: any }) {
@@ -80,12 +81,20 @@ export default function PostCard({ post }: { post: any }) {
     return (
         <article className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <a href={`/profile/${post.authorId}`} className="font-semibold text-gray-900 hover:underline">
-                            {author}
-                        </a>
-                        <div className="text-sm text-gray-500">{date}</div>
+                <div className="flex items-start gap-3">
+                    <Avatar
+                        src={post.authorAvatar}
+                        alt={author}
+                        size="md"
+                        fallbackText={author[0] || 'U'}
+                    />
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <a href={`/profile/${post.authorId}`} className="font-semibold text-gray-900 hover:underline">
+                                {author}
+                            </a>
+                            <div className="text-sm text-gray-500">{date}</div>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 text-gray-500">

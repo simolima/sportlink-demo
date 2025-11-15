@@ -1,5 +1,27 @@
 [
   {
+    "id": 1763234670470,
+    "firstName": "Feno",
+    "lastName": "Meno",
+    "email": "feno.meno@mail.it",
+    "birthDate": "2007-10-09",
+    "currentRole": "Attaccante",
+    "bio": "o fenomeno",
+    "avatarUrl": "/avatars/1763234670360-pmo32d.png",
+    "experiences": [
+      {
+        "title": "Attaccante",
+        "company": "Brasile",
+        "from": "2020",
+        "to": "",
+        "description": "fortissimo"
+      }
+    ],
+    "createdAt": "2025-11-15T19:24:30.470Z",
+    "username": "",
+    "updatedAt": "2025-11-15T19:41:14.023Z"
+  },
+  {
     "id": 1763232355493,
     "firstName": "Marco",
     "lastName": "Gregorio",

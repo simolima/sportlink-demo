@@ -1,12 +1,17 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { uploadService } from '@/lib/upload-service'
+import Avatar from '@/components/avatar'
+import { CameraIcon } from '@heroicons/react/24/outline'
 
 export default function EditProfilePage() {
     const router = useRouter()
     const [userId, setUserId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
     const [form, setForm] = useState<any>({
         firstName: '',
         lastName: '',
@@ -59,6 +64,26 @@ export default function EditProfilePage() {
     const removeExp = (i: number) => updateField('experiences', form.experiences.filter((_: any, idx: number) => idx !== i))
     const editExp = (i: number, k: string, v: any) => updateField('experiences', form.experiences.map((e: any, idx: number) => idx === i ? { ...e, [k]: v } : e))
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file')
+                return
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size must be less than 5MB')
+                return
+            }
+            setAvatarFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
     const save = async () => {
         if (!userId) return
         if (!form.firstName.trim() || !form.lastName.trim()) {
@@ -67,10 +92,23 @@ export default function EditProfilePage() {
         }
         setSaving(true)
         try {
+            // Upload new avatar if selected
+            let avatarUrl = form.avatarUrl
+            if (avatarFile) {
+                const result = await uploadService.uploadFile(avatarFile, 'avatars')
+                if (result.success) {
+                    avatarUrl = result.url
+                } else {
+                    alert('Errore durante upload immagine: ' + result.error)
+                    setSaving(false)
+                    return
+                }
+            }
+
             const res = await fetch('/api/users', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: userId, ...form })
+                body: JSON.stringify({ id: userId, ...form, avatarUrl })
             })
             if (res.ok) {
                 const updated = await res.json()
@@ -78,6 +116,9 @@ export default function EditProfilePage() {
                 localStorage.setItem('currentUserName', `${updated.firstName ?? ''} ${updated.lastName ?? ''}`.trim())
                 localStorage.setItem('currentUserUsername', updated.username ?? '')
                 localStorage.setItem('currentUserEmail', updated.email ?? '')
+                if (updated.avatarUrl) {
+                    localStorage.setItem('currentUserAvatar', updated.avatarUrl)
+                }
                 router.push(`/profile/${updated.id}`)
             } else {
                 const e = await res.json()
@@ -94,6 +135,35 @@ export default function EditProfilePage() {
         <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">Modifica profilo</h1>
             <div className="space-y-4 bg-white p-6 rounded shadow">
+                {/* Avatar upload section */}
+                <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                        <Avatar
+                            src={avatarPreview || form.avatarUrl}
+                            alt="Profile preview"
+                            size="xl"
+                            fallbackText={form.firstName?.[0] || '?'}
+                            className="w-28 h-28"
+                        />
+                        <label
+                            htmlFor="avatar-upload-edit"
+                            className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
+                        >
+                            <CameraIcon className="w-4 h-4" />
+                        </label>
+                        <input
+                            id="avatar-upload-edit"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            className="hidden"
+                        />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                        {avatarFile ? `Nuova foto: ${avatarFile.name}` : 'Clicca per cambiare foto profilo'}
+                    </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm text-gray-600 mb-1">Nome</label>
@@ -123,10 +193,6 @@ export default function EditProfilePage() {
                 <div>
                     <label className="block text-sm text-gray-600 mb-1">Bio</label>
                     <textarea className="w-full border p-2 rounded" rows={4} value={form.bio} onChange={e => updateField('bio', e.target.value)} />
-                </div>
-                <div>
-                    <label className="block text-sm text-gray-600 mb-1">Avatar URL</label>
-                    <input className="w-full border p-2 rounded" value={form.avatarUrl} onChange={e => updateField('avatarUrl', e.target.value)} placeholder="https://..." />
                 </div>
                 <div>
                     <div className="flex items-center justify-between mb-2">

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
 
 export default function PeoplePage() {
@@ -97,14 +98,16 @@ export default function PeoplePage() {
                                 <div className="flex items-start gap-4">
                                     {/* Avatar */}
                                     <div
-                                        className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer"
+                                        className="cursor-pointer"
                                         onClick={() => router.push(`/profile/${user.id}`)}
                                     >
-                                        {user.profilePhoto ? (
-                                            <img src={user.profilePhoto} alt={user.firstName} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <UserCircleIcon className="w-10 h-10 text-gray-400" />
-                                        )}
+                                        <Avatar
+                                            src={user.avatarUrl}
+                                            alt={`${user.firstName} ${user.lastName}`}
+                                            size="lg"
+                                            fallbackText={user.firstName?.[0] || 'U'}
+                                            className="w-16 h-16"
+                                        />
                                     </div>
 
                                     {/* User info */}

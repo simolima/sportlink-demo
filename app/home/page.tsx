@@ -33,7 +33,7 @@ export default function HomePage() {
                 const currentUser = (users || []).find((u: any) => String(u.id) === String(id))
                 if (currentUser) {
                     setUserRole(currentUser.currentRole)
-                    setUserPhoto(currentUser.profilePhoto)
+                    setUserPhoto(currentUser.avatarUrl)
                 }
             } catch (e) {
                 console.error('Error fetching user:', e)

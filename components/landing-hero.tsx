@@ -16,17 +16,14 @@ export default function LandingHero() {
                     Trova compagni di allenamento, scopri opportunità e condividi la tua passione per lo sport.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-                    <Link href="/create-profile" className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg">
-                        Crea Account
-                    </Link>
+                <div className="flex flex-col items-center gap-4 justify-center mt-10">
                     <Link href="/login" className="px-8 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 transition border-2 border-white">
                         Accedi
                     </Link>
                 </div>
 
-                <div className="mt-12 text-blue-100 text-sm">
-                    <p>Giá membro? <Link href="/login" className="underline hover:text-white transition">Accedi qui</Link></p>
+                <div className="mt-6 text-blue-100 text-sm">
+                    <p>Non sei ancora registrato? <Link href="/create-profile" className="underline hover:text-white transition">Crea Account</Link></p>
                 </div>
             </div>
         </div>

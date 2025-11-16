@@ -21,7 +21,7 @@ export default function LoginCard() {
             const found = (users || []).find((u: any) => u.email && u.email.toString().toLowerCase() === email.trim().toLowerCase())
 
             if (!found) {
-                setError('❌ Utente non trovato. Crea un profilo.')
+                setError('❌ Utente non trovato. Crea un account.')
                 setLoading(false)
                 return
             }
@@ -76,8 +76,11 @@ export default function LoginCard() {
                 >
                     {loading ? '⏳ Accesso in corso...' : '✓ Login'}
                 </button>
-                <Link href="/create-profile" className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition">
-                    Crea profilo
+            </div>
+
+            <div className="mt-4 text-center">
+                <Link href="/create-profile" className="text-sm text-blue-600 underline hover:text-blue-800">
+                    Non sei ancora registrato? Crea account
                 </Link>
             </div>
 

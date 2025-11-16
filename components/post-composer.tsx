@@ -13,13 +13,28 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
     const [loading, setLoading] = useState(false)
     const [isExpanded, setIsExpanded] = useState(false)
     const [charCount, setCharCount] = useState(0)
+    const [playedToday, setPlayedToday] = useState<boolean | null>(null)
+    const [teamGoals, setTeamGoals] = useState<string>('')
+    const [opponentGoals, setOpponentGoals] = useState<string>('')
+    const [scorers, setScorers] = useState<string>('')
 
     const MAX_CHARS = 500
 
     const submit = async () => {
-        if (!text.trim()) {
-            alert('Scrivi qualcosa!')
-            return
+        let finalText = text
+
+        if (playedToday === true) {
+            if (!teamGoals.trim() || !opponentGoals.trim()) {
+                alert('Inserisci il risultato della partita.')
+                return
+            }
+            finalText = `Ho giocato oggi: risultato ${teamGoals}-${opponentGoals}.`
+            if (scorers.trim()) finalText += ` Marcatori: ${scorers.trim()}.`
+        } else {
+            if (!finalText.trim()) {
+                alert('Scrivi qualcosa!')
+                return
+            }
         }
         setLoading(true)
         try {
@@ -28,7 +43,7 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    content: text,
+                    content: finalText,
                     imageUrl: imageUrl || null,
                     authorName: userName || 'Anon',
                     authorId: authorId ? Number(authorId) : null
@@ -36,6 +51,10 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
             })
             setText('')
             setImageUrl('')
+            setPlayedToday(null)
+            setTeamGoals('')
+            setOpponentGoals('')
+            setScorers('')
             setIsExpanded(false)
             setCharCount(0)
             // Reload to refresh feed
@@ -92,6 +111,10 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                                 setText('')
                                 setImageUrl('')
                                 setCharCount(0)
+                                setPlayedToday(null)
+                                setTeamGoals('')
+                                setOpponentGoals('')
+                                setScorers('')
                             }}
                             className="text-gray-400 hover:text-gray-600"
                         >
@@ -100,15 +123,71 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                     </div>
 
                     {/* Textarea */}
-                    <textarea
-                        value={text}
-                        onChange={e => handleTextChange(e.target.value)}
-                        placeholder="Di cosa stai pensando?"
-                        className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none h-24"
-                    />
-                    <div className="mt-2 text-xs text-gray-500 text-right">
-                        {charCount}/{MAX_CHARS}
-                    </div>
+                    {/* Guided sport prompt */}
+                    {playedToday === null ? (
+                        <div className="flex flex-col gap-3">
+                            <p className="font-medium">Hai giocato oggi?</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setPlayedToday(true)}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-full"
+                                >
+                                    Sì
+                                </button>
+                                <button
+                                    onClick={() => setPlayedToday(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full"
+                                >
+                                    No
+                                </button>
+                            </div>
+                        </div>
+                    ) : playedToday === false ? (
+                        <>
+                            <textarea
+                                value={text}
+                                onChange={e => handleTextChange(e.target.value)}
+                                placeholder="Di cosa stai pensando?"
+                                className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none h-24"
+                            />
+                            <div className="mt-2 text-xs text-gray-500 text-right">
+                                {charCount}/{MAX_CHARS}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <div className="flex gap-2">
+                                <label className="flex-1">
+                                    <div className="text-sm text-gray-600 mb-1">I tuoi gol</div>
+                                    <input
+                                        value={teamGoals}
+                                        onChange={e => setTeamGoals(e.target.value.replace(/[^0-9]/g, ''))}
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                                        placeholder="Es. 2"
+                                    />
+                                </label>
+                                <label className="flex-1">
+                                    <div className="text-sm text-gray-600 mb-1">Gol avversario</div>
+                                    <input
+                                        value={opponentGoals}
+                                        onChange={e => setOpponentGoals(e.target.value.replace(/[^0-9]/g, ''))}
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                                        placeholder="Es. 1"
+                                    />
+                                </label>
+                            </div>
+                            <label>
+                                <div className="text-sm text-gray-600 mb-1">Marcatori (separati da virgola)</div>
+                                <input
+                                    value={scorers}
+                                    onChange={e => setScorers(e.target.value)}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                                    placeholder="Es. Rossi, Bianchi"
+                                />
+                            </label>
+                            <div className="text-sm text-gray-500">Puoi aggiungere un'immagine o lasciare così.</div>
+                        </div>
+                    )}
 
                     {/* Image URL input */}
                     <div className="mt-4">
@@ -138,6 +217,10 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                                 setText('')
                                 setImageUrl('')
                                 setCharCount(0)
+                                setPlayedToday(null)
+                                setTeamGoals('')
+                                setOpponentGoals('')
+                                setScorers('')
                             }}
                             className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition font-semibold"
                         >
@@ -145,7 +228,12 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                         </button>
                         <button
                             onClick={submit}
-                            disabled={loading || !text.trim()}
+                            disabled={
+                                loading ||
+                                (playedToday === true
+                                    ? !teamGoals.trim() || !opponentGoals.trim()
+                                    : !text.trim())
+                            }
                             className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Pubblicando...' : 'Pubblica'}

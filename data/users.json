@@ -75,7 +75,7 @@
     "birthDate": "1997-02-27",
     "currentRole": "Ex- playmaker retired",
     "bio": "A 15 anni ho vinto un titolo provinciale con la torre basket e l 'anno dopo con in lussana baskt abbiamo fatto una grande annata , da li in poi il nulla totale , squadrette di paesi e sempre meno interesse nel basket , adesso mi piace di più giocare a paddle e beach volley in spiaggia",
-    "avatarUrl": null,
+    "avatarUrl": "",
     "experiences": [
       {
         "title": "Play",
@@ -85,6 +85,8 @@
         "description": "Best difensore, buon tiratore, grande visione di gioco, alto un metro e un cazzo"
       }
     ],
-    "createdAt": "2025-11-15T12:03:27.090Z"
+    "createdAt": "2025-11-15T12:03:27.090Z",
+    "username": "",
+    "updatedAt": "2025-11-18T22:30:47.627Z"
   }
 ]

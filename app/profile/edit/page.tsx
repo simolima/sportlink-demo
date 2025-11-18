@@ -147,7 +147,7 @@ export default function EditProfilePage() {
                         />
                         <label
                             htmlFor="avatar-upload-edit"
-                            className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
+                            className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
                         >
                             <CameraIcon className="w-4 h-4" />
                         </label>
@@ -197,7 +197,7 @@ export default function EditProfilePage() {
                 <div>
                     <div className="flex items-center justify-between mb-2">
                         <label className="text-sm text-gray-600">Esperienze</label>
-                        <button onClick={addExp} className="text-sm text-blue-600">+ Aggiungi</button>
+                        <button onClick={addExp} className="text-sm text-green-600">+ Aggiungi</button>
                     </div>
                     <div className="space-y-3">
                         {form.experiences.map((exp: any, i: number) => (
@@ -216,7 +216,7 @@ export default function EditProfilePage() {
                 </div>
                 <div className="flex gap-3">
                     <button onClick={() => router.back()} className="px-4 py-2 border rounded">Annulla</button>
-                    <button onClick={save} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded font-semibold">{saving ? 'Salvataggio...' : 'Salva modifiche'}</button>
+                    <button onClick={save} disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700">{saving ? 'Salvataggio...' : 'Salva modifiche'}</button>
                 </div>
             </div>
         </div>

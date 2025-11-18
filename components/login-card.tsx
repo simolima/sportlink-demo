@@ -59,7 +59,7 @@ export default function LoginCard() {
                 placeholder="example@email.com"
                 type="email"
                 disabled={loading}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg mb-4 focus:border-blue-500 focus:outline-none disabled:bg-gray-100"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg mb-4 focus:border-green-500 focus:outline-none disabled:bg-gray-100"
             />
 
             {error && (
@@ -72,19 +72,19 @@ export default function LoginCard() {
                 <button
                     onClick={submit}
                     disabled={loading || !email.trim()}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition"
+                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition"
                 >
                     {loading ? '⏳ Accesso in corso...' : '✓ Login'}
                 </button>
             </div>
 
             <div className="mt-4 text-center">
-                <Link href="/create-profile" className="text-sm text-blue-600 underline hover:text-blue-800">
+                <Link href="/create-profile" className="text-sm text-green-600 underline hover:text-green-800">
                     Non sei ancora registrato? Crea account
                 </Link>
             </div>
 
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
+            <div className="mt-6 p-3 bg-green-50 rounded-lg text-xs text-gray-600">
                 <p className="font-semibold mb-1">💡 Demo: Email salvate nel JSON</p>
                 <p>Usa l'email con cui hai creato il profilo (es: simone.lima97@gmail.com)</p>
             </div>

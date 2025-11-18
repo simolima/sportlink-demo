@@ -57,7 +57,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         <div className="flex flex-col items-end gap-2">
                             {!isOwn && <FollowButton targetId={id} />}
                             {!isOwn && (
-                                <Link href={`/messages/${id}`} className="text-xs px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 transition">Messaggia</Link>
+                                <Link href={`/messages/${id}`} className="text-xs px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 transition">Messaggia</Link>
                             )}
                         </div>
                     </div>

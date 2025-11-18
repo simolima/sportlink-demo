@@ -46,7 +46,7 @@ export default function Avatar({
     if (!src) {
         return (
             <div className={clsx(
-                'rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shrink-0',
+                'rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-semibold shrink-0',
                 className || sizeClass
             )}>
                 {fallbackText.slice(0, 2).toUpperCase()}
@@ -66,7 +66,7 @@ export default function Avatar({
             const target = e.target as HTMLImageElement
             target.style.display = 'none'
             if (target.parentElement) {
-                target.parentElement.innerHTML = `<div class=\"w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold\">${fallbackText.slice(0, 2).toUpperCase()}</div>`
+                target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">${fallbackText.slice(0, 2).toUpperCase()}</div>`
             }
         }
     }

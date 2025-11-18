@@ -94,7 +94,7 @@ export default function SharePostModal({ postId, onClose, onShared }: SharePostM
                         placeholder="Cerca utente..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                 </div>
 
@@ -109,7 +109,7 @@ export default function SharePostModal({ postId, onClose, onShared }: SharePostM
                             key={user.id}
                             onClick={() => setSelectedUserId(String(user.id))}
                             className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition ${String(selectedUserId) === String(user.id)
-                                ? 'bg-blue-100 border-2 border-blue-500'
+                                ? 'bg-green-100 border-2 border-green-500'
                                 : 'hover:bg-gray-100'
                                 }`}
                         >
@@ -142,7 +142,7 @@ export default function SharePostModal({ postId, onClose, onShared }: SharePostM
                     <button
                         onClick={handleShare}
                         disabled={!selectedUserId || sending}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition flex items-center gap-2"
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition flex items-center gap-2"
                     >
                         <PaperAirplaneIcon className="w-4 h-4" />
                         {sending ? 'Invio...' : 'Invia'}

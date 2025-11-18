@@ -170,13 +170,13 @@ export default function JobsPage() {
                     <div className="flex gap-3">
                         <button
                             onClick={() => setShowApplicationsView(v => !v)}
-                            className={`px-6 py-3 rounded-lg font-semibold transition ${showApplicationsView ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-white text-gray-700 hover:bg-gray-100 border'}`}
+                            className={`px-6 py-3 rounded-lg font-semibold transition ${showApplicationsView ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-white text-gray-700 hover:bg-gray-100 border'}`}
                         >
                             Candidature ricevute
                         </button>
                         <button
                             onClick={() => setShowCreateForm(!showCreateForm)}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
                         >
                             <PlusIcon className="w-5 h-5" />
                             Crea Annuncio
@@ -197,7 +197,7 @@ export default function JobsPage() {
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="es. Cercasi centrocampista per squadra serie C"
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                                 />
                             </div>
 
@@ -206,7 +206,7 @@ export default function JobsPage() {
                                 <select
                                     value={formData.category}
                                     onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                                 >
                                     <option value="player">Cercasi Giocatore</option>
                                     <option value="coach">Cercasi Coach/Allenatore</option>
@@ -222,7 +222,7 @@ export default function JobsPage() {
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     rows={5}
                                     placeholder="Descrivi la posizione, requisiti, esperienza richiesta, ecc."
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none resize-none"
                                 />
                             </div>
 
@@ -234,7 +234,7 @@ export default function JobsPage() {
                                         value={formData.location}
                                         onChange={e => setFormData({ ...formData, location: e.target.value })}
                                         placeholder="es. Milano, Italia"
-                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -244,7 +244,7 @@ export default function JobsPage() {
                                         value={formData.contactEmail}
                                         onChange={e => setFormData({ ...formData, contactEmail: e.target.value })}
                                         placeholder="tua-email@example.com"
-                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -258,7 +258,7 @@ export default function JobsPage() {
                                 </button>
                                 <button
                                     onClick={handleSubmit}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
                                 >
                                     Pubblica Annuncio
                                 </button>
@@ -274,7 +274,7 @@ export default function JobsPage() {
                             key={cat.value}
                             onClick={() => setSelectedCategory(cat.value)}
                             className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition ${selectedCategory === cat.value
-                                ? 'bg-blue-600 text-white'
+                                ? 'bg-green-600 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
@@ -299,10 +299,10 @@ export default function JobsPage() {
                                 <button
                                     key={job.id}
                                     onClick={() => setSelectedJobId(job.id)}
-                                    className={`w-full text-left bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 border ${String(selectedJobId) === String(job.id) ? 'border-blue-500' : 'border-transparent'}`}
+                                    className={`w-full text-left bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 border ${String(selectedJobId) === String(job.id) ? 'border-green-500' : 'border-transparent'}`}
                                 >
                                     <div className="flex items-center gap-3 mb-1">
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${job.category === 'player' ? 'bg-blue-100 text-blue-700' :
+                                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${job.category === 'player' ? 'bg-green-100 text-green-700' :
                                             job.category === 'coach' ? 'bg-green-100 text-green-700' :
                                                 job.category === 'staff' ? 'bg-purple-100 text-purple-700' :
                                                     'bg-gray-100 text-gray-700'
@@ -362,7 +362,7 @@ export default function JobsPage() {
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedJob.category === 'player' ? 'bg-blue-100 text-blue-700' :
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedJob.category === 'player' ? 'bg-green-100 text-green-700' :
                                                 selectedJob.category === 'coach' ? 'bg-green-100 text-green-700' :
                                                     selectedJob.category === 'staff' ? 'bg-purple-100 text-purple-700' :
                                                         'bg-gray-100 text-gray-700'
@@ -400,12 +400,12 @@ export default function JobsPage() {
 
                                 {/* Apply section */}
                                 {String(selectedJob.authorId) !== String(currentUserId) && (
-                                    <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
-                                        <div className="text-sm text-blue-900">
+                                    <div className="mt-6 p-4 bg-green-50 border border-green-100 rounded-lg flex items-center justify-between">
+                                        <div className="text-sm text-green-900">
                                             {alreadyApplied ? 'Hai già inviato la tua candidatura a questo annuncio.' : 'Invia la tua candidatura usando i dati del tuo profilo.'}
                                         </div>
                                         {!alreadyApplied && (
-                                            <button onClick={handleApply} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">Candidati</button>
+                                            <button onClick={handleApply} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">Candidati</button>
                                         )}
                                     </div>
                                 )}

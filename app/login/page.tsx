@@ -13,12 +13,14 @@ export default function LoginLanding() {
     }, [])
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-white flex items-center justify-center px-4">
             <div className="w-full max-w-md">
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="bg-gradient-to-br from-green-400 via-green-300 to-emerald-400 rounded-2xl shadow-2xl p-1">
+                    <div className="bg-white rounded-xl p-8">
                     <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Accedi</h2>
                     <p className="text-center text-gray-600 mb-6">Inserisci la tua email per continuare</p>
                     <LoginCard />
+                    </div>
                 </div>
             </div>
         </div>

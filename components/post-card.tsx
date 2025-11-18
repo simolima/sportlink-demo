@@ -123,7 +123,7 @@ export default function PostCard({ post }: { post: any }) {
                 </button>
                 <button
                     onClick={() => setShowComments(!showComments)}
-                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-500 transition"
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition"
                 >
                     <ChatBubbleLeftRightIcon className="w-5 h-5" />
                     <span>Commenta</span>

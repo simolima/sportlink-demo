@@ -104,7 +104,7 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                         value={text}
                         onChange={e => handleTextChange(e.target.value)}
                         placeholder="Di cosa stai pensando?"
-                        className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none h-24"
+                        className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none resize-none h-24"
                     />
                     <div className="mt-2 text-xs text-gray-500 text-right">
                         {charCount}/{MAX_CHARS}
@@ -121,7 +121,7 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                             value={imageUrl}
                             onChange={e => setImageUrl(e.target.value)}
                             placeholder="Incolla un URL immagine pubblico (es. imgur, unsplash, etc.)"
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none text-sm"
                         />
                         {imageUrl && (
                             <div className="mt-3 rounded-lg overflow-hidden border-2 border-gray-200">
@@ -146,7 +146,7 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
                         <button
                             onClick={submit}
                             disabled={loading || !text.trim()}
-                            className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="ml-auto px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Pubblicando...' : 'Pubblica'}
                         </button>

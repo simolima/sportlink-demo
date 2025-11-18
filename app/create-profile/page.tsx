@@ -122,7 +122,7 @@ export default function CreateProfile() {
                                 />
                                 <label
                                     htmlFor="avatar-upload"
-                                    className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
+                                    className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
                                 >
                                     <CameraIcon className="w-4 h-4" />
                                 </label>
@@ -148,7 +148,7 @@ export default function CreateProfile() {
                             <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Breve bio" className="w-full p-3 border rounded h-28" />
 
                             <div>
-                                <div className="flex items-center justify-between"><h2 className="font-semibold">Esperienze passate</h2><button onClick={addExp} className="text-sm text-blue-600">Aggiungi</button></div>
+                                <div className="flex items-center justify-between"><h2 className="font-semibold">Esperienze passate</h2><button onClick={addExp} className="text-sm text-green-600">Aggiungi</button></div>
                                 <div className="space-y-2 mt-2">
                                     {experiences.map((exp, i) => (
                                         <div key={i} className="p-3 border rounded">
@@ -167,7 +167,7 @@ export default function CreateProfile() {
                                 <button
                                     onClick={submit}
                                     disabled={uploading}
-                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition"
+                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition"
                                 >
                                     {uploading ? 'Caricamento...' : 'Crea profilo'}
                                 </button>

@@ -72,7 +72,7 @@ export default function ProfilePage() {
             {!loading && user && (
                 <div className="max-w-4xl mx-auto py-8 px-4">
                     {/* Cover Photo Section */}
-                    <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-600 rounded-t-lg"></div>
+                    <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 rounded-t-lg"></div>
 
                     {/* Profile Header Section */}
                     <div className="bg-white rounded-b-lg shadow-lg px-8 pb-8">
@@ -90,7 +90,7 @@ export default function ProfilePage() {
                                 {user.username && (
                                     <p className="text-sm text-gray-500 mt-1">@{user.username}</p>
                                 )}
-                                <p className="text-lg text-blue-600 font-semibold mt-2">{user.currentRole}</p>
+                                <p className="text-lg text-green-600 font-semibold mt-2">{user.currentRole}</p>
                             </div>
                             <div className="flex gap-3">
                                 {String(user.id) !== String(userId) ? (
@@ -99,7 +99,7 @@ export default function ProfilePage() {
                                     <>
                                         <button
                                             onClick={() => router.push('/profile/edit')}
-                                            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-semibold"
+                                            className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition font-semibold"
                                         >
                                             <PencilSquareIcon className="w-5 h-5" />
                                             Modifica
@@ -154,14 +154,14 @@ export default function ProfilePage() {
                                     {user.experiences.map((exp: any, idx: number) => (
                                         <div key={idx} className="flex gap-4 pb-4 border-b last:border-b-0">
                                             {/* Company logo placeholder */}
-                                            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center">
+                                            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex-shrink-0 flex items-center justify-center">
                                                 <span className="text-white font-bold text-sm">
                                                     {exp.company?.charAt(0) || '?'}
                                                 </span>
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-gray-900 text-lg">{exp.title}</h3>
-                                                <p className="text-blue-600 font-medium">{exp.company}</p>
+                                                <p className="text-green-600 font-medium">{exp.company}</p>
                                                 <p className="text-sm text-gray-500 mt-1">
                                                     {exp.from} — {exp.to || 'Presente'}
                                                 </p>
@@ -180,7 +180,7 @@ export default function ProfilePage() {
                                 <p>Nessuna esperienza registrata</p>
                                 <button
                                     onClick={() => router.push('/profile/edit')}
-                                    className="text-blue-600 hover:text-blue-700 font-semibold mt-2"
+                                    className="text-green-600 hover:text-green-700 font-semibold mt-2"
                                 >
                                     Aggiungi esperienze
                                 </button>

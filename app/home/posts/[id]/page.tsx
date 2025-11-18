@@ -47,7 +47,7 @@ export default function PostDetailPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Caricamento post...</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@ export default function PostDetailPage() {
                     </p>
                     <button
                         onClick={() => router.push('/home')}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
                         Torna alla Home
                     </button>

@@ -77,7 +77,7 @@ export default function PeoplePage() {
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Cerca per nome, ruolo o email..."
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -113,7 +113,7 @@ export default function PeoplePage() {
                                     {/* User info */}
                                     <div className="flex-1 min-w-0">
                                         <h3
-                                            className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-blue-600"
+                                            className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-green-600"
                                             onClick={() => router.push(`/profile/${user.id}`)}
                                         >
                                             {user.firstName} {user.lastName}
@@ -121,7 +121,7 @@ export default function PeoplePage() {
                                         {user.username && (
                                             <p className="text-sm text-gray-500">@{user.username}</p>
                                         )}
-                                        <p className="text-blue-600 font-medium text-sm mt-1">{user.currentRole}</p>
+                                        <p className="text-green-600 font-medium text-sm mt-1">{user.currentRole}</p>
                                         {user.bio && (
                                             <p className="text-gray-600 text-sm mt-2 line-clamp-2">{user.bio}</p>
                                         )}

@@ -58,7 +58,7 @@ export default function CommentComposer({ postId, onAdded }: CommentComposerProp
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 rows={2}
-                className="w-full border-2 border-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full border-2 border-gray-200 rounded-lg p-3 focus:outline-none focus:border-green-500 resize-none"
                 placeholder="Scrivi un commento..."
                 disabled={loading}
             />
@@ -72,7 +72,7 @@ export default function CommentComposer({ postId, onAdded }: CommentComposerProp
                 </button>
                 <button
                     onClick={submit}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
                     disabled={loading || !content.trim()}
                 >
                     {loading ? 'Invio...' : 'Commenta'}

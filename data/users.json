@@ -6,15 +6,60 @@
     "email": "feno.meno@mail.it",
     "birthDate": "2007-10-09",
     "currentRole": "Attaccante",
-    "bio": "o fenomeno",
+    "bio": "Attaccante professionista con esperienza internazionale. Specializzato in finalizzazione e gioco aereo.",
     "avatarUrl": "/avatars/1763234670360-pmo32d.png",
+    "coverUrl": "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&h=400&fit=crop",
+    "city": "Milano",
+    "languages": [
+      "Italiano",
+      "Portoghese",
+      "Inglese"
+    ],
+    "verified": true,
+    "stats": [
+      {
+        "label": "Partite Giocate",
+        "value": 456,
+        "maxValue": 600,
+        "color": "blue"
+      },
+      {
+        "label": "Presenze Totali",
+        "value": 458,
+        "maxValue": 600,
+        "color": "green"
+      }
+    ],
+    "professionalSeasons": [
+      {
+        "id": 1,
+        "team": "FC Dynamo",
+        "year": "2024 - Oggi",
+        "description": "Attaccante titolare nella squadra che milita in Serie A. Autore di 15 goal nella stagione corrente."
+      },
+      {
+        "id": 2,
+        "team": "Brasile FC",
+        "year": "2020 - 2024",
+        "description": "Quattro stagioni vincenti con il club brasiliano, conquistando due campionati nazionali."
+      }
+    ],
     "experiences": [
       {
         "title": "Attaccante",
-        "company": "Brasile",
-        "from": "2020",
+        "company": "FC Dynamo",
+        "from": "2024",
         "to": "",
-        "description": "fortissimo"
+        "location": "Milano, Italia",
+        "description": "Attaccante di punta della squadra con focus su finalizzazione e pressing offensivo"
+      },
+      {
+        "title": "Attaccante",
+        "company": "Brasile FC",
+        "from": "2020",
+        "to": "2024",
+        "location": "San Paolo, Brasile",
+        "description": "Esperienza formativa nel calcio sudamericano con ottimi risultati"
       }
     ],
     "createdAt": "2025-11-15T19:24:30.470Z",
@@ -28,17 +73,62 @@
     "email": "marco.gregorio1997@gmail.com",
     "birthDate": "1997-08-04",
     "currentRole": "Difensore",
-    "bio": "Terzino di spinta ambidestro con preferenza a giocare a destra",
-    "avatarUrl": null,
+    "bio": "Terzino di spinta ambidestro con preferenza a giocare a destra. Grande capacità di cross e lettura difensiva.",
+    "avatarUrl": "",
+    "coverUrl": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&h=400&fit=crop",
+    "city": "Basiglio",
+    "languages": [
+      "Italiano"
+    ],
+    "stats": [
+      {
+        "label": "Partite Giocate",
+        "value": 320,
+        "maxValue": 600,
+        "color": "blue"
+      },
+      {
+        "label": "Presenze Totali",
+        "value": 322,
+        "maxValue": 600,
+        "color": "green"
+      }
+    ],
+    "professionalSeasons": [
+      {
+        "id": 1,
+        "team": "AC Basiglio",
+        "year": "2013 - Oggi",
+        "description": "Terzino destro con spiccate doti offensive, punto di riferimento della squadra."
+      }
+    ],
     "experiences": [
       {
         "title": "Terzino DX",
-        "company": "Basiglio",
+        "company": "AC Basiglio",
         "from": "2006",
-        "to": "2013"
+        "to": "2013",
+        "location": "Basiglio, Italia",
+        "description": "Cresciuto nel settore giovanile, ha debuttato in prima squadra nel 2013"
+      },
+      {
+        "title": "Terzino DX",
+        "company": "Rozzano Calcio",
+        "from": "2013",
+        "to": "2015",
+        "description": "Nel 2013 trasferimento al Rozzano Calcio "
+      },
+      {
+        "title": "Terzino DX",
+        "company": "Svincolato",
+        "from": "2015",
+        "to": "",
+        "description": "Attualmente svincolato"
       }
     ],
-    "createdAt": "2025-11-15T18:45:55.493Z"
+    "createdAt": "2025-11-15T18:45:55.493Z",
+    "username": "",
+    "updatedAt": "2025-11-22T00:23:54.329Z"
   },
   {
     "id": 1763211292551,
@@ -46,23 +136,31 @@
     "lastName": "icolo",
     "email": "test@mail.com",
     "birthDate": "1998-02-01",
-    "currentRole": "DS pantere rosa volleyball",
-    "bio": "Ds che cerca nuove giocatrici per progetto volley femminile\nqualche errore l ho fatto ma son cambiato",
+    "currentRole": "DS Pantere Rosa Volleyball",
+    "bio": "Direttore sportivo che cerca nuove giocatrici per progetto volley femminile di alto livello. Focus su sviluppo talenti e costruzione di una squadra competitiva.",
     "avatarUrl": null,
+    "coverUrl": "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200&h=400&fit=crop",
+    "city": "Roma",
+    "languages": [
+      "Italiano",
+      "Inglese"
+    ],
     "experiences": [
       {
-        "title": "ds",
-        "company": "pantere ros",
+        "title": "Direttore Sportivo",
+        "company": "Pantere Rosa",
         "from": "2025",
-        "to": "ora",
-        "description": ""
+        "to": "",
+        "location": "Roma, Italia",
+        "description": "Responsabile della gestione tecnica e dello scouting per la squadra femminile di pallavolo"
       },
       {
-        "title": "galera",
-        "company": "galera f.c",
+        "title": "Allenatore",
+        "company": "Galera F.C",
         "from": "2002",
         "to": "2025",
-        "description": ""
+        "location": "Roma, Italia",
+        "description": "Esperienza ventennale come allenatore e osservatore"
       }
     ],
     "createdAt": "2025-11-15T12:54:52.551Z"
@@ -73,16 +171,30 @@
     "lastName": "Lima",
     "email": "simone.lima97@gmail.com",
     "birthDate": "1997-02-27",
-    "currentRole": "Ex- playmaker retired",
-    "bio": "A 15 anni ho vinto un titolo provinciale con la torre basket e l 'anno dopo con in lussana baskt abbiamo fatto una grande annata , da li in poi il nulla totale , squadrette di paesi e sempre meno interesse nel basket , adesso mi piace di più giocare a paddle e beach volley in spiaggia",
+    "currentRole": "Ex-Playmaker (Retired)",
+    "bio": "A 15 anni ho vinto un titolo provinciale con la Torre Basket. Ora mi dedico ad altri sport come paddle e beach volley. Sempre appassionato di sport e competizione.",
     "avatarUrl": "",
+    "coverUrl": "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&h=400&fit=crop",
+    "city": "Bergamo",
+    "languages": [
+      "Italiano"
+    ],
+    "professionalSeasons": [
+      {
+        "id": 1,
+        "team": "Torre Basket",
+        "year": "2012 - 2015",
+        "description": "Playmaker titolare. Vittoria del campionato provinciale nel 2012, ottimi risultati nelle stagioni successive."
+      }
+    ],
     "experiences": [
       {
-        "title": "Play",
-        "company": "Torre",
+        "title": "Playmaker",
+        "company": "Torre Basket",
         "from": "2012",
         "to": "2015",
-        "description": "Best difensore, buon tiratore, grande visione di gioco, alto un metro e un cazzo"
+        "location": "Bergamo, Italia",
+        "description": "Miglior difensore, buon tiratore, grande visione di gioco. Campione provinciale 2012."
       }
     ],
     "createdAt": "2025-11-15T12:03:27.090Z",

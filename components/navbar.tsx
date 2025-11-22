@@ -9,11 +9,13 @@ export default function Navbar() {
     const [loggedIn, setLoggedIn] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
     useEffect(() => {
         if (typeof window === 'undefined') return
         const id = localStorage.getItem('currentUserId')
         setLoggedIn(Boolean(id))
+        setCurrentUserId(id)
         setIsLoaded(true)
     }, [])
 
@@ -55,7 +57,12 @@ export default function Navbar() {
                                     <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
                                 )}
                             </Link>
-                            <Link href="/profile" className="text-sm text-gray-600 hover:text-gray-900 transition">Profilo</Link>
+                            <Link 
+                                href={currentUserId ? `/profile/${currentUserId}` : '/profile'} 
+                                className="text-sm text-gray-600 hover:text-gray-900 transition"
+                            >
+                                Profilo
+                            </Link>
                             <LogoutButton />
                         </>
                     ) : (

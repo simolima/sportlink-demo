@@ -15,6 +15,8 @@ export default function CreateProfile() {
     const [experiences, setExperiences] = useState([{ title: '', company: '', from: '', to: '' }])
     const [avatarFile, setAvatarFile] = useState<File | null>(null)
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+    const [coverFile, setCoverFile] = useState<File | null>(null)
+    const [coverPreview, setCoverPreview] = useState<string | null>(null)
     const [uploading, setUploading] = useState(false)
     const router = useRouter()
 
@@ -46,6 +48,65 @@ export default function CreateProfile() {
         }
     }
 
+    const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert('Seleziona un file immagine valido (JPEG, PNG, WebP)')
+                return
+            }
+            
+            // Check file size (max 10MB for cover photos)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('La dimensione dell\'immagine deve essere inferiore a 10MB')
+                return
+            }
+
+            // Check image dimensions
+            const img = new Image()
+            const reader = new FileReader()
+            
+            reader.onloadend = () => {
+                img.src = reader.result as string
+                setCoverPreview(reader.result as string)
+            }
+            
+            img.onload = () => {
+                const width = img.width
+                const height = img.height
+                const aspectRatio = width / height
+
+                // Recommended minimum dimensions
+                if (width < 1200 || height < 400) {
+                    const proceed = confirm(
+                        `⚠️ Attenzione: L'immagine ha dimensioni ${width}x${height}px.\n\n` +
+                        `Per una migliore qualità, si consiglia un'immagine di almeno 1200x400px.\n\n` +
+                        `Vuoi procedere comunque?`
+                    )
+                    if (!proceed) {
+                        setCoverPreview(null)
+                        setCoverFile(null)
+                        e.target.value = ''
+                        return
+                    }
+                }
+
+                // Check aspect ratio (recommended 3:1)
+                if (aspectRatio < 2.5 || aspectRatio > 3.5) {
+                    alert(
+                        `💡 Suggerimento: Per un risultato ottimale, usa un'immagine con rapporto 3:1 (es. 1200x400px).\n\n` +
+                        `La tua immagine ha rapporto ${aspectRatio.toFixed(2)}:1`
+                    )
+                }
+
+                setCoverFile(file)
+            }
+            
+            reader.readAsDataURL(file)
+        }
+    }
+
     const submit = async () => {
         setUploading(true)
         try {
@@ -62,7 +123,20 @@ export default function CreateProfile() {
                 }
             }
 
-            // Create user profile with avatar URL
+            // Upload cover photo if selected
+            let coverUrl = null
+            if (coverFile) {
+                const result = await uploadService.uploadFile(coverFile, 'covers')
+                if (result.success) {
+                    coverUrl = result.url
+                } else {
+                    alert('Errore durante upload foto di copertina: ' + result.error)
+                    setUploading(false)
+                    return
+                }
+            }
+
+            // Create user profile with avatar URL and cover URL
             const payload = {
                 firstName,
                 lastName,
@@ -71,7 +145,8 @@ export default function CreateProfile() {
                 bio,
                 experiences,
                 email,
-                avatarUrl
+                avatarUrl,
+                coverUrl
             }
             const res = await fetch('/api/users', {
                 method: 'POST',
@@ -105,20 +180,72 @@ export default function CreateProfile() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
-            <div className="max-w-3xl mx-auto p-8 flex items-center justify-center">
-                <div className="w-full">
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <h1 className="text-2xl font-semibold mb-4">Crea il tuo profilo</h1>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-4xl mx-auto p-8">
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <h1 className="text-2xl font-semibold p-6 border-b">Crea il tuo profilo</h1>
+
+                    {/* Cover Photo Section */}
+                    <div className="relative">
+                        <div className="h-48 md:h-64 bg-gradient-to-r from-blue-500 to-blue-700 overflow-hidden">
+                            {coverPreview ? (
+                                <img 
+                                    src={coverPreview} 
+                                    alt="Cover preview" 
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-white">
+                                    <div className="text-center">
+                                        <CameraIcon className="w-16 h-16 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm opacity-75">Aggiungi una foto di copertina (opzionale)</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <label
+                            htmlFor="cover-upload-create"
+                            className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-gray-50 transition cursor-pointer"
+                        >
+                            <CameraIcon className="w-5 h-5" />
+                            <span className="text-sm font-medium">
+                                {coverPreview ? 'Cambia copertina' : 'Aggiungi copertina'}
+                            </span>
+                        </label>
+                        <input
+                            id="cover-upload-create"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverChange}
+                            className="hidden"
+                        />
+                        {coverFile && (
+                            <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm shadow-lg">
+                                ✓ Foto selezionata
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-6 space-y-6">
+                        {/* Info box for cover photo */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h3 className="font-semibold text-blue-900 mb-2">💡 Consigli per la foto di copertina:</h3>
+                            <ul className="text-sm text-blue-800 space-y-1">
+                                <li>• <strong>Dimensioni consigliate:</strong> 1200x400 pixel (rapporto 3:1)</li>
+                                <li>• <strong>Dimensione massima:</strong> 10MB</li>
+                                <li>• Usa immagini orizzontali per un risultato migliore</li>
+                            </ul>
+                        </div>
 
                         {/* Avatar upload section */}
-                        <div className="flex flex-col items-center mb-6">
+                        <div className="flex flex-col items-center">
                             <div className="relative">
                                 <Avatar
                                     src={avatarPreview}
                                     alt="Profile preview"
                                     size="xl"
                                     fallbackText={firstName?.[0] || '?'}
+                                    className="w-28 h-28"
                                 />
                                 <label
                                     htmlFor="avatar-upload"
@@ -167,14 +294,14 @@ export default function CreateProfile() {
                                 <button
                                     onClick={submit}
                                     disabled={uploading}
-                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition"
+                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition"
                                 >
                                     {uploading ? 'Caricamento...' : 'Crea profilo'}
                                 </button>
                                 <button
                                     onClick={() => router.push('/')}
                                     disabled={uploading}
-                                    className="px-4 py-2 border rounded disabled:opacity-50"
+                                    className="px-6 py-3 border-2 rounded-lg disabled:opacity-50 font-semibold"
                                 >
                                     Annulla
                                 </button>

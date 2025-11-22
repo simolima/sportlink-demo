@@ -29,7 +29,7 @@ export default function Page() {
               onClick={() => router.push('/login')}
               className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-green-600 text-white text-base md:text-lg font-semibold shadow hover:bg-green-700 transition"
             >
-              Inizia ora
+              Accedi
             </button>
             <button
               onClick={() => router.push('/create-profile')}

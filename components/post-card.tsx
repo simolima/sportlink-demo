@@ -11,7 +11,12 @@ import SharePostModal from './share-post-modal'
 import Avatar from './avatar'
 import { getCommentCount } from '@/lib/comment-count'
 
-export default function PostCard({ post }: { post: any }) {
+interface PostCardProps {
+    post: any
+    hideFollowButton?: boolean
+}
+
+export default function PostCard({ post, hideFollowButton = false }: PostCardProps) {
     const author = post.authorName || post.author || `User ${post.authorId}`
     const date = post.createdAt ? new Date(post.createdAt).toLocaleString() : ''
     const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('currentUserId') : null
@@ -98,7 +103,7 @@ export default function PostCard({ post }: { post: any }) {
                     </div>
                 </div>
                 <div className="flex items-center gap-3 text-gray-500">
-                    {post.authorId && String(post.authorId) !== String(currentUserId) && (
+                    {!hideFollowButton && post.authorId && String(post.authorId) !== String(currentUserId) && (
                         <FollowButton targetId={post.authorId} />
                     )}
                 </div>

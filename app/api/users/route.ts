@@ -49,6 +49,7 @@ export async function POST(req: Request) {
             currentRole: body.currentRole ?? '',
             bio: body.bio ?? '',
             avatarUrl: body.avatarUrl ?? null,
+            coverUrl: body.coverUrl ?? null,
             experiences: Array.isArray(body.experiences) ? body.experiences : [],
             createdAt: new Date().toISOString(),
         }
@@ -80,6 +81,7 @@ export async function PATCH(req: Request) {
             currentRole: body.currentRole ?? current.currentRole,
             bio: body.bio ?? current.bio,
             avatarUrl: body.avatarUrl ?? current.avatarUrl,
+            coverUrl: body.coverUrl ?? current.coverUrl,
             username: body.username ?? current.username,
             experiences: Array.isArray(body.experiences) ? body.experiences : current.experiences,
             updatedAt: new Date().toISOString(),

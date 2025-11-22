@@ -37,6 +37,7 @@ model Profile {
   city         String?
   languages    String[]
   avatarUrl    String?
+  coverUrl     String?  // Cover photo like Facebook
   verified     Boolean  @default(false)
 
   athlete      Athlete?

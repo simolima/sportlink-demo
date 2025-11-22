@@ -75,7 +75,7 @@ export default function HomePage() {
                             </div>
                         </div>
                         <button
-                            onClick={() => router.push('/profile')}
+                            onClick={() => router.push(`/profile/${userId}`)}
                             className="px-6 py-2 border-2 border-green-600 text-green-600 font-semibold rounded-full hover:bg-green-50 transition"
                         >
                             Visualizza Profilo

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
 
 export const runtime = 'nodejs'
 
@@ -24,6 +25,10 @@ function writeComments(comments: any[]) {
     fs.writeFileSync(COMMENTS_PATH, JSON.stringify(comments, null, 2))
 }
 
+export async function OPTIONS(req: Request) {
+    return handleOptions()
+}
+
 export async function GET(req: Request) {
     const url = new URL(req.url)
     const postId = url.searchParams.get('postId')
@@ -32,10 +37,10 @@ export async function GET(req: Request) {
     if (postId) {
         const filtered = comments.filter((c: any) => String(c.postId) === String(postId))
         filtered.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-        return NextResponse.json(filtered)
+        return withCors(NextResponse.json(filtered))
     }
 
-    return NextResponse.json(comments)
+    return withCors(NextResponse.json(comments))
 }
 
 export async function POST(req: Request) {
@@ -44,7 +49,7 @@ export async function POST(req: Request) {
         const { postId, authorId, authorName, content } = body || {}
 
         if (!postId || !authorId || !content?.trim()) {
-            return NextResponse.json({ error: 'postId, authorId and content required' }, { status: 400 })
+            return withCors(NextResponse.json({ error: 'postId, authorId and content required' }, { status: 400 }))
         }
 
         const comments = readComments()
@@ -60,8 +65,8 @@ export async function POST(req: Request) {
         comments.push(newComment)
         writeComments(comments)
 
-        return NextResponse.json(newComment, { status: 201 })
+        return withCors(NextResponse.json(newComment, { status: 201 }))
     } catch (err) {
-        return NextResponse.json({ error: 'invalid request' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'invalid request' }, { status: 400 }))
     }
 }

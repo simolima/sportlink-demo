@@ -43,11 +43,12 @@ export async function GET() {
     const posts = readPosts()
     const users = readUsers()
 
-    // Enrich posts with author avatar
+    // Enrich posts with author avatar and normalize userId field
     const enrichedPosts = posts.map((post: any) => {
         const author = users.find((u: any) => String(u.id) === String(post.authorId))
         return {
             ...post,
+            userId: post.authorId,
             authorAvatar: author?.avatarUrl || null
         }
     })

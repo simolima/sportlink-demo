@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
 
 export const runtime = 'nodejs'
 
@@ -24,6 +25,10 @@ function writeLikes(likes: any[]) {
     fs.writeFileSync(LIKES_PATH, JSON.stringify(likes, null, 2))
 }
 
+export async function OPTIONS(req: Request) {
+    return handleOptions()
+}
+
 // GET /api/likes?postId=X oppure ?userId=Y
 export async function GET(req: Request) {
     const url = new URL(req.url)
@@ -33,15 +38,15 @@ export async function GET(req: Request) {
 
     if (postId) {
         const filtered = likes.filter((l: any) => String(l.postId) === String(postId))
-        return NextResponse.json({ count: filtered.length, likes: filtered })
+        return withCors(NextResponse.json({ count: filtered.length, likes: filtered }))
     }
 
     if (userId) {
         const filtered = likes.filter((l: any) => String(l.userId) === String(userId))
-        return NextResponse.json({ count: filtered.length, likes: filtered })
+        return withCors(NextResponse.json({ count: filtered.length, likes: filtered }))
     }
 
-    return NextResponse.json(likes)
+    return withCors(NextResponse.json(likes))
 }
 
 // POST /api/likes - toggle like (se esiste rimuove, altrimenti aggiunge)
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
             // Unlike - rimuovi
             likes.splice(existingIndex, 1)
             writeLikes(likes)
-            return NextResponse.json({ action: 'unliked', count: likes.filter((l: any) => String(l.postId) === String(postId)).length })
+            return withCors(NextResponse.json({ action: 'unliked', count: likes.filter((l: any) => String(l.postId) === String(postId)).length }))
         } else {
             // Like - aggiungi
             const newLike = {
@@ -74,9 +79,9 @@ export async function POST(req: Request) {
             }
             likes.push(newLike)
             writeLikes(likes)
-            return NextResponse.json({ action: 'liked', count: likes.filter((l: any) => String(l.postId) === String(postId)).length })
+            return withCors(NextResponse.json({ action: 'liked', count: likes.filter((l: any) => String(l.postId) === String(postId)).length }))
         }
     } catch (err) {
-        return NextResponse.json({ error: 'invalid request' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'invalid request' }, { status: 400 }))
     }
 }

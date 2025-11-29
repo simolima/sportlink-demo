@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
 
 export const runtime = 'nodejs'
 
@@ -24,9 +25,14 @@ function writeUsers(users: any[]) {
     fs.writeFileSync(USERS_PATH, JSON.stringify(users, null, 2))
 }
 
+// Handle preflight requests
+export async function OPTIONS(req: Request) {
+    return handleOptions()
+}
+
 export async function GET(req: Request) {
     const users = readUsers()
-    return NextResponse.json(users)
+    return withCors(NextResponse.json(users))
 }
 
 export async function POST(req: Request) {
@@ -55,9 +61,9 @@ export async function POST(req: Request) {
         }
         users.unshift(newUser)
         writeUsers(users)
-        return NextResponse.json(newUser)
+        return withCors(NextResponse.json(newUser))
     } catch (err) {
-        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'invalid body' }, { status: 400 }))
     }
 }
 
@@ -88,8 +94,8 @@ export async function PATCH(req: Request) {
         }
         users[idx] = updated
         writeUsers(users)
-        return NextResponse.json(updated)
+        return withCors(NextResponse.json(updated))
     } catch (err) {
-        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'invalid body' }, { status: 400 }))
     }
 }

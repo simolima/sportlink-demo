@@ -1,9 +1,32 @@
 # SportLink AI Agent Instructions
 
 ## Project Overview
-SportLink is a **Next.js 14 App Router** social platform demo for athletes, clubs, and agents. This is a **prototype/demo** using JSON file storage (`data/*.json`) instead of a database for simplicity. Prisma schema exists but is not actively used in the current implementation.
+SportLink is a **dual-platform** social platform for athletes, clubs, and agents:
+- **Web App**: Next.js 14 App Router (port 3000)
+- **Mobile App**: Expo/React Native (port 8081)
+- **Backend**: Shared Next.js API routes with JSON file storage (`data/*.json`)
+
+**Current Status**: MVP/Demo with isolated dependencies. Future migration to Supabase database planned.
 
 ## Critical Architecture Patterns
+
+### Dual-Platform Structure (November 2025)
+```
+sportlink-demo-template/
+├── app/              → Web App (Next.js)
+├── components/       → Web Components
+├── lib/              → Web Utilities
+├── data/             → Shared JSON Database
+└── mobile/           → Mobile App (Expo) - ISOLATED
+    ├── screens/      → Mobile Screens
+    ├── lib/          → Mobile Utilities
+    └── package.json  → Separate Dependencies
+```
+
+**Key Principle**: Dependencies are **completely isolated** - no monorepo workspace.
+- Web: `package.json` (root) - React 18
+- Mobile: `mobile/package.json` - React 19
+- API: Shared via HTTP requests to `http://localhost:3000` (dev) or production URL
 
 ### Authentication Model (Demo-Only)
 **No real authentication** - uses `localStorage` for session state:
@@ -13,18 +36,35 @@ SportLink is a **Next.js 14 App Router** social platform demo for athletes, club
 - **Do NOT implement security features** - this is intentional for demo purposes
 
 ### Data Storage Pattern
-All data persists to JSON files in `data/` directory:
+**Current**: JSON files in `data/` directory (shared by web + mobile)
+**Planned**: Migration to Supabase PostgreSQL
+
 ```typescript
 // Standard pattern in app/api/*/route.ts
+export const runtime = 'nodejs'
+import { withCors } from '@/lib/cors'  // IMPORTANT: CORS for mobile
+
 const DATA_PATH = path.join(process.cwd(), 'data', 'resource.json')
 function ensureFile() { /* creates file if missing */ }
 function readData() { return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8')) }
 function writeData(data) { fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2)) }
+
+export async function GET() {
+    const data = readData()
+    return withCors(NextResponse.json(data))  // CORS wrapper!
+}
+
+export async function OPTIONS() {
+    return withCors(new NextResponse(null, { status: 204 }))
+}
 ```
-- Use `export const runtime = 'nodejs'` in API routes to enable Node.js APIs
-- Always call `ensureFile()` before read/write operations
-- IDs are generated with `Date.now()` for simplicity
-- No database queries - all operations are in-memory array manipulations
+
+**Key Requirements**:
+- Use `export const runtime = 'nodejs'` in API routes
+- **Always wrap responses with `withCors()`** for mobile compatibility
+- Add `OPTIONS` handler for CORS preflight
+- IDs generated with `Date.now()`
+- Field normalization: posts have `authorId` → add `userId: post.authorId` for mobile
 
 ### Client-Side Rendering Convention
 **All pages use `"use client"`** directive:
@@ -34,20 +74,35 @@ function writeData(data) { fs.writeFileSync(DATA_PATH, JSON.stringify(data, null
 - Pattern: `useState` for loading/data → `useEffect` for fetch → conditional render
 
 ### Component Organization
+
+**Web Components** (`components/` - Tailwind/DaisyUI):
 ```
-components/          → Reusable UI components (all use "use client")
-  ├── profile-*      → Profile page components (header, tabs, content, actions, stats, cover)
-  ├── post-*         → Post-related (card, composer, tab)
-  ├── comment-*      → Comments (composer, list)
-  ├── message-*      → Messages (bubble)
-  ├── follow-*       → Follow system (button, stats)
-  ├── navbar.tsx     → Global navigation (green logo, dynamic menu)
-  ├── avatar.tsx     → User avatar with fallback gradient (green-500 to emerald-600)
-  ├── share-post-modal.tsx → Share posts with users
-  └── login-card.tsx → Email-based login (green theme)
-app/(auth)/          → Auth-related pages (login flows)
-app/(private)/       → Protected routes (requires localStorage check)
-app/api/            → API route handlers (Node.js runtime)
+components/          → Web-only UI (all use "use client")
+  ├── profile-*      → Profile components (header, tabs, actions, stats)
+  ├── post-*         → Post components (card, composer, tab)
+  ├── navbar.tsx     → Web navigation (green theme)
+  └── ...
+```
+
+**Mobile Screens** (`mobile/screens/` - React Native StyleSheet):
+```
+mobile/
+  ├── screens/
+  │   ├── FeedScreen.tsx      → Home feed with banner + post composer
+  │   └── ProfileScreen.tsx   → User profile with stats
+  ├── lib/
+  │   ├── api.ts             → API client (BASE_URL configuration)
+  │   └── services.ts        → Business logic (getPosts, login, etc.)
+  └── App.tsx                → Entry point with tab navigation
+```
+
+**Shared Backend** (`app/api/` - Next.js API Routes):
+```
+app/api/            → API endpoints (CORS-enabled for mobile)
+  ├── users/
+  ├── posts/
+  ├── likes/
+  └── ...
 ```
 
 ### Styling System
@@ -61,12 +116,24 @@ app/api/            → API route handlers (Node.js runtime)
 ## Development Workflows
 
 ### Starting Development
+
+**Web Only**:
 ```powershell
-# Standard workflow (Windows PowerShell)
 cd C:\Users\simon\Desktop\sportlink-demo-template
-pnpm install        # or pnpm.cmd if execution policy blocked
-pnpm dev            # Starts on http://localhost:3000
+pnpm install
+pnpm dev            # http://localhost:3000
 ```
+
+**Mobile + Web** (both servers needed):
+```powershell
+# Terminal 1 - Web Server (required for API)
+pnpm dev            # http://localhost:3000
+
+# Terminal 2 - Expo Metro Bundler
+pnpm dev:mobile     # Scan QR with Expo Go app
+```
+
+**Important**: Mobile app calls web APIs at `http://192.168.1.37:3000` (configure in `mobile/lib/api.ts`)
 
 ### Database Commands (Note: Prisma not actively used)
 ```powershell
@@ -77,22 +144,40 @@ pnpm exec prisma studio  # GUI database viewer
 
 ### Adding New Features
 
-**New Page:**
-1. Create `app/[route]/page.tsx` with `"use client"` directive
-2. Add localStorage check if protected: `if (!localStorage.getItem('currentUserId')) router.push('/login')`
+**New Web Page**:
+1. Create `app/[route]/page.tsx` with `"use client"`
+2. Add localStorage check if protected
 3. Fetch data in `useEffect` hook
-4. Update `components/navbar.tsx` if navigation link needed
+4. Update `components/navbar.tsx` for navigation
 
-**New API Endpoint:**
+**New Mobile Screen**:
+1. Create `mobile/screens/[Name]Screen.tsx`
+2. Use React Native components (`View`, `Text`, `StyleSheet`)
+3. Import from `mobile/lib/services.ts` for data
+4. Add to tab navigator in `mobile/App.tsx`
+
+**New API Endpoint** (shared by web + mobile):
 1. Create `app/api/[resource]/route.ts`
-2. Add `export const runtime = 'nodejs'` at top
-3. Implement file-based storage pattern (see `app/api/users/route.ts` as reference)
-4. Export async functions: `GET`, `POST`, `PATCH`, `DELETE`
+2. Add `export const runtime = 'nodejs'`
+3. **Import and use `withCors()` wrapper**:
+```typescript
+import { withCors } from '@/lib/cors'
 
-**New Component:**
-1. Create in `components/[name].tsx` with `"use client"` if interactive
-2. Use TypeScript props interface
-3. Import shared utilities from `lib/` if needed
+export async function GET() {
+    const data = readData()
+    return withCors(NextResponse.json(data))
+}
+
+export async function OPTIONS() {
+    return withCors(new NextResponse(null, { status: 204 }))
+}
+```
+4. Test from web: `fetch('/api/resource')`
+5. Test from mobile: `apiCall('/api/resource')`
+
+**New Shared Type**:
+1. Add to `lib/types.ts` (web)
+2. Copy to `mobile/lib/types.ts` if needed (future: extract to shared package)
 
 ## Project-Specific Conventions
 
@@ -273,70 +358,97 @@ User Action → Component (useState)
 
 ## Key Files Reference
 
+### Web App
 | File | Purpose |
 |------|---------|
-| `app/layout.tsx` | Root layout with Navbar, wraps all pages |
-| `components/navbar.tsx` | Dynamic navigation based on auth state (green theme) |
-| `app/page.tsx` | Landing page with logo.svg, two-column layout, green CTAs |
-| `app/home/page.tsx` | Main feed (protected), shows PostCard list |
-| `app/profile/page.tsx` | User's own profile with green header gradient |
-| `app/profile/[id]/page.tsx` | View other user profiles |
-| `components/login-card.tsx` | Email-based login component (green focus, buttons, links) |
-| `components/profile-*` | Profile modular components (tabs, stats, actions, cover, experiences) |
-| `components/post-card.tsx` | Post display with likes, comments, share (green hover states) |
-| `components/post-composer.tsx` | Create new posts (green focus, publish button) |
-| `components/follow-button.tsx` | Follow/unfollow toggle (green primary/outline) |
-| `components/share-post-modal.tsx` | Share posts dialog (green selection, share button) |
-| `app/api/users/route.ts` | User CRUD operations, reference implementation |
-| `lib/types.ts` | Shared TypeScript type definitions |
-| `tailwind.config.ts` | Theme configuration with DaisyUI |
-| `data/*.json` | All application data storage |
+| `app/layout.tsx` | Root layout with Navbar |
+| `components/navbar.tsx` | Web navigation (green theme) |
+| `app/page.tsx` | Landing page (logo + CTAs) |
+| `app/home/page.tsx` | Main feed (PostCard list) |
+| `app/profile/[id]/page.tsx` | User profiles |
+| `components/post-card.tsx` | Post display component |
+| `lib/types.ts` | Web TypeScript types |
+| `lib/cors.ts` | **CORS helpers for mobile** |
+| `tailwind.config.ts` | Tailwind theme config |
+
+### Mobile App
+| File | Purpose |
+|------|---------|
+| `mobile/App.tsx` | Entry point + tab navigation |
+| `mobile/screens/FeedScreen.tsx` | Home feed with banner + composer |
+| `mobile/screens/ProfileScreen.tsx` | User profile with stats |
+| `mobile/lib/api.ts` | **API client (configure IP here)** |
+| `mobile/lib/services.ts` | Business logic (getPosts, login) |
+| `mobile/package.json` | **Mobile dependencies (isolated)** |
+
+### Shared Backend
+| File | Purpose |
+|------|---------|
+| `app/api/users/route.ts` | User CRUD (CORS-enabled) |
+| `app/api/posts/route.ts` | Posts API (adds `userId` field) |
+| `app/api/likes/route.ts` | Likes API (CORS-enabled) |
+| `data/*.json` | JSON database (shared) |
+
+### Documentation
+| File | Purpose |
+|------|---------|
+| `MOBILE_DEV_GUIDE.md` | **Setup guide for developers** |
+| `.github/copilot-instructions.md` | This file |
 
 ## What NOT to Do
 
-- ❌ Don't add authentication middleware or JWT tokens (intentionally excluded)
-- ❌ Don't implement Prisma queries (schema exists but not used)
-- ❌ Don't add server components for data fetching (all pages are client components)
-- ❌ Don't use cookies or session storage (only localStorage)
-- ❌ Don't add input validation or rate limiting (demo project)
-- ❌ Don't optimize for production (focus on functionality, not performance)
+### Web/Mobile Isolation
+- ❌ **Don't create `pnpm-workspace.yaml`** (causes dependency conflicts)
+- ❌ **Don't install mobile packages from root** (`cd mobile` first!)
+- ❌ **Don't use `localhost` in mobile API calls** (use PC IP address)
+- ❌ **Don't forget CORS** in API routes (mobile won't work)
+- ❌ **Don't mix React versions** (18 web, 19 mobile - isolated OK)
+
+### Demo Limitations (Intentional)
+- ❌ Don't add authentication middleware (demo uses localStorage)
+- ❌ Don't implement Prisma queries (JSON files for now)
+- ❌ Don't add server components (all pages client-side)
+- ❌ Don't add input validation (focus on functionality)
+- ❌ Don't optimize for production (MVP stage)
 
 ## Recent Updates (November 2025)
+
+### Mobile App Added (November 29, 2025)
+**Architecture Decision**: Isolated mobile app in `mobile/` folder, no monorepo.
+
+**New Structure**:
+- ✅ Expo app with React Native 0.78.6
+- ✅ Separate dependencies (`mobile/package.json`)
+- ✅ Tab navigation (Feed + Profile)
+- ✅ API integration via shared backend
+- ✅ CORS-enabled API routes
+
+**Mobile Features**:
+- `FeedScreen.tsx`: Home feed with green banner ("SportLink"), create post button, post list
+- `ProfileScreen.tsx`: User profile with avatar, stats, logout
+- `api.ts`: API client with configurable BASE_URL (dev: IP address, prod: domain)
+- `services.ts`: Business logic (getPosts, login, getFollowersCount, etc.)
+
+**API Changes for Mobile**:
+- All API routes wrapped with `withCors()` from `lib/cors.ts`
+- Added `OPTIONS` handlers for CORS preflight
+- Posts API adds `userId` field (normalized from `authorId`)
+- Field matching uses `String()` comparison for type safety
+
+**Development Setup**:
+- Web: `pnpm dev` (port 3000)
+- Mobile: `pnpm dev:mobile` (port 8081)
+- Both run simultaneously, mobile calls web APIs
 
 ### Green Theme Migration
 - Migrated entire UI from blue to green color palette
 - Primary: `green-600` (#16a34a), Hover: `green-700` (#15803d)
-- All buttons, links, focus states, gradients now use green theme
+- Consistent across web + mobile (StyleSheet uses same hex values)
 - Avatar fallbacks use `green-500` to `emerald-600` gradient
-- Maintained consistency across 20+ components
 
-### New Profile Components
-Created modular profile system with dedicated components:
-- `profile-header.tsx` - User header with avatar, name, role
-- `profile-tabs.tsx` - Tabbed navigation (Posts, Info, Updates)
-- `profile-content.tsx` - Content area based on active tab
-- `profile-actions.tsx` - Follow/Message buttons
-- `profile-stats.tsx` - Follower/following counts with badges
-- `profile-cover.tsx` - Cover image with upload capability
-- `professional-experiences.tsx` - Career history display
-- `professional-seasons.tsx` - Seasonal stats/achievements
-- `informazioni-tab.tsx` - Info tab content
-- `aggiornamenti-tab.tsx` - Updates/news tab
-- `post-tab.tsx` - Posts display in profile
-
-### Landing Page Redesign
-- Two-column responsive layout (title/CTAs left, logo right)
-- Logo.svg with green circular glow effect (via blur + z-index)
-- Green primary CTAs ("Accedi", "Crea un profilo")
-- Navbar hidden on landing page for clean splash screen
-- Italian copy: "Il tuo ecosistema professionale per lo sport"
-
-### Enhanced Components
-- `login-card.tsx` - Card-based login (not fullscreen), green accents
-- `share-post-modal.tsx` - Share posts with user selection
-- `message-bubble.tsx` - Green background for own messages
-- `comment-list.tsx` - Green hover ring on avatars
-- `post-card.tsx` - Green hover states on interaction icons
+### Documentation
+- `MOBILE_DEV_GUIDE.md`: Complete setup guide for developers
+- Team workflow instructions (install Expo, configure IP, troubleshooting)
 
 ## Environment Setup
 
@@ -360,95 +472,44 @@ Only Supabase vars are actively used (for file uploads). Database connection is 
 
 This project prioritizes **rapid prototyping** and **demo functionality** over production best practices.
 
-## Future: Mobile App Strategy
+## Future Roadmap
 
-When extending to mobile app (React Native/Expo), follow this approach:
+### Immediate Next Steps
+1. **Supabase Integration** (Planned):
+   - Migrate from JSON files to PostgreSQL
+   - Add Supabase Auth (replace localStorage)
+   - Use Supabase Storage for uploads
+   - Share database between web + mobile
 
-### Monorepo Architecture
-Structure the codebase to share logic while keeping platform-specific UI separate:
+2. **Mobile Features**:
+   - Implement post creation from mobile
+   - Add image upload (ImagePicker)
+   - Push notifications (Expo Notifications)
+   - Offline support (AsyncStorage caching)
+
+3. **API Improvements**:
+   - Add input validation
+   - Implement rate limiting
+   - Add proper error handling
+   - JWT authentication
+
+### Long-Term Refactoring (If Scaling)
+Consider monorepo with shared packages:
 ```
-sportlink/
-  apps/
-    web/              → Current Next.js app
-    mobile/           → Future Expo app
-  packages/
-    core/             → Shared hooks, types, API client (no UI)
-    ui/               → Cross-platform components (Button, Avatar)
-    theme/            → Design tokens (colors, spacing)
-```
-
-### Sharing Strategy
-**Share:**
-- Types (`lib/types.ts`)
-- API client patterns (fetch wrappers)
-- Hooks (useFeed, useProfile, useMessages)
-- Business logic (validation, formatting)
-- Design tokens (green palette: #16a34a, spacing, radius)
-
-**Adapt per platform:**
-- Navigation: Web (Navbar) vs Mobile (Bottom Tabs)
-- Storage: localStorage vs AsyncStorage
-- File upload: file input vs ImagePicker/Camera
-- Styling: Tailwind classes vs NativeWind/StyleSheet
-
-### Screen Pattern
-Extract screens from pages to enable reuse:
-```tsx
-// packages/core/src/screens/HomeScreen.tsx
-export function HomeScreen() {
-  const { posts } = useFeed()  // shared hook
-  return <PostList posts={posts} />  // shared component
-}
-
-// apps/web/app/home/page.tsx
-import { HomeScreen } from 'core/screens/HomeScreen'
-export default function Page() {
-  return <WebLayout><HomeScreen /></WebLayout>
-}
-
-// apps/mobile/App.tsx
-import { HomeScreen } from 'core/screens/HomeScreen'
-<Tab.Screen name="Home" component={HomeScreen} />
+packages/
+  ├── shared-types/     → TypeScript interfaces
+  ├── api-client/       → Fetch wrappers
+  ├── design-tokens/    → Colors, spacing
+  └── business-logic/   → Validation, formatting
 ```
 
-### UI Components Approach
-Use platform-specific variants:
-```tsx
-// packages/ui/Button.web.tsx
-export function Button({ variant, children, ...props }) {
-  return (
-    <button className="bg-green-600 hover:bg-green-700" {...props}>
-      {children}
-    </button>
-  )
-}
+Tools: **Turborepo** or **Nx** for workspace management.
 
-// packages/ui/Button.native.tsx
-import { Pressable, Text } from 'react-native'
-export function Button({ variant, children, ...props }) {
-  return (
-    <Pressable className="bg-green-600" {...props}>  {/* NativeWind */}
-      <Text className="text-white">{children}</Text>
-    </Pressable>
-  )
-}
-```
+**Current Decision**: Keep isolated structure for MVP speed. Refactor when team grows or complexity increases.
 
-### NativeWind for Mobile
-Consider NativeWind to maintain Tailwind utility classes on mobile:
-- Same mental model as web
-- className prop on React Native components
-- Shared design tokens via tailwind.config.js
-- Subset of Tailwind features (no grid, limited pseudo-states)
-
-### Migration Path
-1. Extract types and API client to `packages/core`
-2. Create shared hooks (useFeed, useProfile, useMessages)
-3. Define `routes.ts` for navigation constants
-4. Refactor pages into Screen components
-5. Bootstrap Expo app with Bottom Tabs
-6. Create cross-platform UI primitives
-7. Extract green theme tokens
-8. Implement mobile-specific features (push notifications, camera)
-
-This keeps web development fast while preparing for seamless mobile integration.
+### Mobile-Specific Future Work
+- React Native UI library (Tamagui, NativeBase, or custom)
+- Shared components via platform-specific files (`.web.tsx`, `.native.tsx`)
+- NativeWind for Tailwind-like styling on mobile
+- Shared navigation constants
+- Feature flags for platform-specific features

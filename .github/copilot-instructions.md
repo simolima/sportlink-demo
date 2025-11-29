@@ -36,6 +36,15 @@ function writeData(data) { fs.writeFileSync(DATA_PATH, JSON.stringify(data, null
 ### Component Organization
 ```
 components/          → Reusable UI components (all use "use client")
+  ├── profile-*      → Profile page components (header, tabs, content, actions, stats, cover)
+  ├── post-*         → Post-related (card, composer, tab)
+  ├── comment-*      → Comments (composer, list)
+  ├── message-*      → Messages (bubble)
+  ├── follow-*       → Follow system (button, stats)
+  ├── navbar.tsx     → Global navigation (green logo, dynamic menu)
+  ├── avatar.tsx     → User avatar with fallback gradient (green-500 to emerald-600)
+  ├── share-post-modal.tsx → Share posts with users
+  └── login-card.tsx → Email-based login (green theme)
 app/(auth)/          → Auth-related pages (login flows)
 app/(private)/       → Protected routes (requires localStorage check)
 app/api/            → API route handlers (Node.js runtime)
@@ -44,9 +53,10 @@ app/api/            → API route handlers (Node.js runtime)
 ### Styling System
 - **Tailwind CSS** with DaisyUI plugin configured
 - Custom theme: `sportlink` in `tailwind.config.ts`
-- Color palette: Primary (#FF6B6B), Accent (#FF9F43)
+- **Color palette (Green Theme)**: Primary (`green-600` #16a34a), Hover (`green-700` #15803d), Light (`green-50` #f0fdf4), Accent (`green-400/500/600`)
 - Heroicons for icons (`@heroicons/react/24/{outline,solid}`)
 - Responsive-first: design for mobile, extend for desktop
+- Logo: `/public/logo.svg` (vector), `/public/logo.jpg` (fallback)
 
 ## Development Workflows
 

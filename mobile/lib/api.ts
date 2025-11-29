@@ -1,8 +1,25 @@
+import Constants from 'expo-constants';
+
+// Funzione per ottenere automaticamente l'IP del server
+function getLocalIP(): string {
+    // In sviluppo, Expo fornisce l'IP del server Metro
+    const debuggerHost = Constants.expoConfig?.hostUri;
+    
+    if (debuggerHost) {
+        // debuggerHost è nel formato "192.168.1.12:8081"
+        const ip = debuggerHost.split(':')[0];
+        return `http://${ip}:3000`;
+    }
+    
+    // Fallback a localhost (non funzionerà su dispositivo fisico)
+    return 'http://localhost:3000';
+}
+
 // API configuration for mobile app
 export const API_CONFIG = {
-    // Cambia questo URL dopo il deploy su Vercel
+    // In sviluppo usa l'IP rilevato automaticamente, in produzione usa Vercel
     BASE_URL: __DEV__
-        ? 'http://192.168.1.37:3000'  // Sviluppo locale - IP del tuo PC
+        ? getLocalIP()  // Rileva automaticamente l'IP del PC
         : 'https://sportlink-demo.vercel.app', // Production
 };
 

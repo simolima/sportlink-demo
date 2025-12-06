@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Briefcase, MapPin, Calendar, Building2, Search, Plus } from 'lucide-react'
 import { Announcement, SPORTS, ANNOUNCEMENT_TYPES, LEVELS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 interface AnnouncementWithDetails extends Announcement {
   club?: { id: number; name: string; logoUrl?: string }
@@ -12,6 +13,7 @@ interface AnnouncementWithDetails extends Announcement {
 }
 
 export default function JobsPage() {
+  const { user, isLoading: authLoading } = useRequireAuth(true)
   const router = useRouter()
   const { showToast } = useToast()
   const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([])

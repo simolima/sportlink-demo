@@ -123,7 +123,7 @@ export default function PeoplePage() {
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         >
                             <option value="all">Tutti i ruoli</option>
-                            {PROFESSIONAL_ROLES.filter(r => r !== 'Nessuno').map((role) => (
+                            {PROFESSIONAL_ROLES.map((role) => (
                                 <option key={role} value={role}>{role}</option>
                             ))}
                         </select>
@@ -133,31 +133,28 @@ export default function PeoplePage() {
                     <div className="mt-4 flex gap-3">
                         <button
                             onClick={() => setSelectedAvailability('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                selectedAvailability === 'all'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'all'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                         >
                             Tutti
                         </button>
                         <button
                             onClick={() => setSelectedAvailability('Disponibile')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                selectedAvailability === 'Disponibile'
-                                    ? 'bg-sprinta-primary text-sprinta-text'
-                                    : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'Disponibile'
+                                ? 'bg-sprinta-primary text-sprinta-text'
+                                : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
+                                }`}
                         >
                             Disponibile
                         </button>
                         <button
                             onClick={() => setSelectedAvailability('Valuta proposte')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                selectedAvailability === 'Valuta proposte'
-                                    ? 'bg-sprinta-primary text-sprinta-text'
-                                    : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'Valuta proposte'
+                                ? 'bg-sprinta-primary text-sprinta-text'
+                                : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
+                                }`}
                         >
                             Valuta proposte
                         </button>
@@ -207,7 +204,7 @@ export default function PeoplePage() {
                                         {user.username && (
                                             <p className="text-sm text-gray-500">@{user.username}</p>
                                         )}
-                                        
+
                                         {/* Sport & Role */}
                                         <div className="flex items-center gap-2 mt-1">
                                             {user.professionalRole && (
@@ -230,11 +227,10 @@ export default function PeoplePage() {
                                             {user.availability && (
                                                 <>
                                                     {user.city && <span>•</span>}
-                                                    <span className={`font-medium ${
-                                                        user.availability === 'Disponibile' ? 'text-sprinta-blue' :
+                                                    <span className={`font-medium ${user.availability === 'Disponibile' ? 'text-sprinta-blue' :
                                                         user.availability === 'Valuta proposte' ? 'text-blue-600' :
-                                                        'text-gray-500'
-                                                    }`}>
+                                                            'text-gray-500'
+                                                        }`}>
                                                         {user.availability}
                                                     </span>
                                                 </>

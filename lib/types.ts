@@ -1,10 +1,10 @@
 // ============================================================================
-// CONSTANTS & ENUMS
+// CONSTANTS & ENUMS - SPRINTA REFACTORED
 // ============================================================================
 
 // Sport disponibili
 export const SPORTS = [
-  'Calcio', 'Basket', 'Pallavolo', 'Rugby', 'Tennis', 'Nuoto', 
+  'Calcio', 'Basket', 'Pallavolo', 'Rugby', 'Tennis', 'Nuoto',
   'Atletica', 'Ciclismo', 'Boxe', 'MMA', 'Scherma', 'Golf',
   'Hockey', 'Baseball', 'Football Americano', 'Altro'
 ] as const;
@@ -12,6 +12,23 @@ export const SPORTS = [
 export type Sport = typeof SPORTS[number];
 
 // Ruoli professionali principali
+export enum UserRole {
+  Player = 'Player',
+  Coach = 'Coach',
+  Agent = 'Agent',
+  SportingDirector = 'SportingDirector',
+  AthleticTrainer = 'AthleticTrainer',
+  Nutritionist = 'Nutritionist',
+  MentalCoach = 'MentalCoach',
+  TalentScout = 'TalentScout',
+  Physio = 'Physio',
+  President = 'President',
+  Director = 'Director',
+  MedicalStaff = 'MedicalStaff',
+  ClubStaff = 'ClubStaff'
+}
+
+// Backward compatibility
 export const PROFESSIONAL_ROLES = [
   'Player',
   'Coach',

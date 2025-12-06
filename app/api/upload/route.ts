@@ -21,9 +21,10 @@ export const runtime = 'nodejs'
  */
 export async function POST(req: Request) {
     try {
-        const formData = await req.formData()
+        const formData = await req.formData() as any
         const file = formData.get('file') as File
-        const folder = (formData.get('folder') as string) || 'avatars'
+        const rawFolder = formData.get('folder')
+        const folder = rawFolder ? String(rawFolder) : 'avatars'
 
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })

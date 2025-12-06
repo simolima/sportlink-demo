@@ -1,206 +1,169 @@
-'use client'
-import { useState, useEffect } from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SPORTS, PROFESSIONAL_ROLES, type Sport, type ProfessionalRole } from '@/lib/types'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { PROFESSIONAL_ROLES, ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
+import Image from 'next/image'
 
 export default function ProfileSetupPage() {
     const router = useRouter()
-    const [sport, setSport] = useState<Sport | ''>('')
-    const [professionalRole, setProfessionalRole] = useState<ProfessionalRole | ''>('')
-    const [availability, setAvailability] = useState<'Disponibile' | 'Non disponibile' | 'Valuta proposte'>('Valuta proposte')
-    const [level, setLevel] = useState('')
-    const [currentClub, setCurrentClub] = useState('')
+    const [selectedRole, setSelectedRole] = useState<ProfessionalRole | ''>('')
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [checked, setChecked] = useState(false)
 
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        if (!id) {
-            router.push('/login')
+        if (typeof window === 'undefined' || checked) return;
+        setChecked(true);
+        // Controlla che tutti i dati temporanei siano presenti
+        const firstName = localStorage.getItem('signup_firstName')
+        const lastName = localStorage.getItem('signup_lastName')
+        const email = localStorage.getItem('signup_email')
+        const password = localStorage.getItem('signup_password')
+        const birthDate = localStorage.getItem('signup_birthDate')
+        const sport = localStorage.getItem('currentUserSport')
+        // Se manca QUALSIASI dato, pulisci tutto e riparti da zero
+        if (!firstName || !lastName || !email || !password || !birthDate || !sport) {
+            localStorage.removeItem('signup_firstName')
+            localStorage.removeItem('signup_lastName')
+            localStorage.removeItem('signup_email')
+            localStorage.removeItem('signup_password')
+            localStorage.removeItem('signup_birthDate')
+            localStorage.removeItem('currentUserSport')
+            router.push('/signup')
             return
         }
-        setCurrentUserId(id)
-    }, [router])
+    }, [router, checked])
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError('')
+    useEffect(() => {
+        const header = document.querySelector('header')
+        if (header) header.classList.add('hidden')
+        return () => { if (header) header.classList.remove('hidden') }
+    }, [])
 
-        if (!sport || !professionalRole) {
-            setError('Sport e ruolo professionale sono obbligatori')
+    const handleComplete = async () => {
+        if (!selectedRole) {
+            alert('Devi selezionare un ruolo prima di procedere')
             return
         }
-
-
-
         setLoading(true)
-
         try {
-            // Recupera dati utente esistenti
-            const usersRes = await fetch('/api/users')
-            const users = await usersRes.json()
-            const currentUser = users.find((u: any) => u.id.toString() === currentUserId)
+            if (typeof window === 'undefined') return;
+            // Recupera tutti i dati dal localStorage
+            const firstName = localStorage.getItem('signup_firstName') || ''
+            const lastName = localStorage.getItem('signup_lastName') || ''
+            const email = localStorage.getItem('signup_email') || ''
+            const password = localStorage.getItem('signup_password') || ''
+            const birthDate = localStorage.getItem('signup_birthDate') || ''
+            const sport = localStorage.getItem('currentUserSport') || ''
+            const professionalRole = selectedRole
 
-            if (!currentUser) {
-                throw new Error('Utente non trovato')
-            }
-
-            // Aggiorna profilo con nuovi campi
-            const updatedUser = {
-                ...currentUser,
-                sport,
-                professionalRole,
-                availability,
-                level: level || undefined,
-                currentClub: currentClub || undefined,
-            }
-
-            // Salva aggiornamento
-            const updateRes = await fetch('/api/users', {
-                method: 'PUT',
+            // Crea l'utente via API
+            const res = await fetch('/api/users', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedUser),
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    password,
+                    birthDate,
+                    sport,
+                    professionalRole,
+                    verified: false
+                })
             })
-
-            if (!updateRes.ok) {
-                throw new Error('Errore durante il salvataggio')
+            if (!res.ok) {
+                alert('Errore durante la creazione del profilo')
+                setLoading(false)
+                return
             }
-
-            // Redirect a dashboard/home
-            router.push('/home')
-        } catch (err: any) {
-            setError(err.message || 'Errore durante il salvataggio del profilo')
+            const newUser = await res.json()
+            // Salva dati utente per la sessione
+            localStorage.setItem('currentUserId', String(newUser.id))
+            localStorage.setItem('currentUserEmail', newUser.email)
+            localStorage.setItem('currentUserName', `${newUser.firstName} ${newUser.lastName}`)
+            localStorage.setItem('currentUserAvatar', newUser.avatarUrl || '')
+            localStorage.setItem('currentUserSport', newUser.sport || '')
+            localStorage.setItem('currentUserRole', newUser.professionalRole || '')
+            // Pulisci i dati temporanei
+            localStorage.removeItem('signup_firstName')
+            localStorage.removeItem('signup_lastName')
+            localStorage.removeItem('signup_email')
+            localStorage.removeItem('signup_password')
+            localStorage.removeItem('signup_birthDate')
+            // Vai alla home (forza reload per Auth sync)
+            window.location.replace('/home')
+        } catch (err) {
+            alert('Errore durante la creazione del profilo')
         } finally {
             setLoading(false)
         }
     }
 
-    const handleSkip = () => {
-        router.push('/home')
-    }
+    // Non serve più controllare user: la pagina si mostra se i dati sono in localStorage
 
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8">
-            <div className="w-full max-w-2xl">
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <div className="mb-8 text-center">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Completa il tuo profilo</h1>
-                        <p className="text-gray-600">
-                            Aiutaci a connetterti con le opportunità giuste selezionando il tuo sport e ruolo professionale
-                        </p>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center px-4 py-12">
+            <div className="w-full max-w-4xl">
+                <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-green-100">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <div className="flex justify-center mb-4">
+                            <Image src="/logo.svg" alt="SPRINTA" width={40} height={40} className="rounded" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Benvenuto!</h1>
+                        <p className="text-gray-600">Seleziona il tuo ruolo professionale</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Sport */}
+                    {/* Progress */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="flex-1 h-1 bg-green-600 rounded"></div>
+                            <span className="text-xs font-semibold text-gray-600">Passo 2 di 2</span>
+                            <div className="flex-1 h-1 bg-green-600 rounded"></div>
+                        </div>
+                    </div>
+
+                    {/* Role Selection */}
+                    <div className="space-y-6">
                         <div>
-                            <label htmlFor="sport" className="block text-sm font-medium text-gray-700 mb-2">
-                                Sport <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="sport"
-                                value={sport}
-                                onChange={(e) => setSport(e.target.value as Sport)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                required
-                            >
-                                <option value="">Seleziona uno sport</option>
-                                {SPORTS.map((s) => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">Qual è il tuo ruolo?</h2>
                         </div>
 
-                        {/* Ruolo Professionale */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                                Ruolo Professionale <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="role"
-                                value={professionalRole}
-                                onChange={(e) => setProfessionalRole(e.target.value as ProfessionalRole)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                required
-                            >
-                                <option value="">Seleziona un ruolo</option>
-                                {PROFESSIONAL_ROLES.map((r) => (
-                                    <option key={r} value={r}>{r}</option>
-                                ))}
-                            </select>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {PROFESSIONAL_ROLES.map((role) => (
+                                <button
+                                    key={role}
+                                    onClick={() => setSelectedRole(role)}
+                                    className={`p-4 rounded-xl border-2 transition-all text-left ${selectedRole === role
+                                        ? 'border-green-600 bg-green-50 ring-2 ring-green-500'
+                                        : 'border-gray-200 bg-white hover:border-green-300'
+                                        }`}
+                                >
+                                    <div className="font-semibold text-gray-900">{ROLE_TRANSLATIONS[role]}</div>
+                                    <div className="text-xs text-gray-500 mt-1">Professional</div>
+                                </button>
+                            ))}
                         </div>
 
-                        {/* Disponibilità */}
-                        <div>
-                            <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
-                                Disponibilità
-                            </label>
-                            <select
-                                id="availability"
-                                value={availability}
-                                onChange={(e) => setAvailability(e.target.value as any)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            >
-                                <option value="Disponibile">Disponibile</option>
-                                <option value="Non disponibile">Non disponibile</option>
-                                <option value="Valuta proposte">Valuta proposte</option>
-                            </select>
-                        </div>
-
-                        {/* Livello (opzionale) */}
-                        <div>
-                            <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
-                                Livello (opzionale)
-                            </label>
-                            <input
-                                type="text"
-                                id="level"
-                                value={level}
-                                onChange={(e) => setLevel(e.target.value)}
-                                placeholder="es. Professionista, Semi-pro, Dilettante"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        {/* Club Attuale (opzionale) */}
-                        <div>
-                            <label htmlFor="currentClub" className="block text-sm font-medium text-gray-700 mb-2">
-                                Club/Squadra Attuale (opzionale)
-                            </label>
-                            <input
-                                type="text"
-                                id="currentClub"
-                                value={currentClub}
-                                onChange={(e) => setCurrentClub(e.target.value)}
-                                placeholder="es. AC Milan, NBA Lakers"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-                                {error}
-                            </div>
-                        )}
-
-                        <div className="flex gap-4">
+                        {/* Action Buttons */}
+                        <div className="mt-8 flex justify-end gap-4">
                             <button
-                                type="button"
-                                onClick={handleSkip}
-                                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                onClick={handleComplete}
+                                disabled={loading || !selectedRole}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
-                                Salta per ora
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 px-6 py-3 bg-sprinta-blue text-white rounded-lg hover:bg-sprinta-blue-hover transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? 'Salvataggio...' : 'Completa Profilo'}
+                                {loading ? 'Salvataggio...' : 'Completa Profilo →'}
                             </button>
                         </div>
-                    </form>
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                            💡 Potrai modificare il tuo ruolo dal profilo in seguito.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

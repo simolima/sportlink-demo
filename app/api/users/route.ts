@@ -47,23 +47,28 @@ export async function POST(req: Request) {
         if (exists) return NextResponse.json({ error: 'email_exists' }, { status: 409 })
 
         const newUser = {
-            id: Date.now(),
+            id: String(Date.now()),
             firstName: body.firstName ?? '',
             lastName: body.lastName ?? '',
             email,
-            birthDate: body.birthDate ?? null,
-            professionalRole: body.professionalRole ?? null,
-            sport: body.sport ?? null,
-            currentRole: body.currentRole ?? '',
-            availability: body.availability ?? 'unavailable',
-            level: body.level ?? null,
+            password: body.password ?? '',
+            birthDate: body.birthDate ?? '',
+            professionalRole: body.professionalRole ?? '',
+            sport: body.sport ?? '',
             bio: body.bio ?? '',
+            avatar: body.avatar ?? null,
             avatarUrl: body.avatarUrl ?? null,
             coverUrl: body.coverUrl ?? null,
             city: body.city ?? '',
             country: body.country ?? '',
+            professionalRoleLabel: '',
+            currentRole: body.currentRole ?? '',
+            availability: body.availability ?? 'unavailable',
+            level: body.level ?? '',
             experiences: Array.isArray(body.experiences) ? body.experiences : [],
+            verified: body.verified ?? false,
             createdAt: new Date().toISOString(),
+            updatedAt: '',
         }
         users.unshift(newUser)
         writeUsers(users)

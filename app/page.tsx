@@ -27,13 +27,13 @@ export default function Page() {
           <div className="mt-8 flex flex-wrap gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-sprinta-blue text-white text-base md:text-lg font-semibold shadow-lg hover:bg-sprinta-blue-hover transition"
+              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-green-600 text-white text-base md:text-lg font-semibold shadow-lg hover:bg-green-700 transition"
             >
               Accedi
             </button>
             <button
-              onClick={() => router.push('/create-profile')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl border-2 border-sprinta-blue text-sprinta-blue text-base md:text-lg font-semibold hover:bg-sprinta-blue hover:text-white transition"
+              onClick={() => router.push('/signup')}
+              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl border-2 border-green-600 text-green-600 text-base md:text-lg font-semibold hover:bg-green-600 hover:text-white transition"
             >
               Crea un profilo
             </button>
@@ -43,8 +43,8 @@ export default function Page() {
         {/* Colonna destra: logo vettoriale */}
         <aside className="order-1 md:order-2 flex justify-center md:justify-end">
           <div className="relative isolate w-full max-w-md md:max-w-lg">
-            {/* Glow dietro al logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] rounded-full bg-blue-300/20 blur-3xl z-0 pointer-events-none"></div>
+            {/* Glow verde dietro al logo */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] rounded-full bg-green-300/20 blur-3xl z-0 pointer-events-none"></div>
 
             {/* Logo sopra il glow */}
             <img

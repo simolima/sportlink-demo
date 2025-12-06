@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BuildingOffice2Icon, MagnifyingGlassIcon, MapPinIcon, UserGroupIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
 import { SPORTS, type Club } from '@/lib/types'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function ClubsPage() {
+    const { user, isLoading: authLoading } = useRequireAuth(true)
     const router = useRouter()
     const [clubs, setClubs] = useState<Club[]>([])
     const [filteredClubs, setFilteredClubs] = useState<Club[]>([])
@@ -12,20 +14,8 @@ export default function ClubsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedSport, setSelectedSport] = useState('all')
     const [selectedCity, setSelectedCity] = useState('')
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        setCurrentUserId(id)
-
-        if (!id) {
-            router.push('/login')
-            return
-        }
-
-        fetchClubs()
-    }, [router])
+    const currentUserId = user?.id ? String(user.id) : null
 
     const fetchClubs = async () => {
         try {

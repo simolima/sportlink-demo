@@ -1,158 +1,235 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { UserCircleIcon } from '@heroicons/react/24/outline'
-import PostCard from '@/components/post-card'
+
+import { useState, useEffect } from 'react'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
+import AnnouncementsWidget from '@/components/dashboard-widgets/announcements-widget'
+import ApplicationsWidget from '@/components/dashboard-widgets/applications-widget'
+import ClubsWidget from '@/components/dashboard-widgets/clubs-widget'
+import AthletesWidget from '@/components/dashboard-widgets/athletes-widget'
+import PendingActionsWidget from '@/components/dashboard-widgets/pending-actions-widget'
 import PostComposer from '@/components/post-composer'
+import PostCard from '@/components/post-card'
 
 export default function HomePage() {
-    const router = useRouter()
-    const [userId, setUserId] = useState<string | null>(null)
-    const [userName, setUserName] = useState<string | null>(null)
-    const [userRole, setUserRole] = useState<string | null>(null)
-    const [userPhoto, setUserPhoto] = useState<string | null>(null)
+    const { user, isLoading } = useRequireAuth(true)
+    const [announcements, setAnnouncements] = useState<any[]>([])
+    const [applications, setApplications] = useState<any[]>([])
+    const [clubs, setClubs] = useState<any[]>([])
+    const [athletes, setAthletes] = useState<any[]>([])
     const [posts, setPosts] = useState<any[]>([])
+    const [pendingActions, setPendingActions] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        const name = localStorage.getItem('currentUserName')
-        setUserId(id)
-        setUserName(name)
+        const fetchDashboardData = async () => {
+            if (!user) return
 
-        if (!id) {
-            router.push('/login')
-            return
-        }
-
-        const fetchData = async () => {
+            setLoading(true)
             try {
-                const res = await fetch('/api/users')
-                const users = await res.json()
-                const currentUser = (users || []).find((u: any) => String(u.id) === String(id))
-                if (currentUser) {
-                    setUserRole(currentUser.currentRole)
-                    setUserPhoto(currentUser.avatarUrl)
+                // Fetch announcements
+                const announcementsRes = await fetch('/api/announcements')
+                const announcementsData = await announcementsRes.json()
+                setAnnouncements(Array.isArray(announcementsData) ? announcementsData.filter((a: any) => a.isActive) : [])
+
+                // Fetch applications
+                const applicationsRes = await fetch(`/api/applications?playerId=${user.id}`)
+                const applicationsData = await applicationsRes.json()
+                setApplications(Array.isArray(applicationsData) ? applicationsData : [])
+
+                // Fetch club memberships
+                const membershipsRes = await fetch(`/api/club-memberships?userId=${user.id}`)
+                const membershipsData = await membershipsRes.json()
+                setClubs(Array.isArray(membershipsData) ? membershipsData : [])
+
+                // Fetch posts
+                const postsRes = await fetch('/api/posts')
+                const postsData = await postsRes.json()
+                setPosts(Array.isArray(postsData) ? postsData.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : [])
+
+                // Fetch users for athletes widget (agents only)
+                if (user.professionalRole === 'Agent') {
+                    const usersRes = await fetch('/api/users')
+                    const usersData = await usersRes.json()
+                    // Filter to show affiliated players
+                    const affiliated = Array.isArray(usersData)
+                        ? usersData.filter((u: any) => u.professionalRole === 'Player').slice(0, 5)
+                        : []
+                    setAthletes(affiliated)
                 }
-            } catch (e) {
-                console.error('Error fetching user:', e)
-            }
 
-            try {
-                const res = await fetch('/api/posts')
-                const data = await res.json()
-                setPosts(Array.isArray(data) ? data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : [])
-            } catch (e) {
-                setPosts([])
+                // Set pending actions based on role
+                const actions: any[] = []
+                if (user.professionalRole === 'President' || user.professionalRole === 'Director') {
+                    // Club admins: pending applications to review
+                    const pendingCount = applicationsData.filter((app: any) => app.status === 'pending').length
+                    if (pendingCount > 0) {
+                        actions.push({
+                            id: 'pending-reviews',
+                            title: 'Candidature in Sospeso',
+                            description: 'Candidature che attendono la tua revisione',
+                            count: pendingCount,
+                            action: 'Rivedi',
+                            actionUrl: '/opportunities'
+                        })
+                    }
+                }
+
+                // Check for agent requests (players only)
+                if (user.professionalRole === 'Player') {
+                    const affiliationsRes = await fetch(`/api/affiliations?playerId=${user.id}&status=pending`)
+                    const affiliationsData = await affiliationsRes.json()
+                    const pendingRequests = Array.isArray(affiliationsData) ? affiliationsData.length : 0
+                    if (pendingRequests > 0) {
+                        actions.push({
+                            id: 'pending-agents',
+                            title: 'Richieste Agente',
+                            description: 'Agenti che vogliono rappresentarti',
+                            count: pendingRequests,
+                            action: 'Rivedi',
+                            actionUrl: '/profile'
+                        })
+                    }
+                }
+
+                setPendingActions(actions)
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error)
             } finally {
                 setLoading(false)
             }
         }
 
-        fetchData()
-    }, [router])
+        fetchDashboardData()
+    }, [user])
 
-    if (!userId) return null
+    if (isLoading || !user) {
+        return null
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Caricamento dashboard...</p>
+                </div>
+            </div>
+        )
+    }
+
+    const userName = `${user.firstName} ${user.lastName}`
+    const userPhoto = user.avatarUrl
+
+    const isPlayer = ['Player', 'Coach', 'Physio/Masseur'].includes(user.professionalRole)
+    const isAgent = user.professionalRole === 'Agent'
+    const isClubAdmin = ['President', 'Director', 'Sporting Director'].includes(user.professionalRole)
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-2xl mx-auto py-6 px-4">
-                {/* Welcome Card & Profile Navigation */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6 hover:shadow-md transition">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                {userPhoto ? (
-                                    <img src={userPhoto} alt={userName || ''} className="w-full h-full object-cover" />
-                                ) : (
-                                    <UserCircleIcon className="w-10 h-10 text-gray-400" />
-                                )}
-                            </div>
-                            <div>
-                                <div className="text-xl font-semibold text-gray-900">{userName}</div>
-                                <div className="text-sm text-gray-600">{userRole || 'Atleta'}</div>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => router.push(`/profile/${userId}`)}
-                            className="px-6 py-2 border-2 border-blue-600 text-blue-600 font-semibold rounded-full hover:bg-blue-50 transition"
-                        >
-                            Visualizza Profilo
-                        </button>
-                    </div>
+        <div className="w-full min-h-screen bg-gray-50">
+            {/* Hero Section with Welcome Message */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-8 md:py-12">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                        Benvenuto, {user.firstName}! 👋
+                    </h1>
+                    <p className="text-green-100 text-lg">
+                        {user.sport} • {user.professionalRole}
+                    </p>
                 </div>
+            </div>
 
-                {/* Quick Links based on role */}
-                {userRole && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 mb-6 border border-blue-100">
-                        <h3 className="font-semibold text-gray-900 mb-4">Accesso Rapido</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {userRole === 'Agent' && (
-                                <>
-                                    <button
-                                        onClick={() => router.push('/agent/affiliations')}
-                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                                    >
-                                        📋 Le Mie Affiliazioni
-                                    </button>
-                                    <button
-                                        onClick={() => router.push('/opportunities')}
-                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                                    >
-                                        💼 Opportunità
-                                    </button>
-                                </>
-                            )}
-                            {userRole === 'Player' && (
-                                <>
-                                    <button
-                                        onClick={() => router.push('/player/affiliations')}
-                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                                    >
-                                        🤝 I Miei Agenti
-                                    </button>
-                                    <button
-                                        onClick={() => router.push('/opportunities')}
-                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                                    >
-                                        💼 Candidature
-                                    </button>
-                                </>
-                            )}
-                            <button
-                                onClick={() => router.push('/clubs')}
-                                className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                            >
-                                🏢 Società
-                            </button>
-                            <button
-                                onClick={() => router.push('/people')}
-                                className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
-                            >
-                                👥 Scopri Persone
-                            </button>
-                        </div>
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-6 py-8">
+                {/* Pending Actions (if any) */}
+                {pendingActions.length > 0 && (
+                    <div className="mb-8">
+                        <PendingActionsWidget items={pendingActions} />
                     </div>
                 )}
 
-                {/* Post Composer */}
-                <PostComposer userPhoto={userPhoto} userName={userName} />
-
-                {/* Posts Feed */}
-                <div className="space-y-4">
-                    {loading ? (
-                        <div className="text-center py-12 text-gray-500">Caricamento feed...</div>
-                    ) : posts.length === 0 ? (
-                        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                            <p className="text-gray-500 mb-4">Nessun post disponibile</p>
-                            <p className="text-sm text-gray-400">Sii il primo a condividere un post!</p>
+                {/* Role-Based Dashboard Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    {/* Left Column: Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Post Composer */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <PostComposer userName={userName} userPhoto={userPhoto} />
                         </div>
-                    ) : (
-                        posts.map(post => (
-                            <PostCard key={post.id} post={post} />
-                        ))
-                    )}
+
+                        {/* Feed */}
+                        <div className="space-y-4">
+                            {posts.length === 0 ? (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+                                    <p className="text-gray-500">Nessun post disponibile</p>
+                                </div>
+                            ) : (
+                                posts.map((post) => (
+                                    <PostCard key={post.id} post={post} />
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Column: Sidebar Widgets */}
+                    <div className="space-y-6">
+                        {/* Player/Coach/Staff Dashboard */}
+                        {isPlayer && (
+                            <>
+                                <AnnouncementsWidget
+                                    announcements={announcements}
+                                    maxItems={3}
+                                    emptyMessage="Nessun annuncio corrispondente al tuo profilo"
+                                />
+                                <ApplicationsWidget
+                                    applications={applications}
+                                    maxItems={3}
+                                    emptyMessage="Non hai candidature ancora"
+                                />
+                            </>
+                        )}
+
+                        {/* Agent Dashboard */}
+                        {isAgent && (
+                            <>
+                                <AthletesWidget
+                                    athletes={athletes}
+                                    maxItems={5}
+                                    emptyMessage="Inizia a cercare giocatori da rappresentare"
+                                />
+                                <AnnouncementsWidget
+                                    announcements={announcements.slice(0, 3)}
+                                    title="Nuovi Annunci"
+                                    subtitle="Opportunità per i tuoi atleti"
+                                    maxItems={3}
+                                />
+                            </>
+                        )}
+
+                        {/* Club Admin Dashboard */}
+                        {isClubAdmin && (
+                            <>
+                                <PendingActionsWidget
+                                    title="Gestione Club"
+                                    items={[
+                                        {
+                                            id: 'club-members',
+                                            title: 'Membri del Club',
+                                            count: clubs.length,
+                                            action: 'Gestisci',
+                                            actionUrl: '/clubs'
+                                        }
+                                    ]}
+                                />
+                            </>
+                        )}
+
+                        {/* Universal: Clubs Widget (shown to all) */}
+                        <ClubsWidget
+                            clubs={clubs}
+                            maxItems={3}
+                            emptyMessage="Unisciti a un club per iniziare"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

@@ -2,9 +2,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ConversationSummary } from '@/lib/types'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function MessagesPage() {
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const { user, isLoading: authLoading } = useRequireAuth(true)
     const [loading, setLoading] = useState(true)
     const [conversations, setConversations] = useState<ConversationSummary[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -12,11 +13,7 @@ export default function MessagesPage() {
     const [users, setUsers] = useState<any[]>([])
     const [showNew, setShowNew] = useState(false)
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        setCurrentUserId(id)
-    }, [])
+    const currentUserId = user?.id ? String(user.id) : null
 
     useEffect(() => {
         const fetchConvos = async () => {
@@ -50,6 +47,10 @@ export default function MessagesPage() {
         const name = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : c.peerId
         return name.toLowerCase().includes(search.toLowerCase()) || c.lastMessage.text.toLowerCase().includes(search.toLowerCase())
     })
+
+    if (authLoading || !user) {
+        return null
+    }
 
     if (!currentUserId) {
         return <div className="max-w-4xl mx-auto p-6">Devi essere loggato per vedere i messaggi.</div>

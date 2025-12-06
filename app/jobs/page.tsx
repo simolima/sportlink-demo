@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BriefcaseIcon, MapPinIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 const CATEGORIES = [
     { value: 'all', label: 'Tutti' },
@@ -12,15 +13,17 @@ const CATEGORIES = [
 ]
 
 export default function JobsPage() {
+    const { user, isLoading: authLoading } = useRequireAuth(true)
     const router = useRouter()
     const [jobs, setJobs] = useState<any[]>([])
     const [filteredJobs, setFilteredJobs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [selectedCategory, setSelectedCategory] = useState('all')
     const [showCreateForm, setShowCreateForm] = useState(false)
     const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
     const [showApplicationsView, setShowApplicationsView] = useState(false)
+
+    const currentUserId = user?.id ? String(user.id) : null
 
     // Form state
     const [formData, setFormData] = useState({
@@ -32,17 +35,10 @@ export default function JobsPage() {
     })
 
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        setCurrentUserId(id)
-
-        if (!id) {
-            router.push('/login')
-            return
+        if (user) {
+            fetchJobs()
         }
-
-        fetchJobs()
-    }, [router])
+    }, [user])
 
     const fetchJobs = async () => {
         setLoading(true)

@@ -3,19 +3,21 @@
 import { useEffect, useState } from 'react'
 import { Bell, Trash2, Check } from 'lucide-react'
 import { Notification } from '@/lib/types'
+import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function NotificationsPage() {
+  const { user, isLoading: authLoading } = useRequireAuth(true)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
   const [loading, setLoading] = useState(true)
 
+  const userId = user?.id ? Number(user.id) : null
+
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const userId = localStorage.getItem('currentUserId')
     if (userId) {
-      fetchNotifications(parseInt(userId))
+      fetchNotifications(userId)
     }
-  }, [filter])
+  }, [filter, userId])
 
   const fetchNotifications = async (userId: number) => {
     setLoading(true)
@@ -112,21 +114,19 @@ export default function NotificationsPage() {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'all'
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+            }`}
         >
           Tutte
         </button>
         <button
           onClick={() => setFilter('unread')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'unread'
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+            }`}
         >
           Non lette
         </button>
@@ -144,9 +144,8 @@ export default function NotificationsPage() {
           {notifications.map((notif) => (
             <div
               key={notif.id}
-              className={`border rounded-lg p-4 transition-colors ${
-                notif.read ? 'bg-white' : 'bg-blue-50 border-blue-200'
-              }`}
+              className={`border rounded-lg p-4 transition-colors ${notif.read ? 'bg-white' : 'bg-blue-50 border-blue-200'
+                }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">

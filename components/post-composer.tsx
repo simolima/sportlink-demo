@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { UserCircleIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 interface PostComposerProps {
     userPhoto?: string | null
@@ -8,6 +9,7 @@ interface PostComposerProps {
 }
 
 export default function PostComposer({ userPhoto, userName }: PostComposerProps) {
+    const { user } = useAuth()
     const [text, setText] = useState('')
     const [imageUrl, setImageUrl] = useState('')
     const [loading, setLoading] = useState(false)
@@ -23,7 +25,7 @@ export default function PostComposer({ userPhoto, userName }: PostComposerProps)
         }
         setLoading(true)
         try {
-            const authorId = typeof window !== 'undefined' ? localStorage.getItem('currentUserId') : null
+            const authorId = user?.id
             await fetch('/api/posts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

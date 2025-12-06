@@ -9,8 +9,12 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                background: "var(--background)",
-                foreground: "var(--foreground)",
+                sprinta: {
+                    white: "#FFFFFF",
+                    navy: "#0A0F32",
+                    blue: "#2341F0",
+                    "blue-hover": "#3B52F5",
+                },
             },
         },
     },
@@ -18,18 +22,18 @@ const config: Config = {
     daisyui: {
         themes: [
             {
-                sportlink: {
-                    "primary": "#16a34a",
-                    "primary-focus": "#15803d",
-                    "primary-content": "#ffffff",
-                    "secondary": "#10b981",
-                    "accent": "#34d399",
-                    "neutral": "#1f2937",
-                    "base-100": "#ffffff",
-                    "base-200": "#f0fdf4",
-                    "base-300": "#dcfce7",
+                sprinta: {
+                    "primary": "#2341F0",
+                    "primary-focus": "#3B52F5",
+                    "primary-content": "#FFFFFF",
+                    "secondary": "#A7B0FF",
+                    "accent": "#2341F0",
+                    "neutral": "#0A0F32",
+                    "base-100": "#0A0F32",
+                    "base-200": "#11152F",
+                    "base-300": "#141A3A",
                     "info": "#3b82f6",
-                    "success": "#16a34a",
+                    "success": "#10b981",
                     "warning": "#f59e0b",
                     "error": "#dc2626",
                 },

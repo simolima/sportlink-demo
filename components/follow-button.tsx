@@ -67,7 +67,7 @@ export default function FollowButton({ targetId }: { targetId: number | string }
         <button
             onClick={isFollowing ? unfollow : follow}
             disabled={loading}
-            className={`px-4 py-1 rounded-full font-semibold transition ${isFollowing ? 'bg-white border-2 border-green-600 text-green-600 hover:bg-green-50' : 'bg-green-600 text-white hover:bg-green-700'}`}
+            className={`px-4 py-1 rounded-full font-semibold transition ${isFollowing ? 'bg-white border-2 border-sprinta-blue text-sprinta-blue hover:bg-gray-50' : 'bg-sprinta-blue text-white hover:bg-sprinta-blue-hover'}`}
         >
             {loading ? '...' : isFollowing ? 'Segui già' : 'Segui'}
         </button>

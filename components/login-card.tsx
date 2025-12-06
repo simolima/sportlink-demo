@@ -48,10 +48,7 @@ export default function LoginCard() {
     }
 
     return (
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">Login</h1>
-            <p className="text-sm text-gray-600 mb-6">Inserisci la tua email per accedere.</p>
-
+        <div className="w-full max-w-md">
             <input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -59,11 +56,11 @@ export default function LoginCard() {
                 placeholder="example@email.com"
                 type="email"
                 disabled={loading}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg mb-4 focus:border-green-500 focus:outline-none disabled:bg-gray-100"
+                className="w-full p-3 border-2 border-white/20 bg-white/10 text-white rounded-lg mb-4 focus:border-sprinta-blue focus:outline-none disabled:opacity-50 placeholder:text-white/50"
             />
 
             {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded text-sm">
+                <div className="bg-red-500/20 border-l-4 border-red-500 text-white p-3 mb-4 rounded text-sm">
                     {error}
                 </div>
             )}
@@ -72,20 +69,20 @@ export default function LoginCard() {
                 <button
                     onClick={submit}
                     disabled={loading || !email.trim()}
-                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition"
+                    className="flex-1 bg-sprinta-blue hover:bg-sprinta-blue-hover disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition"
                 >
                     {loading ? '⏳ Accesso in corso...' : '✓ Login'}
                 </button>
             </div>
 
             <div className="mt-4 text-center">
-                <Link href="/create-profile" className="text-sm text-green-600 underline hover:text-green-800">
+                <Link href="/create-profile" className="text-sm text-white underline hover:text-white/80">
                     Non sei ancora registrato? Crea account
                 </Link>
             </div>
 
-            <div className="mt-6 p-3 bg-green-50 rounded-lg text-xs text-gray-600">
-                <p className="font-semibold mb-1">💡 Demo: Email salvate nel JSON</p>
+            <div className="mt-6 p-3 bg-white/10 border border-white/20 rounded-lg text-xs text-white/80">
+                <p className="font-semibold mb-1 text-white">💡 Demo: Email salvate nel JSON</p>
                 <p>Usa l'email con cui hai creato il profilo (es: simone.lima97@gmail.com)</p>
             </div>
         </div>

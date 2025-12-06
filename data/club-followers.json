@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "clubId": 1,
+    "userId": 2,
+    "followedAt": "2024-02-15T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "clubId": 1,
+    "userId": 3,
+    "followedAt": "2024-02-18T11:00:00Z"
+  },
+  {
+    "id": 3,
+    "clubId": 1,
+    "userId": 5,
+    "followedAt": "2024-02-20T09:00:00Z"
+  },
+  {
+    "id": 4,
+    "clubId": 2,
+    "userId": 1,
+    "followedAt": "2024-02-22T14:00:00Z"
+  },
+  {
+    "id": 5,
+    "clubId": 2,
+    "userId": 3,
+    "followedAt": "2024-02-25T10:30:00Z"
+  },
+  {
+    "id": 6,
+    "clubId": 3,
+    "userId": 9,
+    "followedAt": "2024-03-01T11:00:00Z"
+  },
+  {
+    "id": 7,
+    "clubId": 4,
+    "userId": 1,
+    "followedAt": "2024-03-05T15:00:00Z"
+  },
+  {
+    "id": 8,
+    "clubId": 4,
+    "userId": 2,
+    "followedAt": "2024-03-08T10:00:00Z"
+  },
+  {
+    "id": 9,
+    "clubId": 5,
+    "userId": 10,
+    "followedAt": "2024-03-10T12:00:00Z"
+  },
+  {
+    "id": 10,
+    "clubId": 6,
+    "userId": 13,
+    "followedAt": "2024-03-15T09:00:00Z"
+  }
+]

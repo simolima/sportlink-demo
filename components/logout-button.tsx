@@ -18,6 +18,6 @@ export default function LogoutButton() {
     }
 
     return (
-        <button onClick={logout} className="text-sm px-3 py-1 border rounded">Logout</button>
+        <button onClick={logout} className="text-sm px-3 py-1 border rounded text-white border-white hover:bg-white/10">Logout</button>
     )
 }

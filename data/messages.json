@@ -1,70 +1,42 @@
 [
   {
-    "id": 1763223452821,
-    "senderId": "1763208207090",
-    "receiverId": "1763211292551",
-    "text": "Ciao bello complimenti!",
-    "timestamp": "2025-11-15T16:17:32.821Z",
+    "id": 1,
+    "senderId": "1",
+    "receiverId": "3",
+    "text": "Ciao Luca, grazie per avermi rappresentato. Quando possiamo parlare del nuovo contratto?",
+    "timestamp": "2024-03-10T15:30:00Z",
     "read": true
   },
   {
-    "id": 1763225473760,
-    "senderId": "1763208207090",
-    "receiverId": "1763211292551",
-    "text": "Com'è andata la galera?",
-    "timestamp": "2025-11-15T16:51:13.760Z",
+    "id": 2,
+    "senderId": "3",
+    "receiverId": "1",
+    "text": "Ciao Marco! Perfetto, possiamo sentirci domani mattina. Ho già dei contatti interessanti.",
+    "timestamp": "2024-03-10T16:15:00Z",
     "read": true
   },
   {
-    "id": 1763225676537,
-    "senderId": "1763211292551",
-    "receiverId": "1763208207090",
-    "text": "tutto bene dai grazie",
-    "timestamp": "2025-11-15T16:54:36.537Z",
+    "id": 3,
+    "senderId": "6",
+    "receiverId": "1",
+    "text": "Congratulazioni per l'accettazione! Quando puoi venire per firmare il contratto?",
+    "timestamp": "2024-03-08T14:30:00Z",
     "read": true
   },
   {
-    "id": 1763232166160,
-    "senderId": "1763208207090",
-    "receiverId": "1763211292551",
-    "text": "[Post condiviso]",
-    "timestamp": "2025-11-15T18:42:46.160Z",
-    "read": false,
-    "sharedPostId": 1763211683209
-  },
-  {
-    "id": 1763232438200,
-    "senderId": "1763232355493",
-    "receiverId": "1763211292551",
-    "text": "[Post condiviso]",
-    "timestamp": "2025-11-15T18:47:18.200Z",
-    "read": false,
-    "sharedPostId": 1763210046999
-  },
-  {
-    "id": 1763236080305,
-    "senderId": "1763234670470",
-    "receiverId": "1763232355493",
-    "text": "ciao",
-    "timestamp": "2025-11-15T19:48:00.305Z",
+    "id": 4,
+    "senderId": "1",
+    "receiverId": "6",
+    "text": "Grazie mille! Posso venire lunedì mattina, va bene?",
+    "timestamp": "2024-03-08T15:00:00Z",
     "read": true
   },
   {
-    "id": 1763236856816,
-    "senderId": "1763208207090",
-    "receiverId": "1763232355493",
-    "text": "[Post condiviso]",
-    "timestamp": "2025-11-15T20:00:56.816Z",
-    "read": true,
-    "sharedPostId": 1763236828106
-  },
-  {
-    "id": 1763298119575,
-    "senderId": "1763208207090",
-    "receiverId": "1763232355493",
-    "text": "[Post condiviso]",
-    "timestamp": "2025-11-16T13:01:59.575Z",
-    "read": true,
-    "sharedPostId": 1763236828106
+    "id": 5,
+    "senderId": "2",
+    "receiverId": "14",
+    "text": "Buongiorno, grazie per aver accettato la mia candidatura. Quando iniziamo?",
+    "timestamp": "2024-03-10T10:00:00Z",
+    "read": false
   }
 ]

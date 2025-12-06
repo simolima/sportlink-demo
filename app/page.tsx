@@ -27,13 +27,13 @@ export default function Page() {
           <div className="mt-8 flex flex-wrap gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-green-600 text-white text-base md:text-lg font-semibold shadow hover:bg-green-700 transition"
+              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-sprinta-blue text-white text-base md:text-lg font-semibold shadow-lg hover:bg-sprinta-blue-hover transition"
             >
               Accedi
             </button>
             <button
               onClick={() => router.push('/create-profile')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl border-2 border-green-600 text-green-700 text-base md:text-lg font-semibold hover:bg-green-50 transition"
+              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl border-2 border-sprinta-blue text-sprinta-blue text-base md:text-lg font-semibold hover:bg-sprinta-blue hover:text-white transition"
             >
               Crea un profilo
             </button>
@@ -44,13 +44,13 @@ export default function Page() {
         <aside className="order-1 md:order-2 flex justify-center md:justify-end">
           <div className="relative isolate w-full max-w-md md:max-w-lg">
             {/* Glow dietro al logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] rounded-full bg-green-300/25 blur-3xl z-0 pointer-events-none"></div>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] rounded-full bg-blue-300/20 blur-3xl z-0 pointer-events-none"></div>
 
             {/* Logo sopra il glow */}
             <img
               src="/logo.svg"
-              alt="SportLink logo"
-              className="relative z-10 w-full h-auto object-contain select-none drop-shadow-md"
+              alt="SPRINTA logo"
+              className="relative z-10 w-full h-auto object-contain select-none drop-shadow-2xl"
               draggable={false}
             />
           </div>

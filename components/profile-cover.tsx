@@ -22,19 +22,19 @@ export default function ProfileCover({
     return (
         <div className="relative">
             {/* Cover Photo */}
-            <div className="relative h-64 md:h-80 lg:h-96 bg-gradient-to-r from-blue-500 to-blue-700 overflow-hidden rounded-t-lg">
+            <div className="relative h-64 md:h-80 lg:h-96 bg-sprinta-navy overflow-hidden">
                 <img 
                     src={coverUrl || defaultCover}
                     alt="Cover"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover opacity-80"
                 />
                 {isOwn && (
                     <button 
                         onClick={onCoverUpload}
                         className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-gray-50 transition"
                     >
-                        <CameraIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium">Modifica copertina</span>
+                        <CameraIcon className="w-5 h-5 text-gray-700" />
+                        <span className="text-sm font-medium text-gray-700">Modifica copertina</span>
                     </button>
                 )}
             </div>
@@ -52,7 +52,7 @@ export default function ProfileCover({
                     </div>
                     {isOwn && (
                         <button className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50 transition">
-                            <CameraIcon className="w-4 h-4" />
+                            <CameraIcon className="w-4 h-4 text-gray-700" />
                         </button>
                     )}
                 </div>

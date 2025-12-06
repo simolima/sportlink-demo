@@ -59,7 +59,7 @@ export default function MessagesPage() {
         <div className="max-w-4xl mx-auto p-6">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-semibold">Messaggi</h1>
-                <button onClick={() => setShowNew(v => !v)} className="text-sm px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700">
+                <button onClick={() => setShowNew(v => !v)} className="text-sm px-3 py-1.5 rounded bg-sprinta-blue text-white hover:bg-sprinta-blue-hover">
                     {showNew ? 'Chiudi' : 'Nuova chat'}
                 </button>
             </div>
@@ -84,7 +84,7 @@ export default function MessagesPage() {
                                 const u = users.find(u => String(u.id) === String(c.peerId))
                                 const display = u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || c.peerId : c.peerId
                                 return (
-                                    <Link href={`/messages/${c.peerId}`} className="font-medium text-green-600 hover:underline">{display}</Link>
+                                    <Link href={`/messages/${c.peerId}`} className="font-medium text-sprinta-blue hover:underline">{display}</Link>
                                 )
                             })()}
                             <p className="text-xs text-gray-500 truncate max-w-md mt-1">{c.lastMessage.text}</p>
@@ -107,7 +107,7 @@ export default function MessagesPage() {
                             .map(u => {
                                 const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || u.id
                                 return (
-                                    <Link key={u.id} href={`/messages/${u.id}`} className="border rounded p-3 text-sm hover:bg-green-50">
+                                    <Link key={u.id} href={`/messages/${u.id}`} className="border rounded p-3 text-sm hover:bg-blue-50 hover:border-sprinta-blue transition-colors">
                                         <div className="font-medium">{name}</div>
                                         <div className="text-xs text-gray-500 truncate">{u.currentRole}</div>
                                     </Link>

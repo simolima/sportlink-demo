@@ -36,7 +36,7 @@ export default function ProfileActions({ userId }: ProfileActionsProps) {
             {!isOwn && (
                 <Link 
                     href={`/messages/${userId}`} 
-                    className="px-4 py-1 rounded-full bg-green-600 text-white hover:bg-green-700 transition font-semibold"
+                    className="px-4 py-1 rounded-full bg-sprinta-blue text-white hover:bg-sprinta-blue-hover transition font-semibold"
                 >
                     Messaggia
                 </Link>
@@ -44,7 +44,7 @@ export default function ProfileActions({ userId }: ProfileActionsProps) {
             {isOwn && (
                 <Link
                     href="/profile/edit"
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition font-medium"
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-sprinta-blue text-white hover:bg-sprinta-blue-hover transition font-medium"
                 >
                     <PencilSquareIcon className="w-5 h-5" />
                     Modifica Profilo

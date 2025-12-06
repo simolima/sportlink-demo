@@ -66,8 +66,8 @@ export default function MessageBubble({ message, currentUserId }: Props) {
                 </div>
             )}
             <div className={clsx('max-w-xs rounded-lg px-3 py-2 text-sm shadow',
-                isMine ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800')}
-            >
+                isMine ? 'bg-sprinta-blue text-white' : 'bg-gray-100 text-gray-800')
+            }>
                 <p className="whitespace-pre-line break-words">{message.text}</p>
 
                 {/* Shared post preview */}
@@ -110,7 +110,7 @@ export default function MessageBubble({ message, currentUserId }: Props) {
                     </div>
                 )}
 
-                <div className={clsx('mt-1 text-[10px] flex items-center gap-1', isMine ? 'text-green-100' : 'text-gray-500')}>
+                <div className={clsx('mt-1 text-[10px] flex items-center gap-1', isMine ? 'text-sprinta-text/70' : 'text-sprinta-text-secondary')}>
                     <span>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     {isMine && (
                         <span>{message.read ? '✓✓' : '✓'} </span>

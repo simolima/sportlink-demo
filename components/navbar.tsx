@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 
 const LogoutButton = dynamic(() => import('./logout-button'), { ssr: false })
+const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 
 export default function Navbar() {
     const [loggedIn, setLoggedIn] = useState(false)
@@ -42,24 +43,26 @@ export default function Navbar() {
     if (!isLoaded) return null
 
     return (
-        <nav className="bg-white shadow-sm border-b">
+        <nav className="bg-sprinta-navy shadow-md">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <Link href="/" className="text-xl font-bold text-green-600">SportLink</Link>
+                <Link href={loggedIn ? "/home" : "/"} className="text-xl font-bold text-white">SPRINTA</Link>
                 <div className="flex items-center gap-6">
                     {loggedIn ? (
                         <>
-                            <Link href="/home" className="text-sm text-gray-600 hover:text-gray-900 transition">Feed</Link>
-                            <Link href="/people" className="text-sm text-gray-600 hover:text-gray-900 transition">Scopri</Link>
-                            <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900 transition">Lavoro</Link>
-                            <Link href="/messages" className="relative text-sm text-gray-600 hover:text-gray-900 transition">
+                            <Link href="/home" className="text-sm text-white hover:text-white/80 transition">Home</Link>
+                            <Link href="/people" className="text-sm text-white hover:text-white/80 transition">Scopri</Link>
+                            <Link href="/clubs" className="text-sm text-white hover:text-white/80 transition">Società</Link>
+                            <Link href="/opportunities" className="text-sm text-white hover:text-white/80 transition">Opportunità</Link>
+                            <Link href="/messages" className="relative text-sm text-white hover:text-white/80 transition">
                                 Messaggi
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
                                 )}
                             </Link>
+                            {currentUserId && <NotificationBell userId={parseInt(currentUserId)} />}
                             <Link 
                                 href={currentUserId ? `/profile/${currentUserId}` : '/profile'} 
-                                className="text-sm text-gray-600 hover:text-gray-900 transition"
+                                className="text-sm text-white hover:text-white/80 transition"
                             >
                                 Profilo
                             </Link>
@@ -67,8 +70,8 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
-                            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition">Login</Link>
-                            <Link href="/create-profile" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition">Crea Account</Link>
+                            <Link href="/login" className="text-sm text-white hover:text-white/80 transition">Login</Link>
+                            <Link href="/create-profile" className="px-4 py-2 bg-sprinta-blue text-white rounded-lg text-sm hover:bg-sprinta-blue-hover transition">Crea Account</Link>
                         </>
                     )}
                 </div>

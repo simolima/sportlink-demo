@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "type": "application_status_changed",
+    "title": "Candidatura Accettata",
+    "message": "La tua candidatura per 'Cercasi Attaccante Professionista' è stata accettata!",
+    "relatedId": 2,
+    "relatedType": "application",
+    "isRead": false,
+    "createdAt": "2024-03-08T14:00:00Z"
+  },
+  {
+    "id": 2,
+    "userId": 8,
+    "type": "affiliation_request",
+    "title": "Nuova Richiesta di Affiliazione",
+    "message": "Luca Ferrari (Agente) ti ha inviato una richiesta di affiliazione",
+    "relatedId": 3,
+    "relatedType": "affiliation",
+    "isRead": false,
+    "createdAt": "2024-03-15T15:00:00Z"
+  },
+  {
+    "id": 3,
+    "userId": 15,
+    "type": "affiliation_request",
+    "title": "Nuova Richiesta di Affiliazione",
+    "message": "Luca Ferrari (Agente) ti ha inviato una richiesta di affiliazione",
+    "relatedId": 4,
+    "relatedType": "affiliation",
+    "isRead": false,
+    "createdAt": "2024-03-18T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "userId": 6,
+    "type": "application_received",
+    "title": "Nuova Candidatura",
+    "message": "Hai ricevuto una nuova candidatura per 'Cercasi Attaccante Professionista'",
+    "relatedId": 1,
+    "relatedType": "application",
+    "isRead": true,
+    "createdAt": "2024-03-02T11:00:00Z"
+  },
+  {
+    "id": 5,
+    "userId": 6,
+    "type": "club_join_request",
+    "title": "Richiesta Ingresso Club",
+    "message": "Laura Serra ha richiesto di unirsi ad AC Milano Calcio come Attaccante",
+    "relatedId": 1,
+    "relatedType": "club",
+    "isRead": false,
+    "createdAt": "2024-03-18T14:00:00Z"
+  },
+  {
+    "id": 6,
+    "userId": 2,
+    "type": "club_join_accepted",
+    "title": "Richiesta Accettata",
+    "message": "La tua richiesta di ingresso in Roma Basket Club è stata accettata!",
+    "relatedId": 2,
+    "relatedType": "club",
+    "isRead": true,
+    "createdAt": "2024-03-11T09:00:00Z"
+  },
+  {
+    "id": 7,
+    "userId": 14,
+    "type": "application_received",
+    "title": "Nuova Candidatura",
+    "message": "Hai ricevuto una nuova candidatura per 'Allenatore Settore Giovanile'",
+    "relatedId": 5,
+    "relatedType": "application",
+    "isRead": true,
+    "createdAt": "2024-03-06T11:30:00Z"
+  },
+  {
+    "id": 8,
+    "userId": 3,
+    "type": "affiliation_accepted",
+    "title": "Affiliazione Accettata",
+    "message": "Marco Rossi ha accettato la tua richiesta di affiliazione",
+    "relatedId": 1,
+    "relatedType": "affiliation",
+    "isRead": true,
+    "createdAt": "2024-02-02T14:30:00Z"
+  },
+  {
+    "id": 9,
+    "userId": 12,
+    "type": "club_join_request",
+    "title": "Richiesta Ingresso Club",
+    "message": "Alessandro Conti ha richiesto di unirsi a Torino United FC come Centrocampista",
+    "relatedId": 3,
+    "relatedType": "club",
+    "isRead": true,
+    "createdAt": "2024-03-10T11:00:00Z"
+  },
+  {
+    "id": 10,
+    "userId": 1,
+    "type": "new_announcement",
+    "title": "Nuovo Annuncio Rilevante",
+    "message": "È stato pubblicato un nuovo annuncio che potrebbe interessarti: 'Cercasi Attaccante Professionista'",
+    "relatedId": 1,
+    "relatedType": "announcement",
+    "isRead": true,
+    "createdAt": "2024-03-01T10:00:00Z"
+  }
+]

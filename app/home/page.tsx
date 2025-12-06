@@ -76,12 +76,65 @@ export default function HomePage() {
                         </div>
                         <button
                             onClick={() => router.push(`/profile/${userId}`)}
-                            className="px-6 py-2 border-2 border-green-600 text-green-600 font-semibold rounded-full hover:bg-green-50 transition"
+                            className="px-6 py-2 border-2 border-blue-600 text-blue-600 font-semibold rounded-full hover:bg-blue-50 transition"
                         >
                             Visualizza Profilo
                         </button>
                     </div>
                 </div>
+
+                {/* Quick Links based on role */}
+                {userRole && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 mb-6 border border-blue-100">
+                        <h3 className="font-semibold text-gray-900 mb-4">Accesso Rapido</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            {userRole === 'Agent' && (
+                                <>
+                                    <button
+                                        onClick={() => router.push('/agent/affiliations')}
+                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                                    >
+                                        📋 Le Mie Affiliazioni
+                                    </button>
+                                    <button
+                                        onClick={() => router.push('/opportunities')}
+                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                                    >
+                                        💼 Opportunità
+                                    </button>
+                                </>
+                            )}
+                            {userRole === 'Player' && (
+                                <>
+                                    <button
+                                        onClick={() => router.push('/player/affiliations')}
+                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                                    >
+                                        🤝 I Miei Agenti
+                                    </button>
+                                    <button
+                                        onClick={() => router.push('/opportunities')}
+                                        className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                                    >
+                                        💼 Candidature
+                                    </button>
+                                </>
+                            )}
+                            <button
+                                onClick={() => router.push('/clubs')}
+                                className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                            >
+                                🏢 Società
+                            </button>
+                            <button
+                                onClick={() => router.push('/people')}
+                                className="px-4 py-3 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-100 transition border border-gray-200"
+                            >
+                                👥 Scopri Persone
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Post Composer */}
                 <PostComposer userPhoto={userPhoto} userName={userName} />

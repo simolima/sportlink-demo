@@ -1,0 +1,298 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Shield, Check, X, Ban } from 'lucide-react'
+import { Affiliation } from '@/lib/types'
+import { useToast } from '@/lib/toast-context'
+
+interface AffiliationWithDetails extends Affiliation {
+  agent?: { id: number; firstName: string; lastName: string; avatarUrl?: string }
+}
+
+export default function PlayerAffiliationsPage() {
+  const router = useRouter()
+  const { showToast } = useToast()
+  const [affiliations, setAffiliations] = useState<AffiliationWithDetails[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (typeof window === 'undefined') return
+      const userId = localStorage.getItem('currentUserId')
+      if (!userId) {
+        router.push('/login')
+        return
+      }
+
+      try {
+        // Fetch current user data
+        const usersRes = await fetch('/api/users')
+        const users = await usersRes.json()
+        const user = users.find((u: any) => u.id.toString() === userId)
+        
+        if (!user) {
+          router.push('/login')
+          return
+        }
+
+        setCurrentUser(user)
+
+        // Check if user is a player
+        if (user.professionalRole !== 'Player') {
+          showToast('error', 'Accesso negato', 'Solo i giocatori possono accedere a questa pagina')
+          router.push('/home')
+          return
+        }
+
+        await fetchAffiliations(user.id)
+      } catch (error) {
+        showToast('error', 'Errore', 'Impossibile caricare i dati')
+      }
+    }
+    
+    loadData()
+  }, [])
+
+  const fetchAffiliations = async (playerId: number) => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/affiliations?playerId=${playerId}`)
+      const data = await res.json()
+      setAffiliations(data)
+    } catch (error) {
+      showToast('error', 'Errore', 'Impossibile caricare le affiliazioni')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAccept = async (affiliationId: number) => {
+    try {
+      const res = await fetch('/api/affiliations', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: affiliationId,
+          status: 'accepted',
+        }),
+      })
+
+      if (res.ok) {
+        showToast('success', 'Affiliazione accettata!', 'Hai accettato l\'affiliazione con successo')
+        fetchAffiliations(currentUser.id)
+      }
+    } catch (error) {
+      showToast('error', 'Errore', 'Impossibile accettare l\'affiliazione')
+    }
+  }
+
+  const handleReject = async (affiliationId: number) => {
+    try {
+      const res = await fetch('/api/affiliations', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: affiliationId,
+          status: 'rejected',
+        }),
+      })
+
+      if (res.ok) {
+        showToast('success', 'Affiliazione rifiutata', 'Hai rifiutato l\'affiliazione')
+        fetchAffiliations(currentUser.id)
+      }
+    } catch (error) {
+      showToast('error', 'Errore', 'Impossibile rifiutare l\'affiliazione')
+    }
+  }
+
+  const handleBlock = async (affiliationId: number, agentId: number) => {
+    if (!confirm('Sei sicuro di voler bloccare questo agente? Non potrà più inviarti richieste.')) {
+      return
+    }
+
+    try {
+      // Delete affiliation and block agent
+      const res = await fetch(`/api/affiliations?id=${affiliationId}&block=true`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        showToast('success', 'Agente bloccato', 'L\'agente è stato bloccato con successo')
+        fetchAffiliations(currentUser.id)
+      }
+    } catch (error) {
+      showToast('error', 'Errore', 'Impossibile bloccare l\'agente')
+    }
+  }
+
+  const handleRemove = async (affiliationId: number) => {
+    if (!confirm('Sei sicuro di voler rimuovere questa affiliazione?')) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/affiliations?id=${affiliationId}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        showToast('success', 'Affiliazione rimossa', 'L\'affiliazione è stata rimossa')
+        fetchAffiliations(currentUser.id)
+      }
+    } catch (error) {
+      showToast('error', 'Errore', 'Impossibile rimuovere l\'affiliazione')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center py-12">Caricamento...</div>
+      </div>
+    )
+  }
+
+  const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
+  const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Shield size={32} className="text-blue-600" />
+          <h1 className="text-3xl font-bold text-gray-900">I Miei Agenti</h1>
+        </div>
+        <p className="text-gray-600">Gestisci le richieste e le affiliazioni con gli agenti</p>
+      </div>
+
+      {/* Pending Requests */}
+      {pendingAffiliations.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Richieste in Attesa</h2>
+          <div className="space-y-4">
+            {pendingAffiliations.map((affiliation) => (
+              <div key={affiliation.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    <img
+                      src={affiliation.agent?.avatarUrl || '/default-avatar.png'}
+                      alt={`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {affiliation.agent?.firstName} {affiliation.agent?.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">Ruolo: Agente</p>
+                      {affiliation.message && (
+                        <p className="text-sm text-gray-700 mt-3 p-3 bg-white rounded-lg">
+                          {affiliation.message}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-2">
+                        Richiesta il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        handleAccept(
+                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
+                        )
+                      }
+                      className="px-4 py-2 bg-sprinta-blue text-white rounded-lg hover:bg-sprinta-blue-hover transition flex items-center gap-2"
+                    >
+                      <Check size={18} />
+                      Accetta
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleReject(
+                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
+                        )
+                      }
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
+                    >
+                      <X size={18} />
+                      Rifiuta
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleBlock(
+                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id),
+                          typeof affiliation.agentId === 'number'
+                            ? affiliation.agentId
+                            : parseInt(affiliation.agentId)
+                        )
+                      }
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                      title="Non conosco questa persona"
+                    >
+                      <Ban size={18} />
+                      Blocca
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Accepted Affiliations */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Agenti Affiliati</h2>
+        {acceptedAffiliations.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <Shield size={48} className="mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600">Non hai ancora agenti affiliati</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {acceptedAffiliations.map((affiliation) => (
+              <div key={affiliation.id} className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={affiliation.agent?.avatarUrl || '/default-avatar.png'}
+                      alt={`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {affiliation.agent?.firstName} {affiliation.agent?.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600">Agente</p>
+                      {affiliation.affiliatedAt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Affiliato dal: {new Date(affiliation.affiliatedAt).toLocaleDateString('it-IT')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      handleRemove(
+                        typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
+                      )
+                    }
+                    className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
+                  >
+                    Rimuovi
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

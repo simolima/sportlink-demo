@@ -72,7 +72,7 @@ export default function ProfilePage() {
             {!loading && user && (
                 <div className="max-w-4xl mx-auto py-8 px-4">
                     {/* Cover Photo Section */}
-                    <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 rounded-t-lg"></div>
+                    <div className="h-48 bg-sprinta-navy rounded-t-lg"></div>
 
                     {/* Profile Header Section */}
                     <div className="bg-white rounded-b-lg shadow-lg px-8 pb-8">
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                                     {user.experiences.map((exp: any, idx: number) => (
                                         <div key={idx} className="flex gap-4 pb-4 border-b last:border-b-0">
                                             {/* Company logo placeholder */}
-                                            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex-shrink-0 flex items-center justify-center">
+                                            <div className="w-16 h-16 rounded-lg bg-sprinta-blue flex-shrink-0 flex items-center justify-center">
                                                 <span className="text-white font-bold text-sm">
                                                     {exp.company?.charAt(0) || '?'}
                                                 </span>

@@ -45,7 +45,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     ]
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             {/* Cover Photo + Avatar */}
             <ProfileCover
                 coverUrl={user.coverUrl}
@@ -65,7 +65,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                     {user.firstName} {user.lastName}
                                 </h1>
                                 {user.verified && (
-                                    <CheckBadgeIcon className="w-7 h-7 text-green-600" />
+                                    <CheckBadgeIcon className="w-7 h-7 text-sprinta-blue" />
                                 )}
                             </div>
                             <p className="text-lg text-gray-600 mt-1">{user.currentRole}</p>

@@ -170,13 +170,13 @@ export default function JobsPage() {
                     <div className="flex gap-3">
                         <button
                             onClick={() => setShowApplicationsView(v => !v)}
-                            className={`px-6 py-3 rounded-lg font-semibold transition ${showApplicationsView ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-white text-gray-700 hover:bg-gray-100 border'}`}
+                            className={`px-6 py-3 rounded-lg font-semibold transition ${showApplicationsView ? 'bg-blue-50 text-sprinta-blue border border-blue-200' : 'bg-white text-gray-700 hover:bg-gray-100 border'}`}
                         >
                             Candidature ricevute
                         </button>
                         <button
                             onClick={() => setShowCreateForm(!showCreateForm)}
-                            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                            className="flex items-center gap-2 px-6 py-3 bg-sprinta-blue text-white rounded-lg font-semibold hover:bg-sprinta-blue-hover transition"
                         >
                             <PlusIcon className="w-5 h-5" />
                             Crea Annuncio
@@ -197,7 +197,7 @@ export default function JobsPage() {
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="es. Cercasi centrocampista per squadra serie C"
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-sprinta-blue focus:outline-none"
                                 />
                             </div>
 
@@ -206,7 +206,7 @@ export default function JobsPage() {
                                 <select
                                     value={formData.category}
                                     onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-sprinta-blue focus:outline-none"
                                 >
                                     <option value="player">Cercasi Giocatore</option>
                                     <option value="coach">Cercasi Coach/Allenatore</option>
@@ -222,7 +222,7 @@ export default function JobsPage() {
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     rows={5}
                                     placeholder="Descrivi la posizione, requisiti, esperienza richiesta, ecc."
-                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none resize-none"
+                                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-sprinta-blue focus:outline-none resize-none"
                                 />
                             </div>
 
@@ -234,7 +234,7 @@ export default function JobsPage() {
                                         value={formData.location}
                                         onChange={e => setFormData({ ...formData, location: e.target.value })}
                                         placeholder="es. Milano, Italia"
-                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-sprinta-blue focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -244,7 +244,7 @@ export default function JobsPage() {
                                         value={formData.contactEmail}
                                         onChange={e => setFormData({ ...formData, contactEmail: e.target.value })}
                                         placeholder="tua-email@example.com"
-                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                                        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-sprinta-blue focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -258,7 +258,7 @@ export default function JobsPage() {
                                 </button>
                                 <button
                                     onClick={handleSubmit}
-                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                                    className="px-6 py-2 bg-sprinta-blue text-white rounded-lg font-semibold hover:bg-sprinta-blue-hover"
                                 >
                                     Pubblica Annuncio
                                 </button>
@@ -274,7 +274,7 @@ export default function JobsPage() {
                             key={cat.value}
                             onClick={() => setSelectedCategory(cat.value)}
                             className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition ${selectedCategory === cat.value
-                                ? 'bg-green-600 text-white'
+                                ? 'bg-sprinta-blue text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >

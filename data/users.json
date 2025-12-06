@@ -1,204 +1,298 @@
 [
   {
-    "id": 1763234670470,
-    "firstName": "Feno",
-    "lastName": "Meno",
-    "email": "feno.meno@mail.it",
-    "birthDate": "2007-10-09",
-    "currentRole": "Attaccante",
-    "bio": "Attaccante professionista con esperienza internazionale. Specializzato in finalizzazione e gioco aereo.",
-    "avatarUrl": "/avatars/1763234670360-pmo32d.png",
+    "id": 1765029825047,
+    "firstName": "Alessandro Vincenzo",
+    "lastName": "La Pietra",
+    "email": "alessandro.lapietra5@gmail.com",
+    "birthDate": "2021-01-06",
+    "professionalRole": null,
+    "sport": null,
+    "currentRole": "",
+    "availability": "unavailable",
+    "level": null,
+    "bio": "",
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "experiences": [
+      {
+        "title": "",
+        "company": "",
+        "from": "",
+        "to": ""
+      }
+    ],
+    "createdAt": "2025-12-06T14:03:45.047Z"
+  },
+  {
+    "id": 1,
+    "firstName": "Marco",
+    "lastName": "Rossi",
+    "email": "marco.rossi@email.com",
+    "password": "password123",
+    "birthDate": "1995-03-15",
+    "sport": "Calcio",
+    "professionalRole": "Player",
+    "bio": "Attaccante professionista con 8 anni di esperienza in Serie A. Specializzato in finalizzazione e gioco aereo.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=12",
     "coverUrl": "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&h=400&fit=crop",
     "city": "Milano",
-    "languages": [
-      "Italiano",
-      "Portoghese",
-      "Inglese"
-    ],
+    "country": "Italia",
+    "availability": "Open to Offers",
+    "level": "Professional",
     "verified": true,
-    "stats": [
-      {
-        "label": "Partite Giocate",
-        "value": 456,
-        "maxValue": 600,
-        "color": "blue"
-      },
-      {
-        "label": "Presenze Totali",
-        "value": 458,
-        "maxValue": 600,
-        "color": "green"
-      }
-    ],
-    "professionalSeasons": [
-      {
-        "id": 1,
-        "team": "FC Dynamo",
-        "year": "2024 - Oggi",
-        "description": "Attaccante titolare nella squadra che milita in Serie A. Autore di 15 goal nella stagione corrente."
-      },
-      {
-        "id": 2,
-        "team": "Brasile FC",
-        "year": "2020 - 2024",
-        "description": "Quattro stagioni vincenti con il club brasiliano, conquistando due campionati nazionali."
-      }
-    ],
-    "experiences": [
-      {
-        "title": "Attaccante",
-        "company": "FC Dynamo",
-        "from": "2024",
-        "to": "",
-        "location": "Milano, Italia",
-        "description": "Attaccante di punta della squadra con focus su finalizzazione e pressing offensivo"
-      },
-      {
-        "title": "Attaccante",
-        "company": "Brasile FC",
-        "from": "2020",
-        "to": "2024",
-        "location": "San Paolo, Brasile",
-        "description": "Esperienza formativa nel calcio sudamericano con ottimi risultati"
-      }
-    ],
-    "createdAt": "2025-11-15T19:24:30.470Z",
-    "username": "",
-    "updatedAt": "2025-11-15T19:41:14.023Z"
+    "createdAt": "2024-01-15T10:00:00Z"
   },
   {
-    "id": 1763232355493,
-    "firstName": "Marco",
-    "lastName": "Gregorio",
-    "email": "marco.gregorio1997@gmail.com",
-    "birthDate": "1997-08-04",
-    "currentRole": "Difensore",
-    "bio": "Terzino di spinta ambidestro con preferenza a giocare a destra. Grande capacità di cross e lettura difensiva.",
-    "avatarUrl": "",
-    "coverUrl": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&h=400&fit=crop",
-    "city": "Basiglio",
-    "languages": [
-      "Italiano"
-    ],
-    "stats": [
-      {
-        "label": "Partite Giocate",
-        "value": 320,
-        "maxValue": 600,
-        "color": "blue"
-      },
-      {
-        "label": "Presenze Totali",
-        "value": 322,
-        "maxValue": 600,
-        "color": "green"
-      }
-    ],
-    "professionalSeasons": [
-      {
-        "id": 1,
-        "team": "AC Basiglio",
-        "year": "2013 - Oggi",
-        "description": "Terzino destro con spiccate doti offensive, punto di riferimento della squadra."
-      }
-    ],
-    "experiences": [
-      {
-        "title": "Terzino DX",
-        "company": "AC Basiglio",
-        "from": "2006",
-        "to": "2013",
-        "location": "Basiglio, Italia",
-        "description": "Cresciuto nel settore giovanile, ha debuttato in prima squadra nel 2013"
-      },
-      {
-        "title": "Terzino DX",
-        "company": "Rozzano Calcio",
-        "from": "2013",
-        "to": "2015",
-        "description": "Nel 2013 trasferimento al Rozzano Calcio "
-      },
-      {
-        "title": "Terzino DX",
-        "company": "Svincolato",
-        "from": "2015",
-        "to": "",
-        "description": "Attualmente svincolato"
-      }
-    ],
-    "createdAt": "2025-11-15T18:45:55.493Z",
-    "username": "",
-    "updatedAt": "2025-11-22T00:23:54.329Z"
-  },
-  {
-    "id": 1763211292551,
-    "firstName": "Test",
-    "lastName": "icolo",
-    "email": "test@mail.com",
-    "birthDate": "1998-02-01",
-    "currentRole": "DS Pantere Rosa Volleyball",
-    "bio": "Direttore sportivo che cerca nuove giocatrici per progetto volley femminile di alto livello. Focus su sviluppo talenti e costruzione di una squadra competitiva.",
-    "avatarUrl": null,
-    "coverUrl": "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200&h=400&fit=crop",
+    "id": 2,
+    "firstName": "Giulia",
+    "lastName": "Bianchi",
+    "email": "giulia.bianchi@email.com",
+    "password": "password123",
+    "birthDate": "1992-07-22",
+    "sport": "Basket",
+    "professionalRole": "Coach",
+    "bio": "Allenatrice con esperienza in squadre giovanili e senior. Focus su sviluppo tattico e preparazione fisica.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=5",
     "city": "Roma",
-    "languages": [
-      "Italiano",
-      "Inglese"
-    ],
-    "experiences": [
-      {
-        "title": "Direttore Sportivo",
-        "company": "Pantere Rosa",
-        "from": "2025",
-        "to": "",
-        "location": "Roma, Italia",
-        "description": "Responsabile della gestione tecnica e dello scouting per la squadra femminile di pallavolo"
-      },
-      {
-        "title": "Allenatore",
-        "company": "Galera F.C",
-        "from": "2002",
-        "to": "2025",
-        "location": "Roma, Italia",
-        "description": "Esperienza ventennale come allenatore e osservatore"
-      }
-    ],
-    "createdAt": "2025-11-15T12:54:52.551Z"
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-02-10T09:00:00Z"
   },
   {
-    "id": 1763208207090,
+    "id": 3,
+    "firstName": "Luca",
+    "lastName": "Ferrari",
+    "email": "luca.ferrari@email.com",
+    "password": "password123",
+    "birthDate": "1988-11-05",
+    "sport": "Calcio",
+    "professionalRole": "Agent",
+    "bio": "Agente sportivo con portfolio di 15 giocatori professionisti. Specializzato in trasferimenti nazionali e internazionali.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=33",
+    "city": "Milano",
+    "country": "Italia",
+    "availability": "Available",
+    "verified": true,
+    "createdAt": "2024-01-20T11:00:00Z"
+  },
+  {
+    "id": 4,
+    "firstName": "Alessandro",
+    "lastName": "Conti",
+    "email": "alessandro.conti@email.com",
+    "password": "password123",
+    "birthDate": "1998-05-10",
+    "sport": "Calcio",
+    "professionalRole": "Player",
+    "bio": "Centrocampista con esperienza in Serie B. Forte fisicamente e ottimo nel gioco di squadra.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=15",
+    "city": "Torino",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Semi-Professional",
+    "verified": false,
+    "createdAt": "2024-03-01T14:00:00Z"
+  },
+  {
+    "id": 5,
+    "firstName": "Sofia",
+    "lastName": "Colombo",
+    "email": "sofia.colombo@email.com",
+    "password": "password123",
+    "birthDate": "1990-09-18",
+    "sport": "Pallavolo",
+    "professionalRole": "Athletic Trainer",
+    "bio": "Preparatrice atletica specializzata in sport di squadra. Certificazioni internazionali in strength & conditioning.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=9",
+    "city": "Bologna",
+    "country": "Italia",
+    "availability": "Open to Offers",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-02-15T10:30:00Z"
+  },
+  {
+    "id": 6,
+    "firstName": "Francesco",
+    "lastName": "Marino",
+    "email": "francesco.marino@email.com",
+    "password": "password123",
+    "birthDate": "1985-12-03",
+    "sport": "Calcio",
+    "professionalRole": "Sporting Director",
+    "bio": "Direttore sportivo con 10 anni di esperienza nella gestione di club professionistici.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=52",
+    "city": "Milano",
+    "country": "Italia",
+    "availability": "Unavailable",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-01-05T09:00:00Z"
+  },
+  {
+    "id": 7,
+    "firstName": "Elena",
+    "lastName": "Romano",
+    "email": "elena.romano@email.com",
+    "password": "password123",
+    "birthDate": "1993-04-25",
+    "sport": "Tennis",
+    "professionalRole": "Nutritionist",
+    "bio": "Nutrizionista sportiva specializzata in atleti professionisti. Focus su performance e recupero.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=10",
+    "city": "Roma",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-02-20T11:00:00Z"
+  },
+  {
+    "id": 8,
+    "firstName": "Davide",
+    "lastName": "Ricci",
+    "email": "davide.ricci@email.com",
+    "password": "password123",
+    "birthDate": "1996-08-14",
+    "sport": "Basket",
+    "professionalRole": "Player",
+    "bio": "Guardia tiratrice con esperienza in Serie A2. Specializzato in tiri da tre punti.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=68",
+    "city": "Milano",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Semi-Professional",
+    "verified": false,
+    "createdAt": "2024-03-05T15:00:00Z"
+  },
+  {
+    "id": 9,
+    "firstName": "Martina",
+    "lastName": "Greco",
+    "email": "martina.greco@email.com",
+    "password": "password123",
+    "birthDate": "1994-06-30",
+    "sport": "Calcio",
+    "professionalRole": "Talent Scout",
+    "bio": "Talent scout con focus su giovani promesse. Esperienza in network europei di scouting.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=20",
+    "city": "Napoli",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-02-25T10:00:00Z"
+  },
+  {
+    "id": 10,
+    "firstName": "Andrea",
+    "lastName": "Moretti",
+    "email": "andrea.moretti@email.com",
+    "password": "password123",
+    "birthDate": "1987-10-12",
+    "sport": "Rugby",
+    "professionalRole": "Physio/Masseur",
+    "bio": "Fisioterapista specializzato in infortuni sportivi e riabilitazione. Esperienza con squadre nazionali.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=58",
+    "city": "Padova",
+    "country": "Italia",
+    "availability": "Open to Offers",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-01-25T12:00:00Z"
+  },
+  {
+    "id": 11,
+    "firstName": "Chiara",
+    "lastName": "Vitale",
+    "email": "chiara.vitale@email.com",
+    "password": "password123",
+    "birthDate": "1991-02-17",
+    "sport": "Pallavolo",
+    "professionalRole": "Mental Coach",
+    "bio": "Mental coach specializzata in atleti professionisti. Tecniche di visualizzazione e gestione stress.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=23",
+    "city": "Firenze",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-02-05T13:00:00Z"
+  },
+  {
+    "id": 12,
     "firstName": "Simone",
-    "lastName": "Lima",
-    "email": "simone.lima97@gmail.com",
-    "birthDate": "1997-02-27",
-    "currentRole": "Ex-Playmaker (Retired)",
-    "bio": "A 15 anni ho vinto un titolo provinciale con la Torre Basket. Ora mi dedico ad altri sport come paddle e beach volley. Sempre appassionato di sport e competizione.",
-    "avatarUrl": "",
-    "coverUrl": "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&h=400&fit=crop",
-    "city": "Bergamo",
-    "languages": [
-      "Italiano"
-    ],
-    "professionalSeasons": [
-      {
-        "id": 1,
-        "team": "Torre Basket",
-        "year": "2012 - 2015",
-        "description": "Playmaker titolare. Vittoria del campionato provinciale nel 2012, ottimi risultati nelle stagioni successive."
-      }
-    ],
-    "experiences": [
-      {
-        "title": "Playmaker",
-        "company": "Torre Basket",
-        "from": "2012",
-        "to": "2015",
-        "location": "Bergamo, Italia",
-        "description": "Miglior difensore, buon tiratore, grande visione di gioco. Campione provinciale 2012."
-      }
-    ],
-    "createdAt": "2025-11-15T12:03:27.090Z",
-    "username": "",
-    "updatedAt": "2025-11-18T22:30:47.627Z"
+    "lastName": "Bruno",
+    "email": "simone.bruno@email.com",
+    "password": "password123",
+    "birthDate": "1989-07-08",
+    "sport": "Calcio",
+    "professionalRole": "President",
+    "bio": "Presidente di società sportiva con visione imprenditoriale moderna. Focus su sostenibilità e crescita.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=70",
+    "city": "Genova",
+    "country": "Italia",
+    "availability": "Unavailable",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-01-10T09:30:00Z"
+  },
+  {
+    "id": 13,
+    "firstName": "Federica",
+    "lastName": "Gallo",
+    "email": "federica.gallo@email.com",
+    "password": "password123",
+    "birthDate": "1997-12-20",
+    "sport": "Nuoto",
+    "professionalRole": "Player",
+    "bio": "Nuotatrice specializzata stile libero. Campionessa regionale e partecipante campionati nazionali.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=27",
+    "city": "Verona",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Amateur",
+    "verified": false,
+    "createdAt": "2024-03-10T16:00:00Z"
+  },
+  {
+    "id": 14,
+    "firstName": "Roberto",
+    "lastName": "Costa",
+    "email": "roberto.costa@email.com",
+    "password": "password123",
+    "birthDate": "1986-05-03",
+    "sport": "Basket",
+    "professionalRole": "Director",
+    "bio": "Dirigente sportivo con esperienza nella gestione amministrativa e organizzativa di società sportive.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=56",
+    "city": "Torino",
+    "country": "Italia",
+    "availability": "Unavailable",
+    "level": "Professional",
+    "verified": true,
+    "createdAt": "2024-01-18T10:00:00Z"
+  },
+  {
+    "id": 15,
+    "firstName": "Laura",
+    "lastName": "Serra",
+    "email": "laura.serra@email.com",
+    "password": "password123",
+    "birthDate": "1999-03-28",
+    "sport": "Calcio",
+    "professionalRole": "Player",
+    "bio": "Difensore giovane e promettente. Esperienza in campionati giovanili nazionali.",
+    "avatarUrl": "https://i.pravatar.cc/150?img=32",
+    "city": "Palermo",
+    "country": "Italia",
+    "availability": "Available",
+    "level": "Youth",
+    "verified": false,
+    "createdAt": "2024-03-15T17:00:00Z"
   }
 ]

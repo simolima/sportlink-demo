@@ -1,7 +1,6 @@
 'use client'
-import { useState } from 'react'
 
-type TabType = 'informazioni' | 'aggiornamenti' | 'post'
+type TabType = 'informazioni'
 
 interface ProfileTabsProps {
     activeTab: TabType
@@ -10,9 +9,7 @@ interface ProfileTabsProps {
 
 export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
     const tabs = [
-        { id: 'informazioni' as TabType, label: 'Informazioni' },
-        { id: 'aggiornamenti' as TabType, label: 'Aggiornamenti' },
-        { id: 'post' as TabType, label: 'Post' }
+        { id: 'informazioni' as TabType, label: 'Informazioni' }
     ]
 
     return (
@@ -24,8 +21,8 @@ export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps
                         onClick={() => onTabChange(tab.id)}
                         className={`
                             px-8 py-4 font-semibold text-sm transition-all relative
-                            ${activeTab === tab.id 
-                                ? 'text-gray-900 border-b-2 border-sprinta-blue' 
+                            ${activeTab === tab.id
+                                ? 'text-gray-900 border-b-2 border-sprinta-blue'
                                 : 'text-gray-500 hover:text-gray-700'
                             }
                         `}

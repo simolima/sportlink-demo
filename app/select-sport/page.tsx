@@ -28,9 +28,11 @@ export default function SelectSportPage() {
     const [selectedSport, setSelectedSport] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [checked, setChecked] = useState(false)
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || checked) return;
+        setChecked(true)
         // Controlla che i dati di registrazione siano presenti
         const firstName = localStorage.getItem('signup_firstName')
         const lastName = localStorage.getItem('signup_lastName')
@@ -38,6 +40,8 @@ export default function SelectSportPage() {
         const password = localStorage.getItem('signup_password')
         const birthDate = localStorage.getItem('signup_birthDate')
         const sport = localStorage.getItem('currentUserSport')
+        const currentUserId = localStorage.getItem('currentUserId')
+
         if (!firstName || !lastName || !email || !password || !birthDate) {
             localStorage.removeItem('signup_firstName')
             localStorage.removeItem('signup_lastName')
@@ -45,15 +49,20 @@ export default function SelectSportPage() {
             localStorage.removeItem('signup_password')
             localStorage.removeItem('signup_birthDate')
             localStorage.removeItem('currentUserSport')
-            router.push('/signup')
+            if (currentUserId) {
+                router.replace('/home')
+            } else {
+                router.replace('/signup')
+            }
             return
         }
         // Se lo sport è già stato selezionato, vai a profile-setup
         if (sport) {
-            router.push('/profile-setup')
+            router.replace('/profile-setup')
             return
         }
-    }, [router])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [checked])
 
     const handleSelectSport = async (sportId: string) => {
         setSelectedSport(sportId)

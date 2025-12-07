@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Briefcase, MapPin, Calendar, Building2, Search, Plus } from 'lucide-react'
+import { Briefcase, MapPin, Calendar, Building2, Search } from 'lucide-react'
 import { Announcement, SPORTS, ANNOUNCEMENT_TYPES, LEVELS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
@@ -125,7 +125,7 @@ export default function JobsPage() {
                   type="text"
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Cerca annunci..."
                 />
               </div>
@@ -136,7 +136,7 @@ export default function JobsPage() {
               <select
                 value={filters.sport}
                 onChange={(e) => setFilters({ ...filters, sport: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="all">Tutti gli sport</option>
                 {SPORTS.map((sport) => (
@@ -152,7 +152,7 @@ export default function JobsPage() {
               <select
                 value={filters.type}
                 onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="all">Tutti i tipi</option>
                 {ANNOUNCEMENT_TYPES.map((type) => (
@@ -168,7 +168,7 @@ export default function JobsPage() {
               <select
                 value={filters.level}
                 onChange={(e) => setFilters({ ...filters, level: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="all">Tutti i livelli</option>
                 {LEVELS.map((level) => (
@@ -204,8 +204,8 @@ export default function JobsPage() {
                         className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Building2 size={24} className="text-blue-600" />
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                        <Building2 size={24} className="text-green-600" />
                       </div>
                     )}
                     <div>
@@ -217,7 +217,7 @@ export default function JobsPage() {
 
                 {/* Title and type */}
                 <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
-                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full mb-3">
+                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full mb-3">
                   {announcement.type}
                 </span>
 
@@ -262,7 +262,7 @@ export default function JobsPage() {
                 {/* Apply button */}
                 <button
                   onClick={() => handleApply(typeof announcement.id === 'number' ? announcement.id : parseInt(announcement.id))}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
                 >
                   Candidati
                 </button>

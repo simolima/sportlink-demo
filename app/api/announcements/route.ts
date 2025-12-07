@@ -40,12 +40,24 @@ export async function GET(request: Request) {
     const clubs = readClubs()
     const applications = readApplications()
 
-    // Filter active only
+    // Filter active only (default: true)
     if (activeOnly) {
         const now = new Date()
-        announcements = announcements.filter((a: any) => 
-            a.isActive && new Date(a.expiryDate) > now
-        )
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+        announcements = announcements.filter((a: any) => {
+            // Check if isActive flag is true
+            if (!a.isActive) return false
+            // Check if expiry date is in future (or allow same day)
+            try {
+                const expiry = new Date(a.expiryDate)
+                const expiryDate = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate())
+                return expiryDate >= today
+            } catch (e) {
+                console.error('Invalid date format:', a.expiryDate)
+                return false
+            }
+        })
     }
 
     // Filter by sport
@@ -70,7 +82,7 @@ export async function GET(request: Request) {
 
     // Filter by city
     if (city) {
-        announcements = announcements.filter((a: any) => 
+        announcements = announcements.filter((a: any) =>
             a.city?.toLowerCase().includes(city.toLowerCase()) ||
             a.location?.toLowerCase().includes(city.toLowerCase())
         )
@@ -88,7 +100,7 @@ export async function GET(request: Request) {
     const enriched = announcements.map((ann: any) => {
         const club = clubs.find((c: any) => c.id.toString() === ann.clubId.toString())
         const appCount = applications.filter((app: any) => app.announcementId.toString() === ann.id.toString()).length
-        
+
         return {
             ...ann,
             club: club ? { id: club.id, name: club.name, logoUrl: club.logoUrl, verified: club.verified } : null,
@@ -119,7 +131,7 @@ export async function POST(request: Request) {
     const expiryDate = new Date(body.expiryDate)
     const maxExpiry = new Date()
     maxExpiry.setMonth(maxExpiry.getMonth() + 6)
-    
+
     if (expiryDate > maxExpiry) {
         return NextResponse.json({ error: 'Expiry date cannot exceed 6 months' }, { status: 400 })
     }

@@ -12,8 +12,8 @@ export default function ProfileSetupPage() {
     const [checked, setChecked] = useState(false)
 
     useEffect(() => {
-        if (typeof window === 'undefined' || checked) return;
-        setChecked(true);
+        if (typeof window === 'undefined' || checked) return
+        setChecked(true)
         // Controlla che tutti i dati temporanei siano presenti
         const firstName = localStorage.getItem('signup_firstName')
         const lastName = localStorage.getItem('signup_lastName')
@@ -21,7 +21,10 @@ export default function ProfileSetupPage() {
         const password = localStorage.getItem('signup_password')
         const birthDate = localStorage.getItem('signup_birthDate')
         const sport = localStorage.getItem('currentUserSport')
-        // Se manca QUALSIASI dato, pulisci tutto e riparti da zero
+        const currentUserId = localStorage.getItem('currentUserId')
+        const currentUserRole = localStorage.getItem('currentUserRole')
+
+        // Se un utente autenticato arriva qui senza dati temporanei, riportalo alla home
         if (!firstName || !lastName || !email || !password || !birthDate || !sport) {
             localStorage.removeItem('signup_firstName')
             localStorage.removeItem('signup_lastName')
@@ -29,10 +32,20 @@ export default function ProfileSetupPage() {
             localStorage.removeItem('signup_password')
             localStorage.removeItem('signup_birthDate')
             localStorage.removeItem('currentUserSport')
-            router.push('/signup')
+            if (currentUserId) {
+                router.replace('/home')
+            } else {
+                router.replace('/signup')
+            }
             return
         }
-    }, [router, checked])
+
+        // Se l'utente ha già completato il profilo, non serve rifare lo step
+        if (currentUserId && currentUserRole) {
+            router.replace('/home')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [checked])
 
     useEffect(() => {
         const header = document.querySelector('header')

@@ -9,33 +9,34 @@ export default function LoginPage() {
     const { login, isAuthenticated, hasCompletedProfile } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
     // Redirect se già autenticato
     useEffect(() => {
-        if (isAuthenticated) {
-            const sport = localStorage.getItem('currentUserSport')
-            const role = localStorage.getItem('currentUserRole')
+        if (!isAuthenticated) return
+        const sport = localStorage.getItem('currentUserSport')
+        const role = localStorage.getItem('currentUserRole')
 
-            // Se ha completato tutto (sport + ruolo), vai a home
-            if (sport && role && hasCompletedProfile) {
-                router.push('/home')
-            }
-            // Se ha selezionato sport ma non ruolo, vai a profile-setup
-            else if (sport && !role) {
-                router.push('/profile-setup')
-            }
-            // Se non ha selezionato sport, vai a select-sport
-            else if (!sport) {
-                router.push('/select-sport')
-            }
-            // Altrimenti vai a profile-setup
-            else {
-                router.push('/profile-setup')
-            }
+        // Se ha completato tutto (sport + ruolo), vai a home
+        if (sport && role && hasCompletedProfile) {
+            router.push('/home')
         }
-    }, [isAuthenticated, hasCompletedProfile, router])
+        // Se ha selezionato sport ma non ruolo, vai a profile-setup
+        else if (sport && !role) {
+            router.push('/profile-setup')
+        }
+        // Se non ha selezionato sport, vai a select-sport
+        else if (!sport) {
+            router.push('/select-sport')
+        }
+        // Altrimenti vai a profile-setup
+        else {
+            router.push('/profile-setup')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated, hasCompletedProfile])
 
     useEffect(() => {
         const header = document.querySelector('header')
@@ -105,15 +106,40 @@ export default function LoginPage() {
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                                 Password
                             </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl font-bold"
+                                    onClick={() => setShowPassword(v => !v)}
+                                    aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+                                >
+                                    {/* Occhio aperto/chiuso SVG */}
+                                    {showPassword ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            {/* Occhio classico */}
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            {/* Barra diagonale sopra */}
+                                            <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         <button

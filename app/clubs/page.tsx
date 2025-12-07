@@ -31,6 +31,10 @@ export default function ClubsPage() {
     }
 
     useEffect(() => {
+        fetchClubs()
+    }, [])
+
+    useEffect(() => {
         let result = clubs
 
         // Filter by search query
@@ -78,8 +82,8 @@ export default function ClubsPage() {
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Società e Club</h1>
-                        <p className="text-gray-600">Esplora le società sportive e scopri opportunità di carriera</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Club</h1>
+                        <p className="text-gray-600">Esplora i club sportivi e scopri opportunità di carriera</p>
                     </div>
                     <button
                         onClick={() => router.push('/clubs/create')}
@@ -148,27 +152,31 @@ export default function ClubsPage() {
                             <div
                                 key={club.id}
                                 onClick={() => handleClubClick(club.id)}
-                                className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+                                className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-[1.025] transition-all cursor-pointer overflow-hidden border border-green-100 group"
                             >
                                 {/* Cover Image */}
-                                <div className="h-32 bg-sprinta-navy relative">
-                                    {club.coverUrl && (
+                                <div className="h-32 bg-green-100 relative">
+                                    {club.coverUrl ? (
                                         <img
                                             src={club.coverUrl}
                                             alt={club.name}
                                             className="w-full h-full object-cover"
                                         />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-200 to-green-50">
+                                            <BuildingOffice2Icon className="h-12 w-12 text-green-400" />
+                                        </div>
                                     )}
                                     {club.verified && (
-                                        <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                                            ✓ Verificato
+                                        <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow font-semibold flex items-center gap-1">
+                                            ✓ <span>Verificato</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Logo */}
                                 <div className="px-6 -mt-12 mb-4">
-                                    <div className="w-20 h-20 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
                                         {club.logoUrl ? (
                                             <img
                                                 src={club.logoUrl}
@@ -176,25 +184,24 @@ export default function ClubsPage() {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                <BuildingOffice2Icon className="h-10 w-10 text-gray-400" />
-                                            </div>
+                                            <BuildingOffice2Icon className="h-10 w-10 text-white/80" />
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Content */}
                                 <div className="px-6 pb-6">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-1">{club.name}</h3>
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-0 group-hover:text-green-700 transition-colors">{club.name}</h3>
+                                        {club.sports && club.sports.length > 0 && (
+                                            <span className="inline-block bg-green-50 text-green-700 text-xs font-semibold px-2 py-1 rounded ml-1 border border-green-100">
+                                                {club.sports.join(', ')}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="flex items-center text-sm text-gray-600 mb-3">
                                         <MapPinIcon className="h-4 w-4 mr-1" />
                                         {club.city}
-                                        {club.sports && club.sports.length > 0 && (
-                                            <>
-                                                <span className="mx-2">•</span>
-                                                <span className="text-blue-600 font-medium">{club.sports.join(', ')}</span>
-                                            </>
-                                        )}
                                     </div>
 
                                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -202,14 +209,16 @@ export default function ClubsPage() {
                                     </p>
 
                                     {/* Stats */}
-                                    <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t border-gray-100">
-                                        <div className="flex items-center">
-                                            <UserGroupIcon className="h-4 w-4 mr-1" />
-                                            {club.followersCount || 0} follower
+                                    <div className="flex items-center justify-between text-sm pt-4 border-t border-green-100 mt-2">
+                                        <div className="flex items-center gap-1">
+                                            <UserGroupIcon className="h-4 w-4 text-green-500 mr-1" />
+                                            <span className="font-bold text-green-700">{club.followersCount || 0}</span>
+                                            <span className="text-gray-600">follower</span>
                                         </div>
-                                        <div className="flex items-center">
-                                            <BriefcaseIcon className="h-4 w-4 mr-1" />
-                                            {club.membersCount || 0} membri
+                                        <div className="flex items-center gap-1">
+                                            <BriefcaseIcon className="h-4 w-4 text-green-500 mr-1" />
+                                            <span className="font-bold text-green-700">{club.membersCount || 0}</span>
+                                            <span className="text-gray-600">membri</span>
                                         </div>
                                     </div>
                                 </div>

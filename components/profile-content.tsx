@@ -2,19 +2,15 @@
 import { useState } from 'react'
 import ProfileTabs from './profile-tabs'
 import InformazioniTab from './informazioni-tab'
-import AggiornamentiTab from './aggiornamenti-tab'
-import PostTab from './post-tab'
 
-type TabType = 'informazioni' | 'aggiornamenti' | 'post'
+type TabType = 'informazioni'
 
 interface ProfileContentProps {
     user: any
-    stats?: any[]
     seasons?: any[]
-    posts: any[]
 }
 
-export default function ProfileContent({ user, stats, seasons, posts }: ProfileContentProps) {
+export default function ProfileContent({ user, seasons }: ProfileContentProps) {
     const [activeTab, setActiveTab] = useState<TabType>('informazioni')
 
     return (
@@ -25,13 +21,7 @@ export default function ProfileContent({ user, stats, seasons, posts }: ProfileC
             {/* Tab Content */}
             <div className="py-6">
                 {activeTab === 'informazioni' && (
-                    <InformazioniTab user={user} stats={stats} seasons={seasons} />
-                )}
-                {activeTab === 'aggiornamenti' && (
-                    <AggiornamentiTab userId={user.id} posts={posts} />
-                )}
-                {activeTab === 'post' && (
-                    <PostTab userId={user.id} />
+                    <InformazioniTab user={user} seasons={seasons} />
                 )}
             </div>
         </div>

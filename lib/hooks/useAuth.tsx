@@ -70,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('currentUserEmail', user.email)
                 localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
                 localStorage.setItem('currentUserAvatar', user.avatarUrl || '')
+                localStorage.setItem('currentUserSport', user.sport || '')
+                localStorage.setItem('currentUserRole', user.professionalRole || '')
                 return true
             }
             return false
@@ -93,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem('currentUserEmail', newUser.email)
             localStorage.setItem('currentUserName', `${newUser.firstName} ${newUser.lastName}`)
             localStorage.setItem('currentUserAvatar', newUser.avatarUrl || '')
+            localStorage.setItem('currentUserSport', newUser.sport || '')
+            localStorage.setItem('currentUserRole', newUser.professionalRole || '')
             return newUser
         } catch (error) {
             console.error('Registration failed:', error)
@@ -105,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('currentUserEmail')
         localStorage.removeItem('currentUserName')
         localStorage.removeItem('currentUserAvatar')
+        localStorage.removeItem('currentUserSport')
+        localStorage.removeItem('currentUserRole')
         setUser(null)
         router.push('/login')
     }
@@ -157,22 +163,26 @@ export function useAuth() {
 export function useRequireAuth(requireProfileSetup: boolean = true) {
     const { user, isLoading, hasCompletedProfile } = useAuth()
     const router = useRouter()
+    const [didRedirect, setDidRedirect] = useState(false)
 
     useEffect(() => {
-        if (isLoading) return
+        if (isLoading || didRedirect) return
 
         // Non autenticato -> redirect a login
         if (!user) {
+            setDidRedirect(true)
             router.push('/login')
             return
         }
 
         // Autenticato ma profilo incompleto -> redirect a profile setup
         if (requireProfileSetup && !hasCompletedProfile) {
+            setDidRedirect(true)
             router.push('/profile-setup')
             return
         }
-    }, [user, isLoading, hasCompletedProfile, requireProfileSetup, router])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, isLoading, hasCompletedProfile, requireProfileSetup])
 
     return { user, isLoading, isAuthenticated: !!user, hasCompletedProfile }
 }

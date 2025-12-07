@@ -1,236 +1,161 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useRequireAuth } from '@/lib/hooks/useAuth'
-import AnnouncementsWidget from '@/components/dashboard-widgets/announcements-widget'
-import ApplicationsWidget from '@/components/dashboard-widgets/applications-widget'
-import ClubsWidget from '@/components/dashboard-widgets/clubs-widget'
-import AthletesWidget from '@/components/dashboard-widgets/athletes-widget'
-import PendingActionsWidget from '@/components/dashboard-widgets/pending-actions-widget'
-import PostComposer from '@/components/post-composer'
-import PostCard from '@/components/post-card'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+    OpportunitiesForYouWidget,
+    YourApplicationsWidget,
+    YourClubWidget,
+    RosterOverviewWidget,
+    AgentMarketWidget,
+    ReceivedApplicationsWidget,
+    MyAnnouncementsWidget
+} from '@/components/dashboard-widgets'
+
+// Ruoli che vedono la dashboard Player/Coach
+const PLAYER_COACH_ROLES = ['Player', 'Coach']
+
+// Ruoli che vedono la dashboard Agent
+const AGENT_ROLES = ['Agent']
+
+// Ruoli che possono gestire un club (vedono dashboard Club Admin)
+const CLUB_ADMIN_ROLES = ['President', 'Director', 'Sporting Director']
 
 export default function HomePage() {
-    const { user, isLoading } = useRequireAuth(true)
-    const [announcements, setAnnouncements] = useState<any[]>([])
-    const [applications, setApplications] = useState<any[]>([])
-    const [clubs, setClubs] = useState<any[]>([])
-    const [athletes, setAthletes] = useState<any[]>([])
-    const [posts, setPosts] = useState<any[]>([])
-    const [pendingActions, setPendingActions] = useState<any[]>([])
+    const router = useRouter()
     const [loading, setLoading] = useState(true)
+    const [userId, setUserId] = useState<string | null>(null)
+    const [userRole, setUserRole] = useState<string>('')
+    const [userName, setUserName] = useState<string>('')
+    const [isClubAdmin, setIsClubAdmin] = useState(false)
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            if (!user) return
-
-            setLoading(true)
-            try {
-                // Fetch announcements
-                const announcementsRes = await fetch('/api/announcements')
-                const announcementsData = await announcementsRes.json()
-                setAnnouncements(Array.isArray(announcementsData) ? announcementsData.filter((a: any) => a.isActive) : [])
-
-                // Fetch applications
-                const applicationsRes = await fetch(`/api/applications?playerId=${user.id}`)
-                const applicationsData = await applicationsRes.json()
-                setApplications(Array.isArray(applicationsData) ? applicationsData : [])
-
-                // Fetch club memberships
-                const membershipsRes = await fetch(`/api/club-memberships?userId=${user.id}`)
-                const membershipsData = await membershipsRes.json()
-                setClubs(Array.isArray(membershipsData) ? membershipsData : [])
-
-                // Fetch posts
-                const postsRes = await fetch('/api/posts')
-                const postsData = await postsRes.json()
-                setPosts(Array.isArray(postsData) ? postsData.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : [])
-
-                // Fetch users for athletes widget (agents only)
-                if (user.professionalRole === 'Agent') {
-                    const usersRes = await fetch('/api/users')
-                    const usersData = await usersRes.json()
-                    // Filter to show affiliated players
-                    const affiliated = Array.isArray(usersData)
-                        ? usersData.filter((u: any) => u.professionalRole === 'Player').slice(0, 5)
-                        : []
-                    setAthletes(affiliated)
-                }
-
-                // Set pending actions based on role
-                const actions: any[] = []
-                if (user.professionalRole === 'President' || user.professionalRole === 'Director') {
-                    // Club admins: pending applications to review
-                    const pendingCount = applicationsData.filter((app: any) => app.status === 'pending').length
-                    if (pendingCount > 0) {
-                        actions.push({
-                            id: 'pending-reviews',
-                            title: 'Candidature in Sospeso',
-                            description: 'Candidature che attendono la tua revisione',
-                            count: pendingCount,
-                            action: 'Rivedi',
-                            actionUrl: '/opportunities'
-                        })
-                    }
-                }
-
-                // Check for agent requests (players only)
-                if (user.professionalRole === 'Player') {
-                    const affiliationsRes = await fetch(`/api/affiliations?playerId=${user.id}&status=pending`)
-                    const affiliationsData = await affiliationsRes.json()
-                    const pendingRequests = Array.isArray(affiliationsData) ? affiliationsData.length : 0
-                    if (pendingRequests > 0) {
-                        actions.push({
-                            id: 'pending-agents',
-                            title: 'Richieste Agente',
-                            description: 'Agenti che vogliono rappresentarti',
-                            count: pendingRequests,
-                            action: 'Rivedi',
-                            actionUrl: '/profile'
-                        })
-                    }
-                }
-
-                setPendingActions(actions)
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error)
-            } finally {
-                setLoading(false)
-            }
+        const id = localStorage.getItem('currentUserId')
+        if (!id) {
+            router.push('/login')
+            return
         }
 
-        fetchDashboardData()
-    }, [user])
+        const role = localStorage.getItem('currentUserRole') || ''
+        const name = localStorage.getItem('currentUserName') || ''
 
-    if (isLoading || !user) {
-        return null
+        setUserId(id)
+        setUserRole(role)
+        setUserName(name)
+
+        // Verifica se è admin di un club
+        checkClubAdmin(id)
+        setLoading(false)
+    }, [router])
+
+    const checkClubAdmin = async (id: string) => {
+        try {
+            const res = await fetch('/api/clubs')
+            if (res.ok) {
+                const clubs = await res.json()
+                const adminClub = clubs.find((c: any) =>
+                    c.adminId === id ||
+                    c.presidentId === id ||
+                    c.directorId === id ||
+                    c.sportingDirectorId === id
+                )
+                setIsClubAdmin(!!adminClub)
+            }
+        } catch (error) {
+            console.error('Error checking club admin:', error)
+        }
     }
 
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Caricamento dashboard...</p>
-                </div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             </div>
         )
     }
 
-    const userName = `${user.firstName} ${user.lastName}`
-    const userPhoto = user.avatarUrl
-
-    const isPlayer = ['Player', 'Coach', 'Physio/Masseur'].includes(user.professionalRole)
-    const isAgent = user.professionalRole === 'Agent'
-    const isClubAdmin = ['President', 'Director', 'Sporting Director'].includes(user.professionalRole)
+    const isPlayerOrCoach = PLAYER_COACH_ROLES.includes(userRole)
+    const isAgent = AGENT_ROLES.includes(userRole)
+    const showClubAdminSection = isClubAdmin || CLUB_ADMIN_ROLES.includes(userRole)
 
     return (
-        <div className="w-full min-h-screen bg-gray-50">
-            {/* Hero Section with Welcome Message */}
-            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-8 md:py-12">
-                <div className="max-w-7xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        Benvenuto, {user.firstName}! 👋
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Ciao, {userName || 'Utente'}!
                     </h1>
-                    <p className="text-green-100 text-lg">
-                        {user.sport} • {user.professionalRole}
+                    <p className="text-gray-600 mt-1">
+                        Ecco cosa c'è di nuovo per te oggi
                     </p>
                 </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Pending Actions (if any) */}
-                {pendingActions.length > 0 && (
-                    <div className="mb-8">
-                        <PendingActionsWidget items={pendingActions} />
+                {/* Dashboard per Player/Coach */}
+                {isPlayerOrCoach && (
+                    <div className="space-y-6">
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            La tua carriera
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
+                            <YourApplicationsWidget userId={userId!} />
+                            <YourClubWidget userId={userId!} />
+                        </div>
                     </div>
                 )}
 
-                {/* Role-Based Dashboard Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* Left Column: Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Post Composer */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                            <PostComposer userName={userName} userPhoto={userPhoto} />
-                        </div>
-
-                        {/* Feed */}
-                        <div className="space-y-4">
-                            {posts.length === 0 ? (
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                                    <p className="text-gray-500">Nessun post disponibile</p>
-                                </div>
-                            ) : (
-                                posts.map((post) => (
-                                    <PostCard key={post.id} post={post} />
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right Column: Sidebar Widgets */}
+                {/* Dashboard per Agent */}
+                {isAgent && (
                     <div className="space-y-6">
-                        {/* Player/Coach/Staff Dashboard */}
-                        {isPlayer && (
-                            <>
-                                <AnnouncementsWidget
-                                    announcements={announcements}
-                                    maxItems={3}
-                                    emptyMessage="Nessun annuncio corrispondente al tuo profilo"
-                                />
-                                <ApplicationsWidget
-                                    applications={applications}
-                                    maxItems={3}
-                                    emptyMessage="Non hai candidature ancora"
-                                />
-                            </>
-                        )}
-
-                        {/* Agent Dashboard */}
-                        {isAgent && (
-                            <>
-                                <AthletesWidget
-                                    athletes={athletes}
-                                    maxItems={5}
-                                    emptyMessage="Inizia a cercare giocatori da rappresentare"
-                                />
-                                <AnnouncementsWidget
-                                    announcements={announcements.slice(0, 3)}
-                                    title="Nuovi Annunci"
-                                    subtitle="Opportunità per i tuoi atleti"
-                                    maxItems={3}
-                                />
-                            </>
-                        )}
-
-                        {/* Club Admin Dashboard */}
-                        {isClubAdmin && (
-                            <>
-                                <PendingActionsWidget
-                                    title="Gestione Club"
-                                    items={[
-                                        {
-                                            id: 'club-members',
-                                            title: 'Membri del Club',
-                                            count: clubs.length,
-                                            action: 'Gestisci',
-                                            actionUrl: '/clubs'
-                                        }
-                                    ]}
-                                />
-                            </>
-                        )}
-
-                        {/* Universal: Clubs Widget (shown to all) */}
-                        <ClubsWidget
-                            clubs={clubs}
-                            maxItems={3}
-                            emptyMessage="Unisciti a un club per iniziare"
-                        />
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            Il tuo lavoro
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <RosterOverviewWidget userId={userId!} />
+                            <AgentMarketWidget userId={userId!} />
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Dashboard per Club Admin */}
+                {showClubAdminSection && (
+                    <div className="space-y-6 mt-8">
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            Gestione Club
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ReceivedApplicationsWidget userId={userId!} />
+                            <MyAnnouncementsWidget userId={userId!} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Se l'utente non ha nessun ruolo specifico */}
+                {!isPlayerOrCoach && !isAgent && !showClubAdminSection && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            Completa il tuo profilo
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                            Imposta il tuo ruolo per vedere contenuti personalizzati
+                        </p>
+                        <button
+                            onClick={() => router.push(`/profile/${userId}`)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            Vai al profilo
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     )

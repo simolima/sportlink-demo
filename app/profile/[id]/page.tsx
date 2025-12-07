@@ -7,7 +7,6 @@ import ProfileActions from '@/components/profile-actions'
 import ProfileContent from '@/components/profile-content'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-const POSTS_PATH = path.join(process.cwd(), 'data', 'posts.json')
 const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
 
 function readJson(p: string) {
@@ -16,27 +15,20 @@ function readJson(p: string) {
 }
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
-    const id = Number(params.id)
+    const id = params.id
     const users = readJson(USERS_PATH)
-    const posts = readJson(POSTS_PATH)
     const follows = readJson(FOLLOWS_PATH)
 
-    const user = users.find((u: any) => u.id === id)
+    const user = users.find((u: any) => String(u.id) === id)
     if (!user) return (<div className="max-w-3xl mx-auto p-6">Utente non trovato</div>)
 
-    const userPosts = posts.filter((p: any) => p.authorId === id)
-    const followers = follows.filter((f: any) => f.followingId === id).length
-    const following = follows.filter((f: any) => f.followerId === id).length
-
-    // Prepara le statistiche per il componente
-    const stats = user.stats || [
-        { label: 'Partite Giocate', value: 656, maxValue: 700, color: 'blue' },
-        { label: 'Presenze Totali', value: 658, maxValue: 700, color: 'green' }
-    ]
+    const numericId = Number(id)
+    const followers = follows.filter((f: any) => f.followingId === numericId).length
+    const following = follows.filter((f: any) => f.followerId === numericId).length
 
     // Prepara le stagioni professionali
     const seasons = user.professionalSeasons || [
-        { 
+        {
             id: 1,
             team: 'FC Dynamo',
             year: '2024- Oggi',
@@ -69,7 +61,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 )}
                             </div>
                             <p className="text-lg text-gray-600 mt-1">{user.currentRole}</p>
-                            
+
                             {/* Location and Languages */}
                             <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
                                 {user.city && (
@@ -93,21 +85,19 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
                             {/* Follow Stats */}
                             <div className="mt-4">
-                                <FollowStats userId={id} />
+                                <FollowStats userId={numericId} />
                             </div>
                         </div>
 
                         {/* Right: Action Buttons */}
-                        <ProfileActions userId={id} />
+                        <ProfileActions userId={numericId} />
                     </div>
                 </div>
 
-                {/* Tab Content with Informazioni, Aggiornamenti, Post */}
-                <ProfileContent 
+                {/* Tab Content with Informazioni */}
+                <ProfileContent
                     user={user}
-                    stats={stats}
                     seasons={seasons}
-                    posts={userPosts}
                 />
             </div>
         </div>

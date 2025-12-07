@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1765053656807,
+        "clubId": 1765053528599,
+        "title": "Cerco difensore centrale ",
+        "type": "Player Search",
+        "sport": "Calcio",
+        "roleRequired": "Player",
+        "position": "DC",
+        "description": "la pietra si è rotto mi serve un centrale tosto cattivo e ignorante ne non fragile grazieeee ",
+        "location": "Casarile",
+        "city": "Milano",
+        "country": "Italia",
+        "salary": "gratis",
+        "contractType": "Volunteer",
+        "level": "Amateur",
+        "requirements": "che cammini",
+        "expiryDate": "2025-12-31",
+        "isActive": true,
+        "createdBy": 1765049448639,
+        "createdAt": "2025-12-06T20:40:56.807Z"
+    }
+]

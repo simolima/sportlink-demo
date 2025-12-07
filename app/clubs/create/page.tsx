@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, Plus } from 'lucide-react'
-import { SPORTS } from '@/lib/types'
+import { SUPPORTED_SPORTS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 
 export default function CreateClubPage() {
@@ -51,7 +51,7 @@ export default function CreateClubPage() {
       const usersRes = await fetch('/api/users')
       const users = await usersRes.json()
       const user = users.find((u: any) => u.id.toString() === userId)
-      
+
       if (!user) {
         showToast('error', 'Errore', 'Utente non trovato')
         router.push('/login')
@@ -146,16 +146,15 @@ export default function CreateClubPage() {
                 Sport <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {SPORTS.map((sport) => (
+                {SUPPORTED_SPORTS.map((sport) => (
                   <button
                     key={sport}
                     type="button"
                     onClick={() => toggleSport(sport)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      formData.sports.includes(sport)
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${formData.sports.includes(sport)
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     {sport}
                   </button>

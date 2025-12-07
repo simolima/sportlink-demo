@@ -34,28 +34,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const id = localStorage.getItem('currentUserId')
         const email = localStorage.getItem('currentUserEmail')
         const name = localStorage.getItem('currentUserName')
+        const sportsJson = localStorage.getItem('currentUserSports')
         const sport = localStorage.getItem('currentUserSport')
         const professionalRole = localStorage.getItem('currentUserRole')
         if (id && email) {
+            const sports = sportsJson ? JSON.parse(sportsJson) : (sport ? [sport] : [])
             setUser({
                 id,
                 email,
                 firstName: name?.split(' ')[0] ?? '',
                 lastName: name?.split(' ')[1] ?? '',
-                sport: (sport as any) || 'Altro',
+                sports: sports,
                 professionalRole: (professionalRole as any) || 'Player',
                 verified: false,
                 password: '',
                 birthDate: '',
                 createdAt: '',
-            })
+            } as any)
         }
         setIsLoading(false)
     }, [])
 
-    // Verifica se il profilo è completo (sport + role obbligatori)
+    // Verifica se il profilo è completo (sports + role obbligatori)
     const hasCompletedProfile = !!(
-        user?.sport &&
+        user?.sports && user.sports.length > 0 &&
         user?.professionalRole
     )
 
@@ -70,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('currentUserEmail', user.email)
                 localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
                 localStorage.setItem('currentUserAvatar', user.avatarUrl || '')
-                localStorage.setItem('currentUserSport', user.sport || '')
+                // Supporta sia sports (array) che sport (legacy)
+                const userSports = (user as any).sports || []
+                localStorage.setItem('currentUserSports', JSON.stringify(userSports))
+                localStorage.setItem('currentUserSport', userSports[0] || (user as any).sport || '')
                 localStorage.setItem('currentUserRole', user.professionalRole || '')
                 return true
             }
@@ -95,7 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem('currentUserEmail', newUser.email)
             localStorage.setItem('currentUserName', `${newUser.firstName} ${newUser.lastName}`)
             localStorage.setItem('currentUserAvatar', newUser.avatarUrl || '')
-            localStorage.setItem('currentUserSport', newUser.sport || '')
+            // Supporta sia sports (array) che sport (legacy)
+            const userSports = (newUser as any).sports || []
+            localStorage.setItem('currentUserSports', JSON.stringify(userSports))
+            localStorage.setItem('currentUserSport', userSports[0] || (newUser as any).sport || '')
             localStorage.setItem('currentUserRole', newUser.professionalRole || '')
             return newUser
         } catch (error) {

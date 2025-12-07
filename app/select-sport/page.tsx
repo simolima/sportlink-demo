@@ -3,29 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-
-const SPORTS = [
-    { id: 'calcio', label: 'Calcio', emoji: '⚽' },
-    { id: 'basket', label: 'Basket', emoji: '🏀' },
-    { id: 'tennis', label: 'Tennis', emoji: '🎾' },
-    { id: 'pallavolo', label: 'Pallavolo', emoji: '🏐' },
-    { id: 'rugby', label: 'Rugby', emoji: '🏉' },
-    { id: 'nuoto', label: 'Nuoto', emoji: '🏊' },
-    { id: 'atletica', label: 'Atletica', emoji: '🏃' },
-    { id: 'ciclismo', label: 'Ciclismo', emoji: '🚴' },
-    { id: 'judo', label: 'Judo', emoji: '🥋' },
-    { id: 'taekwondo', label: 'Taekwondo', emoji: '🥋' },
-    { id: 'boxe', label: 'Boxe', emoji: '🥊' },
-    { id: 'scherma', label: 'Scherma', emoji: '🤺' },
-    { id: 'golf', label: 'Golf', emoji: '⛳' },
-    { id: 'sci', label: 'Sci', emoji: '⛷️' },
-    { id: 'equitazione', label: 'Equitazione', emoji: '🐴' },
-    { id: 'altro', label: 'Altro', emoji: '🏅' },
-]
+import { SUPPORTED_SPORTS, isMultiSportRole } from '@/utils/roleHelpers'
+import { ROLE_TRANSLATIONS, ProfessionalRole } from '@/lib/types'
 
 export default function SelectSportPage() {
     const router = useRouter()
-    const [selectedSport, setSelectedSport] = useState<string | null>(null)
+    const [selectedSports, setSelectedSports] = useState<string[]>([])
+    const [role, setRole] = useState<ProfessionalRole | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [checked, setChecked] = useState(false)
@@ -39,16 +23,16 @@ export default function SelectSportPage() {
         const email = localStorage.getItem('signup_email')
         const password = localStorage.getItem('signup_password')
         const birthDate = localStorage.getItem('signup_birthDate')
-        const sport = localStorage.getItem('currentUserSport')
+        const currentUserRole = localStorage.getItem('currentUserRole') as ProfessionalRole | null
         const currentUserId = localStorage.getItem('currentUserId')
 
-        if (!firstName || !lastName || !email || !password || !birthDate) {
+        if (!firstName || !lastName || !email || !password || !birthDate || !currentUserRole) {
             localStorage.removeItem('signup_firstName')
             localStorage.removeItem('signup_lastName')
             localStorage.removeItem('signup_email')
             localStorage.removeItem('signup_password')
             localStorage.removeItem('signup_birthDate')
-            localStorage.removeItem('currentUserSport')
+            localStorage.removeItem('currentUserRole')
             if (currentUserId) {
                 router.replace('/home')
             } else {
@@ -56,28 +40,72 @@ export default function SelectSportPage() {
             }
             return
         }
-        // Se lo sport è già stato selezionato, vai a profile-setup
-        if (sport) {
-            router.replace('/profile-setup')
-            return
-        }
+        setRole(currentUserRole)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [checked])
 
-    const handleSelectSport = async (sportId: string) => {
-        setSelectedSport(sportId)
+    const handleSelectSport = (sport: string) => {
+        if (role && isMultiSportRole(role)) {
+            setSelectedSports((prev) => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport])
+        } else {
+            setSelectedSports([sport])
+        }
+    }
+
+    const handleConfirm = async () => {
         setIsLoading(true)
         setError(null)
-
         try {
-            // Salva lo sport in localStorage
-            localStorage.setItem('currentUserSport', sportId)
-            // Vai al prossimo step
-            router.push('/profile-setup')
+            // Salva gli sport in localStorage
+            localStorage.setItem('currentUserSports', JSON.stringify(selectedSports))
+            // Recupera tutti i dati dal localStorage
+            const firstName = localStorage.getItem('signup_firstName') || ''
+            const lastName = localStorage.getItem('signup_lastName') || ''
+            const email = localStorage.getItem('signup_email') || ''
+            const password = localStorage.getItem('signup_password') || ''
+            const birthDate = localStorage.getItem('signup_birthDate') || ''
+            const professionalRole = role || ''
+            const sports = selectedSports
+
+            // Crea l'utente via API
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    password,
+                    birthDate,
+                    professionalRole,
+                    sports,
+                    verified: false
+                })
+            })
+            if (!res.ok) {
+                setError('Errore durante la creazione del profilo')
+                setIsLoading(false)
+                return
+            }
+            const newUser = await res.json()
+            // Salva dati utente per la sessione
+            localStorage.setItem('currentUserId', String(newUser.id))
+            localStorage.setItem('currentUserEmail', newUser.email)
+            localStorage.setItem('currentUserName', `${newUser.firstName} ${newUser.lastName}`)
+            localStorage.setItem('currentUserAvatar', newUser.avatarUrl || '')
+            // Pulisci i dati temporanei
+            localStorage.removeItem('signup_firstName')
+            localStorage.removeItem('signup_lastName')
+            localStorage.removeItem('signup_email')
+            localStorage.removeItem('signup_password')
+            localStorage.removeItem('signup_birthDate')
+            localStorage.removeItem('currentUserRole')
+            // Vai alla home
+            window.location.replace('/home')
         } catch (err) {
-            setError('Errore sconosciuto')
+            setError('Errore durante la creazione del profilo')
+        } finally {
             setIsLoading(false)
-            setSelectedSport(null)
         }
     }
 
@@ -105,20 +133,45 @@ export default function SelectSportPage() {
 
                 {/* Sport Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {SPORTS.map((sport) => (
+                    {SUPPORTED_SPORTS.map((sport) => (
                         <button
-                            key={sport.id}
-                            onClick={() => handleSelectSport(sport.id)}
+                            key={sport}
+                            onClick={() => handleSelectSport(sport)}
                             disabled={isLoading}
-                            className={`p-6 rounded-xl border-2 transition-all text-center ${selectedSport === sport.id
+                            className={`p-6 rounded-xl border-2 transition-all text-center ${selectedSports.includes(sport)
                                 ? 'border-green-600 bg-green-50'
                                 : 'border-gray-200 bg-white hover:border-green-300'
                                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
-                            <div className="text-4xl mb-2">{sport.emoji}</div>
-                            <div className="font-medium text-gray-900 text-sm">{sport.label}</div>
+                            <div className="text-4xl mb-2">
+                                {sport === 'Calcio' && '⚽'}
+                                {sport === 'Basket' && '🏀'}
+                                {sport === 'Pallavolo' && '🏐'}
+                            </div>
+                            <div className="font-medium text-gray-900 text-sm">{sport}</div>
                         </button>
                     ))}
+                </div>
+
+                {/* Conferma finale */}
+                <div className="mt-8 flex justify-between gap-4">
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem('currentUserRole')
+                            router.push('/profile-setup')
+                        }}
+                        disabled={isLoading}
+                        className="border border-gray-300 bg-white text-gray-700 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        ← Indietro
+                    </button>
+                    <button
+                        onClick={handleConfirm}
+                        disabled={isLoading || selectedSports.length === 0}
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                        {isLoading ? 'Salvataggio...' : 'Completa Profilo →'}
+                    </button>
                 </div>
 
                 {/* Loading State */}

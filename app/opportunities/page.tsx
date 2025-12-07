@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Briefcase, MapPin, Calendar, Building2, Search } from 'lucide-react'
-import { Announcement, SPORTS, ANNOUNCEMENT_TYPES, LEVELS } from '@/lib/types'
+import { Announcement, ANNOUNCEMENT_TYPES, LEVELS, SUPPORTED_SPORTS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
@@ -18,6 +18,8 @@ export default function JobsPage() {
   const { showToast } = useToast()
   const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [affiliatedPlayers, setAffiliatedPlayers] = useState<any[]>([])
   const [filters, setFilters] = useState({
     search: '',
     sport: 'all',
@@ -32,8 +34,27 @@ export default function JobsPage() {
       router.push('/login')
       return
     }
+    fetchCurrentUser(userId)
     fetchAnnouncements()
   }, [])
+
+  const fetchCurrentUser = async (userId: string) => {
+    try {
+      const res = await fetch('/api/users')
+      const users = await res.json()
+      const user = users.find((u: any) => u.id.toString() === userId)
+      setCurrentUser(user)
+
+      // Se è un Agent, carica i giocatori affiliati
+      if (user && user.professionalRole === 'Agent') {
+        const affiliationsRes = await fetch(`/api/affiliations?agentId=${userId}&status=accepted`)
+        const affiliations = await affiliationsRes.json()
+        setAffiliatedPlayers(affiliations.map((aff: any) => aff.player).filter(Boolean))
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error)
+    }
+  }
 
   const fetchAnnouncements = async () => {
     setLoading(true)
@@ -59,10 +80,46 @@ export default function JobsPage() {
     fetchAnnouncements()
   }, [filters])
 
-  const handleApply = async (announcementId: number) => {
+  const handleApply = async (announcementId: number, announcement: AnnouncementWithDetails) => {
     const userId = localStorage.getItem('currentUserId')
-    if (!userId) return
+    if (!userId || !currentUser) return
 
+    // Validazione ruolo
+    const userRole = currentUser.professionalRole
+    const requiredRole = announcement.roleRequired
+
+    // Se l'utente NON è un Agent, deve corrispondere il ruolo
+    if (userRole !== 'Agent' && userRole !== requiredRole) {
+      showToast(
+        'error',
+        'Ruolo non compatibile',
+        `Questo annuncio è per ${requiredRole}, ma tu sei ${userRole}. Non puoi candidarti.`
+      )
+      return
+    }
+
+    // Se è un Agent, può candidare solo i suoi giocatori affiliati per annunci Player
+    if (userRole === 'Agent') {
+      if (requiredRole !== 'Player') {
+        showToast(
+          'error',
+          'Annuncio non compatibile',
+          'Come Agent puoi candidare solo i tuoi assistiti per annunci rivolti ai Player.'
+        )
+        return
+      }
+
+      if (affiliatedPlayers.length === 0) {
+        showToast('info', 'Nessun assistito', 'Non hai ancora giocatori affiliati da candidare.')
+        return
+      }
+
+      // Mostra dialog per selezionare quale giocatore candidare
+      handleAgentApplication(announcementId, announcement)
+      return
+    }
+
+    // Candidatura standard (Player, Director, President)
     const playerId = parseInt(userId)
 
     // Check if already applied
@@ -87,6 +144,64 @@ export default function JobsPage() {
 
       if (res.ok) {
         showToast('success', 'Candidatura inviata!', 'La tua candidatura è stata inviata con successo')
+        fetchAnnouncements()
+      } else {
+        const error = await res.json()
+        showToast('error', 'Errore', error.error || 'Impossibile inviare la candidatura')
+      }
+    } catch (error) {
+      showToast('error', 'Errore', 'Si è verificato un errore')
+    }
+  }
+
+  const handleAgentApplication = async (announcementId: number, announcement: AnnouncementWithDetails) => {
+    // Mostra selezione giocatore
+    const playerNames = affiliatedPlayers.map((p: any) => `${p.firstName} ${p.lastName}`).join('\n')
+    const selectedIndex = prompt(
+      `Seleziona quale giocatore candidare per "${announcement.title}":\n\n${affiliatedPlayers
+        .map((p: any, i: number) => `${i + 1}. ${p.firstName} ${p.lastName} - ${p.sport || 'N/A'}`)
+        .join('\n')}\n\nInserisci il numero:`
+    )
+
+    if (!selectedIndex) return
+
+    const index = parseInt(selectedIndex) - 1
+    if (isNaN(index) || index < 0 || index >= affiliatedPlayers.length) {
+      showToast('error', 'Errore', 'Selezione non valida')
+      return
+    }
+
+    const selectedPlayer = affiliatedPlayers[index]
+
+    // Check if already applied
+    const checkRes = await fetch(
+      `/api/applications?announcementId=${announcementId}&playerId=${selectedPlayer.id}`
+    )
+    const existing = await checkRes.json()
+
+    if (existing.length > 0) {
+      showToast('info', 'Già candidato', `${selectedPlayer.firstName} ha già una candidatura per questo annuncio`)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          announcementId,
+          playerId: selectedPlayer.id,
+          agentId: currentUser.id,
+          message: `Candidatura inviata dall'agente ${currentUser.firstName} ${currentUser.lastName}`,
+        }),
+      })
+
+      if (res.ok) {
+        showToast(
+          'success',
+          'Candidatura inviata!',
+          `${selectedPlayer.firstName} ${selectedPlayer.lastName} è stato candidato con successo`
+        )
         fetchAnnouncements()
       } else {
         const error = await res.json()
@@ -139,7 +254,7 @@ export default function JobsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="all">Tutti gli sport</option>
-                {SPORTS.map((sport) => (
+                {SUPPORTED_SPORTS.map((sport) => (
                   <option key={sport} value={sport}>
                     {sport}
                   </option>
@@ -189,85 +304,126 @@ export default function JobsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {announcements.map((announcement) => (
-              <div
-                key={announcement.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
-              >
-                {/* Club info */}
-                {announcement.club && (
-                  <div className="flex items-center gap-3 mb-4">
-                    {announcement.club.logoUrl ? (
-                      <img
-                        src={announcement.club.logoUrl}
-                        alt={announcement.club.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                        <Building2 size={24} className="text-green-600" />
+            {announcements.map((announcement) => {
+              // Check if user can apply
+              const userRole = currentUser?.professionalRole
+              const requiredRole = announcement.roleRequired
+              const canApply =
+                userRole === 'Agent' ? requiredRole === 'Player' : userRole === requiredRole
+              const isCompatible = canApply
+
+              return (
+                <div
+                  key={announcement.id}
+                  className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 ${!isCompatible ? 'opacity-60 border-2 border-gray-200' : 'border-2 border-transparent'
+                    }`}
+                >
+                  {/* Compatibility indicator */}
+                  {!isCompatible && (
+                    <div className="mb-3 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-xs text-yellow-800 font-medium">
+                        ⚠️ Questo annuncio è per: <strong>{requiredRole}</strong>
+                      </p>
+                    </div>
+                  )}
+                  {userRole === 'Agent' && requiredRole === 'Player' && (
+                    <div className="mb-3 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-xs text-green-800 font-medium">
+                        ✓ Puoi candidare i tuoi assistiti
+                      </p>
+                    </div>
+                  )}
+                  {/* Club info */}
+                  {announcement.club && (
+                    <div className="flex items-center gap-3 mb-4">
+                      {announcement.club.logoUrl ? (
+                        <img
+                          src={announcement.club.logoUrl}
+                          alt={announcement.club.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                          <Building2 size={24} className="text-green-600" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{announcement.club.name}</h3>
+                        <p className="text-sm text-gray-500">{announcement.sport}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Title and type */}
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      {announcement.type}
+                    </span>
+                    {announcement.roleRequired && (
+                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                        🎯 {announcement.roleRequired}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                    {announcement.description}
+                  </p>
+
+                  {/* Details */}
+                  <div className="space-y-2 mb-4 text-sm text-gray-600">
+                    {announcement.contractType && (
+                      <div className="flex items-center gap-2">
+                        <Briefcase size={16} />
+                        <span>{announcement.contractType}</span>
                       </div>
                     )}
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{announcement.club.name}</h3>
-                      <p className="text-sm text-gray-500">{announcement.sport}</p>
+                    {announcement.level && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Livello:</span>
+                        <span>{announcement.level}</span>
+                      </div>
+                    )}
+                    {announcement.city && (
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} />
+                        <span>{announcement.city}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      <span>Scade: {new Date(announcement.expiryDate).toLocaleDateString('it-IT')}</span>
                     </div>
                   </div>
-                )}
 
-                {/* Title and type */}
-                <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
-                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full mb-3">
-                  {announcement.type}
-                </span>
+                  {/* Application count */}
+                  {announcement.applicationsCount !== undefined && (
+                    <p className="text-xs text-gray-500 mb-4">
+                      {announcement.applicationsCount} candidatur{announcement.applicationsCount === 1 ? 'a' : 'e'}
+                    </p>
+                  )}
 
-                {/* Description */}
-                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                  {announcement.description}
-                </p>
-
-                {/* Details */}
-                <div className="space-y-2 mb-4 text-sm text-gray-600">
-                  {announcement.contractType && (
-                    <div className="flex items-center gap-2">
-                      <Briefcase size={16} />
-                      <span>{announcement.contractType}</span>
-                    </div>
-                  )}
-                  {announcement.level && (
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Livello:</span>
-                      <span>{announcement.level}</span>
-                    </div>
-                  )}
-                  {announcement.city && (
-                    <div className="flex items-center gap-2">
-                      <MapPin size={16} />
-                      <span>{announcement.city}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} />
-                    <span>Scade: {new Date(announcement.expiryDate).toLocaleDateString('it-IT')}</span>
-                  </div>
+                  {/* Apply button */}
+                  <button
+                    onClick={() =>
+                      handleApply(
+                        typeof announcement.id === 'number' ? announcement.id : parseInt(announcement.id),
+                        announcement
+                      )
+                    }
+                    disabled={!isCompatible}
+                    className={`w-full px-4 py-2 rounded-lg font-medium transition ${isCompatible
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                  >
+                    {currentUser?.professionalRole === 'Agent' ? 'Candida Assistito' : 'Candidati'}
+                  </button>
                 </div>
-
-                {/* Application count */}
-                {announcement.applicationsCount !== undefined && (
-                  <p className="text-xs text-gray-500 mb-4">
-                    {announcement.applicationsCount} candidatur{announcement.applicationsCount === 1 ? 'a' : 'e'}
-                  </p>
-                )}
-
-                {/* Apply button */}
-                <button
-                  onClick={() => handleApply(typeof announcement.id === 'number' ? announcement.id : parseInt(announcement.id))}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
-                >
-                  Candidati
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

@@ -84,7 +84,7 @@ export default function SignupPage() {
             // Pulisci eventuali step successivi
             localStorage.removeItem('currentUserSport')
             localStorage.removeItem('currentUserRole')
-            router.push('/select-sport')
+            router.push('/profile-setup')
         } catch (err) {
             setError('Errore durante la registrazione')
         } finally {

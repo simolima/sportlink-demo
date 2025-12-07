@@ -5,6 +5,7 @@ import ProfileCover from '@/components/profile-cover'
 import { CheckBadgeIcon, MapPinIcon, LanguageIcon } from '@heroicons/react/24/solid'
 import ProfileActions from '@/components/profile-actions'
 import ProfileContent from '@/components/profile-content'
+import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
 const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
@@ -93,6 +94,12 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         <ProfileActions userId={numericId} />
                     </div>
                 </div>
+
+                {/* Representation Section for Players */}
+                <ProfileRepresentationWrapper
+                    profileUserId={numericId}
+                    profileUserRole={user.professionalRole}
+                />
 
                 {/* Tab Content with Informazioni */}
                 <ProfileContent

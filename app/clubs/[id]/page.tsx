@@ -12,7 +12,7 @@ import {
     CheckBadgeIcon,
     ArrowLeftIcon
 } from '@heroicons/react/24/outline'
-import { type Club, SPORTS, ANNOUNCEMENT_TYPES, LEVELS, CONTRACT_TYPES, PROFESSIONAL_ROLES } from '@/lib/types'
+import { type Club, ANNOUNCEMENT_TYPES, LEVELS, CONTRACT_TYPES, PROFESSIONAL_ROLES, SUPPORTED_SPORTS } from '@/lib/types'
 
 export default function ClubDetailPage() {
     const router = useRouter()
@@ -306,6 +306,15 @@ export default function ClubDetailPage() {
 
                         {/* Action Buttons */}
                         <div className="flex gap-3">
+                            {isAdmin && (
+                                <button
+                                    onClick={() => router.push(`/clubs/${clubId}/applications`)}
+                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                                >
+                                    <BriefcaseIcon className="h-5 w-5" />
+                                    Candidature
+                                </button>
+                            )}
                             <button
                                 onClick={handleFollow}
                                 className={`px-6 py-2 rounded-lg font-medium transition-all ${following
@@ -491,7 +500,7 @@ export default function ClubDetailPage() {
                                         <label className="block text-sm font-medium mb-1">Sport *</label>
                                         <select required className="w-full px-3 py-2 border rounded" value={form.sport} onChange={e => setForm(prev => ({ ...prev, sport: e.target.value }))}>
                                             <option value="">Seleziona</option>
-                                            {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
+                                            {SUPPORTED_SPORTS.map((s: string) => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </div>
                                     <div>

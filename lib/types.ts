@@ -3,32 +3,16 @@
 // ============================================================================
 
 // Sport disponibili
-export const SPORTS = [
-  'Calcio', 'Basket', 'Pallavolo', 'Rugby', 'Tennis', 'Nuoto',
-  'Atletica', 'Ciclismo', 'Boxe', 'MMA', 'Scherma', 'Golf',
-  'Hockey', 'Baseball', 'Football Americano', 'Altro'
+
+// Sport supportati
+export const SUPPORTED_SPORTS = [
+  'Calcio', 'Basket', 'Pallavolo'
 ] as const;
 
-export type Sport = typeof SPORTS[number];
+export type SupportedSport = typeof SUPPORTED_SPORTS[number];
 
-// Ruoli professionali principali
-export enum UserRole {
-  Player = 'Player',
-  Coach = 'Coach',
-  Agent = 'Agent',
-  SportingDirector = 'SportingDirector',
-  AthleticTrainer = 'AthleticTrainer',
-  Nutritionist = 'Nutritionist',
-  MentalCoach = 'MentalCoach',
-  TalentScout = 'TalentScout',
-  Physio = 'Physio',
-  President = 'President',
-  Director = 'Director',
-  MedicalStaff = 'MedicalStaff',
-  ClubStaff = 'ClubStaff'
-}
 
-// Backward compatibility
+// Ruoli professionali principali (solo quelli consentiti)
 export const PROFESSIONAL_ROLES = [
   'Player',
   'Coach',
@@ -36,15 +20,11 @@ export const PROFESSIONAL_ROLES = [
   'Sporting Director',
   'Athletic Trainer',
   'Nutritionist',
-  'Mental Coach',
-  'Talent Scout',
-  'Physio/Masseur',
-  'President',
-  'Director',
-  'Medical Staff'
+  'Physio/Masseur'
 ] as const;
 
 export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
+
 
 // Ruoli professionali tradotti (per UI)
 export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
@@ -54,12 +34,7 @@ export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
   'Sporting Director': 'Direttore Sportivo',
   'Athletic Trainer': 'Preparatore Atletico',
   'Nutritionist': 'Nutrizionista',
-  'Mental Coach': 'Mental Coach',
-  'Talent Scout': 'Talent Scout',
-  'Physio/Masseur': 'Fisioterapista/Massaggiatore',
-  'President': 'Presidente',
-  'Director': 'Dirigente',
-  'Medical Staff': 'Staff Sanitario'
+  'Physio/Masseur': 'Fisioterapista/Massaggiatore'
 };
 
 // Tipi di annunci
@@ -175,6 +150,7 @@ export type NotificationType = typeof NOTIFICATION_TYPES[number];
 // CORE DATA MODELS
 // ============================================================================
 
+
 // User/Profile
 export type User = {
   id: number | string;
@@ -183,7 +159,7 @@ export type User = {
   email: string;
   password: string;
   birthDate: string;
-  sport: Sport;
+  sports: SupportedSport[];
   professionalRole: ProfessionalRole;
   bio?: string;
   avatarUrl?: string;
@@ -215,6 +191,7 @@ export type ClubJoinRequest = {
   clubId: number | string;
   userId: number | string;
   requestedRole: ClubRole;
+  requestedSports?: SupportedSport[];
   requestedPosition?: string;
   message?: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -227,7 +204,7 @@ export type ClubJoinRequest = {
 export type Club = {
   id: number | string;
   name: string;
-  sports: Sport[]; // Multi-sport support
+  sports: SupportedSport[]; // Multi-sport support
   city: string;
   country: string;
   region?: string;
@@ -264,7 +241,7 @@ export type Announcement = {
   clubId: number | string;
   title: string;
   type: AnnouncementType;
-  sport: Sport;
+  sport: SupportedSport;
   roleRequired: ProfessionalRole;
   position?: string; // es. "Attaccante", "Centrocampista"
   description: string;

@@ -3,8 +3,19 @@
     "id": 1765068387112,
     "announcementId": 1765053656807,
     "playerId": 2,
-    "status": "pending",
+    "status": "accepted",
     "message": "",
-    "appliedAt": "2025-12-07T00:46:27.112Z"
+    "appliedAt": "2025-12-07T00:46:27.112Z",
+    "updatedAt": "2025-12-07T10:50:53.810Z",
+    "reviewedBy": 1765049448639
+  },
+  {
+    "id": 1765104939065,
+    "announcementId": 1765053656807,
+    "playerId": "1765103614007",
+    "agentId": "2",
+    "status": "pending",
+    "message": "Candidatura inviata dall'agente Gianna Rossi",
+    "appliedAt": "2025-12-07T10:55:39.065Z"
   }
 ]

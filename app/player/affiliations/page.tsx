@@ -31,7 +31,7 @@ export default function PlayerAffiliationsPage() {
         const usersRes = await fetch('/api/users')
         const users = await usersRes.json()
         const user = users.find((u: any) => u.id.toString() === userId)
-        
+
         if (!user) {
           router.push('/login')
           return
@@ -51,7 +51,7 @@ export default function PlayerAffiliationsPage() {
         showToast('error', 'Errore', 'Impossibile caricare i dati')
       }
     }
-    
+
     loadData()
   }, [])
 
@@ -163,8 +163,8 @@ export default function PlayerAffiliationsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Shield size={32} className="text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">I Miei Agenti</h1>
+          <Shield size={32} className="text-green-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Rappresentanza</h1>
         </div>
         <p className="text-gray-600">Gestisci le richieste e le affiliazioni con gli agenti</p>
       </div>
@@ -206,7 +206,7 @@ export default function PlayerAffiliationsPage() {
                           typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
                         )
                       }
-                      className="px-4 py-2 bg-sprinta-blue text-white rounded-lg hover:bg-sprinta-blue-hover transition flex items-center gap-2"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
                     >
                       <Check size={18} />
                       Accetta

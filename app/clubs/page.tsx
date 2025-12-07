@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BuildingOffice2Icon, MagnifyingGlassIcon, MapPinIcon, UserGroupIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
-import { SPORTS, type Club } from '@/lib/types'
+import { SUPPORTED_SPORTS, type Club } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function ClubsPage() {
@@ -116,7 +116,7 @@ export default function ClubsPage() {
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         >
                             <option value="all">Tutti gli sport</option>
-                            {SPORTS.map((sport) => (
+                            {SUPPORTED_SPORTS.map((sport) => (
                                 <option key={sport} value={sport}>{sport}</option>
                             ))}
                         </select>

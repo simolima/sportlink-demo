@@ -44,6 +44,12 @@ export default function Navbar() {
                             <Link href="/people" className="text-sm text-white hover:text-white/80 transition">Scopri</Link>
                             <Link href="/clubs" className="text-sm text-white hover:text-white/80 transition">Società</Link>
                             <Link href="/opportunities" className="text-sm text-white hover:text-white/80 transition">Opportunità</Link>
+                            {user.professionalRole === 'Agent' && (
+                                <Link href="/agent/affiliations" className="text-sm text-white hover:text-white/80 transition">Affiliazioni</Link>
+                            )}
+                            {user.professionalRole === 'Player' && (
+                                <Link href="/player/affiliations" className="text-sm text-white hover:text-white/80 transition">Rappresentanza</Link>
+                            )}
                             <Link href="/messages" className="relative text-sm text-white hover:text-white/80 transition">
                                 Messaggi
                                 {unreadCount > 0 && (

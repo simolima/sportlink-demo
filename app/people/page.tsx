@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { UserCircleIcon, MagnifyingGlassIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
-import { SPORTS, PROFESSIONAL_ROLES } from '@/lib/types'
+import { SUPPORTED_SPORTS, PROFESSIONAL_ROLES } from '@/lib/types'
 
 export default function PeoplePage() {
     const router = useRouter()
@@ -111,7 +111,7 @@ export default function PeoplePage() {
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         >
                             <option value="all">Tutti gli sport</option>
-                            {SPORTS.map((sport) => (
+                            {SUPPORTED_SPORTS.map((sport) => (
                                 <option key={sport} value={sport}>{sport}</option>
                             ))}
                         </select>

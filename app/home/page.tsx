@@ -12,14 +12,20 @@ import {
     MyAnnouncementsWidget
 } from '@/components/dashboard-widgets'
 
-// Ruoli che vedono la dashboard Player/Coach
-const PLAYER_COACH_ROLES = ['Player', 'Coach']
+// Ruoli che vedono la dashboard Player
+const PLAYER_ROLES = ['Player']
+
+// Ruoli che vedono la dashboard Coach
+const COACH_ROLES = ['Coach']
 
 // Ruoli che vedono la dashboard Agent
 const AGENT_ROLES = ['Agent']
 
-// Ruoli che possono gestire un club (vedono dashboard Club Admin)
-const CLUB_ADMIN_ROLES = ['President', 'Director', 'Sporting Director']
+// Ruoli che vedono la dashboard Sporting Director / Club Admin
+const DS_ROLES = ['Sporting Director']
+
+// Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur)
+const STAFF_ROLES = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur']
 
 export default function HomePage() {
     const router = useRouter()
@@ -74,9 +80,12 @@ export default function HomePage() {
         )
     }
 
-    const isPlayerOrCoach = PLAYER_COACH_ROLES.includes(userRole)
+    const isPlayer = PLAYER_ROLES.includes(userRole)
+    const isCoach = COACH_ROLES.includes(userRole)
     const isAgent = AGENT_ROLES.includes(userRole)
-    const showClubAdminSection = isClubAdmin || CLUB_ADMIN_ROLES.includes(userRole)
+    const isDS = DS_ROLES.includes(userRole)
+    const isStaff = STAFF_ROLES.includes(userRole)
+    const showClubAdminSection = isClubAdmin || isDS
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -91,8 +100,23 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                {/* Dashboard per Player/Coach */}
-                {isPlayerOrCoach && (
+                {/* Dashboard per Player */}
+                {isPlayer && (
+                    <div className="space-y-6">
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            La tua carriera
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
+                            <YourApplicationsWidget userId={userId!} />
+                            <YourClubWidget userId={userId!} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Dashboard per Coach */}
+                {isCoach && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
@@ -120,7 +144,7 @@ export default function HomePage() {
                     </div>
                 )}
 
-                {/* Dashboard per Club Admin */}
+                {/* Dashboard per Sporting Director / Club Admin */}
                 {showClubAdminSection && (
                     <div className="space-y-6 mt-8">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -134,8 +158,23 @@ export default function HomePage() {
                     </div>
                 )}
 
+                {/* Dashboard per Staff (Athletic Trainer, Nutritionist, Physio/Masseur) */}
+                {isStaff && (
+                    <div className="space-y-6">
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            Opportunità per te
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
+                            <YourApplicationsWidget userId={userId!} />
+                            <YourClubWidget userId={userId!} />
+                        </div>
+                    </div>
+                )}
+
                 {/* Se l'utente non ha nessun ruolo specifico */}
-                {!isPlayerOrCoach && !isAgent && !showClubAdminSection && (
+                {!isPlayer && !isCoach && !isAgent && !showClubAdminSection && !isStaff && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

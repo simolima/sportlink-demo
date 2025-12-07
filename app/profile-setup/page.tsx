@@ -2,10 +2,11 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { PROFESSIONAL_ROLES, ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
+import { PROFESSIONAL_ROLES, isMultiSportRole } from '@/utils/roleHelpers'
+import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 import Image from 'next/image'
 
-export default function ProfileSetupPage() {
+export default function Page() {
     const router = useRouter()
     const [selectedRole, setSelectedRole] = useState<ProfessionalRole | ''>('')
     const [loading, setLoading] = useState(false)
@@ -20,17 +21,17 @@ export default function ProfileSetupPage() {
         const email = localStorage.getItem('signup_email')
         const password = localStorage.getItem('signup_password')
         const birthDate = localStorage.getItem('signup_birthDate')
-        const sport = localStorage.getItem('currentUserSport')
         const currentUserId = localStorage.getItem('currentUserId')
         const currentUserRole = localStorage.getItem('currentUserRole')
+        const currentUserSport = localStorage.getItem('currentUserSport')
 
-        // Se un utente autenticato arriva qui senza dati temporanei, riportalo alla home
-        if (!firstName || !lastName || !email || !password || !birthDate || !sport) {
+        if (!firstName || !lastName || !email || !password || !birthDate) {
             localStorage.removeItem('signup_firstName')
             localStorage.removeItem('signup_lastName')
             localStorage.removeItem('signup_email')
             localStorage.removeItem('signup_password')
             localStorage.removeItem('signup_birthDate')
+            localStorage.removeItem('currentUserRole')
             localStorage.removeItem('currentUserSport')
             if (currentUserId) {
                 router.replace('/home')
@@ -39,13 +40,17 @@ export default function ProfileSetupPage() {
             }
             return
         }
-
+        // Se il ruolo è già stato selezionato, vai a /select-sport
+        if (currentUserRole && !currentUserSport) {
+            router.replace('/select-sport')
+            return
+        }
         // Se l'utente ha già completato il profilo, non serve rifare lo step
-        if (currentUserId && currentUserRole) {
+        if (currentUserId && currentUserRole && currentUserSport) {
             router.replace('/home')
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [checked])
+    }, [checked, router])
 
     useEffect(() => {
         const header = document.querySelector('header')
@@ -61,53 +66,12 @@ export default function ProfileSetupPage() {
         setLoading(true)
         try {
             if (typeof window === 'undefined') return;
-            // Recupera tutti i dati dal localStorage
-            const firstName = localStorage.getItem('signup_firstName') || ''
-            const lastName = localStorage.getItem('signup_lastName') || ''
-            const email = localStorage.getItem('signup_email') || ''
-            const password = localStorage.getItem('signup_password') || ''
-            const birthDate = localStorage.getItem('signup_birthDate') || ''
-            const sport = localStorage.getItem('currentUserSport') || ''
-            const professionalRole = selectedRole
-
-            // Crea l'utente via API
-            const res = await fetch('/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    firstName,
-                    lastName,
-                    email,
-                    password,
-                    birthDate,
-                    sport,
-                    professionalRole,
-                    verified: false
-                })
-            })
-            if (!res.ok) {
-                alert('Errore durante la creazione del profilo')
-                setLoading(false)
-                return
-            }
-            const newUser = await res.json()
-            // Salva dati utente per la sessione
-            localStorage.setItem('currentUserId', String(newUser.id))
-            localStorage.setItem('currentUserEmail', newUser.email)
-            localStorage.setItem('currentUserName', `${newUser.firstName} ${newUser.lastName}`)
-            localStorage.setItem('currentUserAvatar', newUser.avatarUrl || '')
-            localStorage.setItem('currentUserSport', newUser.sport || '')
-            localStorage.setItem('currentUserRole', newUser.professionalRole || '')
-            // Pulisci i dati temporanei
-            localStorage.removeItem('signup_firstName')
-            localStorage.removeItem('signup_lastName')
-            localStorage.removeItem('signup_email')
-            localStorage.removeItem('signup_password')
-            localStorage.removeItem('signup_birthDate')
-            // Vai alla home (forza reload per Auth sync)
-            window.location.replace('/home')
+            // Salva il ruolo in localStorage
+            localStorage.setItem('currentUserRole', selectedRole)
+            // Vai al prossimo step
+            router.push('/select-sport')
         } catch (err) {
-            alert('Errore durante la creazione del profilo')
+            alert('Errore durante la selezione del ruolo')
         } finally {
             setLoading(false)
         }
@@ -132,7 +96,7 @@ export default function ProfileSetupPage() {
                     <div className="mb-8">
                         <div className="flex items-center justify-center gap-2">
                             <div className="flex-1 h-1 bg-green-600 rounded"></div>
-                            <span className="text-xs font-semibold text-gray-600">Passo 2 di 2</span>
+                            <span className="text-xs font-semibold text-gray-600">Passo 1 di 2</span>
                             <div className="flex-1 h-1 bg-green-600 rounded"></div>
                         </div>
                     </div>
@@ -143,7 +107,7 @@ export default function ProfileSetupPage() {
                             <h2 className="text-xl font-bold text-gray-900 mb-4">Qual è il tuo ruolo?</h2>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                             {PROFESSIONAL_ROLES.map((role) => (
                                 <button
                                     key={role}
@@ -159,14 +123,14 @@ export default function ProfileSetupPage() {
                             ))}
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="mt-8 flex justify-end gap-4">
+                        {/* Pulsante di conferma per proseguire */}
+                        <div className="mt-8 flex justify-end">
                             <button
                                 onClick={handleComplete}
                                 disabled={loading || !selectedRole}
                                 className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
-                                {loading ? 'Salvataggio...' : 'Completa Profilo →'}
+                                {loading ? 'Avanti...' : 'Avanti →'}
                             </button>
                         </div>
                     </div>

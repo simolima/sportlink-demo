@@ -333,10 +333,17 @@ export default function JobsPage() {
                 userRole === 'Agent' ? requiredRole === 'Player' : userRole === requiredRole
               const isCompatible = canApply
 
-              // Check if already applied
-              const hasApplied = userApplications.some((app: any) => {
+              // Check if already applied (exclude withdrawn applications - they can re-apply)
+              const existingApplication = userApplications.find((app: any) => {
                 const appOpportunityId = app.opportunityId || app.announcementId
-                return appOpportunityId?.toString() === announcement.id.toString()
+                return appOpportunityId?.toString() === announcement.id.toString() && app.status !== 'withdrawn'
+              })
+              const hasApplied = !!existingApplication
+
+              // For withdraw button, need to find any non-withdrawn application
+              const withdrawableApplication = userApplications.find((app: any) => {
+                const appOpportunityId = app.opportunityId || app.announcementId
+                return appOpportunityId?.toString() === announcement.id.toString() && app.status !== 'withdrawn'
               })
 
               return (
@@ -433,27 +440,44 @@ export default function JobsPage() {
                   )}
 
                   {/* Apply button */}
-                  <button
-                    onClick={() =>
-                      handleApply(
-                        typeof announcement.id === 'number' ? announcement.id : parseInt(announcement.id),
-                        announcement
-                      )
-                    }
-                    disabled={!isCompatible || hasApplied}
-                    className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
-                      ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
-                      : isCompatible
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                  >
-                    {hasApplied
-                      ? '✓ Candidatura già inviata'
-                      : currentUser?.professionalRole === 'Agent'
-                        ? 'Candida Assistito'
-                        : 'Candidati'}
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() =>
+                        handleApply(
+                          typeof announcement.id === 'number' ? announcement.id : parseInt(announcement.id),
+                          announcement
+                        )
+                      }
+                      disabled={!isCompatible || hasApplied}
+                      className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
+                        ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                        : isCompatible
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                    >
+                      {hasApplied
+                        ? '✓ Candidatura già inviata'
+                        : currentUser?.professionalRole === 'Agent'
+                          ? 'Candida Assistito'
+                          : 'Candidati'}
+                    </button>
+                    {hasApplied && withdrawableApplication?.status !== 'withdrawn' && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await fetch(`/api/applications?id=${withdrawableApplication.id}&withdraw=true`, { method: 'DELETE' })
+                            setUserApplications(prev => prev.map(app => app.id === withdrawableApplication.id ? { ...app, status: 'withdrawn' } : app))
+                          } catch (e) {
+                            alert('Errore nel ritiro della candidatura')
+                          }
+                        }}
+                        className="w-full px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50"
+                      >
+                        Ritira candidatura
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}

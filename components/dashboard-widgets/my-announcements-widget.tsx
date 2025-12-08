@@ -22,7 +22,7 @@ export interface MyAnnouncementsWidgetProps {
 export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncementsWidgetProps) {
     const [announcements, setAnnouncements] = useState<Announcement[]>([])
     const [loading, setLoading] = useState(true)
-    const maxItems = 5
+    const MAX_ANNOUNCEMENTS = 15
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,10 +32,12 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
                 const annRes = await fetch(`/api/opportunities?clubId=${clubId}&activeOnly=true`)
                 if (annRes.ok) {
                     const allAnnouncements = await annRes.json()
-                    const myAnnouncements = allAnnouncements.map((a: any) => ({
-                        ...a,
-                        isActive: new Date(a.expiryDate) > new Date()
-                    }))
+                    const myAnnouncements = allAnnouncements
+                        .map((a: any) => ({
+                            ...a,
+                            isActive: new Date(a.expiryDate) > new Date()
+                        }))
+                        .slice(0, MAX_ANNOUNCEMENTS)
                     setAnnouncements(myAnnouncements)
                 }
             } catch (error) {
@@ -164,7 +166,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
             </div>
 
             {/* Footer */}
-            {activeAnnouncements.length > maxItems && (
+            {activeAnnouncements.length > MAX_ANNOUNCEMENTS && (
                 <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
                     <Link
                         href={clubId ? `/clubs/${clubId}` : '/clubs'}

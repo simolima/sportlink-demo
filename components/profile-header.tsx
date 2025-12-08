@@ -5,10 +5,12 @@ import StatBox from './stat-box'
 
 interface ProfileHeaderProps {
     user: any
+    followersCount?: number
+    followingCount?: number
     onEditClick?: () => void
 }
 
-export default function ProfileHeader({ user, onEditClick }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, followersCount, followingCount, onEditClick }: ProfileHeaderProps) {
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             {/* Header with avatar and info */}
@@ -64,20 +66,11 @@ export default function ProfileHeader({ user, onEditClick }: ProfileHeaderProps)
                     <div className="flex flex-wrap justify-center md:justify-start gap-3">
                         <StatBox label="Annunci attivi" value={user?.annunciAttivi ?? 0} />
                         <StatBox label="Candidature ricevute" value={user?.candidatureRicevute ?? 0} />
-                        <StatBox label="Followers" value={user?.followers ?? 0} />
+                        <StatBox label="Followers" value={followersCount ?? user?.followers ?? 0} />
                     </div>
                 </div>
 
-                {/* Right: Edit button (su desktop a destra) */}
-                <div className="flex md:flex-col justify-center md:justify-start">
-                    <button
-                        onClick={onEditClick}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
-                    >
-                        <PencilSquareIcon className="w-4 h-4" />
-                        <span className="hidden md:inline">Modifica</span>
-                    </button>
-                </div>
+                {/* Right: Edit button removed - edit happens in profile-content */}
             </div>
         </div>
     )

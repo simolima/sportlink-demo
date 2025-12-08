@@ -41,7 +41,7 @@ export default function ClubDetailPage() {
         expiryDate: string;
     }>({
         title: '',
-        type: ANNOUNCEMENT_TYPES[0],
+        type: OPPORTUNITY_TYPES[0],
         sport: '',
         roleRequired: '',
         position: '',
@@ -70,6 +70,11 @@ export default function ClubDetailPage() {
 
     useEffect(() => {
         if (typeof window === 'undefined') return
+        // sync tab from query param ?tab=
+        const tab = new URLSearchParams(window.location.search).get('tab')
+        if (tab === 'annunci' || tab === 'membri' || tab === 'info') {
+            setActiveTab(tab)
+        }
         if (clubId && activeTab === 'annunci') fetchAnnouncements()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, clubId])
@@ -90,7 +95,7 @@ export default function ClubDetailPage() {
             if (res.ok) {
                 setShowCreateForm(false)
                 setForm({
-                    title: '', type: ANNOUNCEMENT_TYPES[0], sport: '', roleRequired: '', position: '', description: '', location: '', city: '', country: '', salary: '', contractType: '', level: '', requirements: '', expiryDate: ''
+                    title: '', type: OPPORTUNITY_TYPES[0], sport: '', roleRequired: '', position: '', description: '', location: '', city: '', country: '', salary: '', contractType: '', level: '', requirements: '', expiryDate: ''
                 })
                 fetchAnnouncements()
             }
@@ -104,9 +109,14 @@ export default function ClubDetailPage() {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [members, setMembers] = useState<any[]>([])
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
+    const [sendingRequest, setSendingRequest] = useState(false)
     const [isAdmin, setIsAdmin] = useState(false)
     const [loadingMembers, setLoadingMembers] = useState(false)
     const [loadingRequests, setLoadingRequests] = useState(false)
+    const [allUsers, setAllUsers] = useState<any[]>([])
+    const [userSearch, setUserSearch] = useState('')
+    const [addingMemberId, setAddingMemberId] = useState<string | null>(null)
+    const [removingMemberId, setRemovingMemberId] = useState<string | null>(null)
 
     useEffect(() => {
         if (typeof window === 'undefined') return
@@ -132,6 +142,22 @@ export default function ClubDetailPage() {
         const admin = members.find(m => m.userId?.toString() === currentUserId && m.role === 'Admin' && m.isActive)
         setIsAdmin(!!admin)
     }, [currentUserId, members])
+
+    useEffect(() => {
+        const loadUsers = async () => {
+            if (!isAdmin) return
+            try {
+                const res = await fetch('/api/users')
+                if (res.ok) {
+                    const data = await res.json()
+                    setAllUsers(data)
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+        loadUsers()
+    }, [isAdmin])
     const fetchMembers = async () => {
         setLoadingMembers(true)
         try {
@@ -159,22 +185,82 @@ export default function ClubDetailPage() {
     }
 
     const handleAcceptRequest = async (requestId: string) => {
-        await fetch('/api/club-join-requests/accept', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requestId, respondedBy: currentUserId })
-        })
-        fetchRequests()
-        fetchMembers()
+        try {
+            const res = await fetch('/api/club-join-requests/accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId, respondedBy: currentUserId })
+            })
+            if (res.ok) {
+                // Ottimizza: rimuovi subito la richiesta pending
+                setPendingRequests((prev) => prev.filter(r => String(r.id) !== String(requestId)))
+                fetchRequests()
+                fetchMembers()
+            } else {
+                const e = await res.json().catch(() => ({}))
+                alert(e.error || 'Errore durante accettazione')
+            }
+        } catch (err) {
+            alert('Errore durante accettazione')
+        }
     }
 
     const handleRejectRequest = async (requestId: string) => {
-        await fetch('/api/club-join-requests', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: requestId, status: 'rejected', respondedBy: currentUserId })
-        })
-        fetchRequests()
+        try {
+            const res = await fetch('/api/club-join-requests', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: requestId, status: 'rejected', respondedBy: currentUserId })
+            })
+            if (res.ok) {
+                setPendingRequests((prev) => prev.filter(r => r.id !== requestId))
+                fetchRequests()
+            } else {
+                const e = await res.json().catch(() => ({}))
+                alert(e.error || 'Errore durante rifiuto')
+            }
+        } catch (err) {
+            alert('Errore durante rifiuto')
+        }
+    }
+
+    const handleRemoveMember = async (membershipId: string) => {
+        try {
+            setRemovingMemberId(membershipId)
+            const res = await fetch(`/api/club-memberships?id=${membershipId}`, { method: 'DELETE' })
+            if (res.ok) {
+                setMembers(prev => prev.filter(m => String(m.id) !== String(membershipId)))
+            } else {
+                const e = await res.json().catch(() => ({}))
+                alert(e.error || 'Errore nella rimozione del membro')
+            }
+        } catch (err) {
+            alert('Errore nella rimozione del membro')
+        } finally {
+            setRemovingMemberId(null)
+        }
+    }
+
+    const handleAddMember = async (userId: string) => {
+        if (!clubId) return
+        try {
+            setAddingMemberId(userId)
+            const res = await fetch('/api/club-memberships', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clubId, userId, role: 'Player', position: '', permissions: [] })
+            })
+            if (res.ok) {
+                fetchMembers()
+            } else {
+                const e = await res.json().catch(() => ({}))
+                alert(e.error || 'Errore nell’aggiunta del membro')
+            }
+        } catch (err) {
+            alert('Errore nell’aggiunta del membro')
+        } finally {
+            setAddingMemberId(null)
+        }
     }
 
     const fetchClubDetails = async () => {
@@ -198,6 +284,27 @@ export default function ClubDetailPage() {
     const handleFollow = () => {
         setFollowing(!following)
         // TODO: Implement follow functionality via API
+    }
+
+    const handleJoinRequest = async () => {
+        if (!currentUserId || !clubId) return
+        setSendingRequest(true)
+        try {
+            await fetch('/api/club-join-requests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clubId,
+                    userId: currentUserId,
+                    requestedRole: 'Player',
+                    requestedPosition: '',
+                    message: ''
+                })
+            })
+            fetchRequests()
+        } finally {
+            setSendingRequest(false)
+        }
     }
 
     const handleContact = () => {
@@ -305,7 +412,7 @@ export default function ClubDetailPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                             {isAdmin && (
                                 <button
                                     onClick={() => router.push(`/clubs/${clubId}/applications`)}
@@ -329,6 +436,24 @@ export default function ClubDetailPage() {
                                 className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                             >
                                 Contatta
+                            </button>
+                            <button
+                                onClick={handleJoinRequest}
+                                disabled={sendingRequest || isAdmin || members.some(m => m.userId?.toString() === currentUserId) || pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')}
+                                className={`px-6 py-2 rounded-lg font-medium transition-colors ${members.some(m => m.userId?.toString() === currentUserId)
+                                    ? 'bg-green-50 text-green-700 border border-green-200 cursor-default'
+                                    : pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')
+                                        ? 'bg-yellow-50 text-yellow-700 border border-yellow-200 cursor-default'
+                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {members.some(m => m.userId?.toString() === currentUserId)
+                                    ? 'Già in rosa'
+                                    : pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')
+                                        ? 'Richiesta in attesa'
+                                        : sendingRequest
+                                            ? 'Invio richiesta...'
+                                            : 'Richiedi ingresso in rosa'}
                             </button>
                         </div>
                     </div>
@@ -493,7 +618,7 @@ export default function ClubDetailPage() {
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Tipo *</label>
                                         <select required className="w-full px-3 py-2 border rounded" value={form.type} onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}>
-                                            {ANNOUNCEMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                            {OPPORTUNITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -593,20 +718,72 @@ export default function ClubDetailPage() {
                 {activeTab === 'membri' && (
                     <div className="bg-white rounded-lg shadow-sm p-8 min-h-[200px]">
                         <h2 className="text-xl font-bold text-gray-900 mb-4">Rosa / Membri</h2>
+                        {isAdmin && (
+                            <div className="mb-6 p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800">Richieste di ingresso</p>
+                                        <p className="text-xs text-gray-600">Approva o rifiuta le richieste dei giocatori.</p>
+                                    </div>
+                                    {loadingRequests && <span className="text-xs text-gray-500">Caricamento...</span>}
+                                </div>
+                                {(!pendingRequests || pendingRequests.length === 0) && !loadingRequests && (
+                                    <p className="text-sm text-gray-600">Nessuna richiesta in attesa.</p>
+                                )}
+                                <div className="space-y-3">
+                                    {pendingRequests && pendingRequests.map((r: any) => (
+                                        <div key={r.id} className="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+                                            <img src={r.user?.avatarUrl || '/logo.svg'} alt={r.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-50" />
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-gray-900 text-sm">{r.user?.firstName} {r.user?.lastName}</div>
+                                                <div className="text-xs text-gray-600">Ruolo richiesto: {r.requestedRole}{r.requestedPosition ? ` • ${r.requestedPosition}` : ''}</div>
+                                                {r.message && <div className="text-xs text-gray-500 line-clamp-2">{r.message}</div>}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleAcceptRequest(r.id)}
+                                                    className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700"
+                                                >
+                                                    Accetta
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectRequest(r.id)}
+                                                    className="px-3 py-1.5 border border-gray-300 text-xs font-semibold rounded hover:bg-gray-50"
+                                                >
+                                                    Rifiuta
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {loadingMembers ? (
                             <div className="text-gray-500">Caricamento membri...</div>
                         ) : (
                             <ul className="divide-y divide-gray-100 mb-6">
-                                {members.map((m) => (
-                                    <li key={m.id} className="flex items-center gap-4 py-3">
-                                        <img src={m.user?.avatarUrl || '/logo.svg'} alt={m.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-100" />
-                                        <div className="flex-1">
-                                            <div className="font-semibold text-gray-900">{m.user?.firstName} {m.user?.lastName}</div>
-                                            <div className="text-xs text-gray-500">{m.role}{m.position ? ` • ${m.position}` : ''}</div>
-                                        </div>
-                                        <span className={`text-xs px-2 py-1 rounded ${m.role === 'Admin' ? 'bg-green-100 text-green-700 font-bold' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span>
-                                    </li>
-                                ))}
+                                {members.map((m) => {
+                                    const canRemove = isAdmin || currentUserId === m.userId?.toString()
+                                    return (
+                                        <li key={m.id} className="flex items-center gap-4 py-3">
+                                            <img src={m.user?.avatarUrl || '/logo.svg'} alt={m.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-100" />
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-gray-900">{m.user?.firstName} {m.user?.lastName}</div>
+                                                <div className="text-xs text-gray-500">{m.role}{m.position ? ` • ${m.position}` : ''}</div>
+                                            </div>
+                                            <span className={`text-xs px-2 py-1 rounded ${m.role === 'Admin' ? 'bg-green-100 text-green-700 font-bold' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span>
+                                            {canRemove && m.role !== 'Admin' && (
+                                                <button
+                                                    onClick={() => handleRemoveMember(m.id)}
+                                                    disabled={removingMemberId === String(m.id)}
+                                                    className="px-3 py-1.5 text-xs font-semibold border border-red-200 text-red-700 rounded hover:bg-red-50 disabled:opacity-50"
+                                                >
+                                                    {removingMemberId === String(m.id) ? 'Rimozione...' : (currentUserId === m.userId?.toString() ? 'Esci' : 'Rimuovi')}
+                                                </button>
+                                            )}
+                                        </li>
+                                    )
+                                })}
                                 {members.length === 0 && <li className="text-gray-500">Nessun membro</li>}
                             </ul>
                         )}
@@ -633,6 +810,45 @@ export default function ClubDetailPage() {
                                         {pendingRequests.length === 0 && <li className="text-gray-500">Nessuna richiesta pendente</li>}
                                     </ul>
                                 )}
+
+                                <div className="mt-8">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Aggiungi un membro</h3>
+                                    <p className="text-xs text-gray-600 mb-3">Cerca per nome o email, poi aggiungi alla rosa.</p>
+                                    <input
+                                        value={userSearch}
+                                        onChange={e => setUserSearch(e.target.value)}
+                                        placeholder="Cerca atleta o staff"
+                                        className="w-full md:w-96 px-3 py-2 border rounded mb-3"
+                                    />
+                                    <div className="space-y-2 max-h-64 overflow-auto">
+                                        {userSearch.length < 2 && <p className="text-sm text-gray-500">Digita almeno 2 caratteri.</p>}
+                                        {userSearch.length >= 2 && allUsers
+                                            .filter(u => {
+                                                const q = userSearch.toLowerCase()
+                                                const full = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase()
+                                                const mail = (u.email || '').toLowerCase()
+                                                const alreadyMember = members.some(m => String(m.userId) === String(u.id))
+                                                return !alreadyMember && (full.includes(q) || mail.includes(q))
+                                            })
+                                            .slice(0, 10)
+                                            .map(u => (
+                                                <div key={u.id} className="flex items-center justify-between p-2 border border-gray-100 rounded">
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-gray-900">{u.firstName} {u.lastName}</div>
+                                                        <div className="text-xs text-gray-500">{u.email}</div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleAddMember(u.id)}
+                                                        disabled={addingMemberId === String(u.id)}
+                                                        className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 disabled:opacity-50"
+                                                    >
+                                                        {addingMemberId === String(u.id) ? 'Aggiunta...' : 'Aggiungi'}
+                                                    </button>
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
                             </>
                         )}
                     </div>

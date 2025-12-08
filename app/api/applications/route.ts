@@ -1,34 +1,40 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
+
+export const runtime = 'nodejs'
 
 const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
 const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
 const usersPath = path.join(process.cwd(), 'data', 'users.json')
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
 
-function readApplications() {
-    const data = fs.readFileSync(applicationsPath, 'utf-8')
-    return JSON.parse(data)
+function ensureFile(p: string) {
+    if (!fs.existsSync(p)) {
+        fs.mkdirSync(path.dirname(p), { recursive: true })
+        fs.writeFileSync(p, '[]', 'utf-8')
+    }
+}
+
+function readJson(p: string) {
+    ensureFile(p)
+    const data = fs.readFileSync(p, 'utf-8') || '[]'
+    try { return JSON.parse(data) } catch { return [] }
 }
 
 function writeApplications(applications: any[]) {
+    ensureFile(applicationsPath)
     fs.writeFileSync(applicationsPath, JSON.stringify(applications, null, 2))
 }
 
-function readOpportunities() {
-    const data = fs.readFileSync(opportunitiesPath, 'utf-8')
-    return JSON.parse(data)
-}
+function readApplications() { return readJson(applicationsPath) }
+function readOpportunities() { return readJson(opportunitiesPath) }
+function readUsers() { return readJson(usersPath) }
+function readClubs() { return readJson(clubsPath) }
 
-function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
+export async function OPTIONS(req: Request) {
+    return handleOptions()
 }
 
 // GET /api/applications - Get applications with filters
@@ -73,9 +79,11 @@ export async function GET(request: Request) {
         })
     }
 
-    // Filter by status
+    // Filter by status or exclude withdrawn by default
     if (status) {
         applications = applications.filter((app: any) => app.status === status)
+    } else {
+        applications = applications.filter((app: any) => app.status !== 'withdrawn')
     }
 
     // Enrich with related data
@@ -114,7 +122,7 @@ export async function GET(request: Request) {
     // Sort by date (most recent first)
     enriched.sort((a: any, b: any) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime())
 
-    return NextResponse.json(enriched)
+    return withCors(NextResponse.json(enriched))
 }
 
 // POST /api/applications - Create new application
@@ -123,7 +131,7 @@ export async function POST(request: Request) {
     const { opportunityId, applicantId, agentId, message } = body
 
     if (!opportunityId || !applicantId) {
-        return NextResponse.json({ error: 'opportunityId and applicantId required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'opportunityId and applicantId required' }, { status: 400 }))
     }
 
     const applications = readApplications()
@@ -136,7 +144,7 @@ export async function POST(request: Request) {
     })
 
     if (existing) {
-        return NextResponse.json({ error: 'Already applied to this opportunity' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'Already applied to this opportunity' }, { status: 400 }))
     }
 
     const newApplication = {
@@ -152,7 +160,7 @@ export async function POST(request: Request) {
     applications.push(newApplication)
     writeApplications(applications)
 
-    return NextResponse.json(newApplication, { status: 201 })
+    return withCors(NextResponse.json(newApplication, { status: 201 }))
 }
 
 // PUT /api/applications - Update application status
@@ -161,14 +169,14 @@ export async function PUT(request: Request) {
     const { id, status, reviewedBy } = body
 
     if (!id || !status) {
-        return NextResponse.json({ error: 'id and status required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id and status required' }, { status: 400 }))
     }
 
     const applications = readApplications()
     const index = applications.findIndex((app: any) => app.id.toString() === id.toString())
 
     if (index === -1) {
-        return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Application not found' }, { status: 404 }))
     }
 
     applications[index].status = status
@@ -179,7 +187,7 @@ export async function PUT(request: Request) {
     }
 
     writeApplications(applications)
-    return NextResponse.json(applications[index])
+    return withCors(NextResponse.json(applications[index]))
 }
 
 // DELETE /api/applications - Withdraw or delete application
@@ -189,7 +197,7 @@ export async function DELETE(request: Request) {
     const withdraw = searchParams.get('withdraw') === 'true'
 
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
     const applications = readApplications()
@@ -198,21 +206,21 @@ export async function DELETE(request: Request) {
         // Set status to withdrawn instead of deleting
         const index = applications.findIndex((app: any) => app.id.toString() === id)
         if (index === -1) {
-            return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+            return withCors(NextResponse.json({ error: 'Application not found' }, { status: 404 }))
         }
 
         applications[index].status = 'withdrawn'
         applications[index].updatedAt = new Date().toISOString()
         writeApplications(applications)
-        return NextResponse.json({ success: true, withdrawn: true })
+        return withCors(NextResponse.json({ success: true, withdrawn: true }))
     } else {
         // Hard delete
         const filtered = applications.filter((app: any) => app.id.toString() !== id)
         if (applications.length === filtered.length) {
-            return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+            return withCors(NextResponse.json({ error: 'Application not found' }, { status: 404 }))
         }
 
         writeApplications(filtered)
-        return NextResponse.json({ success: true })
+        return withCors(NextResponse.json({ success: true }))
     }
 }

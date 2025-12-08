@@ -11,6 +11,7 @@ import {
     ReceivedApplicationsWidget,
     MyAnnouncementsWidget
 } from '@/components/dashboard-widgets'
+import ClubJoinRequestsWidget from '@/components/dashboard-widgets/club-join-requests-widget'
 
 // Ruoli che vedono la dashboard Player
 const PLAYER_ROLES = ['Player']
@@ -178,6 +179,7 @@ export default function HomePage() {
                                 <YourClubWidget userId={userId!} clubId={selectedClubId} />
                                 <ReceivedApplicationsWidget userId={userId!} clubId={selectedClubId} />
                                 <MyAnnouncementsWidget userId={userId!} clubId={selectedClubId} />
+                                <ClubJoinRequestsWidget clubId={selectedClubId} />
                             </div>
                         )}
                     </div>

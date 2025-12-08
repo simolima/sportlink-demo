@@ -30,7 +30,8 @@ export default function MyApplicationsPage() {
     const [applications, setApplications] = useState<Application[]>([])
     const [loading, setLoading] = useState(true)
     const [userId, setUserId] = useState<string | null>(null)
-    const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all')
+    const [withdrawingId, setWithdrawingId] = useState<string | null>(null)
+    const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'>('all')
 
     useEffect(() => {
         const id = localStorage.getItem('currentUserId')
@@ -64,6 +65,7 @@ export default function MyApplicationsPage() {
         pending: applications.filter(a => a.status === 'pending').length,
         accepted: applications.filter(a => a.status === 'accepted').length,
         rejected: applications.filter(a => a.status === 'rejected').length,
+        withdrawn: applications.filter(a => a.status === 'withdrawn').length,
         total: applications.length,
     }
 
@@ -75,8 +77,27 @@ export default function MyApplicationsPage() {
                 return <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Accettata</span>
             case 'rejected':
                 return <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Rifiutata</span>
+            case 'withdrawn':
+                return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">Ritirata</span>
             default:
                 return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{status}</span>
+        }
+    }
+
+    const handleWithdraw = async (id: string) => {
+        try {
+            setWithdrawingId(id)
+            const res = await fetch(`/api/applications?id=${id}&withdraw=true`, { method: 'DELETE' })
+            if (res.ok) {
+                setApplications(prev => prev.map(a => a.id.toString() === id.toString() ? { ...a, status: 'withdrawn' } : a))
+            } else {
+                const e = await res.json().catch(() => ({}))
+                alert(e.error || 'Errore nel ritiro della candidatura')
+            }
+        } catch (err) {
+            alert('Errore nel ritiro della candidatura')
+        } finally {
+            setWithdrawingId(null)
         }
     }
 
@@ -98,7 +119,7 @@ export default function MyApplicationsPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -138,16 +159,25 @@ export default function MyApplicationsPage() {
                             <XCircleIcon className="w-10 h-10 text-red-400" />
                         </div>
                     </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600">Ritirate</p>
+                                <p className="text-3xl font-bold text-gray-900">{stats.withdrawn}</p>
+                            </div>
+                            <ClipboardDocumentListIcon className="w-10 h-10 text-gray-400" />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         <button
                             onClick={() => setFilter('all')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'all'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             Tutte ({stats.total})
@@ -155,8 +185,8 @@ export default function MyApplicationsPage() {
                         <button
                             onClick={() => setFilter('pending')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'pending'
-                                    ? 'bg-amber-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-amber-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             In Revisione ({stats.pending})
@@ -164,8 +194,8 @@ export default function MyApplicationsPage() {
                         <button
                             onClick={() => setFilter('accepted')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'accepted'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             Accettate ({stats.accepted})
@@ -173,11 +203,20 @@ export default function MyApplicationsPage() {
                         <button
                             onClick={() => setFilter('rejected')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'rejected'
-                                    ? 'bg-red-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-red-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             Rifiutate ({stats.rejected})
+                        </button>
+                        <button
+                            onClick={() => setFilter('withdrawn')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'withdrawn'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                        >
+                            Ritirate ({stats.withdrawn})
                         </button>
                     </div>
                 </div>
@@ -252,7 +291,18 @@ export default function MyApplicationsPage() {
                                     </div>
 
                                     <div className="text-right">
-                                        {getStatusBadge(app.status)}
+                                        <div className="flex flex-col items-end gap-2">
+                                            {getStatusBadge(app.status)}
+                                            {app.status !== 'withdrawn' && (
+                                                <button
+                                                    onClick={() => handleWithdraw(app.id)}
+                                                    disabled={withdrawingId === app.id.toString()}
+                                                    className="text-xs font-semibold text-red-600 hover:text-red-700"
+                                                >
+                                                    {withdrawingId === app.id.toString() ? 'Ritiro...' : 'Ritira candidatura'}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -1,28 +1,47 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
+
+export const runtime = 'nodejs'
 
 const membershipsPath = path.join(process.cwd(), 'data', 'club-memberships.json')
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
 const usersPath = path.join(process.cwd(), 'data', 'users.json')
 
+function ensureFile(p: string) {
+    if (!fs.existsSync(p)) {
+        fs.mkdirSync(path.dirname(p), { recursive: true })
+        fs.writeFileSync(p, '[]', 'utf-8')
+    }
+}
+
 function readMemberships() {
-    const data = fs.readFileSync(membershipsPath, 'utf-8')
-    return JSON.parse(data)
+    ensureFile(membershipsPath)
+    const data = fs.readFileSync(membershipsPath, 'utf-8') || '[]'
+    try { return JSON.parse(data) } catch { return [] }
 }
 
 function writeMemberships(memberships: any[]) {
+    ensureFile(membershipsPath)
     fs.writeFileSync(membershipsPath, JSON.stringify(memberships, null, 2))
 }
 
 function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
+    ensureFile(clubsPath)
+    const data = fs.readFileSync(clubsPath, 'utf-8') || '[]'
+    try { return JSON.parse(data) } catch { return [] }
 }
 
 function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
+    ensureFile(usersPath)
+    const data = fs.readFileSync(usersPath, 'utf-8') || '[]'
+    try { return JSON.parse(data) } catch { return [] }
+}
+
+// Preflight
+export async function OPTIONS(req: Request) {
+    return handleOptions()
 }
 
 // GET /api/club-memberships - Get memberships
@@ -49,7 +68,7 @@ export async function GET(request: Request) {
     const enriched = memberships.map((m: any) => {
         const club = clubs.find((c: any) => c.id.toString() === m.clubId.toString())
         const user = users.find((u: any) => u.id.toString() === m.userId.toString())
-        
+
         return {
             ...m,
             club: club ? {
@@ -68,7 +87,7 @@ export async function GET(request: Request) {
         }
     })
 
-    return NextResponse.json(enriched)
+    return withCors(NextResponse.json(enriched))
 }
 
 // POST /api/club-memberships - Add member to club
@@ -77,20 +96,20 @@ export async function POST(request: Request) {
     const { clubId, userId, role, position, permissions } = body
 
     if (!clubId || !userId || !role) {
-        return NextResponse.json({ error: 'clubId, userId, and role required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'clubId, userId, and role required' }, { status: 400 }))
     }
 
     const memberships = readMemberships()
 
     // Check if membership already exists
-    const existing = memberships.find((m: any) => 
+    const existing = memberships.find((m: any) =>
         m.clubId.toString() === clubId.toString() &&
         m.userId.toString() === userId.toString() &&
         m.isActive
     )
 
     if (existing) {
-        return NextResponse.json({ error: 'User is already a member of this club' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'User is already a member of this club' }, { status: 400 }))
     }
 
     const newMembership = {
@@ -107,7 +126,7 @@ export async function POST(request: Request) {
     memberships.push(newMembership)
     writeMemberships(memberships)
 
-    return NextResponse.json(newMembership, { status: 201 })
+    return withCors(NextResponse.json(newMembership, { status: 201 }))
 }
 
 // PUT /api/club-memberships - Update membership
@@ -116,14 +135,14 @@ export async function PUT(request: Request) {
     const { id, role, position, permissions, isActive } = body
 
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
     const memberships = readMemberships()
     const index = memberships.findIndex((m: any) => m.id.toString() === id.toString())
 
     if (index === -1) {
-        return NextResponse.json({ error: 'Membership not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Membership not found' }, { status: 404 }))
     }
 
     if (role !== undefined) memberships[index].role = role
@@ -132,7 +151,7 @@ export async function PUT(request: Request) {
     if (isActive !== undefined) memberships[index].isActive = isActive
 
     writeMemberships(memberships)
-    return NextResponse.json(memberships[index])
+    return withCors(NextResponse.json(memberships[index]))
 }
 
 // DELETE /api/club-memberships - Remove member
@@ -141,16 +160,16 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id')
 
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
     const memberships = readMemberships()
     const filtered = memberships.filter((m: any) => m.id.toString() !== id)
 
     if (memberships.length === filtered.length) {
-        return NextResponse.json({ error: 'Membership not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Membership not found' }, { status: 404 }))
     }
 
     writeMemberships(filtered)
-    return NextResponse.json({ success: true })
+    return withCors(NextResponse.json({ success: true }))
 }

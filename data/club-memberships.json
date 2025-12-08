@@ -28,5 +28,25 @@
     ],
     "joinedAt": "2025-12-08T12:18:59.991Z",
     "isActive": true
+  },
+  {
+    "id": 1765202028770,
+    "clubId": 1765053528599,
+    "userId": "1765103614007",
+    "role": "Player",
+    "position": "Forward",
+    "permissions": [],
+    "joinedAt": "2025-12-07T10:35:00.000Z",
+    "isActive": true
+  },
+  {
+    "id": 1765209924096,
+    "clubId": "1765196339656",
+    "userId": "1765202028769",
+    "role": "Player",
+    "position": "",
+    "permissions": [],
+    "joinedAt": "2025-12-08T16:05:24.096Z",
+    "isActive": true
   }
 ]

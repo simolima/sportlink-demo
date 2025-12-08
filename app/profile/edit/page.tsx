@@ -54,7 +54,16 @@ export default function EditProfilePage() {
                     bio: u.bio || '',
                     avatarUrl: u.avatarUrl || u.profilePhoto || '',
                     coverUrl: u.coverUrl || '',
-                    experiences: Array.isArray(u.experiences) ? u.experiences : [],
+                    experiences: Array.isArray(u.experiences)
+                        ? u.experiences.map((e: any) => ({
+                            role: e.role || e.title || '',
+                            team: e.team || e.company || '',
+                            category: e.category || '',
+                            from: e.from || '',
+                            to: e.to || '',
+                            summary: e.summary || e.description || '',
+                        }))
+                        : [],
                 })
             } finally {
                 setLoading(false)
@@ -64,7 +73,7 @@ export default function EditProfilePage() {
     }, [router])
 
     const updateField = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }))
-    const addExp = () => updateField('experiences', [...form.experiences, { title: '', company: '', from: '', to: '', description: '' }])
+    const addExp = () => updateField('experiences', [...form.experiences, { role: '', team: '', category: '', from: '', to: '', summary: '' }])
     const removeExp = (i: number) => updateField('experiences', form.experiences.filter((_: any, idx: number) => idx !== i))
     const editExp = (i: number, k: string, v: any) => updateField('experiences', form.experiences.map((e: any, idx: number) => idx === i ? { ...e, [k]: v } : e))
 
@@ -96,7 +105,7 @@ export default function EditProfilePage() {
                 alert('Seleziona un file immagine valido (JPEG, PNG, WebP)')
                 return
             }
-            
+
             // Check file size (max 10MB for cover photos)
             if (file.size > 10 * 1024 * 1024) {
                 alert('La dimensione dell\'immagine deve essere inferiore a 10MB')
@@ -106,12 +115,12 @@ export default function EditProfilePage() {
             // Check image dimensions
             const img = new Image()
             const reader = new FileReader()
-            
+
             reader.onloadend = () => {
                 img.src = reader.result as string
                 setCoverPreview(reader.result as string)
             }
-            
+
             img.onload = () => {
                 const width = img.width
                 const height = img.height
@@ -142,7 +151,7 @@ export default function EditProfilePage() {
 
                 setCoverFile(file)
             }
-            
+
             reader.readAsDataURL(file)
         }
     }
@@ -208,146 +217,282 @@ export default function EditProfilePage() {
     if (!userId || loading) return <div className="max-w-3xl mx-auto p-6">Caricamento...</div>
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Modifica profilo</h1>
-            <div className="space-y-6 bg-white rounded-lg shadow">
-                {/* Cover Photo Section */}
-                <div className="relative">
-                    <div className="h-48 md:h-64 bg-gradient-to-r from-blue-500 to-blue-700 rounded-t-lg overflow-hidden">
-                        {(coverPreview || form.coverUrl) ? (
-                            <img 
-                                src={coverPreview || form.coverUrl} 
-                                alt="Cover preview" 
-                                className="w-full h-full object-cover"
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="mb-12">
+                    <h1 className="text-5xl font-extrabold text-gray-900 leading-tight">Modifica profilo</h1>
+                    <p className="text-lg text-gray-600 mt-3 font-light">Aggiorna le tue informazioni personali e il tuo percorso professionale</p>
+                </div>
+
+                <div className="space-y-8">
+                    {/* Cover Photo Section */}
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                        <div className="relative">
+                            <div className="h-56 md:h-72 bg-gradient-to-r from-green-500 to-emerald-600 overflow-hidden">
+                                {(coverPreview || form.coverUrl) ? (
+                                    <img
+                                        src={coverPreview || form.coverUrl}
+                                        alt="Cover preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-white">
+                                        <div className="text-center">
+                                            <CameraIcon className="w-20 h-20 mx-auto mb-3 opacity-50" />
+                                            <p className="text-base opacity-75 font-light">Aggiungi una foto di copertina</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <label
+                                htmlFor="cover-upload"
+                                className="absolute bottom-4 right-4 bg-white px-5 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:shadow-xl hover:bg-gray-50 transition cursor-pointer font-semibold text-sm text-gray-700"
+                            >
+                                <CameraIcon className="w-5 h-5" />
+                                {coverPreview || form.coverUrl ? 'Cambia' : 'Aggiungi'}
+                            </label>
+                            <input
+                                id="cover-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleCoverChange}
+                                className="hidden"
                             />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-white">
-                                <div className="text-center">
-                                    <CameraIcon className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm opacity-75">Nessuna foto di copertina</p>
+                            {coverFile && (
+                                <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-lg font-semibold">
+                                    ✓ Pronto per il salvataggio
                                 </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Avatar and Basic Info Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-8">Informazioni personali</h2>
+
+                        {/* Avatar and Name Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
+                            {/* Avatar */}
+                            <div className="flex flex-col items-center md:col-span-1">
+                                <div className="relative mb-4">
+                                    <Avatar
+                                        src={avatarPreview || form.avatarUrl}
+                                        alt="Profile preview"
+                                        size="xl"
+                                        fallbackText={form.firstName?.[0] || '?'}
+                                        className="w-40 h-40 ring-4 ring-green-100 shadow-lg"
+                                    />
+                                    <label
+                                        htmlFor="avatar-upload-edit"
+                                        className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-4 cursor-pointer shadow-lg transition transform hover:scale-110"
+                                    >
+                                        <CameraIcon className="w-6 h-6" />
+                                    </label>
+                                    <input
+                                        id="avatar-upload-edit"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                        className="hidden"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 text-center font-medium">{avatarFile ? `✓ ${avatarFile.name}` : 'Clicca per cambiare'}</p>
+                            </div>
+
+                            {/* Name and Contact */}
+                            <div className="md:col-span-3 space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Nome</label>
+                                        <input
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            placeholder="Nome"
+                                            value={form.firstName}
+                                            onChange={e => updateField('firstName', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Cognome</label>
+                                        <input
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            placeholder="Cognome"
+                                            value={form.lastName}
+                                            onChange={e => updateField('lastName', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                                        <input
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            placeholder="email@example.com"
+                                            value={form.email}
+                                            onChange={e => updateField('email', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Username</label>
+                                        <input
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            placeholder="@username"
+                                            value={form.username}
+                                            onChange={e => updateField('username', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Data di nascita</label>
+                                    <input
+                                        type="date"
+                                        className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                        value={form.birthDate || ''}
+                                        onChange={e => updateField('birthDate', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bio Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Presentazione</h2>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-3">Bio / Descrizione personale</label>
+                            <textarea
+                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base font-light"
+                                rows={5}
+                                placeholder="Raccontati... quali sono i tuoi punti di forza, la tua esperienza e i tuoi obiettivi?"
+                                value={form.bio}
+                                onChange={e => updateField('bio', e.target.value)}
+                            />
+                            <p className="text-xs text-gray-500 mt-2">Max 500 caratteri</p>
+                        </div>
+                    </div>
+
+                    {/* Professional Info Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Informazioni professionali</h2>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-3">Ruolo attuale</label>
+                            <input
+                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                placeholder="es. Attaccante, Coach, Direttore Sportivo"
+                                value={form.currentRole}
+                                onChange={e => updateField('currentRole', e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Experiences Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900">Percorso professionale</h2>
+                            <button
+                                onClick={addExp}
+                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold transition shadow-md"
+                            >
+                                + Aggiungi esperienza
+                            </button>
+                        </div>
+
+                        {form.experiences.length === 0 ? (
+                            <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                <p className="text-gray-500 text-base font-light">Nessuna esperienza aggiunta. Clicca il pulsante sopra per iniziare.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {form.experiences.map((exp: any, i: number) => (
+                                    <div key={i} className="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-transparent rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Ruolo</label>
+                                                <input
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    placeholder="es. Attaccante"
+                                                    value={exp.role || ''}
+                                                    onChange={e => editExp(i, 'role', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Squadra / Società</label>
+                                                <input
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    placeholder="es. AS Roma"
+                                                    value={exp.team || ''}
+                                                    onChange={e => editExp(i, 'team', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Categoria</label>
+                                            <input
+                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                placeholder="es. Serie A, Under 19"
+                                                value={exp.category || ''}
+                                                onChange={e => editExp(i, 'category', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Da</label>
+                                                <input
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    placeholder="2022"
+                                                    value={exp.from || ''}
+                                                    onChange={e => editExp(i, 'from', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">A</label>
+                                                <input
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    placeholder="Presente"
+                                                    value={exp.to || ''}
+                                                    onChange={e => editExp(i, 'to', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Descrizione</label>
+                                            <textarea
+                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                rows={3}
+                                                placeholder="Responsabilità, risultati e dettagli importanti..."
+                                                value={exp.summary || ''}
+                                                onChange={e => editExp(i, 'summary', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="text-right pt-2 border-t border-gray-200">
+                                            <button
+                                                onClick={() => removeExp(i)}
+                                                className="text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded transition"
+                                            >
+                                                ✕ Rimuovi
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
-                    <label
-                        htmlFor="cover-upload"
-                        className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-gray-50 transition cursor-pointer"
-                    >
-                        <CameraIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium">
-                            {coverPreview || form.coverUrl ? 'Cambia copertina' : 'Aggiungi copertina'}
-                        </span>
-                    </label>
-                    <input
-                        id="cover-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCoverChange}
-                        className="hidden"
-                    />
-                    {coverFile && (
-                        <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm shadow-lg">
-                            ✓ Nuova foto selezionata
-                        </div>
-                    )}
-                </div>
 
-                {/* Info box for cover photo */}
-                <div className="px-6 -mt-2">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-blue-900 mb-2">💡 Consigli per la foto di copertina:</h3>
-                        <ul className="text-sm text-blue-800 space-y-1">
-                            <li>• <strong>Dimensioni consigliate:</strong> 1200x400 pixel (rapporto 3:1)</li>
-                            <li>• <strong>Dimensione massima file:</strong> 10MB</li>
-                            <li>• <strong>Formati supportati:</strong> JPEG, PNG, WebP</li>
-                            <li>• Usa immagini orizzontali per un risultato migliore</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="px-6 pb-6">
-                    {/* Avatar upload section */}
-                    <div className="flex flex-col items-center mb-6">
-                        <div className="relative">
-                            <Avatar
-                                src={avatarPreview || form.avatarUrl}
-                                alt="Profile preview"
-                                size="xl"
-                                fallbackText={form.firstName?.[0] || '?'}
-                                className="w-28 h-28"
-                            />
-                            <label
-                                htmlFor="avatar-upload-edit"
-                                className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition"
-                            >
-                                <CameraIcon className="w-4 h-4" />
-                            </label>
-                            <input
-                                id="avatar-upload-edit"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                className="hidden"
-                            />
-                        </div>
-                        <p className="text-sm text-gray-500 mt-2">
-                            {avatarFile ? `Nuova foto: ${avatarFile.name}` : 'Clicca per cambiare foto profilo'}
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Nome</label>
-                        <input className="w-full border p-2 rounded" value={form.firstName} onChange={e => updateField('firstName', e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Cognome</label>
-                        <input className="w-full border p-2 rounded" value={form.lastName} onChange={e => updateField('lastName', e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Username</label>
-                        <input className="w-full border p-2 rounded" value={form.username} onChange={e => updateField('username', e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Email</label>
-                        <input className="w-full border p-2 rounded" value={form.email} onChange={e => updateField('email', e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Data di nascita</label>
-                        <input type="date" className="w-full border p-2 rounded" value={form.birthDate || ''} onChange={e => updateField('birthDate', e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-gray-600 mb-1">Ruolo attuale</label>
-                        <input className="w-full border p-2 rounded" value={form.currentRole} onChange={e => updateField('currentRole', e.target.value)} />
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-sm text-gray-600 mb-1">Bio</label>
-                    <textarea className="w-full border p-2 rounded" rows={4} value={form.bio} onChange={e => updateField('bio', e.target.value)} />
-                </div>
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm text-gray-600">Esperienze</label>
-                        <button onClick={addExp} className="text-sm text-green-600">+ Aggiungi</button>
-                    </div>
-                    <div className="space-y-3">
-                        {form.experiences.map((exp: any, i: number) => (
-                            <div key={i} className="grid grid-cols-2 gap-3 border p-3 rounded">
-                                <input className="border p-2 rounded" placeholder="Titolo" value={exp.title || ''} onChange={e => editExp(i, 'title', e.target.value)} />
-                                <input className="border p-2 rounded" placeholder="Società" value={exp.company || ''} onChange={e => editExp(i, 'company', e.target.value)} />
-                                <input className="border p-2 rounded" placeholder="Da (es. 2022)" value={exp.from || ''} onChange={e => editExp(i, 'from', e.target.value)} />
-                                <input className="border p-2 rounded" placeholder="A (es. 2024 o Presente)" value={exp.to || ''} onChange={e => editExp(i, 'to', e.target.value)} />
-                                <textarea className="border p-2 rounded col-span-2" placeholder="Descrizione" value={exp.description || ''} onChange={e => editExp(i, 'description', e.target.value)} />
-                                <div className="col-span-2 text-right">
-                                    <button onClick={() => removeExp(i)} className="text-sm text-red-600">Rimuovi</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    </div>
-                    <div className="flex gap-3">
-                        <button onClick={() => router.back()} className="px-4 py-2 border rounded">Annulla</button>
-                        <button onClick={save} disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700">{saving ? 'Salvataggio...' : 'Salva modifiche'}</button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 justify-end pb-8">
+                        <button
+                            onClick={() => router.back()}
+                            className="px-8 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition text-base"
+                        >
+                            Annulla
+                        </button>
+                        <button
+                            onClick={save}
+                            disabled={saving}
+                            className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition disabled:opacity-50 shadow-lg text-base"
+                        >
+                            {saving ? 'Salvataggio in corso...' : 'Salva modifiche'}
+                        </button>
                     </div>
                 </div>
             </div>

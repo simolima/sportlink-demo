@@ -63,8 +63,9 @@
     "id": 1765202436547,
     "opportunityId": 1765199966223,
     "applicantId": "1765202028769",
-    "status": "pending",
+    "status": "withdrawn",
     "message": "",
-    "appliedAt": "2025-12-08T14:00:36.547Z"
+    "appliedAt": "2025-12-08T14:00:36.547Z",
+    "updatedAt": "2025-12-08T16:11:04.153Z"
   }
 ]

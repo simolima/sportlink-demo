@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": 1765208548210,
+    "clubId": "1765196339656",
+    "userId": "1765202028769",
+    "requestedRole": "Player",
+    "requestedPosition": "",
+    "message": "",
+    "status": "accepted",
+    "requestedAt": "2025-12-08T15:42:28.210Z",
+    "respondedAt": "2025-12-08T15:59:57.509Z",
+    "respondedBy": "1765196290455"
+  }
+]

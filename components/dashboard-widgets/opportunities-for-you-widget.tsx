@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BriefcaseIcon, MapPinIcon, CalendarIcon } from '@heroicons/react/24/outline'
+import { BriefcaseIcon, MapPinIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { useRef } from 'react'
 
 interface Opportunity {
     id: number | string
@@ -25,25 +26,60 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
     const [opportunities, setOpportunities] = useState<Opportunity[]>([])
     const [userSport, setUserSport] = useState<string>('')
     const [loading, setLoading] = useState(true)
-    const maxItems = 3
+    const [userApplications, setUserApplications] = useState<any[]>([])
+    const [canScrollLeft, setCanScrollLeft] = useState(false)
+    const [canScrollRight, setCanScrollRight] = useState(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    const MAX_OPPORTUNITIES = 15
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch user to get sport
-                const userRes = await fetch(`/api/users/${userId}`)
+                // Fetch user to get sport - fetch all users and find current
+                const userRes = await fetch(`/api/users`)
                 if (userRes.ok) {
-                    const user = await userRes.json()
-                    setUserSport(user.sport || '')
+                    const users = await userRes.json()
+                    const user = users.find((u: any) => u.id.toString() === userId)
+                    if (!user) {
+                        console.error('User not found:', userId)
+                        setLoading(false)
+                        return
+                    }
+
+                    const sportValue = (user.sport || (Array.isArray(user.sports) ? user.sports[0] : '') || '').trim()
+                    const normalizedSport = sportValue.toLowerCase()
+                    setUserSport(sportValue)
+
+                    // Fetch user applications to exclude ones with any status
+                    let userApps: any[] = []
+                    const appsRes = await fetch(`/api/applications?applicantId=${userId}`)
+                    if (appsRes.ok) {
+                        userApps = await appsRes.json()
+                        setUserApplications(userApps)
+                    }
 
                     // Fetch announcements matching user sport and role
-                    const annRes = await fetch('/api/opportunities')
+                    const annRes = await fetch(`/api/opportunities?activeOnly=true`)
                     if (annRes.ok) {
                         const announcements = await annRes.json()
-                        const matching = announcements.filter((a: any) =>
-                            a.sport === user.sport &&
-                            (a.roleRequired === userRole || a.roleRequired === 'Any')
-                        )
+                        const matching = announcements
+                            .filter((a: any) => {
+                                const annSport = (a.sport || '').toLowerCase()
+                                const roleRequired = a.roleRequired || ''
+                                const sportMatches = normalizedSport ? annSport === normalizedSport : true
+                                const roleMatches = roleRequired === userRole || roleRequired === 'Any'
+                                return sportMatches && roleMatches
+                            })
+                            // Exclude opportunities where user already has ANY application (pending, accepted, etc)
+                            .filter((a: any) => {
+                                const hasApplication = userApps.some((app: any) =>
+                                    app.opportunityId?.toString() === a.id.toString()
+                                )
+                                return !hasApplication
+                            })
+                            // Limit to max 15
+                            .slice(0, MAX_OPPORTUNITIES)
+
                         setOpportunities(matching)
                     }
                 }
@@ -56,8 +92,41 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
         fetchData()
     }, [userId, userRole])
 
-    const displayOpportunities = opportunities.slice(0, maxItems)
+    // Check scroll position
+    const checkScroll = () => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+            setCanScrollLeft(scrollLeft > 0)
+            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+        }
+    }
 
+    useEffect(() => {
+        checkScroll()
+        const container = scrollContainerRef.current
+        if (container) {
+            container.addEventListener('scroll', checkScroll)
+            return () => container.removeEventListener('scroll', checkScroll)
+        }
+    }, [opportunities])
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = 320 // card width + gap
+            scrollContainerRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth',
+            })
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="animate-pulse">Caricamento...</div>
+            </div>
+        )
+    }
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -83,36 +152,43 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
             </div>
 
             {/* Content */}
-            <div className="divide-y divide-gray-100">
-                {displayOpportunities.length === 0 ? (
-                    <div className="px-6 py-8 text-center">
-                        <BriefcaseIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">Nessuna opportunità al momento</p>
-                        <p className="text-gray-400 text-xs mt-1">Controlla regolarmente per nuovi annunci</p>
-                    </div>
-                ) : (
-                    displayOpportunities.map((opp) => (
-                        <Link
-                            key={opp.id}
-                            href={`/opportunities`}
-                            className="block px-6 py-4 hover:bg-gray-50 transition"
+            {opportunities.length === 0 ? (
+                <div className="px-6 py-8 text-center">
+                    <BriefcaseIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">Nessuna opportunità al momento</p>
+                    <p className="text-gray-400 text-xs mt-1">Controlla regolarmente per nuovi annunci</p>
+                </div>
+            ) : (
+                <div className="relative">
+                    {/* Left scroll button */}
+                    {canScrollLeft && (
+                        <button
+                            onClick={() => scroll('left')}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white p-2 rounded-r-lg shadow-md"
                         >
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-gray-900 truncate">{opp.title}</h4>
-                                    {opp.clubName && (
-                                        <p className="text-sm text-gray-600 mt-0.5">{opp.clubName}</p>
-                                    )}
-                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
+                            <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+                        </button>
+                    )}
+
+                    {/* Horizontal scroll container */}
+                    <div
+                        ref={scrollContainerRef}
+                        className="overflow-x-auto scrollbar-hide flex gap-4 p-4"
+                        style={{ scrollBehavior: 'smooth' }}
+                    >
+                        {opportunities.map((opp) => (
+                            <Link
+                                key={opp.id}
+                                href={`/opportunities`}
+                                className="flex-shrink-0 w-80 bg-gray-50 hover:bg-gray-100 rounded-lg p-4 transition cursor-pointer border border-gray-200"
+                            >
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-gray-900 line-clamp-2">{opp.title}</h4>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
                                         {opp.city && (
                                             <span className="flex items-center gap-1">
                                                 <MapPinIcon className="w-3.5 h-3.5" />
                                                 {opp.city}
-                                            </span>
-                                        )}
-                                        {opp.level && (
-                                            <span className="px-2 py-0.5 bg-gray-100 rounded-full">
-                                                {opp.level}
                                             </span>
                                         )}
                                         {opp.position && (
@@ -121,23 +197,29 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                                             </span>
                                         )}
                                     </div>
+                                    {opp.level && (
+                                        <p className="text-xs text-gray-500">
+                                            Livello: <span className="font-medium">{opp.level}</span>
+                                        </p>
+                                    )}
+                                    <div className="flex items-center gap-1 text-xs text-gray-500 pt-2 border-t border-gray-200">
+                                        <CalendarIcon className="w-3.5 h-3.5" />
+                                        Scade: {new Date(opp.expiryDate).toLocaleDateString('it-IT')}
+                                    </div>
                                 </div>
-                                <div className="text-right text-xs text-gray-400 whitespace-nowrap">
-                                    <CalendarIcon className="w-3.5 h-3.5 inline mr-1" />
-                                    Scade: {new Date(opp.expiryDate).toLocaleDateString('it-IT')}
-                                </div>
-                            </div>
-                        </Link>
-                    ))
-                )}
-            </div>
+                            </Link>
+                        ))}
+                    </div>
 
-            {/* Footer */}
-            {displayOpportunities.length > 0 && (
-                <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 text-center">
-                        {opportunities.length} opportunità trovate per il tuo profilo
-                    </p>
+                    {/* Right scroll button */}
+                    {canScrollRight && (
+                        <button
+                            onClick={() => scroll('right')}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white p-2 rounded-l-lg shadow-md"
+                        >
+                            <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+                        </button>
+                    )}
                 </div>
             )}
         </div>

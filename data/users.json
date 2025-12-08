@@ -41,10 +41,10 @@
       "Basket"
     ],
     "sport": "",
-    "bio": "",
+    "bio": "mi piace far fallire squadre di basket",
     "avatar": null,
-    "avatarUrl": null,
-    "coverUrl": null,
+    "avatarUrl": "",
+    "coverUrl": "",
     "city": "",
     "country": "",
     "professionalRoleLabel": "",
@@ -54,10 +54,11 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-08T12:18:10.455Z",
-    "updatedAt": "",
+    "updatedAt": "2025-12-08T15:05:04.579Z",
     "annunciAttivi": 3,
     "candidatureRicevute": 8,
-    "followers": 45
+    "followers": 45,
+    "username": ""
   },
   {
     "id": "1765112756257",

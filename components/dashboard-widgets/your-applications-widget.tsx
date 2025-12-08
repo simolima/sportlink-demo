@@ -2,21 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ClipboardDocumentListIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline'
-
-interface ApplicationsSummary {
-    pending: number
-    accepted: number
-    rejected: number
-    total: number
-}
+import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline'
 
 export interface YourApplicationsWidgetProps {
     userId: string
 }
 
 export default function YourApplicationsWidget({ userId }: YourApplicationsWidgetProps) {
-    const [summary, setSummary] = useState<ApplicationsSummary>({ pending: 0, accepted: 0, rejected: 0, total: 0 })
+    const [applications, setApplications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -24,11 +17,8 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
             try {
                 const res = await fetch(`/api/applications?applicantId=${userId}`)
                 if (res.ok) {
-                    const applications = await res.json()
-                    const pending = applications.filter((a: any) => a.status === 'pending').length
-                    const accepted = applications.filter((a: any) => a.status === 'accepted').length
-                    const rejected = applications.filter((a: any) => a.status === 'rejected').length
-                    setSummary({ pending, accepted, rejected, total: applications.length })
+                    const data = await res.json()
+                    setApplications(data)
                 }
             } catch (error) {
                 console.error('Error fetching applications:', error)
@@ -38,8 +28,7 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
         }
         fetchData()
     }, [userId])
-
-    const hasApplications = summary.total > 0
+    const hasApplications = applications.length > 0
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -78,27 +67,30 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                 </div>
             ) : (
                 <div className="p-6">
-                    <div className="grid grid-cols-3 gap-4">
-                        {/* In Revisione */}
-                        <div className="text-center p-4 bg-amber-50 rounded-lg">
-                            <ClockIcon className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                            <div className="text-2xl font-bold text-amber-700">{summary.pending}</div>
-                            <div className="text-xs text-amber-600">In Revisione</div>
-                        </div>
-
-                        {/* Accettate */}
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <CheckCircleIcon className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                            <div className="text-2xl font-bold text-green-700">{summary.accepted}</div>
-                            <div className="text-xs text-green-600">Accettate</div>
-                        </div>
-
-                        {/* Rifiutate */}
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                            <XCircleIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                            <div className="text-2xl font-bold text-gray-500">{summary.rejected}</div>
-                            <div className="text-xs text-gray-500">Rifiutate</div>
-                        </div>
+                    <div className="text-xs text-gray-500 mb-3">Ultime candidature inviate</div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
+                        {applications.slice(0, 5).map((app: any) => (
+                            <div
+                                key={app.id}
+                                className="min-w-[200px] flex-1 snap-start p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                            >
+                                <div className="text-xs font-semibold text-gray-700 truncate mb-1">
+                                    {app.opportunity?.title || 'Opportunità'}
+                                </div>
+                                <div className="text-xs text-gray-500 leading-snug line-clamp-2 mb-2">
+                                    {app.message || 'Nessun messaggio'}
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] text-gray-400">
+                                        {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('it-IT') : '-'}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-white border border-gray-200 text-gray-600">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block"></span>
+                                        {app.status || 'pending'}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}

@@ -10,26 +10,26 @@ interface ProfileCoverProps {
     onCoverUpload?: () => void
 }
 
-export default function ProfileCover({ 
-    coverUrl, 
-    avatarUrl, 
-    name, 
+export default function ProfileCover({
+    coverUrl,
+    avatarUrl,
+    name,
     isOwn = false,
-    onCoverUpload 
+    onCoverUpload
 }: ProfileCoverProps) {
     const defaultCover = 'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&h=400&fit=crop'
-    
+
     return (
         <div className="relative">
             {/* Cover Photo */}
-            <div className="relative h-64 md:h-80 lg:h-96 bg-sprinta-navy overflow-hidden">
-                <img 
+            <div className="relative h-64 md:h-80 lg:h-96 bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
+                <img
                     src={coverUrl || defaultCover}
                     alt="Cover"
                     className="w-full h-full object-cover opacity-80"
                 />
                 {isOwn && (
-                    <button 
+                    <button
                         onClick={onCoverUpload}
                         className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-gray-50 transition"
                     >
@@ -38,7 +38,7 @@ export default function ProfileCover({
                     </button>
                 )}
             </div>
-            
+
             {/* Avatar positioned over the cover */}
             <div className="absolute -bottom-16 left-8 md:left-12">
                 <div className="relative">

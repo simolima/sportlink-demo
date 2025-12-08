@@ -102,9 +102,9 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2 rounded-lg border border-base-300 bg-base-200 p-4 shadow-sm">
+                <div className="lg:col-span-2 rounded-lg border border-gray-200 bg-blue-50 p-4 shadow-sm">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-secondary">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-base-300 px-3 py-1 text-primary font-semibold">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-primary font-semibold border border-blue-200">
                             <UserIcon className="w-4 h-4" />
                             {user?.professionalRole || 'Professionista'}
                         </span>
@@ -131,9 +131,9 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                     )}
                 </div>
 
-                <div className="rounded-lg border border-base-300 bg-base-200 p-4 shadow-sm">
+                <div className="rounded-lg border border-gray-200 bg-blue-50 p-4 shadow-sm">
                     <h3 className="text-sm font-semibold text-secondary mb-3">Club attuale</h3>
-                    <div className="rounded-lg bg-base-100 p-3 shadow-sm border border-base-300">
+                    <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-200">
                         <p className="text-xs text-gray-500">Club</p>
                         <p className="text-sm font-semibold text-gray-900">{clubName || 'Nessun club'}</p>
                     </div>

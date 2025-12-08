@@ -357,12 +357,12 @@ export default function ClubDetailPage() {
             </div>
 
             {/* Cover Image */}
-            <div className="h-64 bg-sprinta-navy relative">
+            <div className="h-64 bg-gradient-to-br from-blue-50 to-blue-100 relative">
                 {club.coverUrl && (
                     <img
                         src={club.coverUrl}
                         alt={club.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover opacity-70"
                     />
                 )}
             </div>

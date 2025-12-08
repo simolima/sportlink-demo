@@ -12,7 +12,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user, followersCount, followingCount, onEditClick }: ProfileHeaderProps) {
     return (
-        <div className="bg-base-200 rounded-lg shadow-sm border border-base-300">
+        <div className="bg-blue-50 rounded-lg shadow-sm border border-gray-200">
             {/* Header with avatar and info */}
             <div className="p-6 flex flex-col md:flex-row gap-6">
                 {/* Left: Avatar */}

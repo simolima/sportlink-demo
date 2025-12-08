@@ -6,7 +6,7 @@ import { Notification } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function NotificationsPage() {
-  const { user, isLoading: authLoading } = useRequireAuth(true)
+  const { user, isLoading: authLoading } = useRequireAuth(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
   const [loading, setLoading] = useState(true)
@@ -115,8 +115,8 @@ export default function NotificationsPage() {
         <button
           onClick={() => setFilter('all')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
         >
           Tutte
@@ -124,8 +124,8 @@ export default function NotificationsPage() {
         <button
           onClick={() => setFilter('unread')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
         >
           Non lette

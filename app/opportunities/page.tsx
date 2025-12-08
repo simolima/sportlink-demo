@@ -13,13 +13,14 @@ interface AnnouncementWithDetails extends Announcement {
 }
 
 export default function JobsPage() {
-  const { user, isLoading: authLoading } = useRequireAuth(true)
+  const { user, isLoading: authLoading } = useRequireAuth(false)
   const router = useRouter()
   const { showToast } = useToast()
   const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [affiliatedPlayers, setAffiliatedPlayers] = useState<any[]>([])
+  const [searchInput, setSearchInput] = useState('') // Stato separato per l'input
   const [filters, setFilters] = useState({
     search: '',
     sport: 'all',
@@ -35,7 +36,6 @@ export default function JobsPage() {
       return
     }
     fetchCurrentUser(userId)
-    fetchAnnouncements()
   }, [])
 
   const fetchCurrentUser = async (userId: string) => {
@@ -56,29 +56,33 @@ export default function JobsPage() {
     }
   }
 
-  const fetchAnnouncements = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (filters.search) params.append('search', filters.search)
-      if (filters.sport !== 'all') params.append('sport', filters.sport)
-      if (filters.type !== 'all') params.append('type', filters.type)
-      if (filters.level !== 'all') params.append('level', filters.level)
-      params.append('activeOnly', 'true')
-
-      const res = await fetch(`/api/announcements?${params}`)
-      const data = await res.json()
-      setAnnouncements(data)
-    } catch (error) {
-      showToast('error', 'Errore', 'Impossibile caricare gli annunci')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
+    const fetchAnnouncements = async () => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        if (filters.search) params.append('search', filters.search)
+        if (filters.sport !== 'all') params.append('sport', filters.sport)
+        if (filters.type !== 'all') params.append('type', filters.type)
+        if (filters.level !== 'all') params.append('level', filters.level)
+        params.append('activeOnly', 'true')
+
+        const res = await fetch(`/api/opportunities?${params}`)
+        const data = await res.json()
+        setAnnouncements(data)
+      } catch (error) {
+        showToast('error', 'Errore', 'Impossibile caricare gli annunci')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchAnnouncements()
-  }, [filters])
+  }, [filters.sport, filters.type, filters.level, filters.search]) // Solo questi trigger il fetch
+
+  const handleSearch = () => {
+    setFilters(prev => ({ ...prev, search: searchInput }))
+  }
 
   const handleApply = async (announcementId: number, announcement: AnnouncementWithDetails) => {
     const userId = localStorage.getItem('currentUserId')
@@ -238,10 +242,11 @@ export default function JobsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Cerca annunci..."
+                  placeholder="Cerca annunci... (premi Enter)"
                 />
               </div>
             </div>

@@ -58,7 +58,7 @@ export default function ClubDetailPage() {
     const fetchAnnouncements = async () => {
         setLoadingAnnouncements(true)
         try {
-            const res = await fetch(`/api/announcements?clubId=${clubId}`)
+            const res = await fetch(`/api/opportunities?clubId=${clubId}`)
             const data = await res.json()
             setAnnouncements(data)
         } catch (e) {
@@ -78,7 +78,7 @@ export default function ClubDetailPage() {
         setCreating(true)
         try {
             const userId = localStorage.getItem('currentUserId')
-            const res = await fetch('/api/announcements', {
+            const res = await fetch('/api/opportunities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -2,17 +2,17 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const announcementsPath = path.join(process.cwd(), 'data', 'announcements.json')
+const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
 const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
 
-function readAnnouncements() {
-    const data = fs.readFileSync(announcementsPath, 'utf-8')
+function readOpportunities() {
+    const data = fs.readFileSync(opportunitiesPath, 'utf-8')
     return JSON.parse(data)
 }
 
-function writeAnnouncements(announcements: any[]) {
-    fs.writeFileSync(announcementsPath, JSON.stringify(announcements, null, 2))
+function writeOpportunities(opportunities: any[]) {
+    fs.writeFileSync(opportunitiesPath, JSON.stringify(opportunities, null, 2))
 }
 
 function readClubs() {
@@ -25,7 +25,7 @@ function readApplications() {
     return JSON.parse(data)
 }
 
-// GET /api/announcements - Get announcements with filters
+// GET /api/opportunities - Get opportunities with filters
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const sport = searchParams.get('sport')
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     const activeOnly = searchParams.get('activeOnly') !== 'false'
     const search = searchParams.get('search')
 
-    let announcements = readAnnouncements()
+    let opportunities = readOpportunities()
     const clubs = readClubs()
     const applications = readApplications()
 
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
         const now = new Date()
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-        announcements = announcements.filter((a: any) => {
+        opportunities = opportunities.filter((a: any) => {
             // Check if isActive flag is true
             if (!a.isActive) return false
             // Check if expiry date is in future (or allow same day)
@@ -62,27 +62,27 @@ export async function GET(request: Request) {
 
     // Filter by sport
     if (sport && sport !== 'all') {
-        announcements = announcements.filter((a: any) => a.sport === sport)
+        opportunities = opportunities.filter((a: any) => a.sport === sport)
     }
 
     // Filter by type
     if (type && type !== 'all') {
-        announcements = announcements.filter((a: any) => a.type === type)
+        opportunities = opportunities.filter((a: any) => a.type === type)
     }
 
     // Filter by club
     if (clubId) {
-        announcements = announcements.filter((a: any) => a.clubId.toString() === clubId)
+        opportunities = opportunities.filter((a: any) => a.clubId.toString() === clubId)
     }
 
     // Filter by level
     if (level && level !== 'all') {
-        announcements = announcements.filter((a: any) => a.level === level)
+        opportunities = opportunities.filter((a: any) => a.level === level)
     }
 
     // Filter by city
     if (city) {
-        announcements = announcements.filter((a: any) =>
+        opportunities = opportunities.filter((a: any) =>
             a.city?.toLowerCase().includes(city.toLowerCase()) ||
             a.location?.toLowerCase().includes(city.toLowerCase())
         )
@@ -90,16 +90,19 @@ export async function GET(request: Request) {
 
     // Search in title/description
     if (search) {
-        announcements = announcements.filter((a: any) =>
+        opportunities = opportunities.filter((a: any) =>
             a.title.toLowerCase().includes(search.toLowerCase()) ||
             a.description.toLowerCase().includes(search.toLowerCase())
         )
     }
 
     // Enrich with club data and applications count
-    const enriched = announcements.map((ann: any) => {
+    const enriched = opportunities.map((ann: any) => {
         const club = clubs.find((c: any) => c.id.toString() === ann.clubId.toString())
-        const appCount = applications.filter((app: any) => app.announcementId.toString() === ann.id.toString()).length
+        const appCount = applications.filter((app: any) => {
+            const appOpportunityId = app.opportunityId || app.announcementId
+            return appOpportunityId?.toString() === ann.id.toString()
+        }).length
 
         return {
             ...ann,
@@ -114,10 +117,10 @@ export async function GET(request: Request) {
     return NextResponse.json(enriched)
 }
 
-// POST /api/announcements - Create new announcement
+// POST /api/opportunities - Create new opportunity
 export async function POST(request: Request) {
     const body = await request.json()
-    const announcements = readAnnouncements()
+    const opportunities = readOpportunities()
 
     // Validate required fields
     const required = ['clubId', 'title', 'type', 'sport', 'roleRequired', 'description', 'location', 'expiryDate', 'createdBy']
@@ -136,7 +139,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Expiry date cannot exceed 6 months' }, { status: 400 })
     }
 
-    const newAnnouncement = {
+    const newOpportunity = {
         id: Date.now(),
         clubId: body.clubId,
         title: body.title,
@@ -158,33 +161,33 @@ export async function POST(request: Request) {
         createdAt: new Date().toISOString()
     }
 
-    announcements.push(newAnnouncement)
-    writeAnnouncements(announcements)
+    opportunities.push(newOpportunity)
+    writeOpportunities(opportunities)
 
-    return NextResponse.json(newAnnouncement, { status: 201 })
+    return NextResponse.json(newOpportunity, { status: 201 })
 }
 
-// PUT /api/announcements - Update announcement
+// PUT /api/opportunities - Update opportunity
 export async function PUT(request: Request) {
     const body = await request.json()
-    const announcements = readAnnouncements()
+    const opportunities = readOpportunities()
 
-    const index = announcements.findIndex((a: any) => a.id.toString() === body.id.toString())
+    const index = opportunities.findIndex((a: any) => a.id.toString() === body.id.toString())
     if (index === -1) {
-        return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })
+        return NextResponse.json({ error: 'Opportunity not found' }, { status: 404 })
     }
 
-    announcements[index] = {
-        ...announcements[index],
+    opportunities[index] = {
+        ...opportunities[index],
         ...body,
         updatedAt: new Date().toISOString()
     }
 
-    writeAnnouncements(announcements)
-    return NextResponse.json(announcements[index])
+    writeOpportunities(opportunities)
+    return NextResponse.json(opportunities[index])
 }
 
-// DELETE /api/announcements - Delete announcement
+// DELETE /api/opportunities - Delete opportunity
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -193,13 +196,13 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'id required' }, { status: 400 })
     }
 
-    const announcements = readAnnouncements()
-    const filtered = announcements.filter((a: any) => a.id.toString() !== id)
+    const opportunities = readOpportunities()
+    const filtered = opportunities.filter((a: any) => a.id.toString() !== id)
 
-    if (announcements.length === filtered.length) {
-        return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })
+    if (opportunities.length === filtered.length) {
+        return NextResponse.json({ error: 'Opportunity not found' }, { status: 404 })
     }
 
-    writeAnnouncements(filtered)
+    writeOpportunities(filtered)
     return NextResponse.json({ success: true })
 }

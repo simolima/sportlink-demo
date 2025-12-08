@@ -1,406 +1,242 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState, useEffect } from 'react';
-import { getPosts } from '../lib/services';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function FeedScreen({ currentUser }: { currentUser: any }) {
-    const [posts, setPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showComposer, setShowComposer] = useState(false);
-    const [newPostText, setNewPostText] = useState('');
+    const [stats, setStats] = useState({
+        activeApplications: 0,
+        opportunities: 0,
+        messages: 0
+    });
 
     useEffect(() => {
-        loadPosts();
+        loadDashboard();
     }, []);
 
-    const loadPosts = async () => {
+    const loadDashboard = async () => {
         try {
-            const data = await getPosts();
-            setPosts(data);
+            // TODO: Load dashboard stats
+            setStats({
+                activeApplications: 0,
+                opportunities: 5,
+                messages: 2
+            });
         } catch (error) {
-            console.error('Errore caricamento posts:', error);
+            console.error('Errore caricamento dashboard:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreatePost = () => {
-        setShowComposer(true);
-    };
-
-    const handlePublishPost = async () => {
-        if (!newPostText.trim()) {
-            Alert.alert('Errore', 'Scrivi qualcosa prima di pubblicare');
-            return;
-        }
-
-        Alert.alert('Pubblicato!', 'Il tuo post è stato pubblicato');
-        setNewPostText('');
-        setShowComposer(false);
-        // TODO: chiamare API per creare post
-    };
-
-    const handleCancelPost = () => {
-        setNewPostText('');
-        setShowComposer(false);
-    };
-
-    const renderPost = ({ item }: { item: any }) => {
-        console.log('Rendering post:', item.id, 'User:', item.user);
-
-        return (
-            <View style={styles.postCard}>
-                <View style={styles.postHeader}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                            {item.user?.firstName?.[0]?.toUpperCase() || '?'}
-                        </Text>
-                    </View>
-                    <View style={styles.postUserInfo}>
-                        <Text style={styles.userName}>
-                            {item.user?.firstName || 'Utente'} {item.user?.lastName || ''}
-                        </Text>
-                        <Text style={styles.userRole}>{item.user?.currentRole || 'Atleta'}</Text>
-                    </View>
-                </View>
-
-                <Text style={styles.postContent}>{item.content}</Text>
-
-                {item.imageUrl && (
-                    <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-                )}
-
-                <View style={styles.postActions}>
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.actionText}>👍 {item.likesCount || 0}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.actionText}>💬 {item.commentsCount || 0}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.actionText}>🔄 Condividi</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
-    };
-
     if (loading) {
         return (
             <View style={styles.centered}>
-                <Text style={styles.loadingText}>Caricamento feed...</Text>
+                <Text style={styles.loadingText}>Caricamento...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             {/* Header Banner */}
             <View style={styles.header}>
-                <Text style={styles.logo}>SportLink</Text>
-                <View style={styles.headerActions}>
-                    <TouchableOpacity style={styles.headerButton}>
-                        <Text style={styles.headerButtonText}>🔍</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.headerButton}>
-                        <Text style={styles.headerButtonText}>🔔</Text>
-                    </TouchableOpacity>
+                <Text style={styles.logo}>SPRINTA</Text>
+                <Text style={styles.subtitle}>Il tuo gestionale sportivo</Text>
+            </View>
+
+            {/* Welcome Section */}
+            <View style={styles.welcomeCard}>
+                <Text style={styles.welcomeTitle}>
+                    Bentornato, {currentUser?.firstName || 'Utente'}! 👋
+                </Text>
+                <Text style={styles.welcomeSubtitle}>
+                    {currentUser?.sport || 'Sport'} • {currentUser?.professionalRole || 'Atleta'}
+                </Text>
+            </View>
+
+            {/* Stats Grid */}
+            <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                    <Ionicons name="briefcase-outline" size={32} color="#16a34a" />
+                    <Text style={styles.statValue}>{stats.activeApplications}</Text>
+                    <Text style={styles.statLabel}>Candidature</Text>
+                </View>
+                <View style={styles.statCard}>
+                    <Ionicons name="trophy-outline" size={32} color="#eab308" />
+                    <Text style={styles.statValue}>{stats.opportunities}</Text>
+                    <Text style={styles.statLabel}>Opportunità</Text>
+                </View>
+                <View style={styles.statCard}>
+                    <Ionicons name="mail-outline" size={32} color="#3b82f6" />
+                    <Text style={styles.statValue}>{stats.messages}</Text>
+                    <Text style={styles.statLabel}>Messaggi</Text>
                 </View>
             </View>
 
-            {/* Quick Actions Bar */}
-            <View style={styles.quickActions}>
-                <TouchableOpacity style={styles.createPostButton} onPress={handleCreatePost}>
-                    <Text style={styles.createPostIcon}>✍️</Text>
-                    <Text style={styles.createPostText}>Crea un post</Text>
+            {/* Quick Actions */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Azioni Rapide</Text>
+                <TouchableOpacity style={styles.actionButton}>
+                    <Ionicons name="search-outline" size={24} color="#16a34a" />
+                    <Text style={styles.actionText}>Cerca Opportunità</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                    <Ionicons name="document-text-outline" size={24} color="#16a34a" />
+                    <Text style={styles.actionText}>Aggiorna Profilo</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                    <Ionicons name="people-outline" size={24} color="#16a34a" />
+                    <Text style={styles.actionText}>Esplora Network</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
                 </TouchableOpacity>
             </View>
 
-            {/* Post Composer Modal */}
-            {showComposer && (
-                <View style={styles.composerOverlay}>
-                    <View style={styles.composerCard}>
-                        <View style={styles.composerHeader}>
-                            <Text style={styles.composerTitle}>Crea un post</Text>
-                            <TouchableOpacity onPress={handleCancelPost}>
-                                <Text style={styles.closeButton}>✕</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.composerBody}>
-                            <View style={styles.composerUserInfo}>
-                                <View style={styles.composerAvatar}>
-                                    <Text style={styles.avatarText}>
-                                        {currentUser?.firstName?.[0]?.toUpperCase()}
-                                    </Text>
-                                </View>
-                                <Text style={styles.composerUserName}>
-                                    {currentUser?.firstName} {currentUser?.lastName}
-                                </Text>
-                            </View>
-
-                            <TextInput
-                                style={styles.composerInput}
-                                placeholder="Cosa vuoi condividere?"
-                                placeholderTextColor="#9ca3af"
-                                multiline
-                                value={newPostText}
-                                onChangeText={setNewPostText}
-                                autoFocus
-                            />
-                        </View>
-
-                        <View style={styles.composerFooter}>
-                            <TouchableOpacity style={styles.publishButton} onPress={handlePublishPost}>
-                                <Text style={styles.publishButtonText}>Pubblica</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+            {/* Recent Activity */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Attività Recente</Text>
+                <View style={styles.emptyState}>
+                    <Ionicons name="time-outline" size={48} color="#d1d5db" />
+                    <Text style={styles.emptyText}>Nessuna attività recente</Text>
+                    <Text style={styles.emptySubtext}>
+                        Inizia candidandoti a nuove opportunità
+                    </Text>
                 </View>
-            )}
-
-            {/* Feed List */}
-            <FlatList
-                data={posts}
-                renderItem={renderPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContent}
-                refreshing={loading}
-                onRefresh={loadPosts}
-            />
-        </View>
+            </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f0fdf4',
+        backgroundColor: '#f9fafb',
     },
     header: {
         backgroundColor: '#16a34a',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        paddingTop: 50,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 4,
+        paddingHorizontal: 20,
+        paddingVertical: 24,
+        paddingTop: 60,
     },
     logo: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
         color: 'white',
+        marginBottom: 4,
     },
-    headerActions: {
-        flexDirection: 'row',
-        gap: 12,
+    subtitle: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.9)',
     },
-    headerButton: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerButtonText: {
-        fontSize: 18,
-    },
-    quickActions: {
+    welcomeCard: {
         backgroundColor: 'white',
-        padding: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-    },
-    createPostButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0fdf4',
-        padding: 12,
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: '#16a34a',
-    },
-    createPostIcon: {
-        fontSize: 20,
-        marginRight: 8,
-    },
-    createPostText: {
-        fontSize: 16,
-        color: '#16a34a',
-        fontWeight: '500',
-    },
-    composerOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
+        margin: 16,
         padding: 20,
-    },
-    composerCard: {
-        backgroundColor: 'white',
-        borderRadius: 16,
-        width: '100%',
-        maxHeight: '80%',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    composerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-    },
-    composerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1f2937',
-    },
-    closeButton: {
-        fontSize: 24,
-        color: '#6b7280',
-    },
-    composerBody: {
-        padding: 16,
-    },
-    composerUserInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    composerAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#16a34a',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-    },
-    composerUserName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1f2937',
-    },
-    composerInput: {
-        fontSize: 16,
-        color: '#374151',
-        minHeight: 120,
-        textAlignVertical: 'top',
-    },
-    composerFooter: {
-        padding: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#e5e7eb',
-    },
-    publishButton: {
-        backgroundColor: '#16a34a',
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    publishButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    centered: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f0fdf4',
-    },
-    loadingText: {
-        fontSize: 16,
-        color: '#15803d',
-    },
-    listContent: {
-        padding: 16,
-    },
-    postCard: {
-        backgroundColor: 'white',
         borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
     },
-    postHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#16a34a',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    avatarText: {
-        color: 'white',
+    welcomeTitle: {
         fontSize: 20,
         fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 8,
     },
-    postUserInfo: {
-        flex: 1,
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1f2937',
-    },
-    userRole: {
+    welcomeSubtitle: {
         fontSize: 14,
         color: '#6b7280',
     },
-    postContent: {
-        fontSize: 15,
-        color: '#374151',
-        lineHeight: 22,
-        marginBottom: 12,
-    },
-    postImage: {
-        width: '100%',
-        height: 200,
-        borderRadius: 8,
-        marginBottom: 12,
-    },
-    postActions: {
+    statsGrid: {
         flexDirection: 'row',
-        borderTopWidth: 1,
-        borderTopColor: '#e5e7eb',
-        paddingTop: 12,
+        paddingHorizontal: 16,
         gap: 12,
+        marginBottom: 24,
+    },
+    statCard: {
+        flex: 1,
+        backgroundColor: 'white',
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    statValue: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginTop: 8,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: '#6b7280',
+        marginTop: 4,
+    },
+    section: {
+        paddingHorizontal: 16,
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 12,
     },
     actionButton: {
-        flex: 1,
+        flexDirection: 'row',
         alignItems: 'center',
-        padding: 8,
+        backgroundColor: 'white',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
     },
     actionText: {
-        fontSize: 14,
-        color: '#16a34a',
+        flex: 1,
+        fontSize: 16,
+        color: '#374151',
+        marginLeft: 12,
         fontWeight: '500',
+    },
+    emptyState: {
+        backgroundColor: 'white',
+        padding: 40,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6b7280',
+        marginTop: 12,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        color: '#9ca3af',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f9fafb',
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#16a34a',
     },
 });

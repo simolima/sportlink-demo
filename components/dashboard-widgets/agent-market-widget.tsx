@@ -29,7 +29,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                 // Get agent's athletes
                 const affRes = await fetch('/api/affiliations')
                 const usersRes = await fetch('/api/users')
-                const annRes = await fetch('/api/announcements')
+                const annRes = await fetch('/api/opportunities')
 
                 if (affRes.ok && usersRes.ok && annRes.ok) {
                     const affiliations = await affRes.json()

@@ -10,17 +10,5 @@
     "followerId": "1765103614007",
     "followingId": "2",
     "createdAt": "2025-12-07T10:34:01.728Z"
-  },
-  {
-    "id": 1765067432725,
-    "followerId": "2",
-    "followingId": "1765049448639",
-    "createdAt": "2025-12-07T00:30:32.725Z"
-  },
-  {
-    "id": 1765064716138,
-    "followerId": "1765049448639",
-    "followingId": "2",
-    "createdAt": "2025-12-06T23:45:16.138Z"
   }
 ]

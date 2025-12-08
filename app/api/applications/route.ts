@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
-const announcementsPath = path.join(process.cwd(), 'data', 'announcements.json')
+const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
 const usersPath = path.join(process.cwd(), 'data', 'users.json')
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
 
@@ -16,8 +16,8 @@ function writeApplications(applications: any[]) {
     fs.writeFileSync(applicationsPath, JSON.stringify(applications, null, 2))
 }
 
-function readAnnouncements() {
-    const data = fs.readFileSync(announcementsPath, 'utf-8')
+function readOpportunities() {
+    const data = fs.readFileSync(opportunitiesPath, 'utf-8')
     return JSON.parse(data)
 }
 
@@ -34,20 +34,23 @@ function readClubs() {
 // GET /api/applications - Get applications with filters
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
-    const announcementId = searchParams.get('announcementId')
+    const opportunityId = searchParams.get('opportunityId') || searchParams.get('announcementId') // Retro-compatibilità
     const playerId = searchParams.get('playerId')
     const agentId = searchParams.get('agentId')
     const clubId = searchParams.get('clubId')
     const status = searchParams.get('status')
 
     let applications = readApplications()
-    const announcements = readAnnouncements()
+    const opportunities = readOpportunities()
     const users = readUsers()
     const clubs = readClubs()
 
-    // Filter by announcement
-    if (announcementId) {
-        applications = applications.filter((app: any) => app.announcementId.toString() === announcementId)
+    // Filter by opportunity (supporta sia opportunityId che announcementId)
+    if (opportunityId) {
+        applications = applications.filter((app: any) => {
+            const appOpportunityId = app.opportunityId || app.announcementId
+            return appOpportunityId?.toString() === opportunityId
+        })
     }
 
     // Filter by player
@@ -60,13 +63,14 @@ export async function GET(request: Request) {
         applications = applications.filter((app: any) => app.agentId?.toString() === agentId)
     }
 
-    // Filter by club (via announcement)
+    // Filter by club (via opportunity)
     if (clubId) {
-        const clubAnnouncements = announcements.filter((a: any) => a.clubId.toString() === clubId)
-        const announcementIds = clubAnnouncements.map((a: any) => a.id.toString())
-        applications = applications.filter((app: any) => 
-            announcementIds.includes(app.announcementId.toString())
-        )
+        const clubOpportunities = opportunities.filter((o: any) => o.clubId.toString() === clubId)
+        const opportunityIds = clubOpportunities.map((o: any) => o.id.toString())
+        applications = applications.filter((app: any) => {
+            const appOpportunityId = app.opportunityId || app.announcementId
+            return opportunityIds.includes(appOpportunityId?.toString())
+        })
     }
 
     // Filter by status
@@ -76,18 +80,26 @@ export async function GET(request: Request) {
 
     // Enrich with related data
     const enriched = applications.map((app: any) => {
-        const announcement = announcements.find((a: any) => a.id.toString() === app.announcementId.toString())
+        const appOpportunityId = app.opportunityId || app.announcementId
+        const opportunity = opportunities.find((o: any) => o.id.toString() === appOpportunityId?.toString())
         const player = users.find((u: any) => u.id.toString() === app.playerId.toString())
         const agent = app.agentId ? users.find((u: any) => u.id.toString() === app.agentId.toString()) : null
-        const club = announcement ? clubs.find((c: any) => c.id.toString() === announcement.clubId.toString()) : null
+        const club = opportunity ? clubs.find((c: any) => c.id.toString() === opportunity.clubId.toString()) : null
 
         return {
             ...app,
-            announcement: announcement ? {
-                id: announcement.id,
-                title: announcement.title,
-                type: announcement.type,
-                sport: announcement.sport,
+            opportunity: opportunity ? {
+                id: opportunity.id,
+                title: opportunity.title,
+                type: opportunity.type,
+                sport: opportunity.sport,
+                club: club ? { id: club.id, name: club.name, logoUrl: club.logoUrl } : null
+            } : null,
+            announcement: opportunity ? { // @deprecated - per retro-compatibilità
+                id: opportunity.id,
+                title: opportunity.title,
+                type: opportunity.type,
+                sport: opportunity.sport,
                 club: club ? { id: club.id, name: club.name, logoUrl: club.logoUrl } : null
             } : null,
             player: player ? {
@@ -116,28 +128,30 @@ export async function GET(request: Request) {
 // POST /api/applications - Create new application
 export async function POST(request: Request) {
     const body = await request.json()
-    const { announcementId, playerId, agentId, message } = body
+    const { opportunityId, announcementId, playerId, agentId, message } = body
+    const finalOpportunityId = opportunityId || announcementId // Retro-compatibilità
 
-    if (!announcementId || !playerId) {
-        return NextResponse.json({ error: 'announcementId and playerId required' }, { status: 400 })
+    if (!finalOpportunityId || !playerId) {
+        return NextResponse.json({ error: 'opportunityId and playerId required' }, { status: 400 })
     }
 
     const applications = readApplications()
 
-    // Check if application already exists for this player and announcement
-    const existing = applications.find((app: any) => 
-        app.announcementId.toString() === announcementId.toString() &&
-        app.playerId.toString() === playerId.toString() &&
-        app.status !== 'withdrawn'
-    )
+    // Check if application already exists for this player and opportunity
+    const existing = applications.find((app: any) => {
+        const appOpportunityId = app.opportunityId || app.announcementId
+        return appOpportunityId?.toString() === finalOpportunityId.toString() &&
+            app.playerId.toString() === playerId.toString() &&
+            app.status !== 'withdrawn'
+    })
 
     if (existing) {
-        return NextResponse.json({ error: 'Already applied to this announcement' }, { status: 400 })
+        return NextResponse.json({ error: 'Already applied to this opportunity' }, { status: 400 })
     }
 
     const newApplication = {
         id: Date.now(),
-        announcementId,
+        opportunityId: finalOpportunityId,
         playerId,
         agentId: agentId || undefined,
         status: 'pending',
@@ -169,7 +183,7 @@ export async function PUT(request: Request) {
 
     applications[index].status = status
     applications[index].updatedAt = new Date().toISOString()
-    
+
     if (reviewedBy) {
         applications[index].reviewedBy = reviewedBy
     }
@@ -189,7 +203,7 @@ export async function DELETE(request: Request) {
     }
 
     const applications = readApplications()
-    
+
     if (withdraw) {
         // Set status to withdrawn instead of deleting
         const index = applications.findIndex((app: any) => app.id.toString() === id)

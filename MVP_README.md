@@ -1,4 +1,4 @@
-# SportLink - MVP Web Application
+# SPRINTA - MVP Web Application
 
 ## 📋 Panoramica del Progetto
 

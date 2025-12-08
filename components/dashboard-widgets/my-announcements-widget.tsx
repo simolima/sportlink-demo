@@ -42,7 +42,7 @@ export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetP
                         setClubId(String(myClub.id))
 
                         // Get announcements for this club
-                        const annRes = await fetch('/api/announcements')
+                        const annRes = await fetch('/api/opportunities')
                         if (annRes.ok) {
                             const allAnnouncements = await annRes.json()
                             const myAnnouncements = allAnnouncements.filter((a: any) =>

@@ -37,7 +37,7 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                     setUserSport(user.sport || '')
 
                     // Fetch announcements matching user sport and role
-                    const annRes = await fetch('/api/announcements')
+                    const annRes = await fetch('/api/opportunities')
                     if (annRes.ok) {
                         const announcements = await annRes.json()
                         const matching = announcements.filter((a: any) =>

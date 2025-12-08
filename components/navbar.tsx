@@ -3,13 +3,25 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+    HomeIcon,
+    UserGroupIcon,
+    BuildingOfficeIcon,
+    BriefcaseIcon,
+    ChatBubbleLeftRightIcon,
+    UserCircleIcon,
+    MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline'
 
 const LogoutButton = dynamic(() => import('./logout-button'), { ssr: false })
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 
 export default function Navbar() {
+    const router = useRouter()
     const { user, isAuthenticated, isLoading } = useAuth()
     const [unreadCount, setUnreadCount] = useState(0)
+    const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => {
         if (!isAuthenticated) return
@@ -22,7 +34,7 @@ export default function Navbar() {
                 const data = await res.json()
                 const total = data.reduce((sum: number, c: any) => sum + (c.unread || 0), 0)
                 setUnreadCount(total)
-            } catch (e) {
+            } catch {
                 // silenzioso
             }
         }
@@ -31,38 +43,111 @@ export default function Navbar() {
         return () => clearInterval(interval)
     }, [isAuthenticated, user])
 
+    const handleSearch = () => {
+        const q = searchQuery.trim()
+        if (!q) return
+        router.push(`/search?q=${encodeURIComponent(q)}`)
+    }
+
     if (isLoading) return null
 
     return (
         <nav className="bg-green-600 shadow-md">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <Link href={isAuthenticated ? "/home" : "/"} className="text-xl font-bold text-white">SPRINTA</Link>
-                <div className="flex items-center gap-6">
+            <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
+                {/* Logo + ricerca */}
+                <div className="flex items-center gap-4 min-w-[220px]">
+                    <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-white font-bold leading-tight">
+                        <span className="text-xs tracking-[0.18em] uppercase">SPRINTA</span>
+                        <span className="text-[10px] text-white/80">Sport Network</span>
+                    </Link>
+                    <div className="hidden md:flex items-center bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 gap-2 w-56">
+                        <MagnifyingGlassIcon className="w-5 h-5 text-white/80" />
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder="Ricerca globale"
+                            className="bg-transparent text-white placeholder:text-white/70 focus:outline-none text-sm w-full"
+                        />
+                    </div>
+                </div>
+
+                {/* Nav centrale con icona sopra label */}
+                <div className="flex-1 flex justify-center">
                     {isAuthenticated && user ? (
-                        <>
-                            <Link href="/home" className="text-sm text-white hover:text-white/80 transition">Home</Link>
-                            <Link href="/people" className="text-sm text-white hover:text-white/80 transition">Scopri</Link>
-                            <Link href="/clubs" className="text-sm text-white hover:text-white/80 transition">Società</Link>
-                            <Link href="/opportunities" className="text-sm text-white hover:text-white/80 transition">Opportunità</Link>
+                        <div className="flex items-center gap-4 md:gap-6">
+                            <Link href="/home" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <HomeIcon className="w-5 h-5" />
+                                <span className="mt-1">Home</span>
+                            </Link>
+                            <Link href="/people" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <UserGroupIcon className="w-5 h-5" />
+                                <span className="mt-1">Scopri</span>
+                            </Link>
+                            <Link href="/clubs" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <BuildingOfficeIcon className="w-5 h-5" />
+                                <span className="mt-1">Società</span>
+                            </Link>
+                            <Link href="/opportunities" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <BriefcaseIcon className="w-5 h-5" />
+                                <span className="mt-1">Opportunità</span>
+                            </Link>
                             {user.professionalRole === 'Agent' && (
-                                <Link href="/agent/affiliations" className="text-sm text-white hover:text-white/80 transition">Affiliazioni</Link>
+                                <Link href="/agent/affiliations" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                    <UserGroupIcon className="w-5 h-5" />
+                                    <span className="mt-1">Affiliazioni</span>
+                                </Link>
                             )}
                             {user.professionalRole === 'Player' && (
-                                <Link href="/player/affiliations" className="text-sm text-white hover:text-white/80 transition">Rappresentanza</Link>
+                                <Link href="/player/affiliations" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                    <UserCircleIcon className="w-5 h-5" />
+                                    <span className="mt-1">Rappresentanza</span>
+                                </Link>
                             )}
-                            <Link href="/messages" className="relative text-sm text-white hover:text-white/80 transition">
-                                Messaggi
+                            <Link href="/messages" className="relative flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                                <span className="mt-1">Messaggi</span>
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{unreadCount}</span>
                                 )}
                             </Link>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-4 md:gap-6">
+                            <Link href="/home" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <HomeIcon className="w-5 h-5" />
+                                <span className="mt-1">Home</span>
+                            </Link>
+                            <Link href="/people" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <UserGroupIcon className="w-5 h-5" />
+                                <span className="mt-1">Scopri</span>
+                            </Link>
+                            <Link href="/clubs" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <BuildingOfficeIcon className="w-5 h-5" />
+                                <span className="mt-1">Società</span>
+                            </Link>
+                            <Link href="/opportunities" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <BriefcaseIcon className="w-5 h-5" />
+                                <span className="mt-1">Opportunità</span>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+
+                {/* Azioni a destra */}
+                <div className="flex items-center gap-4">
+                    {isAuthenticated && user ? (
+                        <>
                             <NotificationBell userId={Number(user.id)} />
-                            <Link href={`/profile/${user.id}`} className="text-sm text-white hover:text-white/80 transition">Profilo</Link>
+                            <Link href={`/profile/${user.id}`} className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <UserCircleIcon className="w-5 h-5" />
+                                <span className="mt-1">Profilo</span>
+                            </Link>
                             <LogoutButton />
                         </>
                     ) : (
                         <>
-                            <Link href="/login" className="text-sm text-white hover:text-white/80 transition">Login</Link>
+                            <Link href="/login" className="px-3 py-1.5 bg-white text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition">Login</Link>
                             <Link href="/signup" className="px-4 py-2 bg-white text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition">Registrati</Link>
                         </>
                     )}

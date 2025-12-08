@@ -5,7 +5,7 @@ import { ConversationSummary } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function MessagesPage() {
-    const { user, isLoading: authLoading } = useRequireAuth(true)
+    const { user, isLoading: authLoading } = useRequireAuth(false)
     const [loading, setLoading] = useState(true)
     const [conversations, setConversations] = useState<ConversationSummary[]>([])
     const [error, setError] = useState<string | null>(null)

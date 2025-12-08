@@ -6,7 +6,7 @@ import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function ProfilePage() {
     const router = useRouter()
-    const { user, isLoading } = useRequireAuth(true)
+    const { user, isLoading } = useRequireAuth(false)
 
     useEffect(() => {
         // Redirect to the user's own profile page with ID

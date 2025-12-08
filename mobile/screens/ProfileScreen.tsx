@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useState, useEffect } from 'react';
-import { getPosts, getFollowersCount, getFollowingCount } from '../lib/services';
+import { getFollowersCount, getFollowingCount } from '../lib/services';
 
 export default function ProfileScreen({ currentUser, onLogout }: { currentUser: any; onLogout: () => void }) {
-    const [userPosts, setUserPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
+    const [applicationsCount, setApplicationsCount] = useState(0);
 
     useEffect(() => {
         loadUserData();
@@ -15,25 +15,15 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
 
     const loadUserData = async () => {
         try {
-            const [allPosts, followers, following] = await Promise.all([
-                getPosts(),
+            const [followers, following] = await Promise.all([
                 getFollowersCount(currentUser.id),
                 getFollowingCount(currentUser.id),
             ]);
 
-            // Filtra i post dell'utente corrente confrontando sia come numero che come stringa
-            const myPosts = allPosts.filter((p: any) =>
-                p.userId === currentUser.id ||
-                String(p.userId) === String(currentUser.id)
-            );
-
-            console.log('Current user ID:', currentUser.id);
-            console.log('Total posts:', allPosts.length);
-            console.log('My posts:', myPosts.length);
-
-            setUserPosts(myPosts);
             setFollowersCount(followers);
             setFollowingCount(following);
+            // TODO: Fetch applications count
+            setApplicationsCount(0);
         } catch (error) {
             console.error('Errore caricamento dati utente:', error);
         } finally {
@@ -77,8 +67,8 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
                 {/* Stats */}
                 <View style={styles.statsContainer}>
                     <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>{userPosts.length}</Text>
-                        <Text style={styles.statLabel}>Post</Text>
+                        <Text style={styles.statNumber}>{applicationsCount}</Text>
+                        <Text style={styles.statLabel}>Candidature</Text>
                     </View>
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{followersCount}</Text>
@@ -96,26 +86,18 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
                 </TouchableOpacity>
             </View>
 
-            {/* User Posts */}
-            <View style={styles.postsSection}>
-                <Text style={styles.sectionTitle}>I miei post</Text>
+            {/* Activity Section */}
+            <View style={styles.activitySection}>
+                <Text style={styles.sectionTitle}>Attività Recente</Text>
                 {loading ? (
                     <Text style={styles.loadingText}>Caricamento...</Text>
-                ) : userPosts.length === 0 ? (
-                    <Text style={styles.emptyText}>Nessun post ancora</Text>
                 ) : (
-                    userPosts.map((post) => (
-                        <View key={post.id} style={styles.postCard}>
-                            <Text style={styles.postContent}>{post.content}</Text>
-                            {post.imageUrl && (
-                                <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
-                            )}
-                            <View style={styles.postStats}>
-                                <Text style={styles.postStat}>👍 {post.likesCount || 0}</Text>
-                                <Text style={styles.postStat}>💬 {post.commentsCount || 0}</Text>
-                            </View>
-                        </View>
-                    ))
+                    <View style={styles.emptyState}>
+                        <Text style={styles.emptyText}>Nessuna attività recente</Text>
+                        <Text style={styles.emptySubtext}>
+                            Le tue candidature e interazioni appariranno qui
+                        </Text>
+                    </View>
                 )}
             </View>
         </ScrollView>
@@ -221,7 +203,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    postsSection: {
+    activitySection: {
         padding: 16,
     },
     sectionTitle: {
@@ -235,41 +217,22 @@ const styles = StyleSheet.create({
         color: '#6b7280',
         marginTop: 20,
     },
-    emptyText: {
-        textAlign: 'center',
-        color: '#6b7280',
-        marginTop: 20,
-        fontStyle: 'italic',
-    },
-    postCard: {
+    emptyState: {
         backgroundColor: 'white',
         borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        padding: 32,
+        alignItems: 'center',
     },
-    postContent: {
-        fontSize: 15,
-        color: '#374151',
-        lineHeight: 22,
-        marginBottom: 12,
-    },
-    postImage: {
-        width: '100%',
-        height: 200,
-        borderRadius: 8,
-        marginBottom: 12,
-    },
-    postStats: {
-        flexDirection: 'row',
-        gap: 16,
-    },
-    postStat: {
-        fontSize: 14,
+    emptyText: {
+        fontSize: 16,
+        fontWeight: '600',
         color: '#6b7280',
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        color: '#9ca3af',
+        marginTop: 8,
+        textAlign: 'center',
     },
 });

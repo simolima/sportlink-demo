@@ -1,17 +1,32 @@
 [
-    {
-        "id": 1765053528646,
-        "clubId": 1765053528599,
-        "userId": 1765049448639,
-        "role": "Admin",
-        "position": "",
-        "permissions": [
-            "create_announcements",
-            "manage_applications",
-            "manage_members",
-            "edit_club_info"
-        ],
-        "joinedAt": "2025-12-06T20:38:48.646Z",
-        "isActive": true
-    }
+  {
+    "id": 1765053528646,
+    "clubId": 1765053528599,
+    "userId": "1765103614007",
+    "role": "Admin",
+    "position": "",
+    "permissions": [
+      "create_opportunities",
+      "manage_applications",
+      "manage_members",
+      "edit_club_info"
+    ],
+    "joinedAt": "2025-12-06T20:38:48.646Z",
+    "isActive": true
+  },
+  {
+    "id": 1765196339991,
+    "clubId": 1765196339656,
+    "userId": "1765196290455",
+    "role": "Admin",
+    "position": "",
+    "permissions": [
+      "create_announcements",
+      "manage_applications",
+      "manage_members",
+      "edit_club_info"
+    ],
+    "joinedAt": "2025-12-08T12:18:59.991Z",
+    "isActive": true
+  }
 ]

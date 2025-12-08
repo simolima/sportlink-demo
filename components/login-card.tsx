@@ -31,6 +31,12 @@ export default function LoginCard() {
             localStorage.setItem('currentUserName', `${found.firstName} ${found.lastName}`)
             localStorage.setItem('currentUserEmail', String(found.email))
             localStorage.setItem('currentUserUsername', found.username || '')
+            localStorage.setItem('currentUserRole', found.professionalRole || '')
+
+            // Salva sports (array) o sport (legacy)
+            const userSports = found.sports || []
+            localStorage.setItem('currentUserSports', JSON.stringify(userSports))
+            localStorage.setItem('currentUserSport', userSports[0] || found.sport || '')
 
             // Redirect diretto senza reload
             window.location.href = '/home'

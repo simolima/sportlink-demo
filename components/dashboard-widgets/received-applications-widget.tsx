@@ -40,7 +40,7 @@ export default function ReceivedApplicationsWidget({ userId }: ReceivedApplicati
 
                     if (myClubIds.length > 0) {
                         // Get announcements for these clubs
-                        const annRes = await fetch('/api/announcements')
+                        const annRes = await fetch('/api/opportunities')
                         if (annRes.ok) {
                             const announcements = await annRes.json()
                             const myAnnouncementIds = announcements
@@ -161,19 +161,26 @@ export default function ReceivedApplicationsWidget({ userId }: ReceivedApplicati
                         {recentApplications.length > 0 && (
                             <div className="border-t border-gray-100 pt-4 mt-4">
                                 <div className="text-xs text-gray-500 mb-3">Ultime candidature</div>
-                                <div className="space-y-2">
-                                    {recentApplications.slice(0, 3).map((app) => (
-                                        <div key={app.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-sm font-medium text-gray-900 truncate">
+                                <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
+                                    {recentApplications.slice(0, 5).map((app) => (
+                                        <div
+                                            key={app.id}
+                                            className="min-w-[220px] flex-1 snap-start p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                                        >
+                                            <div className="flex items-center justify-between gap-2 mb-1">
+                                                <div className="text-xs font-semibold text-gray-700 truncate">
                                                     {app.applicantName}
                                                 </div>
-                                                <div className="text-xs text-gray-500 truncate">
-                                                    {app.announcementTitle}
-                                                </div>
+                                                <span className="text-[11px] text-gray-400">
+                                                    {new Date(app.appliedAt).toLocaleDateString('it-IT')}
+                                                </span>
                                             </div>
-                                            <div className="text-xs text-gray-400">
-                                                {new Date(app.appliedAt).toLocaleDateString('it-IT')}
+                                            <div className="text-xs text-gray-500 leading-snug line-clamp-2">
+                                                {app.announcementTitle}
+                                            </div>
+                                            <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-white border border-gray-200 text-gray-600">
+                                                <span className="h-2 w-2 rounded-full bg-amber-500 inline-block"></span>
+                                                {app.status}
                                             </div>
                                         </div>
                                     ))}

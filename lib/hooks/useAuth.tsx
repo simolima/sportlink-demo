@@ -183,7 +183,14 @@ export function useRequireAuth(requireProfileSetup: boolean = true) {
             return
         }
 
-        // Autenticato ma profilo incompleto -> redirect a profile setup
+        // Autenticato ma profilo incompleto (no sports) -> redirect a complete-profile
+        if (requireProfileSetup && user.professionalRole && (!user.sports || user.sports.length === 0)) {
+            setDidRedirect(true)
+            router.push('/complete-profile')
+            return
+        }
+
+        // Autenticato ma profilo incompleto (altre validazioni) -> redirect a profile-setup
         if (requireProfileSetup && !hasCompletedProfile) {
             setDidRedirect(true)
             router.push('/profile-setup')

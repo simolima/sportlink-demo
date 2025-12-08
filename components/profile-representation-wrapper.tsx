@@ -24,7 +24,9 @@ export default function ProfileRepresentationWrapper({
     }, [])
 
     // Non mostrare nulla se non è un Player
-    if (profileUserRole !== 'Player') {
+    const role = String(profileUserRole || '').trim()
+    if (role !== 'Player') {
+        console.log('ProfileRepresentationWrapper: Non è un Player, role:', role)
         return null
     }
 

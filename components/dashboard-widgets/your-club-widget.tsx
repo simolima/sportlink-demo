@@ -29,16 +29,32 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
                 const memRes = await fetch('/api/club-memberships')
                 if (memRes.ok) {
                     const memberships = await memRes.json()
-                    const myMembership = memberships.find((m: any) => m.userId === userId)
+                    const myMembership = memberships.find((m: any) =>
+                        (m.userId === userId || m.userId?.toString() === userId?.toString()) && m.isActive !== false
+                    )
 
                     if (myMembership) {
                         setMemberRole(myMembership.role || 'Membro')
-
-                        // Fetch club details
-                        const clubRes = await fetch(`/api/clubs/${myMembership.clubId}`)
-                        if (clubRes.ok) {
-                            const clubData = await clubRes.json()
-                            setClub(clubData)
+                        // Prefer enriched club info from memberships API
+                        if (myMembership.club) {
+                            setClub({
+                                id: myMembership.club.id,
+                                name: myMembership.club.name,
+                                logoUrl: myMembership.club.logoUrl,
+                                city: myMembership.club.city,
+                                sport: Array.isArray(myMembership.club.sports) ? myMembership.club.sports.join(', ') : myMembership.club.sport,
+                                memberCount: myMembership.club.memberCount,
+                            })
+                        } else {
+                            // Fallback: fetch all clubs and pick the one
+                            const clubRes = await fetch('/api/clubs')
+                            if (clubRes.ok) {
+                                const allClubs = await clubRes.json()
+                                const foundClub = allClubs.find((c: any) => c.id?.toString() === myMembership.clubId?.toString())
+                                if (foundClub) {
+                                    setClub(foundClub)
+                                }
+                            }
                         }
                     }
                 }
@@ -55,7 +71,7 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="px-6 py-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
                 </div>
             </div>
         )
@@ -67,8 +83,8 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <BuildingOffice2Icon className="w-5 h-5 text-purple-600" />
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <BuildingOffice2Icon className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">Il Tuo Club</h3>
@@ -99,8 +115,8 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
             <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <BuildingOffice2Icon className="w-5 h-5 text-purple-600" />
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <BuildingOffice2Icon className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">Il Tuo Club</h3>
@@ -126,7 +142,7 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
                             className="w-16 h-16 rounded-xl object-cover"
                         />
                     ) : (
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold">
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xl font-bold">
                             {club.name.charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -134,7 +150,7 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
                         <h4 className="font-bold text-gray-900 text-lg">{club.name}</h4>
                         <p className="text-sm text-gray-500">{club.city || club.sport}</p>
                         {memberRole && (
-                            <span className="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                            <span className="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                                 {memberRole}
                             </span>
                         )}

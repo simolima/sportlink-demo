@@ -56,16 +56,15 @@ export default function HomePage() {
 
     const checkClubAdmin = async (id: string) => {
         try {
-            const res = await fetch('/api/clubs')
+            const res = await fetch('/api/club-memberships')
             if (res.ok) {
-                const clubs = await res.json()
-                const adminClub = clubs.find((c: any) =>
-                    c.adminId === id ||
-                    c.presidentId === id ||
-                    c.directorId === id ||
-                    c.sportingDirectorId === id
+                const memberships = await res.json()
+                const adminMembership = memberships.find((m: any) =>
+                    m.userId === id || m.userId === String(id)
+                ) && memberships.find((m: any) =>
+                    (m.userId === id || m.userId === String(id)) && m.role === 'Admin'
                 )
-                setIsClubAdmin(!!adminClub)
+                setIsClubAdmin(!!adminMembership)
             }
         } catch (error) {
             console.error('Error checking club admin:', error)
@@ -151,7 +150,8 @@ export default function HomePage() {
                             <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
                             Gestione Club
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <YourClubWidget userId={userId!} />
                             <ReceivedApplicationsWidget userId={userId!} />
                             <MyAnnouncementsWidget userId={userId!} />
                         </div>

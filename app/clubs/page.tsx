@@ -6,7 +6,7 @@ import { SUPPORTED_SPORTS, type Club } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
 export default function ClubsPage() {
-    const { user, isLoading: authLoading } = useRequireAuth(true)
+    const { user, isLoading: authLoading } = useRequireAuth(false)
     const router = useRouter()
     const [clubs, setClubs] = useState<Club[]>([])
     const [filteredClubs, setFilteredClubs] = useState<Club[]>([])

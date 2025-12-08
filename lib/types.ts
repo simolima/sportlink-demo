@@ -37,8 +37,8 @@ export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
   'Physio/Masseur': 'Fisioterapista/Massaggiatore'
 };
 
-// Tipi di annunci
-export const ANNOUNCEMENT_TYPES = [
+// Tipi di opportunità
+export const OPPORTUNITY_TYPES = [
   'Player Search',
   'Coach Search',
   'Staff Search',
@@ -46,16 +46,21 @@ export const ANNOUNCEMENT_TYPES = [
   'Scouting'
 ] as const;
 
-export type AnnouncementType = typeof ANNOUNCEMENT_TYPES[number];
+export type OpportunityType = typeof OPPORTUNITY_TYPES[number];
 
-// Traduzioni tipi annunci
-export const ANNOUNCEMENT_TYPE_TRANSLATIONS: Record<AnnouncementType, string> = {
+// Traduzioni tipi opportunità
+export const OPPORTUNITY_TYPE_TRANSLATIONS: Record<OpportunityType, string> = {
   'Player Search': 'Cercasi Giocatore',
   'Coach Search': 'Cercasi Allenatore',
   'Staff Search': 'Cercasi Staff',
   'Collaboration': 'Collaborazione',
   'Scouting': 'Scouting Event'
 };
+
+// @deprecated - Usa OPPORTUNITY_TYPES
+export const ANNOUNCEMENT_TYPES = OPPORTUNITY_TYPES;
+export type AnnouncementType = OpportunityType;
+export const ANNOUNCEMENT_TYPE_TRANSLATIONS = OPPORTUNITY_TYPE_TRANSLATIONS;
 
 // Tipi di contratto
 export const CONTRACT_TYPES = [
@@ -100,7 +105,7 @@ export type ClubRole = typeof CLUB_ROLES[number];
 
 // Permessi club
 export const CLUB_PERMISSIONS = [
-  'create_announcements',
+  'create_opportunities',
   'manage_applications',
   'manage_members',
   'edit_club_info'
@@ -139,7 +144,7 @@ export const NOTIFICATION_TYPES = [
   'club_join_rejected',
   'application_received',
   'application_status_changed',
-  'new_announcement',
+  'new_opportunity',
   'permission_granted',
   'permission_revoked'
 ] as const;
@@ -235,12 +240,12 @@ export type ClubFollower = {
   followedAt: string;
 };
 
-// Announcement/Opportunity
-export type Announcement = {
+// Opportunity (ex Announcement)
+export type Opportunity = {
   id: number | string;
   clubId: number | string;
   title: string;
-  type: AnnouncementType;
+  type: OpportunityType;
   sport: SupportedSport;
   roleRequired: ProfessionalRole;
   position?: string; // es. "Attaccante", "Centrocampista"
@@ -259,10 +264,14 @@ export type Announcement = {
   updatedAt?: string;
 };
 
+// @deprecated - Usa Opportunity
+export type Announcement = Opportunity;
+
 // Application/Candidatura
 export type Application = {
   id: number | string;
-  announcementId: number | string;
+  opportunityId: number | string;
+  announcementId?: number | string; // @deprecated - Usa opportunityId
   playerId: number | string; // User ID del candidato
   agentId?: number | string; // Se candidatura via agente
   status: ApplicationStatus;
@@ -317,23 +326,28 @@ export type UserWithDetails = User & {
   affiliatedPlayers?: Array<User>; // Lista giocatori affiliati (se agent)
 };
 
-// Announcement con dettagli club
-export type AnnouncementWithDetails = Announcement & {
+// Opportunity con dettagli club
+export type OpportunityWithDetails = Opportunity & {
   club: Club;
   applicationsCount: number;
 };
+
+// @deprecated - Usa OpportunityWithDetails
+export type AnnouncementWithDetails = OpportunityWithDetails;
 
 // Application con dettagli user e club
 export type ApplicationWithDetails = Application & {
   player: User;
   agent?: User;
-  announcement: Announcement & { club: Club };
+  opportunity: Opportunity & { club: Club };
+  announcement?: Opportunity & { club: Club }; // @deprecated - Usa opportunity
 };
 
 // Club con contatori e membri
 export type ClubWithDetails = Club & {
   memberships?: ClubMembership[];
-  activeAnnouncements?: Announcement[];
+  activeOpportunities?: Opportunity[];
+  activeAnnouncements?: Opportunity[]; // @deprecated - Usa activeOpportunities
   pendingJoinRequests?: number;
 };
 
@@ -341,7 +355,8 @@ export type ClubWithDetails = Club & {
 export type NotificationWithDetails = Notification & {
   relatedUser?: User;
   relatedClub?: Club;
-  relatedAnnouncement?: Announcement;
+  relatedOpportunity?: Opportunity;
+  relatedAnnouncement?: Opportunity; // @deprecated - Usa relatedOpportunity
 };
 
 // ============================================================================

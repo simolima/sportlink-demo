@@ -1,6 +1,11 @@
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { withCors, handleOptions } from '@/lib/cors'
+
+const membershipsPath = path.join(process.cwd(), 'data', 'club-memberships.json')
 
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
 
@@ -11,6 +16,20 @@ function readClubs() {
 
 function writeClubs(clubs: any[]) {
     fs.writeFileSync(clubsPath, JSON.stringify(clubs, null, 2))
+}
+
+function readMemberships() {
+    const data = fs.readFileSync(membershipsPath, 'utf-8')
+    return JSON.parse(data)
+}
+
+function writeMemberships(memberships: any[]) {
+    fs.writeFileSync(membershipsPath, JSON.stringify(memberships, null, 2))
+}
+
+// OPTIONS /api/clubs - CORS preflight
+export async function OPTIONS() {
+    return handleOptions()
 }
 
 // GET /api/clubs - Get all clubs or filter by sport/city
@@ -24,14 +43,14 @@ export async function GET(request: Request) {
 
     // Filter by sport (supports multiple sports in sports array)
     if (sport && sport !== 'all') {
-        clubs = clubs.filter((club: any) => 
+        clubs = clubs.filter((club: any) =>
             Array.isArray(club.sports) && club.sports.includes(sport)
         )
     }
 
     // Filter by city
     if (city) {
-        clubs = clubs.filter((club: any) => 
+        clubs = clubs.filter((club: any) =>
             club.city.toLowerCase().includes(city.toLowerCase())
         )
     }
@@ -44,19 +63,20 @@ export async function GET(request: Request) {
         )
     }
 
-    return NextResponse.json(clubs)
+    return withCors(NextResponse.json(clubs))
 }
 
 // POST /api/clubs - Create a new club
 export async function POST(request: Request) {
     const body = await request.json()
-    const { name, description, sports, city, address, logoUrl, coverUrl, website, foundedYear } = body
+    const { name, description, sports, city, address, logoUrl, coverUrl, website, foundedYear, createdBy } = body
 
     if (!name || !sports || !city) {
-        return NextResponse.json({ error: 'name, sports, and city required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'name, sports, and city required' }, { status: 400 }))
     }
 
     const clubs = readClubs()
+    const creatorId = createdBy ? createdBy.toString() : null
 
     const newClub = {
         id: Date.now(),
@@ -72,13 +92,43 @@ export async function POST(request: Request) {
         followersCount: 0,
         membersCount: 0,
         verified: false,
+        createdBy: creatorId,
         createdAt: new Date().toISOString()
     }
 
     clubs.push(newClub)
     writeClubs(clubs)
 
-    return NextResponse.json(newClub, { status: 201 })
+    // Ensure creator is added as Admin if provided
+    if (creatorId) {
+        const memberships = readMemberships()
+        const alreadyMember = memberships.find((m: any) =>
+            m.clubId.toString() === newClub.id.toString() &&
+            m.userId.toString() === creatorId &&
+            m.isActive
+        )
+
+        if (!alreadyMember) {
+            memberships.push({
+                id: Date.now(),
+                clubId: newClub.id,
+                userId: creatorId,
+                role: 'Admin',
+                position: '',
+                permissions: [
+                    'create_opportunities',
+                    'manage_applications',
+                    'manage_members',
+                    'edit_club_info'
+                ],
+                joinedAt: new Date().toISOString(),
+                isActive: true
+            })
+            writeMemberships(memberships)
+        }
+    }
+
+    return withCors(NextResponse.json(newClub, { status: 201 }))
 }
 
 // PUT /api/clubs - Update a club
@@ -88,13 +138,13 @@ export async function PUT(request: Request) {
 
     const index = clubs.findIndex((c: any) => c.id.toString() === body.id.toString())
     if (index === -1) {
-        return NextResponse.json({ error: 'Club not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Club not found' }, { status: 404 }))
     }
 
     clubs[index] = { ...clubs[index], ...body }
     writeClubs(clubs)
 
-    return NextResponse.json(clubs[index])
+    return withCors(NextResponse.json(clubs[index]))
 }
 
 // DELETE /api/clubs - Delete a club
@@ -103,16 +153,16 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id')
 
     if (!id) {
-        return NextResponse.json({ error: 'ID required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'ID required' }, { status: 400 }))
     }
 
     const clubs = readClubs()
     const filtered = clubs.filter((c: any) => c.id.toString() !== id)
 
     if (clubs.length === filtered.length) {
-        return NextResponse.json({ error: 'Club not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Club not found' }, { status: 404 }))
     }
 
     writeClubs(filtered)
-    return NextResponse.json({ success: true })
+    return withCors(NextResponse.json({ success: true }))
 }

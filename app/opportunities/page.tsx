@@ -92,7 +92,7 @@ export default function JobsPage() {
     setFilters(prev => ({ ...prev, search: searchInput }))
   }
 
-  const handleApply = async (announcementId: number, announcement: AnnouncementWithDetails) => {
+  const handleApply = async (announcementId: number, announcement: OpportunityWithDetails) => {
     const userId = localStorage.getItem('currentUserId')
     if (!userId || !currentUser) return
 
@@ -174,7 +174,7 @@ export default function JobsPage() {
     }
   }
 
-  const handleAgentApplication = async (announcementId: number, announcement: AnnouncementWithDetails) => {
+  const handleAgentApplication = async (announcementId: number, announcement: OpportunityWithDetails) => {
     // Mostra selezione giocatore
     const playerNames = affiliatedPlayers.map((p: any) => `${p.firstName} ${p.lastName}`).join('\n')
     const selectedIndex = prompt(
@@ -291,7 +291,7 @@ export default function JobsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="all">Tutti i tipi</option>
-                {ANNOUNCEMENT_TYPES.map((type) => (
+                {OPPORTUNITY_TYPES.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>

@@ -24,7 +24,10 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-08T13:53:48.769Z",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 5,
+    "candidatureRicevute": 12,
+    "followers": 87
   },
   {
     "id": "1765196290455",
@@ -51,7 +54,10 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-08T12:18:10.455Z",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 3,
+    "candidatureRicevute": 8,
+    "followers": 45
   },
   {
     "id": "1765112756257",
@@ -75,7 +81,10 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-07T13:05:56.257Z",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 2,
+    "candidatureRicevute": 15,
+    "followers": 120
   },
   {
     "id": "1765111800200",
@@ -99,7 +108,10 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-07T12:50:00.200Z",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 1,
+    "candidatureRicevute": 6,
+    "followers": 32
   },
   {
     "id": "1765103614007",
@@ -125,7 +137,10 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 4,
+    "candidatureRicevute": 10,
+    "followers": 65
   },
   {
     "id": "2",
@@ -151,6 +166,9 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2024-12-06",
-    "updatedAt": ""
+    "updatedAt": "",
+    "annunciAttivi": 7,
+    "candidatureRicevute": 22,
+    "followers": 156
   }
 ]

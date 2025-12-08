@@ -153,7 +153,7 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
                     <div className="flex flex-wrap gap-3">
                         <StatBox label="Annunci attivi" value={totalAnnouncements} />
                         <StatBox label="Candidature nuove" value={totalNew} />
-                        <StatBox label="Candidature ricevute" value={total} />
+                        <StatBox label="Candidature ricevute" value={totalReviewed} />
                     </div>
                 </div>
             </div>

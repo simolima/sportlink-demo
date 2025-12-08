@@ -60,7 +60,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
     }
 
     const activeAnnouncements = announcements.filter(a => a.isActive)
-    const displayAnnouncements = activeAnnouncements.slice(0, maxItems)
+    const displayAnnouncements = activeAnnouncements.slice(0, MAX_ANNOUNCEMENTS)
 
     // Check for expiring soon (within 7 days)
     const now = new Date()

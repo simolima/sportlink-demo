@@ -129,17 +129,17 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
     }
 
     return (
-        <div className="bg-base-200 rounded-xl shadow-sm border border-base-300 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-base-300 bg-gradient-to-r from-base-300 to-base-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                             <BriefcaseIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-secondary">Opportunità per Te</h3>
-                            <p className="text-xs text-secondary/60">Annunci per {userRole} • {userSport}</p>
+                            <h3 className="font-bold text-gray-900">Opportunità per Te</h3>
+                            <p className="text-xs text-gray-600">Annunci per {userRole} • {userSport}</p>
                         </div>
                     </div>
                     <Link

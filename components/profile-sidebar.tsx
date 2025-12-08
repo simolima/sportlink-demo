@@ -1,0 +1,220 @@
+'use client'
+import { useState, useEffect } from 'react'
+import Avatar from './avatar'
+import {
+    UserPlusIcon,
+    EnvelopeIcon,
+    UserMinusIcon,
+    CheckIcon,
+    PlusCircleIcon
+} from '@heroicons/react/24/outline'
+
+interface ProfileSidebarProps {
+    user: any
+    clubName?: string | null
+    followersCount?: number
+    followingCount?: number
+    assistatiCount?: number
+    isOwn?: boolean
+    onFollow?: () => void
+    onUnfollow?: () => void
+    onMessage?: () => void
+    onApply?: () => void
+    onAddPlayer?: () => void
+    isFollowing?: boolean
+}
+
+export default function ProfileSidebar({
+    user,
+    clubName,
+    followersCount = 0,
+    followingCount = 0,
+    assistatiCount = 0,
+    isOwn = false,
+    onFollow,
+    onUnfollow,
+    onMessage,
+    onApply,
+    onAddPlayer,
+    isFollowing = false
+}: ProfileSidebarProps) {
+    const [isSelf, setIsSelf] = useState(isOwn)
+    const role = user?.professionalRole || 'Professionista'
+    const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
+    const isCoach = role.toLowerCase().includes('coach') || role.toLowerCase().includes('allenatore')
+    const isAgent = role.toLowerCase().includes('agent') || role.toLowerCase().includes('agente')
+    const isDS = role.toLowerCase().includes('director') || role.toLowerCase().includes('ds')
+
+    // Determina statistiche in base al ruolo
+    const getStats = () => {
+        if (isPlayer) {
+            return [
+                { label: 'Età', value: user?.age || user?.birthDate ? calculateAge(user.birthDate) : 'N/A' },
+                { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'N/A' },
+                { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'N/A' },
+                { label: 'Piede', value: user?.preferredFoot || 'N/A' }
+            ]
+        }
+        if (isCoach) {
+            return [
+                { label: 'Licenza', value: user?.license || 'N/A' },
+                { label: 'Specializzazione', value: user?.specialization || 'N/A' }
+            ]
+        }
+        if (isDS) {
+            return [
+                { label: 'Club gestito', value: clubName || 'Nessuno' }
+            ]
+        }
+        if (isAgent) {
+            return [
+                { label: 'Assistiti', value: assistatiCount || 0 }
+            ]
+        }
+        return []
+    }
+
+    useEffect(() => {
+        const currentId = typeof window !== 'undefined' ? localStorage.getItem('currentUserId') : null
+        if (currentId && user?.id && String(currentId) === String(user.id)) {
+            setIsSelf(true)
+        }
+    }, [user?.id])
+
+    const calculateAge = (birthDate: string) => {
+        const today = new Date()
+        const birth = new Date(birthDate)
+        let age = today.getFullYear() - birth.getFullYear()
+        const m = today.getMonth() - birth.getMonth()
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--
+        }
+        return age
+    }
+
+    const stats = getStats()
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6 border border-gray-200">
+            {/* Avatar e Nome */}
+            <div className="flex flex-col items-center text-center mb-6">
+                <Avatar
+                    src={user?.avatarUrl}
+                    alt={`${user?.firstName} ${user?.lastName}`}
+                    fallbackText={user?.firstName?.[0] || 'U'}
+                    className="w-24 h-24 mb-4 ring-4 ring-[#2341F0]/20"
+                />
+                <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide mb-1">
+                    {user?.firstName} {user?.lastName}
+                </h1>
+                <p className="text-[#2341F0] font-semibold text-lg mb-2">
+                    {user?.currentRole || role}
+                </p>
+                {clubName && (
+                    <p className="text-gray-600 text-sm">
+                        {clubName}
+                    </p>
+                )}
+            </div>
+
+            {/* Stato disponibilità */}
+            {user?.availability && (
+                <div className="mb-6 px-4 py-2 bg-[#eaf2ff] rounded-lg border border-[#2341F0]/30 text-center">
+                    <span className="text-sm text-[#2341F0] font-semibold">
+                        {user.availability === 'Disponibile' && '✓ '}
+                        {user.availability}
+                    </span>
+                </div>
+            )}
+
+            {/* Statistiche */}
+            {stats.length > 0 && (
+                <div className="mb-6 space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                        Informazioni
+                    </h3>
+                    {stats.map((stat, idx) => (
+                        <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-600 text-sm font-medium">{stat.label}</span>
+                            <span className="text-gray-900 font-bold text-lg">{stat.value}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Followers/Following */}
+            <div className="mb-6 grid grid-cols-2 gap-3">
+                <div className="bg-[#eaf2ff] rounded-lg p-3 text-center border border-[#2341F0]/30">
+                    <div className="text-2xl font-bold text-[#2341F0]">{followersCount}</div>
+                    <div className="text-xs text-[#2341F0] uppercase">Followers</div>
+                </div>
+                <div className="bg-[#eaf2ff] rounded-lg p-3 text-center border border-[#2341F0]/30">
+                    <div className="text-2xl font-bold text-[#2341F0]">{followingCount}</div>
+                    <div className="text-xs text-[#2341F0] uppercase">Following</div>
+                </div>
+            </div>
+
+            {/* Azioni */}
+            {!isSelf && (
+                <div className="space-y-3">
+                    {/* Segui/Smetti di seguire */}
+                    {isFollowing ? (
+                        <button
+                            onClick={onUnfollow}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition border border-gray-300"
+                        >
+                            <CheckIcon className="w-5 h-5" />
+                            Stai seguendo
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onFollow}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg"
+                        >
+                            <UserPlusIcon className="w-5 h-5" />
+                            Segui
+                        </button>
+                    )}
+
+                    {/* Contatta */}
+                    <button
+                        onClick={onMessage}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition border border-gray-300"
+                    >
+                        <EnvelopeIcon className="w-5 h-5" />
+                        Contatta
+                    </button>
+
+                    {/* Bottoni contestuali */}
+                    {isPlayer && onApply && (
+                        <button
+                            onClick={onApply}
+                            className="w-full px-4 py-3 bg-gray-100 text-[#2341F0] rounded-lg font-semibold hover:bg-gray-200 transition border border-[#2341F0]/50"
+                        >
+                            Candidati
+                        </button>
+                    )}
+                    {isAgent && onAddPlayer && (
+                        <button
+                            onClick={onAddPlayer}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-[#2341F0] rounded-lg font-semibold hover:bg-gray-200 transition border border-[#2341F0]/50"
+                        >
+                            <PlusCircleIcon className="w-5 h-5" />
+                            Aggiungi assistito
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Link modifica profilo se proprio */}
+            {isSelf && (
+                <a
+                    href="/profile/edit"
+                    className="w-full block text-center px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg"
+                >
+                    Modifica profilo
+                </a>
+            )}
+        </div>
+    )
+}

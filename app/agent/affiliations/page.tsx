@@ -42,15 +42,15 @@ export default function AgentAffiliationsPage() {
                     return
                 }
 
-                setCurrentUser(user)
-
-                // Check if user is an agent
+                // Blocca immediatamente se non è un agente
                 if (user.professionalRole !== 'Agent') {
                     showToast('error', 'Accesso negato', 'Solo gli agenti possono accedere a questa pagina')
+                    setLoading(false)
                     router.push('/home')
                     return
                 }
 
+                setCurrentUser(user)
                 await fetchAffiliations(user.id)
                 await fetchPlayers()
             } catch (error) {
@@ -148,6 +148,11 @@ export default function AgentAffiliationsPage() {
                 <div className="text-center py-12">Caricamento...</div>
             </div>
         )
+    }
+
+    // Se l'utente non è agente, non mostrare nulla (prevenzione flash contenuti)
+    if (currentUser && currentUser.professionalRole !== 'Agent') {
+        return null
     }
 
     const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
@@ -364,17 +369,17 @@ export default function AgentAffiliationsPage() {
                                 <div className="flex items-center gap-3">
                                     {/* Status badge */}
                                     <span
-                                        className={`px-4 py-2 rounded-full text-sm font-semibold ${affiliation.status === 'pending'
+                                        className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 ${affiliation.status === 'pending'
                                             ? 'bg-warning/20 text-warning'
                                             : affiliation.status === 'accepted'
-                                                ? 'bg-success/20 text-success'
+                                                ? 'bg-green-100 text-green-700 border-2 border-green-500'
                                                 : 'bg-error/20 text-error'
                                             }`}
                                     >
                                         {affiliation.status === 'pending'
                                             ? 'In Attesa'
                                             : affiliation.status === 'accepted'
-                                                ? 'Accettata'
+                                                ? <>✓ Accettata</>
                                                 : 'Rifiutata'}
                                     </span>
 
@@ -386,7 +391,7 @@ export default function AgentAffiliationsPage() {
                                                     typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
                                                 )
                                             }
-                                            className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
+                                            className="px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition font-medium"
                                         >
                                             Rimuovi
                                         </button>

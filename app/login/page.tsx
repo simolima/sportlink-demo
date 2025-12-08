@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function LoginPage() {
     const router = useRouter()
+    const { login } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
@@ -24,30 +26,13 @@ export default function LoginPage() {
         setLoading(true)
 
         try {
-            const res = await fetch('/api/users', { method: 'GET' })
-            if (!res.ok) throw new Error('Failed to fetch users')
-
-            const users = await res.json()
-            const user = users.find((u: any) =>
-                u.email.toLowerCase() === email.toLowerCase() &&
-                u.password === password
-            )
-
-            if (!user) {
+            const success = await login(email, password)
+            if (!success) {
                 setError('Email o password non validi')
                 setLoading(false)
                 return
             }
 
-            // Save user session
-            const fullName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utente'
-            localStorage.setItem('currentUserId', user.id)
-            localStorage.setItem('currentUserName', fullName)
-            localStorage.setItem('currentUserEmail', user.email)
-            localStorage.setItem('currentUserRole', user.professionalRole || '')
-            if (user.avatar) localStorage.setItem('currentUserAvatar', user.avatar)
-
-            // Redirect to home
             router.push('/home')
         } catch (err) {
             setError('Errore durante l\'accesso. Riprova.')

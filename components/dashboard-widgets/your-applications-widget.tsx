@@ -84,7 +84,7 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                                     <span className="text-[11px] text-gray-400">
                                         {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('it-IT') : '-'}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-base-300 border border-base-300 text-secondary">
+                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-gray-100 border border-gray-200 text-secondary">
                                         <span className="h-1.5 w-1.5 rounded-full bg-success inline-block"></span>
                                         {app.status || 'pending'}
                                     </span>

@@ -37,15 +37,15 @@ export default function PlayerAffiliationsPage() {
           return
         }
 
-        setCurrentUser(user)
-
         // Check if user is a player
         if (user.professionalRole !== 'Player') {
           showToast('error', 'Accesso negato', 'Solo i giocatori possono accedere a questa pagina')
+          setLoading(false)
           router.push('/home')
           return
         }
 
+        setCurrentUser(user)
         await fetchAffiliations(user.id)
       } catch (error) {
         showToast('error', 'Errore', 'Impossibile caricare i dati')
@@ -153,6 +153,11 @@ export default function PlayerAffiliationsPage() {
         <div className="text-center py-12">Caricamento...</div>
       </div>
     )
+  }
+
+  // Se l'utente non è Player, non mostrare contenuto (evita flash in attesa redirect)
+  if (currentUser && currentUser.professionalRole !== 'Player') {
+    return null
   }
 
   const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')

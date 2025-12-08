@@ -56,9 +56,9 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
                 {/* Logo + ricerca */}
                 <div className="flex items-center gap-4 min-w-[220px]">
-                    <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-primary font-bold leading-tight">
-                        <span className="text-xs tracking-[0.18em] uppercase">SPRINTA</span>
-                        <span className="text-[10px] text-secondary">Sport Network</span>
+                    <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-white font-bold leading-tight">
+                        <span className="text-sm md:text-base tracking-[0.18em] uppercase">SPRINTA</span>
+                        <span className="text-[11px] text-white/80">Sport Network</span>
                     </Link>
                     <div className="hidden md:flex items-center bg-base-200 border border-base-300 rounded-lg px-3 py-1.5 gap-2 w-56">
                         <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />

@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { FileText, Check, X, Eye } from 'lucide-react'
-import { Application, Announcement, Club } from '@/lib/types'
+import { Application, Opportunity, Club } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 
 interface ApplicationWithDetails extends Application {
-  announcement: Announcement | null
+  opportunity: Opportunity | null
   player: { id: number; firstName: string; lastName: string; avatarUrl?: string } | null
   agent: { id: number; firstName: string; lastName: string } | null
 }
@@ -39,7 +39,7 @@ export default function ClubApplicationsPage() {
       // Check permissions
       const membersRes = await fetch(`/api/club-memberships?clubId=${clubId}&userId=${userId}`)
       const membershipData = await membersRes.json()
-      
+
       if (membershipData.length === 0) {
         showToast('error', 'Accesso negato', 'Non sei membro di questo club')
         router.push(`/clubs/${clubId}`)
@@ -48,7 +48,7 @@ export default function ClubApplicationsPage() {
 
       const membership = membershipData[0]
       const canManage = membership.role === 'Admin' || membership.permissions.includes('manage_applications')
-      
+
       if (!canManage) {
         showToast('error', 'Accesso negato', 'Non hai i permessi per gestire le candidature')
         router.push(`/clubs/${clubId}`)
@@ -131,11 +131,10 @@ export default function ClubApplicationsPage() {
           <button
             key={status}
             onClick={() => setFilter(status as any)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === status
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             {status === 'all' && 'Tutte'}
             {status === 'pending' && 'In attesa'}
@@ -188,13 +187,12 @@ export default function ClubApplicationsPage() {
                 <div className="flex flex-col gap-2">
                   {/* Badge stato */}
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium text-center ${
-                      app.status === 'pending'
+                    className={`px-3 py-1 rounded-full text-xs font-medium text-center ${app.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
                         : app.status === 'accepted'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
                   >
                     {app.status === 'pending' && 'In attesa'}
                     {app.status === 'accepted' && 'Accettata'}

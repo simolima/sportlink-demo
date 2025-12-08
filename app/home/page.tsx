@@ -34,6 +34,8 @@ export default function HomePage() {
     const [userRole, setUserRole] = useState<string>('')
     const [userName, setUserName] = useState<string>('')
     const [isClubAdmin, setIsClubAdmin] = useState(false)
+    const [adminClubs, setAdminClubs] = useState<Array<{ id: string; name: string }>>([])
+    const [selectedClubId, setSelectedClubId] = useState<string | null>(null)
 
     useEffect(() => {
         const id = localStorage.getItem('currentUserId')
@@ -49,25 +51,39 @@ export default function HomePage() {
         setUserRole(role)
         setUserName(name)
 
-        // Verifica se è admin di un club
+        // Verifica club admin e popola selector
         checkClubAdmin(id)
-        setLoading(false)
     }, [router])
 
     const checkClubAdmin = async (id: string) => {
         try {
-            const res = await fetch('/api/club-memberships')
+            const res = await fetch(`/api/club-memberships?userId=${id}`)
             if (res.ok) {
                 const memberships = await res.json()
-                const adminMembership = memberships.find((m: any) =>
-                    m.userId === id || m.userId === String(id)
-                ) && memberships.find((m: any) =>
-                    (m.userId === id || m.userId === String(id)) && m.role === 'Admin'
+                const adminMemberships = memberships.filter((m: any) =>
+                    (m.userId === id || m.userId === String(id)) && m.role === 'Admin' && m.isActive !== false
                 )
-                setIsClubAdmin(!!adminMembership)
+
+                const clubs = adminMemberships.map((m: any) => ({
+                    id: m.clubId?.toString(),
+                    name: m.club?.name || `Club ${m.clubId}`,
+                })).filter((c: any) => c.id)
+
+                setAdminClubs(clubs)
+                setIsClubAdmin(clubs.length > 0)
+
+                // Restore last selection or default to first
+                const stored = typeof window !== 'undefined' ? localStorage.getItem('selectedClubId') : null
+                const fallbackId = stored && clubs.find(c => c.id === stored) ? stored : (clubs[0]?.id || null)
+                setSelectedClubId(fallbackId)
+                if (fallbackId) {
+                    localStorage.setItem('selectedClubId', fallbackId)
+                }
             }
         } catch (error) {
             console.error('Error checking club admin:', error)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -99,32 +115,17 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                {/* Dashboard per Player */}
-                {isPlayer && (
+                {/* Sezione Personale (Player / Coach / DS / Staff) */}
+                {(isPlayer || isCoach || isDS || isStaff) && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
-                            La tua carriera
+                            Area Personale
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
                             <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} />
-                        </div>
-                    </div>
-                )}
-
-                {/* Dashboard per Coach */}
-                {isCoach && (
-                    <div className="space-y-6">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
-                            La tua carriera
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
-                            <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} />
+                            <YourClubWidget userId={userId!} clubId={selectedClubId || undefined} />
                         </div>
                     </div>
                 )}
@@ -146,15 +147,39 @@ export default function HomePage() {
                 {/* Dashboard per Sporting Director / Club Admin */}
                 {showClubAdminSection && (
                     <div className="space-y-6 mt-8">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
-                            Gestione Club
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <YourClubWidget userId={userId!} />
-                            <ReceivedApplicationsWidget userId={userId!} />
-                            <MyAnnouncementsWidget userId={userId!} />
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                <span className="w-1.5 h-5 bg-green-700 rounded-full"></span>
+                                Gestione Società
+                            </h2>
+                            {adminClubs.length > 1 && (
+                                <select
+                                    value={selectedClubId || ''}
+                                    onChange={(e) => {
+                                        const value = e.target.value || null
+                                        setSelectedClubId(value)
+                                        if (value) localStorage.setItem('selectedClubId', value)
+                                    }}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm"
+                                >
+                                    {adminClubs.map((club) => (
+                                        <option key={club.id} value={club.id}>{club.name}</option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
+
+                        {adminClubs.length === 0 || !selectedClubId ? (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-600">
+                                Nessuna società amministrata.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <YourClubWidget userId={userId!} clubId={selectedClubId} />
+                                <ReceivedApplicationsWidget userId={userId!} clubId={selectedClubId} />
+                                <MyAnnouncementsWidget userId={userId!} clubId={selectedClubId} />
+                            </div>
+                        )}
                     </div>
                 )}
 

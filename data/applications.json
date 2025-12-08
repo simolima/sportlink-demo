@@ -2,7 +2,7 @@
   {
     "id": 1765068387112,
     "opportunityId": 1765053656807,
-    "playerId": 2,
+    "applicantId": "2",
     "status": "accepted",
     "message": "",
     "appliedAt": "2025-12-07T00:46:27.112Z",
@@ -12,10 +12,59 @@
   {
     "id": 1765104939065,
     "opportunityId": 1765053656807,
-    "playerId": "1765103614007",
+    "applicantId": "1765103614007",
     "agentId": "2",
+    "agentName": "Gianna Rossi",
     "status": "pending",
     "message": "Candidatura inviata dall'agente Gianna Rossi",
     "appliedAt": "2025-12-07T10:55:39.065Z"
+  },
+  {
+    "id": 1765201907444,
+    "opportunityId": 1765201506930,
+    "applicantId": "1765103614007",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T13:51:47.444Z"
+  },
+  {
+    "id": 1765201909902,
+    "opportunityId": 1765200030818,
+    "applicantId": "1765103614007",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T13:51:49.902Z"
+  },
+  {
+    "id": 1765201911484,
+    "opportunityId": 1765199966223,
+    "applicantId": "1765103614007",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T13:51:51.484Z"
+  },
+  {
+    "id": 1765202044760,
+    "opportunityId": 1765201506930,
+    "applicantId": "1765202028769",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T13:54:04.760Z"
+  },
+  {
+    "id": 1765202262942,
+    "opportunityId": 1765200030818,
+    "applicantId": "1765202028769",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T13:57:42.942Z"
+  },
+  {
+    "id": 1765202436547,
+    "opportunityId": 1765199966223,
+    "applicantId": "1765202028769",
+    "status": "pending",
+    "message": "",
+    "appliedAt": "2025-12-08T14:00:36.547Z"
   }
 ]

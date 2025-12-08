@@ -103,5 +103,26 @@
     "isActive": true,
     "createdBy": "1765196290455",
     "createdAt": "2025-12-08T13:20:30.818Z"
+  },
+  {
+    "id": 1765201506930,
+    "clubId": "1765196339656",
+    "title": "Ala Tiratrice",
+    "type": "Player Search",
+    "sport": "Basket",
+    "roleRequired": "Player",
+    "position": "Ala",
+    "description": "Ala con specialita tiro da tre",
+    "location": "BG",
+    "city": "BG",
+    "country": "",
+    "salary": "0",
+    "contractType": "Volunteer",
+    "level": "Amateur",
+    "requirements": "minimo 35 per cento di success rate tiro da tre libero",
+    "expiryDate": "2026-01-31",
+    "isActive": true,
+    "createdBy": "1765196290455",
+    "createdAt": "2025-12-08T13:45:06.930Z"
   }
 ]

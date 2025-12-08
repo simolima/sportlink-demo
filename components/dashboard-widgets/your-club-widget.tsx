@@ -15,9 +15,10 @@ interface Club {
 
 export interface YourClubWidgetProps {
     userId: string
+    clubId?: string | number
 }
 
-export default function YourClubWidget({ userId }: YourClubWidgetProps) {
+export default function YourClubWidget({ userId, clubId }: YourClubWidgetProps) {
     const [club, setClub] = useState<Club | null>(null)
     const [memberRole, setMemberRole] = useState<string>('')
     const [loading, setLoading] = useState(true)
@@ -26,10 +27,14 @@ export default function YourClubWidget({ userId }: YourClubWidgetProps) {
         const fetchData = async () => {
             try {
                 // Check club memberships
-                const memRes = await fetch('/api/club-memberships')
+                const memRes = await fetch(`/api/club-memberships?userId=${userId}`)
                 if (memRes.ok) {
                     const memberships = await memRes.json()
                     const myMembership = memberships.find((m: any) =>
+                        (m.userId === userId || m.userId?.toString() === userId?.toString()) &&
+                        m.isActive !== false &&
+                        (!clubId || String(m.clubId) === String(clubId))
+                    ) || memberships.find((m: any) =>
                         (m.userId === userId || m.userId?.toString() === userId?.toString()) && m.isActive !== false
                     )
 

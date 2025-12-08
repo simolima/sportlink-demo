@@ -1,5 +1,32 @@
 [
   {
+    "id": "1765202028769",
+    "firstName": "Simone",
+    "lastName": "Lima",
+    "email": "simo@test",
+    "password": "password123",
+    "birthDate": "1997-02-27",
+    "professionalRole": "Player",
+    "sports": [
+      "Basket"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "unavailable",
+    "level": "",
+    "experiences": [],
+    "verified": false,
+    "createdAt": "2025-12-08T13:53:48.769Z",
+    "updatedAt": ""
+  },
+  {
     "id": "1765196290455",
     "firstName": "Admin",
     "lastName": "Test",

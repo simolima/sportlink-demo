@@ -34,8 +34,8 @@ function readClubs() {
 // GET /api/applications - Get applications with filters
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
-    const opportunityId = searchParams.get('opportunityId') || searchParams.get('announcementId') // Retro-compatibilità
-    const playerId = searchParams.get('playerId')
+    const opportunityId = searchParams.get('opportunityId')
+    const applicantId = searchParams.get('applicantId')
     const agentId = searchParams.get('agentId')
     const clubId = searchParams.get('clubId')
     const status = searchParams.get('status')
@@ -45,17 +45,18 @@ export async function GET(request: Request) {
     const users = readUsers()
     const clubs = readClubs()
 
-    // Filter by opportunity (supporta sia opportunityId che announcementId)
+    // Filter by opportunity
     if (opportunityId) {
         applications = applications.filter((app: any) => {
-            const appOpportunityId = app.opportunityId || app.announcementId
-            return appOpportunityId?.toString() === opportunityId
+            return app.opportunityId?.toString() === opportunityId
         })
     }
 
-    // Filter by player
-    if (playerId) {
-        applications = applications.filter((app: any) => app.playerId.toString() === playerId)
+    // Filter by applicant
+    if (applicantId) {
+        applications = applications.filter((app: any) => {
+            return app.applicantId?.toString() === applicantId
+        })
     }
 
     // Filter by agent
@@ -68,8 +69,7 @@ export async function GET(request: Request) {
         const clubOpportunities = opportunities.filter((o: any) => o.clubId.toString() === clubId)
         const opportunityIds = clubOpportunities.map((o: any) => o.id.toString())
         applications = applications.filter((app: any) => {
-            const appOpportunityId = app.opportunityId || app.announcementId
-            return opportunityIds.includes(appOpportunityId?.toString())
+            return opportunityIds.includes(app.opportunityId?.toString())
         })
     }
 
@@ -80,9 +80,8 @@ export async function GET(request: Request) {
 
     // Enrich with related data
     const enriched = applications.map((app: any) => {
-        const appOpportunityId = app.opportunityId || app.announcementId
-        const opportunity = opportunities.find((o: any) => o.id.toString() === appOpportunityId?.toString())
-        const player = users.find((u: any) => u.id.toString() === app.playerId.toString())
+        const opportunity = opportunities.find((o: any) => o.id.toString() === app.opportunityId?.toString())
+        const applicant = users.find((u: any) => u.id.toString() === app.applicantId?.toString())
         const agent = app.agentId ? users.find((u: any) => u.id.toString() === app.agentId.toString()) : null
         const club = opportunity ? clubs.find((c: any) => c.id.toString() === opportunity.clubId.toString()) : null
 
@@ -95,20 +94,13 @@ export async function GET(request: Request) {
                 sport: opportunity.sport,
                 club: club ? { id: club.id, name: club.name, logoUrl: club.logoUrl } : null
             } : null,
-            announcement: opportunity ? { // @deprecated - per retro-compatibilità
-                id: opportunity.id,
-                title: opportunity.title,
-                type: opportunity.type,
-                sport: opportunity.sport,
-                club: club ? { id: club.id, name: club.name, logoUrl: club.logoUrl } : null
-            } : null,
-            player: player ? {
-                id: player.id,
-                firstName: player.firstName,
-                lastName: player.lastName,
-                avatarUrl: player.avatarUrl,
-                professionalRole: player.professionalRole,
-                sport: player.sport
+            player: applicant ? {
+                id: applicant.id,
+                firstName: applicant.firstName,
+                lastName: applicant.lastName,
+                avatarUrl: applicant.avatarUrl,
+                professionalRole: applicant.professionalRole,
+                sport: applicant.sport
             } : null,
             agent: agent ? {
                 id: agent.id,
@@ -128,20 +120,18 @@ export async function GET(request: Request) {
 // POST /api/applications - Create new application
 export async function POST(request: Request) {
     const body = await request.json()
-    const { opportunityId, announcementId, playerId, agentId, message } = body
-    const finalOpportunityId = opportunityId || announcementId // Retro-compatibilità
+    const { opportunityId, applicantId, agentId, message } = body
 
-    if (!finalOpportunityId || !playerId) {
-        return NextResponse.json({ error: 'opportunityId and playerId required' }, { status: 400 })
+    if (!opportunityId || !applicantId) {
+        return NextResponse.json({ error: 'opportunityId and applicantId required' }, { status: 400 })
     }
 
     const applications = readApplications()
 
-    // Check if application already exists for this player and opportunity
+    // Check if application already exists for this applicant and opportunity
     const existing = applications.find((app: any) => {
-        const appOpportunityId = app.opportunityId || app.announcementId
-        return appOpportunityId?.toString() === finalOpportunityId.toString() &&
-            app.playerId.toString() === playerId.toString() &&
+        return app.opportunityId?.toString() === opportunityId.toString() &&
+            app.applicantId?.toString() === applicantId.toString() &&
             app.status !== 'withdrawn'
     })
 
@@ -151,8 +141,8 @@ export async function POST(request: Request) {
 
     const newApplication = {
         id: Date.now(),
-        opportunityId: finalOpportunityId,
-        playerId,
+        opportunityId: opportunityId,
+        applicantId: applicantId,
         agentId: agentId || undefined,
         status: 'pending',
         message: message || '',

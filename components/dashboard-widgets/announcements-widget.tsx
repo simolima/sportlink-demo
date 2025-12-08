@@ -1,10 +1,10 @@
 "use client"
 import React from 'react'
 import Link from 'next/link'
-import { Announcement } from '@/lib/types'
+import { Opportunity } from '@/lib/types'
 
 interface AnnouncementsWidgetProps {
-    announcements: Announcement[]
+    announcements: Opportunity[]
     title?: string
     subtitle?: string
     maxItems?: number

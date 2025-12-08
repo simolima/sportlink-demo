@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Briefcase, MapPin, Calendar, Building2, Search } from 'lucide-react'
-import { Announcement, ANNOUNCEMENT_TYPES, LEVELS, SUPPORTED_SPORTS } from '@/lib/types'
+import { Opportunity, OPPORTUNITY_TYPES, LEVELS, SUPPORTED_SPORTS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
-interface AnnouncementWithDetails extends Announcement {
+interface OpportunityWithDetails extends Opportunity {
   club?: { id: number; name: string; logoUrl?: string }
   applicationsCount?: number
 }
@@ -16,10 +16,11 @@ export default function JobsPage() {
   const { user, isLoading: authLoading } = useRequireAuth(false)
   const router = useRouter()
   const { showToast } = useToast()
-  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([])
+  const [announcements, setAnnouncements] = useState<OpportunityWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [affiliatedPlayers, setAffiliatedPlayers] = useState<any[]>([])
+  const [userApplications, setUserApplications] = useState<any[]>([])
   const [searchInput, setSearchInput] = useState('') // Stato separato per l'input
   const [filters, setFilters] = useState({
     search: '',
@@ -44,6 +45,13 @@ export default function JobsPage() {
       const users = await res.json()
       const user = users.find((u: any) => u.id.toString() === userId)
       setCurrentUser(user)
+
+      // Carica candidature dell'utente
+      const appsRes = await fetch(`/api/applications?applicantId=${userId}`)
+      if (appsRes.ok) {
+        const apps = await appsRes.json()
+        setUserApplications(apps)
+      }
 
       // Se è un Agent, carica i giocatori affiliati
       if (user && user.professionalRole === 'Agent') {
@@ -124,10 +132,10 @@ export default function JobsPage() {
     }
 
     // Candidatura standard (Player, Director, President)
-    const playerId = parseInt(userId)
+    const applicantId = userId
 
     // Check if already applied
-    const checkRes = await fetch(`/api/applications?announcementId=${announcementId}&playerId=${playerId}`)
+    const checkRes = await fetch(`/api/applications?opportunityId=${announcementId}&applicantId=${applicantId}`)
     const existing = await checkRes.json()
 
     if (existing.length > 0) {
@@ -140,15 +148,23 @@ export default function JobsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          announcementId,
-          playerId,
+          opportunityId: announcementId,
+          applicantId,
           message: '',
         }),
       })
 
       if (res.ok) {
         showToast('success', 'Candidatura inviata!', 'La tua candidatura è stata inviata con successo')
-        fetchAnnouncements()
+        // Ricarica candidature
+        const userId = localStorage.getItem('currentUserId')
+        if (userId) {
+          const appsRes = await fetch(`/api/applications?applicantId=${userId}`)
+          if (appsRes.ok) {
+            const apps = await appsRes.json()
+            setUserApplications(apps)
+          }
+        }
       } else {
         const error = await res.json()
         showToast('error', 'Errore', error.error || 'Impossibile inviare la candidatura')
@@ -179,7 +195,7 @@ export default function JobsPage() {
 
     // Check if already applied
     const checkRes = await fetch(
-      `/api/applications?announcementId=${announcementId}&playerId=${selectedPlayer.id}`
+      `/api/applications?opportunityId=${announcementId}&applicantId=${selectedPlayer.id}`
     )
     const existing = await checkRes.json()
 
@@ -193,8 +209,8 @@ export default function JobsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          announcementId,
-          playerId: selectedPlayer.id,
+          opportunityId: announcementId,
+          applicantId: selectedPlayer.id,
           agentId: currentUser.id,
           message: `Candidatura inviata dall'agente ${currentUser.firstName} ${currentUser.lastName}`,
         }),
@@ -317,6 +333,12 @@ export default function JobsPage() {
                 userRole === 'Agent' ? requiredRole === 'Player' : userRole === requiredRole
               const isCompatible = canApply
 
+              // Check if already applied
+              const hasApplied = userApplications.some((app: any) => {
+                const appOpportunityId = app.opportunityId || app.announcementId
+                return appOpportunityId?.toString() === announcement.id.toString()
+              })
+
               return (
                 <div
                   key={announcement.id}
@@ -418,13 +440,19 @@ export default function JobsPage() {
                         announcement
                       )
                     }
-                    disabled={!isCompatible}
-                    className={`w-full px-4 py-2 rounded-lg font-medium transition ${isCompatible
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    disabled={!isCompatible || hasApplied}
+                    className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
+                      ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                      : isCompatible
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                   >
-                    {currentUser?.professionalRole === 'Agent' ? 'Candida Assistito' : 'Candidati'}
+                    {hasApplied
+                      ? '✓ Candidatura già inviata'
+                      : currentUser?.professionalRole === 'Agent'
+                        ? 'Candida Assistito'
+                        : 'Candidati'}
                   </button>
                 </div>
               )

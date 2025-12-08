@@ -22,14 +22,13 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/applications')
+                const res = await fetch(`/api/applications?applicantId=${userId}`)
                 if (res.ok) {
                     const applications = await res.json()
-                    const myApps = applications.filter((a: any) => a.applicantId === userId)
-                    const pending = myApps.filter((a: any) => a.status === 'pending').length
-                    const accepted = myApps.filter((a: any) => a.status === 'accepted').length
-                    const rejected = myApps.filter((a: any) => a.status === 'rejected').length
-                    setSummary({ pending, accepted, rejected, total: myApps.length })
+                    const pending = applications.filter((a: any) => a.status === 'pending').length
+                    const accepted = applications.filter((a: any) => a.status === 'accepted').length
+                    const rejected = applications.filter((a: any) => a.status === 'rejected').length
+                    setSummary({ pending, accepted, rejected, total: applications.length })
                 }
             } catch (error) {
                 console.error('Error fetching applications:', error)
@@ -57,7 +56,7 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                         </div>
                     </div>
                     <Link
-                        href="/opportunities"
+                        href="/my-applications"
                         className="text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
                         Dettagli →

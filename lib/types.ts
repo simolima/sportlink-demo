@@ -57,11 +57,6 @@ export const OPPORTUNITY_TYPE_TRANSLATIONS: Record<OpportunityType, string> = {
   'Scouting': 'Scouting Event'
 };
 
-// @deprecated - Usa OPPORTUNITY_TYPES
-export const ANNOUNCEMENT_TYPES = OPPORTUNITY_TYPES;
-export type AnnouncementType = OpportunityType;
-export const ANNOUNCEMENT_TYPE_TRANSLATIONS = OPPORTUNITY_TYPE_TRANSLATIONS;
-
 // Tipi di contratto
 export const CONTRACT_TYPES = [
   'Full-time',
@@ -264,15 +259,11 @@ export type Opportunity = {
   updatedAt?: string;
 };
 
-// @deprecated - Usa Opportunity
-export type Announcement = Opportunity;
-
 // Application/Candidatura
 export type Application = {
   id: number | string;
   opportunityId: number | string;
-  announcementId?: number | string; // @deprecated - Usa opportunityId
-  playerId: number | string; // User ID del candidato
+  applicantId: number | string; // User ID del candidato
   agentId?: number | string; // Se candidatura via agente
   status: ApplicationStatus;
   message?: string;
@@ -340,14 +331,12 @@ export type ApplicationWithDetails = Application & {
   player: User;
   agent?: User;
   opportunity: Opportunity & { club: Club };
-  announcement?: Opportunity & { club: Club }; // @deprecated - Usa opportunity
 };
 
 // Club con contatori e membri
 export type ClubWithDetails = Club & {
   memberships?: ClubMembership[];
   activeOpportunities?: Opportunity[];
-  activeAnnouncements?: Opportunity[]; // @deprecated - Usa activeOpportunities
   pendingJoinRequests?: number;
 };
 
@@ -356,7 +345,6 @@ export type NotificationWithDetails = Notification & {
   relatedUser?: User;
   relatedClub?: Club;
   relatedOpportunity?: Opportunity;
-  relatedAnnouncement?: Opportunity; // @deprecated - Usa relatedOpportunity
 };
 
 // ============================================================================

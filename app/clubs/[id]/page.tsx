@@ -12,7 +12,7 @@ import {
     CheckBadgeIcon,
     ArrowLeftIcon
 } from '@heroicons/react/24/outline'
-import { type Club, ANNOUNCEMENT_TYPES, LEVELS, CONTRACT_TYPES, PROFESSIONAL_ROLES, SUPPORTED_SPORTS } from '@/lib/types'
+import { type Club, OPPORTUNITY_TYPES, LEVELS, CONTRACT_TYPES, PROFESSIONAL_ROLES, SUPPORTED_SPORTS } from '@/lib/types'
 
 export default function ClubDetailPage() {
     const router = useRouter()

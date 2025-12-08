@@ -16,44 +16,27 @@ interface Announcement {
 
 export interface MyAnnouncementsWidgetProps {
     userId: string
+    clubId?: string | number
 }
 
-export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetProps) {
+export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncementsWidgetProps) {
     const [announcements, setAnnouncements] = useState<Announcement[]>([])
-    const [clubId, setClubId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const maxItems = 5
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Get clubs where user is admin
-                const clubsRes = await fetch('/api/clubs')
-                if (clubsRes.ok) {
-                    const clubs = await clubsRes.json()
-                    const myClub = clubs.find((c: any) =>
-                        c.adminId === userId ||
-                        c.presidentId === userId ||
-                        c.directorId === userId ||
-                        c.sportingDirectorId === userId
-                    )
+                if (!clubId) return
 
-                    if (myClub) {
-                        setClubId(String(myClub.id))
-
-                        // Get announcements for this club
-                        const annRes = await fetch('/api/opportunities')
-                        if (annRes.ok) {
-                            const allAnnouncements = await annRes.json()
-                            const myAnnouncements = allAnnouncements.filter((a: any) =>
-                                String(a.clubId) === String(myClub.id)
-                            ).map((a: any) => ({
-                                ...a,
-                                isActive: new Date(a.expiryDate) > new Date()
-                            }))
-                            setAnnouncements(myAnnouncements)
-                        }
-                    }
+                const annRes = await fetch(`/api/opportunities?clubId=${clubId}&activeOnly=true`)
+                if (annRes.ok) {
+                    const allAnnouncements = await annRes.json()
+                    const myAnnouncements = allAnnouncements.map((a: any) => ({
+                        ...a,
+                        isActive: new Date(a.expiryDate) > new Date()
+                    }))
+                    setAnnouncements(myAnnouncements)
                 }
             } catch (error) {
                 console.error('Error fetching announcements:', error)
@@ -62,7 +45,7 @@ export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetP
             }
         }
         fetchData()
-    }, [userId])
+    }, [userId, clubId])
 
     if (loading) {
         return (
@@ -90,11 +73,19 @@ export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetP
         return new Date(expiryDate) <= now
     }
 
+    if (!clubId) {
+        return (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-6 py-8 text-center text-gray-500">Seleziona una società per vedere gli annunci.</div>
+            </div>
+        )
+    }
+
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                             <MegaphoneIcon className="w-5 h-5 text-orange-600" />
@@ -104,22 +95,28 @@ export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetP
                             <p className="text-xs text-gray-500">{activeAnnouncements.length} annunci attivi</p>
                         </div>
                     </div>
-                    {clubId && (
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={`/opportunities?clubId=${clubId}`}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-800"
+                        >
+                            Vai a tutti
+                        </Link>
                         <Link
                             href={`/clubs/${clubId}`}
-                            className="flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+                            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
                         >
                             <PlusIcon className="w-4 h-4" />
                             Nuovo
                         </Link>
-                    )}
+                    </div>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="divide-y divide-gray-100">
+            <div className="px-6 py-5">
                 {displayAnnouncements.length === 0 ? (
-                    <div className="px-6 py-8 text-center">
+                    <div className="text-center">
                         <MegaphoneIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                         <p className="text-gray-500 text-sm mb-4">Nessun annuncio attivo</p>
                         {clubId && (
@@ -133,47 +130,36 @@ export default function MyAnnouncementsWidget({ userId }: MyAnnouncementsWidgetP
                         )}
                     </div>
                 ) : (
-                    displayAnnouncements.map((announcement) => {
-                        const expiringSoon = isExpiringSoon(announcement.expiryDate)
-                        const expired = isExpired(announcement.expiryDate)
+                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
+                        {displayAnnouncements.map((announcement) => {
+                            const expiringSoon = isExpiringSoon(announcement.expiryDate)
+                            const expired = isExpired(announcement.expiryDate)
 
-                        return (
-                            <div
-                                key={announcement.id}
-                                className={`px-6 py-4 ${expired ? 'bg-red-50' : expiringSoon ? 'bg-amber-50' : ''}`}
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h4 className="font-semibold text-gray-900 truncate">{announcement.title}</h4>
-                                            {expired && (
-                                                <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                                            )}
-                                            {expiringSoon && !expired && (
-                                                <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                                            )}
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
-                                            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">
-                                                {announcement.roleRequired}
-                                            </span>
-                                            {announcement.applicationsCount !== undefined && (
-                                                <span className="text-gray-500">
-                                                    {announcement.applicationsCount} candidature
-                                                </span>
-                                            )}
-                                        </div>
+                            return (
+                                <Link
+                                    href={`/opportunities?focus=${announcement.id}`}
+                                    key={announcement.id}
+                                    className={`min-w-[230px] max-w-[260px] snap-start p-4 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-sm transition bg-white ${expired ? 'bg-red-50 border-red-100' : expiringSoon ? 'bg-amber-50 border-amber-100' : ''}`}
+                                >
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                        <h4 className="font-semibold text-gray-900 leading-snug line-clamp-2">{announcement.title}</h4>
+                                        {expired && <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />}
+                                        {expiringSoon && !expired && <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />}
                                     </div>
-                                    <div className="text-right text-xs whitespace-nowrap">
-                                        <div className={`flex items-center gap-1 ${expired ? 'text-red-500' : expiringSoon ? 'text-amber-500' : 'text-gray-400'}`}>
-                                            <CalendarIcon className="w-3.5 h-3.5" />
-                                            {expired ? 'Scaduto' : `Scade: ${new Date(announcement.expiryDate).toLocaleDateString('it-IT')}`}
-                                        </div>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                        <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">{announcement.roleRequired}</span>
+                                        {announcement.applicationsCount !== undefined && (
+                                            <span className="text-gray-500">{announcement.applicationsCount} candidature</span>
+                                        )}
                                     </div>
-                                </div>
-                            </div>
-                        )
-                    })
+                                    <div className={`mt-3 text-xs flex items-center gap-1 ${expired ? 'text-red-600' : expiringSoon ? 'text-amber-600' : 'text-gray-500'}`}>
+                                        <CalendarIcon className="w-3.5 h-3.5" />
+                                        {expired ? 'Scaduto' : `Scade: ${new Date(announcement.expiryDate).toLocaleDateString('it-IT')}`}
+                                    </div>
+                                </Link>
+                            )
+                        })}
+                    </div>
                 )}
             </div>
 

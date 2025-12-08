@@ -87,7 +87,7 @@ export default function CompleteProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+        <div className="min-h-screen bg-gradient-to-br from-base-100 to-white">
             {/* Header */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-4xl mx-auto px-4 py-6">
@@ -116,8 +116,8 @@ export default function CompleteProfilePage() {
                             onClick={() => handleSelectSport(sport)}
                             disabled={isSaving}
                             className={`p-6 rounded-xl border-2 transition-all text-center ${selectedSports.includes(sport)
-                                ? 'border-green-600 bg-green-50'
-                                : 'border-gray-200 bg-white hover:border-green-300'
+                                ? 'border-primary bg-primary/5'
+                                : 'border-gray-200 bg-white hover:border-primary/30'
                                 } ${isSaving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                             <div className="text-4xl mb-2">
@@ -142,7 +142,7 @@ export default function CompleteProfilePage() {
                     <button
                         onClick={handleConfirm}
                         disabled={isSaving || selectedSports.length === 0}
-                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        className="bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         {isSaving ? 'Salvataggio...' : 'Salva e continua'}
                     </button>

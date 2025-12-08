@@ -103,7 +103,7 @@ export default function ReceivedApplicationsWidget({ userId, clubId }: ReceivedA
                     </div>
                     <Link
                         href="/club-applications"
-                        className="text-xs font-semibold text-green-600 hover:text-green-700"
+                        className="text-xs font-semibold text-primary hover:text-primary/80"
                     >
                         Gestisci →
                     </Link>

@@ -114,7 +114,7 @@ export default function ClubApplicationsPage() {
       <div className="mb-6">
         <button
           onClick={() => router.back()}
-          className="text-blue-600 hover:underline mb-4"
+          className="text-primary hover:underline mb-4"
         >
           ← Torna al club
         </button>
@@ -132,8 +132,8 @@ export default function ClubApplicationsPage() {
             key={status}
             onClick={() => setFilter(status as any)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-primary text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             {status === 'all' && 'Tutte'}
@@ -166,7 +166,7 @@ export default function ClubApplicationsPage() {
                       {app.player?.firstName} {app.player?.lastName}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      Candidatura per: <span className="font-medium">{app.announcement?.title}</span>
+                      Candidatura per: <span className="font-medium">{app.opportunity?.title}</span>
                     </p>
                     {app.agent && (
                       <p className="text-xs text-gray-500 mt-1">
@@ -188,10 +188,10 @@ export default function ClubApplicationsPage() {
                   {/* Badge stato */}
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium text-center ${app.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : app.status === 'accepted'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                      ? 'bg-warning/10 text-warning'
+                      : app.status === 'accepted'
+                        ? 'bg-success/20 text-success'
+                        : 'bg-red-100 text-red-800'
                       }`}
                   >
                     {app.status === 'pending' && 'In attesa'}
@@ -209,7 +209,7 @@ export default function ClubApplicationsPage() {
                             'accepted'
                           )
                         }
-                        className="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                        className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors"
                         title="Accetta"
                       >
                         <Check size={20} />

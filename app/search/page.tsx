@@ -130,31 +130,31 @@ export default function SearchPage() {
     const totalResults = filteredUsers.length + filteredClubs.length + filteredOpps.length
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-base-100">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white">
+                    <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white">
                         <MagnifyingGlassIcon className="w-5 h-5" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Ricerca globale</h1>
-                        <p className="text-gray-600">Persone, società e opportunità</p>
+                        <h1 className="text-2xl font-bold text-secondary">Ricerca globale</h1>
+                        <p className="text-secondary/80">Persone, società e opportunità</p>
                     </div>
                 </div>
 
                 <form onSubmit={onSubmit} className="mb-8 flex items-center gap-3">
-                    <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm">
-                        <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                    <div className="flex-1 flex items-center bg-base-200 border border-base-300 rounded-lg px-4 py-2 shadow-sm">
+                        <MagnifyingGlassIcon className="w-5 h-5 text-secondary/60" />
                         <input
                             name="q"
                             defaultValue={query}
                             placeholder="Cerca persone, società, opportunità"
-                            className="flex-1 ml-3 bg-transparent focus:outline-none text-gray-900"
+                            className="flex-1 ml-3 bg-transparent focus:outline-none text-secondary"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                        className="btn btn-primary"
                     >
                         Cerca
                     </button>
@@ -174,19 +174,19 @@ export default function SearchPage() {
                             </div>
                         )}
                         {!loading && !error && totalResults === 0 && (
-                            <div className="bg-white border border-gray-200 rounded-lg p-6 text-gray-600">
+                            <div className="bg-base-200 border border-base-300 rounded-lg p-6 text-secondary/80">
                                 Nessun risultato trovato per "{query}".
                             </div>
                         )}
                         {/* Persone */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                        <div className="bg-base-200 border border-base-300 rounded-lg p-6 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
-                                <UserGroupIcon className="w-5 h-5 text-green-600" />
-                                <h2 className="font-semibold text-gray-900">Persone</h2>
-                                <span className="text-xs text-gray-500">{filteredUsers.length}</span>
+                                <UserGroupIcon className="w-5 h-5 text-primary" />
+                                <h2 className="font-semibold text-secondary">Persone</h2>
+                                <span className="text-xs text-secondary/60">{filteredUsers.length}</span>
                             </div>
                             {loading ? (
-                                <p className="text-sm text-gray-500">Caricamento...</p>
+                                <p className="text-sm text-secondary/60">Caricamento...</p>
                             ) : filteredUsers.length === 0 ? (
                                 <p className="text-sm text-gray-500">Nessun risultato</p>
                             ) : (
@@ -195,11 +195,11 @@ export default function SearchPage() {
                                         <Link
                                             key={u.id}
                                             href={`/profile/${u.id}`}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-green-500 transition"
+                                            className="border border-base-300 rounded-lg p-4 hover:border-primary transition bg-base-200"
                                         >
-                                            <div className="font-semibold text-gray-900">{highlight(`${u.firstName || ''} ${u.lastName || ''}`)}</div>
-                                            <div className="text-sm text-gray-600">{highlight(u.professionalRole || 'Ruolo non specificato')}</div>
-                                            <div className="text-xs text-gray-500">{highlight(u.sports?.join(', ') || u.sport || 'Sport non indicato')}</div>
+                                            <div className="font-semibold text-secondary">{highlight(`${u.firstName || ''} ${u.lastName || ''}`)}</div>
+                                            <div className="text-sm text-secondary/80">{highlight(u.professionalRole || 'Ruolo non specificato')}</div>
+                                            <div className="text-xs text-secondary/60">{highlight(u.sports?.join(', ') || u.sport || 'Sport non indicato')}</div>
                                         </Link>
                                     ))}
                                 </div>
@@ -207,27 +207,27 @@ export default function SearchPage() {
                         </div>
 
                         {/* Società */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                        <div className="bg-base-200 border border-base-300 rounded-lg p-6 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
-                                <BuildingOfficeIcon className="w-5 h-5 text-green-600" />
-                                <h2 className="font-semibold text-gray-900">Società</h2>
-                                <span className="text-xs text-gray-500">{filteredClubs.length}</span>
+                                <BuildingOfficeIcon className="w-5 h-5 text-primary" />
+                                <h2 className="font-semibold text-secondary">Società</h2>
+                                <span className="text-xs text-secondary/60">{filteredClubs.length}</span>
                             </div>
                             {loading ? (
-                                <p className="text-sm text-gray-500">Caricamento...</p>
+                                <p className="text-sm text-secondary/60">Caricamento...</p>
                             ) : filteredClubs.length === 0 ? (
-                                <p className="text-sm text-gray-500">Nessun risultato</p>
+                                <p className="text-sm text-secondary/60">Nessun risultato</p>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {filteredClubs.map((c) => (
                                         <Link
                                             key={c.id}
                                             href={`/clubs/${c.id}`}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-green-500 transition"
+                                            className="border border-base-300 rounded-lg p-4 hover:border-primary transition bg-base-200"
                                         >
-                                            <div className="font-semibold text-gray-900">{highlight(c.name || 'Società')}</div>
-                                            <div className="text-sm text-gray-600">{highlight(c.sport || 'Sport non indicato')}</div>
-                                            <div className="text-xs text-gray-500">{highlight(c.city || 'Località non indicata')}</div>
+                                            <div className="font-semibold text-secondary">{highlight(c.name || 'Società')}</div>
+                                            <div className="text-sm text-secondary/80">{highlight(c.sport || 'Sport non indicato')}</div>
+                                            <div className="text-xs text-secondary/60">{highlight(c.city || 'Località non indicata')}</div>
                                         </Link>
                                     ))}
                                 </div>
@@ -235,27 +235,27 @@ export default function SearchPage() {
                         </div>
 
                         {/* Opportunità */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                        <div className="bg-base-200 border border-base-300 rounded-lg p-6 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
-                                <BriefcaseIcon className="w-5 h-5 text-green-600" />
-                                <h2 className="font-semibold text-gray-900">Opportunità</h2>
-                                <span className="text-xs text-gray-500">{filteredOpps.length}</span>
+                                <BriefcaseIcon className="w-5 h-5 text-primary" />
+                                <h2 className="font-semibold text-secondary">Opportunità</h2>
+                                <span className="text-xs text-secondary/60">{filteredOpps.length}</span>
                             </div>
                             {loading ? (
-                                <p className="text-sm text-gray-500">Caricamento...</p>
+                                <p className="text-sm text-secondary/60">Caricamento...</p>
                             ) : filteredOpps.length === 0 ? (
-                                <p className="text-sm text-gray-500">Nessun risultato</p>
+                                <p className="text-sm text-secondary/60">Nessun risultato</p>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {filteredOpps.map((o) => (
                                         <Link
                                             key={o.id}
                                             href={`/opportunities?focus=${o.id}`}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-green-500 transition"
+                                            className="border border-base-300 rounded-lg p-4 hover:border-primary transition bg-base-200"
                                         >
-                                            <div className="font-semibold text-gray-900">{highlight(o.title || 'Opportunità')}</div>
-                                            <div className="text-sm text-gray-600">{highlight(`${o.sport || 'Sport'} • ${o.level || 'Livello'}`)}</div>
-                                            <div className="text-xs text-gray-500">{highlight(o.city || o.club?.name || 'Località / Club')}</div>
+                                            <div className="font-semibold text-secondary">{highlight(o.title || 'Opportunità')}</div>
+                                            <div className="text-sm text-secondary/80">{highlight(`${o.sport || 'Sport'} • ${o.level || 'Livello'}`)}</div>
+                                            <div className="text-xs text-secondary/60">{highlight(o.city || o.club?.name || 'Località / Club')}</div>
                                         </Link>
                                     ))}
                                 </div>

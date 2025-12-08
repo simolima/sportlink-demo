@@ -374,7 +374,7 @@ export default function ClubDetailPage() {
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between">
                         <div className="flex items-end mb-4 md:mb-0">
                             {/* Logo */}
-                            <div className="w-32 h-32 bg-white rounded-lg border-4 border-white shadow-lg overflow-hidden -mt-16 mr-6">
+                            <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden -mt-16 mr-6">
                                 {club.logoUrl ? (
                                     <img
                                         src={club.logoUrl}
@@ -416,7 +416,7 @@ export default function ClubDetailPage() {
                             {isAdmin && (
                                 <button
                                     onClick={() => router.push(`/clubs/${clubId}/applications`)}
-                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                                    className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
                                 >
                                     <BriefcaseIcon className="h-5 w-5" />
                                     Candidature
@@ -441,7 +441,7 @@ export default function ClubDetailPage() {
                                 onClick={handleJoinRequest}
                                 disabled={sendingRequest || isAdmin || members.some(m => m.userId?.toString() === currentUserId) || pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')}
                                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${members.some(m => m.userId?.toString() === currentUserId)
-                                    ? 'bg-green-50 text-green-700 border border-green-200 cursor-default'
+                                    ? 'bg-success/10 text-success border border-success/20 cursor-default'
                                     : pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')
                                         ? 'bg-yellow-50 text-yellow-700 border border-yellow-200 cursor-default'
                                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -477,15 +477,15 @@ export default function ClubDetailPage() {
                 <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex gap-8" aria-label="Tabs">
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'info' ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'info' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
                             onClick={() => setActiveTab('info')}
                         >Info</button>
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'annunci' ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'annunci' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
                             onClick={() => setActiveTab('annunci')}
                         >Annunci</button>
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'membri' ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'membri' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
                             onClick={() => setActiveTab('membri')}
                         >Rosa / Membri</button>
                     </nav>
@@ -590,7 +590,7 @@ export default function ClubDetailPage() {
                                 </p>
                                 <button
                                     onClick={() => router.push('/opportunities')}
-                                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
                                 >
                                     Vedi Opportunità
                                 </button>
@@ -603,13 +603,13 @@ export default function ClubDetailPage() {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-900">Opportunità</h2>
                             {isAdmin && (
-                                <button onClick={() => setShowCreateForm((v) => !v)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold text-sm">
+                                <button onClick={() => setShowCreateForm((v) => !v)} className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 font-semibold text-sm">
                                     {showCreateForm ? 'Annulla' : 'Crea Opportunità'}
                                 </button>
                             )}
                         </div>
                         {showCreateForm && isAdmin && (
-                            <form onSubmit={handleCreateAnnouncement} className="space-y-4 mb-8 bg-green-50 p-6 rounded-lg border border-green-100">
+                            <form onSubmit={handleCreateAnnouncement} className="space-y-4 mb-8 bg-primary/5 p-6 rounded-lg border border-primary/20">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Titolo Opportunità *</label>
@@ -687,7 +687,7 @@ export default function ClubDetailPage() {
                                     <textarea rows={2} className="w-full px-3 py-2 border rounded" value={form.requirements} onChange={e => setForm(prev => ({ ...prev, requirements: e.target.value }))} />
                                 </div>
                                 <div className="flex gap-4 pt-2">
-                                    <button type="submit" disabled={creating} className="px-6 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700 disabled:opacity-50">{creating ? 'Creazione...' : 'Crea Opportunità'}</button>
+                                    <button type="submit" disabled={creating} className="px-6 py-2 bg-primary text-white rounded font-semibold hover:bg-blue-700 disabled:opacity-50">{creating ? 'Creazione...' : 'Crea Opportunità'}</button>
                                     <button type="button" onClick={() => setShowCreateForm(false)} className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">Annulla</button>
                                 </div>
                             </form>
@@ -701,7 +701,7 @@ export default function ClubDetailPage() {
                                 {announcements.map(a => (
                                     <li key={a.id} className="py-4">
                                         <div className="flex items-center gap-4">
-                                            <BriefcaseIcon className="h-7 w-7 text-green-600" />
+                                            <BriefcaseIcon className="h-7 w-7 text-primary" />
                                             <div className="flex-1">
                                                 <div className="font-semibold text-gray-900 text-lg">{a.title}</div>
                                                 <div className="text-xs text-gray-500 mb-1">{a.type} • {a.sport} • {a.roleRequired}</div>
@@ -733,7 +733,7 @@ export default function ClubDetailPage() {
                                 <div className="space-y-3">
                                     {pendingRequests && pendingRequests.map((r: any) => (
                                         <div key={r.id} className="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
-                                            <img src={r.user?.avatarUrl || '/logo.svg'} alt={r.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-50" />
+                                            <img src={r.user?.avatarUrl || '/logo.svg'} alt={r.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-primary/10" />
                                             <div className="flex-1">
                                                 <div className="font-semibold text-gray-900 text-sm">{r.user?.firstName} {r.user?.lastName}</div>
                                                 <div className="text-xs text-gray-600">Ruolo richiesto: {r.requestedRole}{r.requestedPosition ? ` • ${r.requestedPosition}` : ''}</div>
@@ -742,7 +742,7 @@ export default function ClubDetailPage() {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleAcceptRequest(r.id)}
-                                                    className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700"
+                                                    className="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded hover:bg-blue-700"
                                                 >
                                                     Accetta
                                                 </button>
@@ -766,12 +766,12 @@ export default function ClubDetailPage() {
                                     const canRemove = isAdmin || currentUserId === m.userId?.toString()
                                     return (
                                         <li key={m.id} className="flex items-center gap-4 py-3">
-                                            <img src={m.user?.avatarUrl || '/logo.svg'} alt={m.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-100" />
+                                            <img src={m.user?.avatarUrl || '/logo.svg'} alt={m.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-primary/5" />
                                             <div className="flex-1">
                                                 <div className="font-semibold text-gray-900">{m.user?.firstName} {m.user?.lastName}</div>
                                                 <div className="text-xs text-gray-500">{m.role}{m.position ? ` • ${m.position}` : ''}</div>
                                             </div>
-                                            <span className={`text-xs px-2 py-1 rounded ${m.role === 'Admin' ? 'bg-green-100 text-green-700 font-bold' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span>
+                                            <span className={`text-xs px-2 py-1 rounded ${m.role === 'Admin' ? 'bg-success/20 text-success font-bold' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span>
                                             {canRemove && m.role !== 'Admin' && (
                                                 <button
                                                     onClick={() => handleRemoveMember(m.id)}
@@ -797,13 +797,13 @@ export default function ClubDetailPage() {
                                     <ul className="divide-y divide-gray-100">
                                         {pendingRequests.map((r) => (
                                             <li key={r.id} className="flex items-center gap-4 py-3">
-                                                <img src={r.user?.avatarUrl || '/logo.svg'} alt={r.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-green-50" />
+                                                <img src={r.user?.avatarUrl || '/logo.svg'} alt={r.user?.firstName} className="w-10 h-10 rounded-full object-cover bg-primary/10" />
                                                 <div className="flex-1">
                                                     <div className="font-semibold text-gray-900">{r.user?.firstName} {r.user?.lastName}</div>
                                                     <div className="text-xs text-gray-500">{r.requestedRole}{r.requestedPosition ? ` • ${r.requestedPosition}` : ''}</div>
                                                     {r.message && <div className="text-xs text-gray-400 mt-1">{r.message}</div>}
                                                 </div>
-                                                <button onClick={() => handleAcceptRequest(r.id)} className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-semibold mr-2">Accetta</button>
+                                                <button onClick={() => handleAcceptRequest(r.id)} className="px-3 py-1 bg-primary text-white rounded hover:bg-blue-700 text-xs font-semibold mr-2">Accetta</button>
                                                 <button onClick={() => handleRejectRequest(r.id)} className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-xs">Rifiuta</button>
                                             </li>
                                         ))}
@@ -840,7 +840,7 @@ export default function ClubDetailPage() {
                                                     <button
                                                         onClick={() => handleAddMember(u.id)}
                                                         disabled={addingMemberId === String(u.id)}
-                                                        className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 disabled:opacity-50"
+                                                        className="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded hover:bg-blue-700 disabled:opacity-50"
                                                     >
                                                         {addingMemberId === String(u.id) ? 'Aggiunta...' : 'Aggiungi'}
                                                     </button>

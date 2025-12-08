@@ -111,7 +111,7 @@ export default function ClubApplicationsPage() {
             case 'pending':
                 return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">In Revisione</span>
             case 'accepted':
-                return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Accettata</span>
+                return <span className="px-2 py-1 bg-success/10 text-success text-xs font-medium rounded-full">Accettata</span>
             case 'rejected':
                 return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Rifiutata</span>
             default:
@@ -122,7 +122,7 @@ export default function ClubApplicationsPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         )
     }
@@ -218,9 +218,9 @@ export default function ClubApplicationsPage() {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-xs text-gray-600">Accettate</p>
-                                                <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+                                                <p className="text-2xl font-bold text-success">{stats.accepted}</p>
                                             </div>
-                                            <CheckCircleIcon className="w-8 h-8 text-green-400" />
+                                            <CheckCircleIcon className="w-8 h-8 text-success" />
                                         </div>
                                     </div>
                                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -236,16 +236,16 @@ export default function ClubApplicationsPage() {
 
                                 {/* Applications List */}
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white">
+                                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/10 to-white">
                                         <div className="flex items-center gap-2">
-                                            <InboxIcon className="w-5 h-5 text-green-600" />
+                                            <InboxIcon className="w-5 h-5 text-primary" />
                                             <h3 className="font-bold text-gray-900">Candidature ({appLoading ? '...' : stats.total})</h3>
                                         </div>
                                     </div>
 
                                     {appLoading ? (
                                         <div className="px-6 py-8 text-center">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                                         </div>
                                     ) : applications.length === 0 ? (
                                         <div className="px-6 py-8 text-center">
@@ -266,7 +266,7 @@ export default function ClubApplicationsPage() {
                                                                         className="w-10 h-10 rounded-full object-cover"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
+                                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-sm font-bold">
                                                                         {app.player?.firstName?.charAt(0) || '?'}{app.player?.lastName?.charAt(0) || ''}
                                                                     </div>
                                                                 )}

@@ -167,7 +167,7 @@ export default function AgentAffiliationsPage() {
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <Users size={32} className="text-green-600" />
+                        <Users size={32} className="text-primary" />
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">Le Mie Affiliazioni</h1>
                             <p className="text-gray-600">Gestisci i giocatori affiliati</p>
@@ -180,7 +180,7 @@ export default function AgentAffiliationsPage() {
                                 fetchPlayers()
                             }
                         }}
-                        className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
                     >
                         <UserPlus size={20} />
                         Richiedi Affiliazione
@@ -189,9 +189,9 @@ export default function AgentAffiliationsPage() {
 
                 {/* Request Form */}
                 {showRequestForm && (
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-2 border-green-100">
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-2 border-primary/20">
                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                            <Send size={20} className="text-green-600" />
+                            <Send size={20} className="text-primary" />
                             Invia Richiesta di Affiliazione
                         </h3>
                         <div className="space-y-4">
@@ -202,7 +202,7 @@ export default function AgentAffiliationsPage() {
                                 <select
                                     value={selectedPlayerId}
                                     onChange={(e) => setSelectedPlayerId(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                 >
                                     <option value="">-- Seleziona un giocatore --</option>
                                     {players.map((player) => (
@@ -221,7 +221,7 @@ export default function AgentAffiliationsPage() {
                                     rows={4}
                                     value={requestMessage}
                                     onChange={(e) => setRequestMessage(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                     placeholder="Presenta te stesso e spiega perché vuoi rappresentare questo giocatore. Descrivi la tua esperienza, i tuoi contatti e come puoi aiutare la sua carriera..."
                                 />
                             </div>
@@ -240,7 +240,7 @@ export default function AgentAffiliationsPage() {
                                 <button
                                     onClick={handleSendRequest}
                                     disabled={!selectedPlayerId}
-                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     <Send size={18} />
                                     Invia Richiesta
@@ -255,8 +255,8 @@ export default function AgentAffiliationsPage() {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'all'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         Tutte ({affiliations.length})
@@ -264,8 +264,8 @@ export default function AgentAffiliationsPage() {
                     <button
                         onClick={() => setFilter('pending')}
                         className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'pending'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         In Attesa ({pendingAffiliations.length})
@@ -273,8 +273,8 @@ export default function AgentAffiliationsPage() {
                     <button
                         onClick={() => setFilter('accepted')}
                         className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'accepted'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         Accettate ({acceptedAffiliations.length})
@@ -284,13 +284,13 @@ export default function AgentAffiliationsPage() {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800 font-medium">Richieste in Attesa</p>
-                    <p className="text-3xl font-bold text-yellow-900 mt-1">{pendingAffiliations.length}</p>
+                <div className="bg-warning/10 border-2 border-warning/30 rounded-lg p-4">
+                    <p className="text-sm text-warning font-medium">Richieste in Attesa</p>
+                    <p className="text-3xl font-bold text-warning mt-1">{pendingAffiliations.length}</p>
                 </div>
-                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-green-800 font-medium">Giocatori Affiliati</p>
-                    <p className="text-3xl font-bold text-green-900 mt-1">{acceptedAffiliations.length}</p>
+                <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4">
+                    <p className="text-sm text-secondary font-medium">Giocatori Affiliati</p>
+                    <p className="text-3xl font-bold text-secondary mt-1">{acceptedAffiliations.length}</p>
                 </div>
                 <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
                     <p className="text-sm text-red-800 font-medium">Richieste Rifiutate</p>
@@ -306,7 +306,7 @@ export default function AgentAffiliationsPage() {
                     {filter === 'all' && (
                         <button
                             onClick={() => setShowRequestForm(true)}
-                            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"
                         >
                             Invia la tua prima richiesta
                         </button>
@@ -318,10 +318,10 @@ export default function AgentAffiliationsPage() {
                         <div
                             key={affiliation.id}
                             className={`rounded-lg shadow-sm p-6 ${affiliation.status === 'pending'
-                                    ? 'bg-yellow-50 border-2 border-yellow-200'
-                                    : affiliation.status === 'accepted'
-                                        ? 'bg-green-50 border-2 border-green-200'
-                                        : 'bg-red-50 border-2 border-red-200'
+                                ? 'bg-warning/5 border-2 border-warning/20'
+                                : affiliation.status === 'accepted'
+                                    ? 'bg-primary/5 border-2 border-primary/20'
+                                    : 'bg-error/5 border-2 border-error/20'
                                 }`}
                         >
                             <div className="flex items-center justify-between">
@@ -342,7 +342,7 @@ export default function AgentAffiliationsPage() {
                                             Richiesta inviata il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
                                         </p>
                                         {affiliation.status === 'accepted' && affiliation.affiliatedAt && (
-                                            <p className="text-xs text-green-700 font-medium mt-1">
+                                            <p className="text-xs text-success font-medium mt-1">
                                                 ✓ Affiliato dal: {new Date(affiliation.affiliatedAt).toLocaleDateString('it-IT')}
                                             </p>
                                         )}
@@ -365,10 +365,10 @@ export default function AgentAffiliationsPage() {
                                     {/* Status badge */}
                                     <span
                                         className={`px-4 py-2 rounded-full text-sm font-semibold ${affiliation.status === 'pending'
-                                                ? 'bg-yellow-200 text-yellow-800'
-                                                : affiliation.status === 'accepted'
-                                                    ? 'bg-green-200 text-green-800'
-                                                    : 'bg-red-200 text-red-800'
+                                            ? 'bg-warning/20 text-warning'
+                                            : affiliation.status === 'accepted'
+                                                ? 'bg-success/20 text-success'
+                                                : 'bg-error/20 text-error'
                                             }`}
                                     >
                                         {affiliation.status === 'pending'

@@ -106,7 +106,7 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
             case 'pending':
                 return 'bg-yellow-50 border-l-4 border-yellow-500'
             case 'accepted':
-                return 'bg-green-50 border-l-4 border-green-500'
+                return 'bg-success/10 border-l-4 border-success'
             case 'rejected':
                 return 'bg-red-50 border-l-4 border-red-500'
             default:
@@ -183,7 +183,7 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
                                     <div className="flex items-center justify-between">
                                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${app.status === 'new' ? 'bg-blue-100 text-blue-700' :
                                             app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                app.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                                                app.status === 'accepted' ? 'bg-success/10 text-success' :
                                                     'bg-red-100 text-red-700'
                                             }`}>
                                             {getStatusLabel(app.status)}

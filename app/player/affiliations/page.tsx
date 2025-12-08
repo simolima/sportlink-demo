@@ -163,7 +163,7 @@ export default function PlayerAffiliationsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Shield size={32} className="text-green-600" />
+          <Shield size={32} className="text-primary" />
           <h1 className="text-3xl font-bold text-gray-900">Rappresentanza</h1>
         </div>
         <p className="text-gray-600">Gestisci le richieste e le affiliazioni con gli agenti</p>
@@ -206,7 +206,7 @@ export default function PlayerAffiliationsPage() {
                           typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
                         )
                       }
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                     >
                       <Check size={18} />
                       Accetta

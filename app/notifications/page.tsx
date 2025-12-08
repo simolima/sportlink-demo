@@ -80,7 +80,7 @@ export default function NotificationsPage() {
       case 'affiliation_request':
         return 'bg-blue-100 text-blue-800'
       case 'affiliation_accepted':
-        return 'bg-green-100 text-green-800'
+        return 'bg-success/10 text-success'
       case 'application_received':
         return 'bg-purple-100 text-purple-800'
       case 'application_status_update':
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Segna come letta"
                     >
-                      <Check size={18} className="text-green-600" />
+                      <Check size={18} className="text-success" />
                     </button>
                   )}
                   <button

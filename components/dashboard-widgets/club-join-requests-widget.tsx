@@ -99,7 +99,7 @@ export default function ClubJoinRequestsWidget({ clubId }: Props) {
 
             <Link
                 href={`/clubs/${clubId}?tab=membri`}
-                className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition"
+                className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
             >
                 <UserGroupIcon className="w-4 h-4" />
                 Vai a rosa e richieste

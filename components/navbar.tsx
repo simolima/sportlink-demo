@@ -52,22 +52,22 @@ export default function Navbar() {
     if (isLoading) return null
 
     return (
-        <nav className="bg-green-600 shadow-md">
+        <nav className="bg-base-100 shadow-md border-b border-base-300">
             <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
                 {/* Logo + ricerca */}
                 <div className="flex items-center gap-4 min-w-[220px]">
-                    <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-white font-bold leading-tight">
+                    <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-primary font-bold leading-tight">
                         <span className="text-xs tracking-[0.18em] uppercase">SPRINTA</span>
-                        <span className="text-[10px] text-white/80">Sport Network</span>
+                        <span className="text-[10px] text-secondary">Sport Network</span>
                     </Link>
-                    <div className="hidden md:flex items-center bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 gap-2 w-56">
-                        <MagnifyingGlassIcon className="w-5 h-5 text-white/80" />
+                    <div className="hidden md:flex items-center bg-base-200 border border-base-300 rounded-lg px-3 py-1.5 gap-2 w-56">
+                        <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
                         <input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Ricerca globale"
-                            className="bg-transparent text-white placeholder:text-white/70 focus:outline-none text-sm w-full"
+                            className="bg-transparent text-secondary placeholder:text-secondary/60 focus:outline-none text-sm w-full"
                         />
                     </div>
                 </div>
@@ -76,57 +76,57 @@ export default function Navbar() {
                 <div className="flex-1 flex justify-center">
                     {isAuthenticated && user ? (
                         <div className="flex items-center gap-4 md:gap-6">
-                            <Link href="/home" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/home" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <HomeIcon className="w-5 h-5" />
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/people" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/people" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <UserGroupIcon className="w-5 h-5" />
                                 <span className="mt-1">Scopri</span>
                             </Link>
-                            <Link href="/clubs" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/clubs" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BuildingOfficeIcon className="w-5 h-5" />
                                 <span className="mt-1">Società</span>
                             </Link>
-                            <Link href="/opportunities" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BriefcaseIcon className="w-5 h-5" />
                                 <span className="mt-1">Opportunità</span>
                             </Link>
                             {user.professionalRole === 'Agent' && (
-                                <Link href="/agent/affiliations" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <Link href="/agent/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                     <UserGroupIcon className="w-5 h-5" />
                                     <span className="mt-1">Affiliazioni</span>
                                 </Link>
                             )}
                             {user.professionalRole === 'Player' && (
-                                <Link href="/player/affiliations" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                                <Link href="/player/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                     <UserCircleIcon className="w-5 h-5" />
                                     <span className="mt-1">Rappresentanza</span>
                                 </Link>
                             )}
-                            <Link href="/messages" className="relative flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/messages" className="relative flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <ChatBubbleLeftRightIcon className="w-5 h-5" />
                                 <span className="mt-1">Messaggi</span>
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{unreadCount}</span>
+                                    <span className="absolute -top-2 -right-3 bg-error text-white text-[10px] px-1.5 py-0.5 rounded-full">{unreadCount}</span>
                                 )}
                             </Link>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4 md:gap-6">
-                            <Link href="/home" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/home" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <HomeIcon className="w-5 h-5" />
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/people" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/people" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <UserGroupIcon className="w-5 h-5" />
                                 <span className="mt-1">Scopri</span>
                             </Link>
-                            <Link href="/clubs" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/clubs" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BuildingOfficeIcon className="w-5 h-5" />
                                 <span className="mt-1">Società</span>
                             </Link>
-                            <Link href="/opportunities" className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BriefcaseIcon className="w-5 h-5" />
                                 <span className="mt-1">Opportunità</span>
                             </Link>
@@ -139,7 +139,7 @@ export default function Navbar() {
                     {isAuthenticated && user ? (
                         <>
                             <NotificationBell userId={Number(user.id)} />
-                            <Link href={`/profile/${user.id}`} className="flex flex-col items-center text-white text-xs font-semibold hover:text-white/80 transition">
+                            <Link href={`/profile/${user.id}`} className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <UserCircleIcon className="w-5 h-5" />
                                 <span className="mt-1">Profilo</span>
                             </Link>
@@ -147,8 +147,8 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
-                            <Link href="/login" className="px-3 py-1.5 bg-white text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition">Login</Link>
-                            <Link href="/signup" className="px-4 py-2 bg-white text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition">Registrati</Link>
+                            <Link href="/login" className="px-3 py-1.5 btn btn-primary btn-sm">Login</Link>
+                            <Link href="/signup" className="px-4 py-2 btn btn-primary btn-sm">Registrati</Link>
                         </>
                     )}
                 </div>

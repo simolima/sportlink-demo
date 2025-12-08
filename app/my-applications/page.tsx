@@ -74,7 +74,7 @@ export default function MyApplicationsPage() {
             case 'pending':
                 return <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">In Revisione</span>
             case 'accepted':
-                return <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Accettata</span>
+                return <span className="px-3 py-1 bg-success/10 text-success text-xs font-medium rounded-full">Accettata</span>
             case 'rejected':
                 return <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Rifiutata</span>
             case 'withdrawn':
@@ -104,7 +104,7 @@ export default function MyApplicationsPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         )
     }
@@ -144,9 +144,9 @@ export default function MyApplicationsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600">Accettate</p>
-                                <p className="text-3xl font-bold text-green-600">{stats.accepted}</p>
+                                <p className="text-3xl font-bold text-primary">{stats.accepted}</p>
                             </div>
-                            <CheckCircleIcon className="w-10 h-10 text-green-400" />
+                            <CheckCircleIcon className="w-10 h-10 text-success" />
                         </div>
                     </div>
 
@@ -176,7 +176,7 @@ export default function MyApplicationsPage() {
                         <button
                             onClick={() => setFilter('all')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'all'
-                                ? 'bg-green-600 text-white'
+                                ? 'bg-primary text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
@@ -194,7 +194,7 @@ export default function MyApplicationsPage() {
                         <button
                             onClick={() => setFilter('accepted')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'accepted'
-                                ? 'bg-green-600 text-white'
+                                ? 'bg-success text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
@@ -235,7 +235,7 @@ export default function MyApplicationsPage() {
                         </p>
                         <Link
                             href="/opportunities"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition"
                         >
                             Esplora Opportunità
                         </Link>
@@ -254,8 +254,8 @@ export default function MyApplicationsPage() {
                                                     className="w-12 h-12 rounded-lg object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                                                    <BuildingOfficeIcon className="w-6 h-6 text-green-600" />
+                                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                    <BuildingOfficeIcon className="w-6 h-6 text-primary" />
                                                 </div>
                                             )}
                                             <div>

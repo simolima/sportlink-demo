@@ -1,60 +1,98 @@
 "use client"
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function Page() {
   const router = useRouter()
 
-  // Nascondo la navbar sulla landing per mostrare solo l'immagine
   useEffect(() => {
+    // Hide navbar on this page
     const header = document.querySelector('header')
     if (header) header.classList.add('hidden')
     return () => { if (header) header.classList.remove('hidden') }
   }, [])
 
+  const handleAccedi = () => {
+    router.push('/login')
+  }
+
+  const handleCreaProfilo = () => {
+    router.push('/signup')
+  }
+
   return (
-    <div className="min-h-screen bg-white flex items-center">
-      <div className="max-w-7xl w-full mx-auto px-6 md:px-10 py-12 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-        {/* Colonna sinistra: titolo, sottotitolo, CTA */}
-        <section className="order-2 md:order-1">
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
-            Il tuo ecosistema professionale per lo sport.
-          </h1>
-          <p className="mt-4 text-base md:text-xl text-gray-600 max-w-2xl">
-            Un unico spazio per connettersi con atleti, staff tecnici, agenti, preparatori, club, federazioni e specialisti.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4">
-            <button
-              onClick={() => router.push('/login')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl bg-green-600 text-white text-base md:text-lg font-semibold shadow-lg hover:bg-green-700 transition"
-            >
-              Accedi
-            </button>
-            <button
-              onClick={() => router.push('/signup')}
-              className="px-7 md:px-8 py-3 md:py-3.5 rounded-xl border-2 border-green-600 text-green-600 text-base md:text-lg font-semibold hover:bg-green-600 hover:text-white transition"
-            >
-              Crea un profilo
-            </button>
-          </div>
-        </section>
-
-        {/* Colonna destra: logo vettoriale */}
-        <aside className="order-1 md:order-2 flex justify-center md:justify-end">
-          <div className="relative isolate w-full max-w-md md:max-w-lg">
-            {/* Glow verde dietro al logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] rounded-full bg-green-300/20 blur-3xl z-0 pointer-events-none"></div>
-
-            {/* Logo sopra il glow */}
-            <img
+    <div
+      className="min-h-screen flex items-center justify-center px-6 py-8"
+      style={{ backgroundColor: '#0A0F32' }}
+    >
+      <div className="w-full max-w-3xl text-center -mt-32">
+        {/* Logo Sprinta */}
+        <div className="mb-0 flex justify-center">
+          <div className="relative w-80 h-80 md:w-96 md:h-96">
+            <Image
               src="/logo.svg"
-              alt="SPRINTA logo"
-              className="relative z-10 w-full h-auto object-contain select-none drop-shadow-2xl"
-              draggable={false}
+              alt="Sprinta Logo"
+              fill
+              className="object-contain brightness-0 invert"
+              priority
             />
           </div>
-        </aside>
+        </div>
+
+        {/* Titolo principale */}
+        <h1 className="mb-6 leading-tight -mt-32">
+          <div className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+            SPRINTA
+          </div>
+          <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mt-2">
+            IL TUO FUTURO
+          </div>
+        </h1>
+
+        {/* Sottotitolo */}
+        <p className="text-base md:text-lg text-blue-200/90 mb-10 max-w-xl mx-auto font-light">
+          Accedi o crea il tuo profilo professionale nel mondo dello sport.
+        </p>
+
+        {/* Pulsanti CTA */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
+          {/* Pulsante ACCEDI (Primario) */}
+          <button
+            onClick={handleAccedi}
+            className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+            style={{
+              backgroundColor: '#2341F0',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3B52F5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2341F0'}
+          >
+            ACCEDI
+          </button>
+
+          {/* Pulsante CREA PROFILO (Secondario) */}
+          <button
+            onClick={handleCreaProfilo}
+            className="w-full sm:w-auto px-12 py-4 text-lg font-semibold rounded-lg transition-all duration-200"
+            style={{
+              backgroundColor: 'transparent',
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              borderColor: '#2341F0',
+              color: '#2341F0',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2341F0'
+              e.currentTarget.style.color = '#FFFFFF'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#2341F0'
+            }}
+          >
+            CREA PROFILO
+          </button>
+        </div>
       </div>
     </div>
   )

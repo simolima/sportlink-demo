@@ -261,7 +261,7 @@ export default function JobsPage() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="Cerca annunci... (premi Enter)"
                 />
               </div>
@@ -272,7 +272,7 @@ export default function JobsPage() {
               <select
                 value={filters.sport}
                 onChange={(e) => setFilters({ ...filters, sport: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">Tutti gli sport</option>
                 {SUPPORTED_SPORTS.map((sport) => (
@@ -288,7 +288,7 @@ export default function JobsPage() {
               <select
                 value={filters.type}
                 onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">Tutti i tipi</option>
                 {OPPORTUNITY_TYPES.map((type) => (
@@ -304,7 +304,7 @@ export default function JobsPage() {
               <select
                 value={filters.level}
                 onChange={(e) => setFilters({ ...filters, level: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">Tutti i livelli</option>
                 {LEVELS.map((level) => (
@@ -354,15 +354,15 @@ export default function JobsPage() {
                 >
                   {/* Compatibility indicator */}
                   {!isCompatible && (
-                    <div className="mb-3 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs text-yellow-800 font-medium">
+                    <div className="mb-3 px-3 py-2 bg-warning/10 border border-warning/30 rounded-lg">
+                      <p className="text-xs text-warning font-medium">
                         ⚠️ Questo annuncio è per: <strong>{requiredRole}</strong>
                       </p>
                     </div>
                   )}
                   {userRole === 'Agent' && requiredRole === 'Player' && (
-                    <div className="mb-3 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-xs text-green-800 font-medium">
+                    <div className="mb-3 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg">
+                      <p className="text-xs text-primary font-medium">
                         ✓ Puoi candidare i tuoi assistiti
                       </p>
                     </div>
@@ -377,8 +377,8 @@ export default function JobsPage() {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <Building2 size={24} className="text-green-600" />
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Building2 size={24} className="text-primary" />
                         </div>
                       )}
                       <div>
@@ -391,11 +391,11 @@ export default function JobsPage() {
                   {/* Title and type */}
                   <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                    <span className="inline-block px-3 py-1 bg-secondary/10 text-primary text-xs font-medium rounded-full">
                       {announcement.type}
                     </span>
                     {announcement.roleRequired && (
-                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
                         🎯 {announcement.roleRequired}
                       </span>
                     )}
@@ -452,7 +452,7 @@ export default function JobsPage() {
                       className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
                         ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
                         : isCompatible
-                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          ? 'bg-primary text-white hover:bg-blue-700'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                     >

@@ -33,7 +33,7 @@ export default function ClubsWidget({
                     <p className="text-gray-600">{emptyMessage}</p>
                     <Link
                         href="/clubs"
-                        className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition"
+                        className="inline-block mt-3 px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
                     >
                         Scopri Club
                     </Link>
@@ -44,10 +44,10 @@ export default function ClubsWidget({
                         <Link
                             key={club.id}
                             href={`/clubs/${club.id}`}
-                            className="p-4 border border-gray-100 rounded-lg hover:border-green-300 hover:bg-green-50 transition"
+                            className="p-4 border border-gray-100 rounded-lg hover:border-primary/30 hover:bg-primary/5 transition"
                         >
                             <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                     {club.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -67,7 +67,7 @@ export default function ClubsWidget({
             {clubs.length > maxItems && (
                 <Link
                     href="/clubs"
-                    className="block mt-4 text-center py-2 text-green-600 hover:text-green-700 font-semibold text-sm"
+                    className="block mt-4 text-center py-2 text-primary hover:text-blue-700 font-semibold text-sm"
                 >
                     Vedi tutti i club ({clubs.length}) →
                 </Link>

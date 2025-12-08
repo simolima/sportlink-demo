@@ -96,9 +96,28 @@ This prevents dependency conflicts and allows independent versioning.
 
 ## 🎨 Design System
 
-**Color Theme**: Green (#16a34a)
-- Primary: `green-600` (#16a34a)
-- Hover: `green-700` (#15803d)
+**Color Theme**: Navy & Blu Scuro (Dark Mode)
+- Primary: `#2341F0` (Blu Primario)
+- Base: `#0A0F32` (Navy)
+- Text: `#A7B0FF` (Azzurro Pallido)
+
+**Framework**: Tailwind CSS + DaisyUI Theme "sprinta"
+
+### 📖 Design Documentation
+
+👉 **[Brand Guide v2.0](./design/README.md)** - Complete design system documentation
+
+- Palette colori con hex codes
+- Tipografia (Inter font hierarchy)
+- Componenti UI (bottoni, card, form)
+- Varianti di logo
+- WCAG accessibilità
+- Developer & Designer guidelines
+
+**For Designers**: Import `design/BRAND_GUIDE.md` - Contains color palette, font specs, and component examples  
+**For Developers**: Use DaisyUI classes: `btn btn-primary`, `bg-base-200`, `text-secondary`, etc.
+
+---- Hover: `green-700` (#15803d)
 - Light: `green-50` (#f0fdf4)
 
 **Styling**:

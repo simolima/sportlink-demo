@@ -60,7 +60,7 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                     <p className="text-gray-500 text-sm">Nessuna candidatura inviata</p>
                     <Link
                         href="/opportunities"
-                        className="inline-block mt-3 text-sm font-medium text-green-600 hover:text-green-700"
+                        className="inline-block mt-3 text-sm font-medium text-primary hover:text-primary/80"
                     >
                         Esplora opportunità →
                     </Link>
@@ -84,8 +84,8 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                                     <span className="text-[11px] text-gray-400">
                                         {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('it-IT') : '-'}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-white border border-gray-200 text-gray-600">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block"></span>
+                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-base-300 border border-base-300 text-secondary">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-success inline-block"></span>
                                         {app.status || 'pending'}
                                     </span>
                                 </div>

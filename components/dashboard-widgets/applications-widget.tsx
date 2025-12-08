@@ -14,7 +14,7 @@ interface ApplicationsWidgetProps {
 const STATUS_COLORS: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
     pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Sospeso' },
     in_review: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'In Revisione' },
-    accepted: { bg: 'bg-green-100', text: 'text-green-800', label: 'Accettata' },
+    accepted: { bg: 'bg-success/10', text: 'text-success', label: 'Accettata' },
     rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rifiutata' },
     withdrawn: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Ritirata' }
 }
@@ -78,7 +78,7 @@ export default function ApplicationsWidget({
             {applications.length > maxItems && (
                 <Link
                     href="/opportunities"
-                    className="block mt-4 text-center py-2 text-green-600 hover:text-green-700 font-semibold text-sm"
+                    className="block mt-4 text-center py-2 text-primary hover:text-blue-700 font-semibold text-sm"
                 >
                     Vedi tutte le candidature →
                 </Link>

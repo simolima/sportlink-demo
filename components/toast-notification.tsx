@@ -42,31 +42,30 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number)
   }, [toast.id, toast.duration, onDismiss])
 
   const bgColor = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200',
+    success: 'bg-success/10 border-success',
+    error: 'bg-error/10 border-error',
+    info: 'bg-info/10 border-info',
+    warning: 'bg-warning/10 border-warning',
   }[toast.type]
 
   const textColor = {
-    success: 'text-green-800',
-    error: 'text-red-800',
-    info: 'text-blue-800',
-    warning: 'text-yellow-800',
+    success: 'text-success',
+    error: 'text-error',
+    info: 'text-info',
+    warning: 'text-warning',
   }[toast.type]
 
   const iconColor = {
-    success: 'text-green-600',
-    error: 'text-red-600',
-    info: 'text-blue-600',
-    warning: 'text-yellow-600',
+    success: 'text-success',
+    error: 'text-error',
+    info: 'text-info',
+    warning: 'text-warning',
   }[toast.type]
 
   return (
     <div
-      className={`${bgColor} ${textColor} border rounded-lg shadow-lg p-4 flex items-start gap-3 transition-all duration-300 ${
-        isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
-      }`}
+      className={`${bgColor} ${textColor} border rounded-lg shadow-lg p-4 flex items-start gap-3 transition-all duration-300 ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
+        }`}
     >
       <div className={`${iconColor} font-bold text-lg`}>
         {toast.type === 'success' && '✓'}

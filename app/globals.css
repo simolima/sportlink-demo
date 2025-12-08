@@ -7,8 +7,11 @@
 :root {
     --white: #FFFFFF;
     --navy: #0A0F32;
+    --navy-dark: #11152F;
+    --navy-darker: #141A3A;
     --blue: #2341F0;
     --blue-hover: #3B52F5;
+    --secondary: #A7B0FF;
     --radius: 12px;
 }
 
@@ -20,8 +23,8 @@ body,
 
 body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Arial, sans-serif;
-    background-color: var(--white);
-    color: #1f2937;
+    background-color: var(--navy);
+    color: var(--secondary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -36,14 +39,14 @@ body {
 
 /* small helpers for card look */
 .card-sm {
-    background: var(--white);
+    background: var(--navy-dark);
     border-radius: var(--radius);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--navy-darker);
 }
 
 .card-sm:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
     transition: box-shadow 0.2s ease;
 }
 

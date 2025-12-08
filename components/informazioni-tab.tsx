@@ -11,14 +11,14 @@ export default function InformazioniTab({ user, seasons }: InformazioniTabProps)
             {/* Professional Seasons */}
             {seasons && seasons.length > 0 && (
                 <section>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Stagioni Professionali</h2>
+                    <h2 className="text-2xl font-bold text-secondary mb-4">Stagioni Professionali</h2>
                     <div className="space-y-4">
                         {seasons.map((season: any) => (
-                            <div key={season.id} className="border-l-4 border-green-600 pl-4 py-3">
-                                <h3 className="text-lg font-semibold text-gray-900">{season.team}</h3>
-                                <p className="text-sm text-gray-500 mt-1">{season.year}</p>
+                            <div key={season.id} className="border-l-4 border-primary pl-4 py-3">
+                                <h3 className="text-lg font-semibold text-secondary">{season.team}</h3>
+                                <p className="text-sm text-secondary/60 mt-1">{season.year}</p>
                                 {season.description && (
-                                    <p className="text-gray-700 mt-2">{season.description}</p>
+                                    <p className="text-secondary/80 mt-2">{season.description}</p>
                                 )}
                             </div>
                         ))}

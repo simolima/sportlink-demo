@@ -9,12 +9,12 @@ interface StatItemProps {
 
 function StatItem({ label, value, maxValue, color = 'blue' }: StatItemProps) {
     const percentage = maxValue ? (Number(value) / maxValue) * 100 : 0
-    
+
     const colorClasses = {
-        blue: 'bg-blue-500',
-        green: 'bg-green-500',
+        blue: 'bg-primary',
         purple: 'bg-purple-500',
-        orange: 'bg-orange-500'
+        success: 'bg-success',
+        orange: 'bg-warning'
     }
 
     return (
@@ -25,7 +25,7 @@ function StatItem({ label, value, maxValue, color = 'blue' }: StatItemProps) {
             </div>
             {maxValue && (
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                         className={`h-2 rounded-full ${colorClasses[color as keyof typeof colorClasses] || colorClasses.blue}`}
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                     />
@@ -59,11 +59,11 @@ export default function ProfileStats({ stats, customStats }: ProfileStatsProps) 
     // Statistiche predefinite per un giocatore
     const defaultStats = [
         { label: 'Partite Giocate', value: 0, maxValue: 600, color: 'blue' },
-        { label: 'Presenze Giocate', value: 0, maxValue: 600, color: 'green' }
+        { label: 'Presenze Giocate', value: 0, maxValue: 600, color: 'success' }
     ]
 
     const displayStats = customStats || defaultStats.map(stat => {
-        const matchingStat = stats?.find(s => 
+        const matchingStat = stats?.find(s =>
             s.label?.toLowerCase().includes(stat.label.toLowerCase().split(' ')[0])
         )
         return {

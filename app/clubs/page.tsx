@@ -105,7 +105,7 @@ export default function ClubsPage() {
                                 placeholder="Cerca società..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
 
@@ -113,7 +113,7 @@ export default function ClubsPage() {
                         <select
                             value={selectedSport}
                             onChange={(e) => setSelectedSport(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                             <option value="all">Tutti gli sport</option>
                             {SUPPORTED_SPORTS.map((sport) => (
@@ -129,7 +129,7 @@ export default function ClubsPage() {
                                 placeholder="Filtra per città..."
                                 value={selectedCity}
                                 onChange={(e) => setSelectedCity(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -152,10 +152,10 @@ export default function ClubsPage() {
                             <div
                                 key={club.id}
                                 onClick={() => handleClubClick(club.id)}
-                                className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-[1.025] transition-all cursor-pointer overflow-hidden border border-green-100 group"
+                                className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-[1.025] transition-all cursor-pointer overflow-hidden border border-primary/20 group"
                             >
                                 {/* Cover Image */}
-                                <div className="h-32 bg-green-100 relative">
+                                <div className="h-40 bg-primary/10 relative">
                                     {club.coverUrl ? (
                                         <img
                                             src={club.coverUrl}
@@ -163,20 +163,20 @@ export default function ClubsPage() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-200 to-green-50">
-                                            <BuildingOffice2Icon className="h-12 w-12 text-green-400" />
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-base-100">
+                                            <BuildingOffice2Icon className="h-12 w-12 text-primary" />
                                         </div>
                                     )}
                                     {club.verified && (
-                                        <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow font-semibold flex items-center gap-1">
+                                        <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full shadow font-semibold flex items-center gap-1">
                                             ✓ <span>Verificato</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Logo */}
-                                <div className="px-6 -mt-12 mb-4">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
+                                <div className="px-6 -mt-14 mb-4 relative z-10">
+                                    <div className="w-24 h-24 bg-white rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center">
                                         {club.logoUrl ? (
                                             <img
                                                 src={club.logoUrl}
@@ -184,7 +184,7 @@ export default function ClubsPage() {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <BuildingOffice2Icon className="h-10 w-10 text-white/80" />
+                                            <BuildingOffice2Icon className="h-12 w-12 text-gray-400" />
                                         )}
                                     </div>
                                 </div>
@@ -192,9 +192,9 @@ export default function ClubsPage() {
                                 {/* Content */}
                                 <div className="px-6 pb-6">
                                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                        <h3 className="text-xl font-bold text-gray-900 mb-0 group-hover:text-green-700 transition-colors">{club.name}</h3>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-0 group-hover:text-primary transition-colors">{club.name}</h3>
                                         {club.sports && club.sports.length > 0 && (
-                                            <span className="inline-block bg-green-50 text-green-700 text-xs font-semibold px-2 py-1 rounded ml-1 border border-green-100">
+                                            <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded ml-1 border border-primary/20">
                                                 {club.sports.join(', ')}
                                             </span>
                                         )}
@@ -209,15 +209,15 @@ export default function ClubsPage() {
                                     </p>
 
                                     {/* Stats */}
-                                    <div className="flex items-center justify-between text-sm pt-4 border-t border-green-100 mt-2">
+                                    <div className="flex items-center justify-between text-sm pt-4 border-t border-primary/20 mt-2">
                                         <div className="flex items-center gap-1">
-                                            <UserGroupIcon className="h-4 w-4 text-green-500 mr-1" />
-                                            <span className="font-bold text-green-700">{club.followersCount || 0}</span>
+                                            <UserGroupIcon className="h-4 w-4 text-primary mr-1" />
+                                            <span className="font-bold text-secondary">{club.followersCount || 0}</span>
                                             <span className="text-gray-600">follower</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <BriefcaseIcon className="h-4 w-4 text-green-500 mr-1" />
-                                            <span className="font-bold text-green-700">{club.membersCount || 0}</span>
+                                            <BriefcaseIcon className="h-4 w-4 text-primary mr-1" />
+                                            <span className="font-bold text-secondary">{club.membersCount || 0}</span>
                                             <span className="text-gray-600">membri</span>
                                         </div>
                                     </div>

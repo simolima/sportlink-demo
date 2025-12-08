@@ -6,8 +6,8 @@ import { AuthProvider } from '@/lib/hooks/useAuth';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it">
-      <body className="bg-gray-50">
+    <html lang="it" data-theme="sprinta">
+      <body className="bg-base-100 text-secondary">
         <AuthProvider>
           <ToastProvider>
             <header>

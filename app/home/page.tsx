@@ -91,7 +91,7 @@ export default function HomePage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         )
     }
@@ -120,7 +120,7 @@ export default function HomePage() {
                 {(isPlayer || isCoach || isDS || isStaff) && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                             Area Personale
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -135,7 +135,7 @@ export default function HomePage() {
                 {isAgent && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                             Il tuo lavoro
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -150,7 +150,7 @@ export default function HomePage() {
                     <div className="space-y-6 mt-8">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-1.5 h-5 bg-green-700 rounded-full"></span>
+                                <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                                 Gestione Società
                             </h2>
                             {adminClubs.length > 1 && (
@@ -189,7 +189,7 @@ export default function HomePage() {
                 {isStaff && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                             Opportunità per te
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -216,7 +216,7 @@ export default function HomePage() {
                         </p>
                         <button
                             onClick={() => router.push(`/profile/${userId}`)}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             Vai al profilo
                         </button>

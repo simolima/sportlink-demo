@@ -53,9 +53,9 @@ export default function AnnouncementsCarousel({
 
     const getTypeColor = (type: string) => {
         const colors: Record<string, { bg: string; border: string; text: string }> = {
-            opportunity: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-            need: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700' },
-            application: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
+            opportunity: { bg: 'bg-info/10', border: 'border-info', text: 'text-info' },
+            need: { bg: 'bg-warning/10', border: 'border-warning', text: 'text-warning' },
+            application: { bg: 'bg-success/10', border: 'border-success', text: 'text-success' },
             request: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' }
         }
         return colors[type] || colors.opportunity
@@ -73,9 +73,9 @@ export default function AnnouncementsCarousel({
 
     if (announcements.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-                <div className="text-center py-8 text-gray-500">
+            <div className="bg-base-200 rounded-lg shadow-sm border border-base-300 p-6">
+                <h3 className="text-lg font-semibold text-secondary mb-4">{title}</h3>
+                <div className="text-center py-8 text-secondary/60">
                     <p>Nessun annuncio disponibile</p>
                 </div>
             </div>
@@ -83,11 +83,11 @@ export default function AnnouncementsCarousel({
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-base-200 rounded-lg shadow-sm border border-base-300 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-                <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">
+            <div className="px-6 py-4 border-b border-base-300 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-secondary">{title}</h3>
+                <span className="text-sm font-medium text-success bg-success/10 px-3 py-1 rounded-full">
                     {announcements.length} {announcements.length === 1 ? 'annuncio' : 'annunci'}
                 </span>
             </div>
@@ -115,9 +115,9 @@ export default function AnnouncementsCarousel({
                                         {getTypeLabel(announcement.type)}
                                     </span>
                                     {announcement.status && (
-                                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${announcement.status === 'active' ? 'bg-green-100 text-green-800' :
-                                                announcement.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-gray-100 text-gray-800'
+                                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${announcement.status === 'active' ? 'bg-success/20 text-success' :
+                                            announcement.status === 'pending' ? 'bg-warning/20 text-warning' :
+                                                'bg-base-300 text-secondary/70'
                                             }`}>
                                             {announcement.status === 'active' ? 'Attivo' :
                                                 announcement.status === 'pending' ? 'In sospeso' :

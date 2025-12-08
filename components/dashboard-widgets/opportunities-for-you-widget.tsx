@@ -129,22 +129,22 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-base-200 rounded-xl shadow-sm border border-base-300 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white">
+            <div className="px-6 py-4 border-b border-base-300 bg-gradient-to-r from-base-300 to-base-200">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <BriefcaseIcon className="w-5 h-5 text-green-600" />
+                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                            <BriefcaseIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Opportunità per Te</h3>
-                            <p className="text-xs text-gray-500">Annunci per {userRole} • {userSport}</p>
+                            <h3 className="font-bold text-secondary">Opportunità per Te</h3>
+                            <p className="text-xs text-secondary/60">Annunci per {userRole} • {userSport}</p>
                         </div>
                     </div>
                     <Link
                         href="/opportunities"
-                        className="text-sm font-medium text-green-600 hover:text-green-700"
+                        className="text-sm font-medium text-primary hover:text-primary/80"
                     >
                         Vedi tutte →
                     </Link>
@@ -192,7 +192,7 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                                             </span>
                                         )}
                                         {opp.position && (
-                                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                            <span className="px-2 py-0.5 bg-success/20 text-success rounded-full">
                                                 {opp.position}
                                             </span>
                                         )}

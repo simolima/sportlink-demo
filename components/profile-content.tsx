@@ -93,7 +93,7 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                 {isOwner && (
                     <Link
                         href="/profile/edit"
-                        className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                        className="inline-flex items-center gap-2 rounded-lg btn btn-primary"
                     >
                         <PencilSquareIcon className="w-4 h-4" />
                         Modifica profilo
@@ -102,9 +102,9 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-700 font-semibold">
+                <div className="lg:col-span-2 rounded-lg border border-base-300 bg-base-200 p-4 shadow-sm">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-secondary">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-base-300 px-3 py-1 text-primary font-semibold">
                             <UserIcon className="w-4 h-4" />
                             {user?.professionalRole || 'Professionista'}
                         </span>
@@ -131,9 +131,9 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                     )}
                 </div>
 
-                <div className="rounded-lg border border-green-100 bg-green-50 p-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-green-800 mb-3">Club attuale</h3>
-                    <div className="rounded-lg bg-white p-3 shadow-sm border border-green-100">
+                <div className="rounded-lg border border-base-300 bg-base-200 p-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-secondary mb-3">Club attuale</h3>
+                    <div className="rounded-lg bg-base-100 p-3 shadow-sm border border-base-300">
                         <p className="text-xs text-gray-500">Club</p>
                         <p className="text-sm font-semibold text-gray-900">{clubName || 'Nessun club'}</p>
                     </div>
@@ -177,14 +177,14 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                                 {careerEntries.map((exp: any, idx: number) => (
                                     <div key={`${exp.role}-${idx}`} className="flex gap-3 border border-gray-100 rounded-lg p-3">
                                         <div className="mt-1">
-                                            <BriefcaseIcon className="w-5 h-5 text-green-600" />
+                                            <BriefcaseIcon className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="flex-1 space-y-1">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <p className="font-semibold text-gray-900">{exp.role}</p>
                                                 {exp.team && <span className="text-sm text-gray-600">@ {exp.team}</span>}
                                                 {exp.category && (
-                                                    <span className="text-xs rounded-full bg-green-50 text-green-700 px-2 py-1 font-semibold">{exp.category}</span>
+                                                    <span className="text-xs rounded-full bg-base-300 text-primary px-2 py-1 font-semibold">{exp.category}</span>
                                                 )}
                                             </div>
                                             {(exp.from || exp.to) && (

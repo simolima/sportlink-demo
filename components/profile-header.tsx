@@ -12,7 +12,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user, followersCount, followingCount, onEditClick }: ProfileHeaderProps) {
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-base-200 rounded-lg shadow-sm border border-base-300">
             {/* Header with avatar and info */}
             <div className="p-6 flex flex-col md:flex-row gap-6">
                 {/* Left: Avatar */}
@@ -29,15 +29,15 @@ export default function ProfileHeader({ user, followersCount, followingCount, on
                 {/* Center: Name, role, info */}
                 <div className="flex-1 text-center md:text-left">
                     <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-3xl font-bold text-secondary">
                             {user?.firstName} {user?.lastName}
                         </h1>
                         {user?.verified && (
-                            <CheckBadgeIcon className="w-7 h-7 text-green-600 mx-auto md:mx-0" />
+                            <CheckBadgeIcon className="w-7 h-7 text-primary mx-auto md:mx-0" />
                         )}
                     </div>
 
-                    <p className="text-lg font-medium text-green-600 mb-2">
+                    <p className="text-lg font-medium text-primary mb-2">
                         {user?.currentRole || user?.professionalRole}
                     </p>
 

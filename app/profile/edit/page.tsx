@@ -227,9 +227,9 @@ export default function EditProfilePage() {
 
                 <div className="space-y-8">
                     {/* Cover Photo Section */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                    <div className="bg-base-200 rounded-2xl shadow-lg overflow-hidden border border-base-300">
                         <div className="relative">
-                            <div className="h-56 md:h-72 bg-gradient-to-r from-green-500 to-emerald-600 overflow-hidden">
+                            <div className="h-56 md:h-72 bg-gradient-to-r from-primary to-blue-600 overflow-hidden">
                                 {(coverPreview || form.coverUrl) ? (
                                     <img
                                         src={coverPreview || form.coverUrl}
@@ -260,7 +260,7 @@ export default function EditProfilePage() {
                                 className="hidden"
                             />
                             {coverFile && (
-                                <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-lg font-semibold">
+                                <div className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full text-sm shadow-lg font-semibold">
                                     ✓ Pronto per il salvataggio
                                 </div>
                             )}
@@ -281,11 +281,11 @@ export default function EditProfilePage() {
                                         alt="Profile preview"
                                         size="xl"
                                         fallbackText={form.firstName?.[0] || '?'}
-                                        className="w-40 h-40 ring-4 ring-green-100 shadow-lg"
+                                        className="w-40 h-40 ring-4 ring-primary/20 shadow-lg"
                                     />
                                     <label
                                         htmlFor="avatar-upload-edit"
-                                        className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-4 cursor-pointer shadow-lg transition transform hover:scale-110"
+                                        className="absolute bottom-0 right-0 btn btn-primary btn-circle"
                                     >
                                         <CameraIcon className="w-6 h-6" />
                                     </label>
@@ -306,7 +306,7 @@ export default function EditProfilePage() {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Nome</label>
                                         <input
-                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                             placeholder="Nome"
                                             value={form.firstName}
                                             onChange={e => updateField('firstName', e.target.value)}
@@ -315,7 +315,7 @@ export default function EditProfilePage() {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Cognome</label>
                                         <input
-                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                             placeholder="Cognome"
                                             value={form.lastName}
                                             onChange={e => updateField('lastName', e.target.value)}
@@ -326,7 +326,7 @@ export default function EditProfilePage() {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
                                         <input
-                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                             placeholder="email@example.com"
                                             value={form.email}
                                             onChange={e => updateField('email', e.target.value)}
@@ -335,7 +335,7 @@ export default function EditProfilePage() {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Username</label>
                                         <input
-                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                            className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                             placeholder="@username"
                                             value={form.username}
                                             onChange={e => updateField('username', e.target.value)}
@@ -346,7 +346,7 @@ export default function EditProfilePage() {
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Data di nascita</label>
                                     <input
                                         type="date"
-                                        className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                        className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                         value={form.birthDate || ''}
                                         onChange={e => updateField('birthDate', e.target.value)}
                                     />
@@ -361,7 +361,7 @@ export default function EditProfilePage() {
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-3">Bio / Descrizione personale</label>
                             <textarea
-                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base font-light"
+                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base font-light"
                                 rows={5}
                                 placeholder="Raccontati... quali sono i tuoi punti di forza, la tua esperienza e i tuoi obiettivi?"
                                 value={form.bio}
@@ -377,7 +377,7 @@ export default function EditProfilePage() {
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-3">Ruolo attuale</label>
                             <input
-                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-base"
+                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-base"
                                 placeholder="es. Attaccante, Coach, Direttore Sportivo"
                                 value={form.currentRole}
                                 onChange={e => updateField('currentRole', e.target.value)}
@@ -388,10 +388,10 @@ export default function EditProfilePage() {
                     {/* Experiences Section */}
                     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                         <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900">Percorso professionale</h2>
+                            <h2 className="text-2xl font-bold text-secondary">Percorso professionale</h2>
                             <button
                                 onClick={addExp}
-                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold transition shadow-md"
+                                className="btn btn-primary"
                             >
                                 + Aggiungi esperienza
                             </button>
@@ -404,12 +404,12 @@ export default function EditProfilePage() {
                         ) : (
                             <div className="space-y-6">
                                 {form.experiences.map((exp: any, i: number) => (
-                                    <div key={i} className="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-transparent rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                                    <div key={i} className="border-l-4 border-primary bg-gradient-to-r from-base-300 to-transparent rounded-xl p-6 shadow-sm hover:shadow-md transition">
                                         <div className="grid grid-cols-2 gap-4 mb-4">
                                             <div>
-                                                <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Ruolo</label>
+                                                <label className="text-xs font-bold text-secondary/70 mb-2 block uppercase tracking-wide">Ruolo</label>
                                                 <input
-                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    className="w-full border-2 border-base-300 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition bg-base-100 text-secondary"
                                                     placeholder="es. Attaccante"
                                                     value={exp.role || ''}
                                                     onChange={e => editExp(i, 'role', e.target.value)}
@@ -418,7 +418,7 @@ export default function EditProfilePage() {
                                             <div>
                                                 <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Squadra / Società</label>
                                                 <input
-                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                                                     placeholder="es. AS Roma"
                                                     value={exp.team || ''}
                                                     onChange={e => editExp(i, 'team', e.target.value)}
@@ -428,7 +428,7 @@ export default function EditProfilePage() {
                                         <div className="mb-4">
                                             <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Categoria</label>
                                             <input
-                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                                                 placeholder="es. Serie A, Under 19"
                                                 value={exp.category || ''}
                                                 onChange={e => editExp(i, 'category', e.target.value)}
@@ -438,7 +438,7 @@ export default function EditProfilePage() {
                                             <div>
                                                 <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Da</label>
                                                 <input
-                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                                                     placeholder="2022"
                                                     value={exp.from || ''}
                                                     onChange={e => editExp(i, 'from', e.target.value)}
@@ -447,7 +447,7 @@ export default function EditProfilePage() {
                                             <div>
                                                 <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">A</label>
                                                 <input
-                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                    className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                                                     placeholder="Presente"
                                                     value={exp.to || ''}
                                                     onChange={e => editExp(i, 'to', e.target.value)}
@@ -457,7 +457,7 @@ export default function EditProfilePage() {
                                         <div className="mb-4">
                                             <label className="text-xs font-bold text-gray-600 mb-2 block uppercase tracking-wide">Descrizione</label>
                                             <textarea
-                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                                className="w-full border-2 border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                                                 rows={3}
                                                 placeholder="Responsabilità, risultati e dettagli importanti..."
                                                 value={exp.summary || ''}
@@ -489,7 +489,7 @@ export default function EditProfilePage() {
                         <button
                             onClick={save}
                             disabled={saving}
-                            className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition disabled:opacity-50 shadow-lg text-base"
+                            className="btn btn-primary px-8 py-3 text-base"
                         >
                             {saving ? 'Salvataggio in corso...' : 'Salva modifiche'}
                         </button>

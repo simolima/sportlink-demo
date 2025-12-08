@@ -37,13 +37,13 @@ export default function AnnouncementsWidget({
                     {displayedItems.map((announcement) => (
                         <div
                             key={announcement.id}
-                            className="p-4 border border-gray-100 rounded-lg hover:border-green-300 hover:bg-green-50 transition"
+                            className="p-4 border border-gray-100 rounded-lg hover:border-primary/30 hover:bg-primary/5 transition"
                         >
                             <div className="flex justify-between items-start gap-4">
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-gray-900">{announcement.title}</h4>
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                        <span className="text-xs bg-success/10 text-success px-2 py-1 rounded">
                                             {announcement.sport}
                                         </span>
                                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -63,7 +63,7 @@ export default function AnnouncementsWidget({
                                 </div>
                                 <Link
                                     href={`/opportunities?announcementId=${announcement.id}`}
-                                    className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition whitespace-nowrap"
+                                    className="px-3 py-2 bg-primary hover:bg-blue-700 text-white text-sm rounded-lg transition whitespace-nowrap"
                                 >
                                     Candida →
                                 </Link>
@@ -76,7 +76,7 @@ export default function AnnouncementsWidget({
             {announcements.length > maxItems && (
                 <Link
                     href="/opportunities"
-                    className="block mt-4 text-center py-2 text-green-600 hover:text-green-700 font-semibold text-sm"
+                    className="block mt-4 text-center py-2 text-primary hover:text-blue-700 font-semibold text-sm"
                 >
                     Vedi tutti ({announcements.length}) →
                 </Link>

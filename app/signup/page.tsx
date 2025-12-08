@@ -93,18 +93,18 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-lg">
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-green-100">
+                <div className="bg-base-200 rounded-2xl shadow-xl p-8 border border-base-300">
                     {/* Logo */}
                     <div className="text-center mb-8">
-                        <div className="inline-block p-3 bg-green-100 rounded-full mb-4">
-                            <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="inline-block p-3 bg-base-300 rounded-full mb-4">
+                            <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
                         </div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Crea il tuo account</h2>
-                        <p className="text-gray-600">Inizia il tuo percorso su Sprinta</p>
+                        <h2 className="text-3xl font-bold text-secondary mb-2">Crea il tuo account</h2>
+                        <p className="text-secondary/80">Inizia il tuo percorso su Sprinta</p>
                     </div>
 
                     {/* Error Message */}
@@ -128,7 +128,7 @@ export default function SignupPage() {
                                     value={formData.firstName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="Mario"
                                 />
                             </div>
@@ -144,7 +144,7 @@ export default function SignupPage() {
                                     value={formData.lastName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="Rossi"
                                 />
                             </div>
@@ -162,7 +162,7 @@ export default function SignupPage() {
                                 onChange={handleChange}
                                 required
                                 max={new Date().toISOString().split('T')[0]}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
 
@@ -177,7 +177,7 @@ export default function SignupPage() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 placeholder="tuo@email.com"
                             />
                         </div>
@@ -195,7 +195,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     required
                                     minLength={6}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent pr-12"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -237,7 +237,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     required
                                     minLength={6}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent pr-12"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -269,7 +269,7 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                            className="w-full btn btn-primary mt-6"
                         >
                             {loading ? 'Creazione account...' : 'Crea Account'}
                         </button>
@@ -277,9 +277,9 @@ export default function SignupPage() {
 
                     {/* Login Link */}
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-secondary/80">
                             Hai già un account?{' '}
-                            <Link href="/login" className="font-semibold text-green-600 hover:text-green-700">
+                            <Link href="/login" className="font-semibold text-primary hover:text-primary">
                                 Accedi
                             </Link>
                         </p>

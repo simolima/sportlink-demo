@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function LoginPage() {
+export default function LoginFormPage() {
     const router = useRouter()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -40,11 +40,9 @@ export default function LoginPage() {
             }
 
             // Save user session
-            const fullName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utente'
             localStorage.setItem('currentUserId', user.id)
-            localStorage.setItem('currentUserName', fullName)
+            localStorage.setItem('currentUserName', user.name)
             localStorage.setItem('currentUserEmail', user.email)
-            localStorage.setItem('currentUserRole', user.professionalRole || '')
             if (user.avatar) localStorage.setItem('currentUserAvatar', user.avatar)
 
             // Redirect to home
@@ -148,10 +146,12 @@ export default function LoginPage() {
                     </form>
 
                     {/* Demo Credentials */}
-                    <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(35, 65, 240, 0.05)', borderColor: '#2341F0' }}>
-                        <p className="text-xs font-semibold mb-2" style={{ color: '#2341F0' }}>🧪 Credenziali Demo:</p>
-                        <p className="text-xs text-gray-600">Email: <code className="bg-white px-1 rounded">marco.rossi@sprinta.com</code></p>
-                        <p className="text-xs text-gray-600">Password: <code className="bg-white px-1 rounded">demo123</code></p>
+                    <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: '#2341F0', opacity: 0.05, borderColor: '#2341F0' }}>
+                        <div style={{ opacity: 1 / 0.05 }}>
+                            <p className="text-xs font-semibold mb-2" style={{ color: '#2341F0' }}>🧪 Credenziali Demo:</p>
+                            <p className="text-xs text-gray-600">Email: <code className="bg-white px-1 rounded">marco.rossi@sprinta.com</code></p>
+                            <p className="text-xs text-gray-600">Password: <code className="bg-white px-1 rounded">demo123</code></p>
+                        </div>
                     </div>
 
                     {/* Sign up Link */}
@@ -166,7 +166,7 @@ export default function LoginPage() {
 
                     {/* Back to landing */}
                     <div className="mt-4 text-center">
-                        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+                        <Link href="/login" className="text-sm text-gray-500 hover:text-gray-700">
                             ← Torna alla pagina iniziale
                         </Link>
                     </div>

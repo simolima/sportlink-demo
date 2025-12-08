@@ -71,7 +71,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="px-6 py-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </div>
             </div>
         )
@@ -80,11 +80,11 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <BriefcaseIcon className="w-5 h-5 text-emerald-600" />
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <BriefcaseIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">Mercato</h3>
@@ -93,7 +93,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                     </div>
                     <Link
                         href="/opportunities"
-                        className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                        className="text-sm font-medium text-primary hover:text-blue-700"
                     >
                         Vedi tutte →
                     </Link>
@@ -122,7 +122,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                                         <p className="text-sm text-gray-600 mt-0.5">{opp.clubName}</p>
                                     )}
                                     <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
-                                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
+                                        <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full">
                                             {opp.roleRequired}
                                         </span>
                                         {opp.position && (
@@ -140,7 +140,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                                 </div>
                                 {opp.matchingAthletes !== undefined && opp.matchingAthletes > 0 && (
                                     <div className="text-right">
-                                        <div className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                                        <div className="flex items-center gap-1 text-primary text-sm font-medium">
                                             <UserIcon className="w-4 h-4" />
                                             {opp.matchingAthletes}
                                         </div>

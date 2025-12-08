@@ -100,7 +100,7 @@ export default function PeoplePage() {
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="Cerca per nome, ruolo o bio..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
 
@@ -108,7 +108,7 @@ export default function PeoplePage() {
                         <select
                             value={selectedSport}
                             onChange={(e) => setSelectedSport(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                             <option value="all">Tutti gli sport</option>
                             {SUPPORTED_SPORTS.map((sport) => (
@@ -120,7 +120,7 @@ export default function PeoplePage() {
                         <select
                             value={selectedRole}
                             onChange={(e) => setSelectedRole(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                             <option value="all">Tutti i ruoli</option>
                             {PROFESSIONAL_ROLES.map((role) => (
@@ -134,7 +134,7 @@ export default function PeoplePage() {
                         <button
                             onClick={() => setSelectedAvailability('all')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'all'
-                                ? 'bg-green-500 text-white'
+                                ? 'bg-primary text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >

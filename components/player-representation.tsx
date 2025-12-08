@@ -146,12 +146,12 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         }
 
         return (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="bg-base-200 rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <Shield size={20} className="text-green-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Rappresentanza</h3>
+                    <Shield size={20} className="text-primary" />
+                    <h3 className="text-lg font-semibold text-secondary">Rappresentanza</h3>
                 </div>
-                <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border border-green-100">
+                <div className="flex items-center gap-4 p-4 bg-base-300 rounded-lg border border-base-300">
                     <Link href={`/profile/${acceptedAffiliations[0].agent?.id}`}>
                         {acceptedAffiliations[0].agent?.avatarUrl ? (
                             <img
@@ -160,16 +160,16 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
                                 <UserCircle size={24} className="text-white" />
                             </div>
                         )}
                     </Link>
                     <div>
-                        <p className="text-sm text-gray-600">Rappresentato da</p>
+                        <p className="text-sm text-secondary">Rappresentato da</p>
                         <Link
                             href={`/profile/${acceptedAffiliations[0].agent?.id}`}
-                            className="font-semibold text-gray-900 hover:text-green-600 transition"
+                            className="font-semibold text-secondary hover:text-primary transition"
                         >
                             {acceptedAffiliations[0].agent?.firstName} {acceptedAffiliations[0].agent?.lastName}
                         </Link>
@@ -182,32 +182,32 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
     // Se è il proprio profilo e non ci sono affiliazioni
     if (pendingAffiliations.length === 0 && acceptedAffiliations.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="bg-base-200 rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <Shield size={20} className="text-green-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Rappresentanza</h3>
+                    <Shield size={20} className="text-primary" />
+                    <h3 className="text-lg font-semibold text-secondary">Rappresentanza</h3>
                 </div>
-                <p className="text-gray-500 text-sm">Nessun agente affiliato. Le richieste degli agenti appariranno qui.</p>
+                <p className="text-secondary/70 text-sm">Nessun agente affiliato. Le richieste degli agenti appariranno qui.</p>
             </div>
         )
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-base-200 rounded-lg shadow-sm p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
-                <Shield size={20} className="text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Rappresentanza</h3>
+                <Shield size={20} className="text-primary" />
+                <h3 className="text-lg font-semibold text-secondary">Rappresentanza</h3>
             </div>
 
             {/* Richieste in attesa */}
             {pendingAffiliations.length > 0 && (
                 <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Richieste in attesa</h4>
+                    <h4 className="text-sm font-medium text-secondary mb-3">Richieste in attesa</h4>
                     <div className="space-y-3">
                         {pendingAffiliations.map((affiliation) => (
                             <div
                                 key={affiliation.id}
-                                className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                                className="p-4 bg-warning/10 border border-warning rounded-lg"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-center gap-3">
@@ -219,7 +219,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
                                                     <UserCircle size={20} className="text-white" />
                                                 </div>
                                             )}
@@ -227,22 +227,22 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                         <div>
                                             <Link
                                                 href={`/profile/${affiliation.agent?.id}`}
-                                                className="font-medium text-gray-900 hover:text-green-600 transition"
+                                                className="font-medium text-secondary hover:text-primary transition"
                                             >
                                                 {affiliation.agent?.firstName} {affiliation.agent?.lastName}
                                             </Link>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-secondary/60">
                                                 Richiesta il {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
                                             </p>
                                             {affiliation.message && (
-                                                <p className="text-sm text-gray-600 mt-1 italic">"{affiliation.message}"</p>
+                                                <p className="text-sm text-secondary/70 mt-1 italic">"{affiliation.message}"</p>
                                             )}
                                         </div>
                                     </div>
                                     <div className="flex gap-2 flex-shrink-0">
                                         <button
                                             onClick={() => handleAccept(affiliation.id)}
-                                            className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                            className="p-2 btn btn-primary btn-sm"
                                             title="Accetta"
                                         >
                                             <Check size={16} />
@@ -272,11 +272,11 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
             {/* Agente affiliato */}
             {acceptedAffiliations.length > 0 && (
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Il tuo agente</h4>
+                    <h4 className="text-sm font-medium text-secondary mb-3">Il tuo agente</h4>
                     {acceptedAffiliations.map((affiliation) => (
                         <div
                             key={affiliation.id}
-                            className="p-4 bg-green-50 border border-green-100 rounded-lg"
+                            className="p-4 bg-success/10 border border-success rounded-lg"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -288,21 +288,21 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                 className="w-12 h-12 rounded-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
                                                 <UserCircle size={24} className="text-white" />
                                             </div>
                                         )}
                                     </Link>
                                     <div>
-                                        <p className="text-sm text-gray-600">Rappresentato da</p>
+                                        <p className="text-sm text-secondary/80">Rappresentato da</p>
                                         <Link
                                             href={`/profile/${affiliation.agent?.id}`}
-                                            className="font-semibold text-gray-900 hover:text-green-600 transition"
+                                            className="font-semibold text-secondary hover:text-primary transition"
                                         >
                                             {affiliation.agent?.firstName} {affiliation.agent?.lastName}
                                         </Link>
                                         {affiliation.affiliatedAt && (
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-secondary/60">
                                                 Dal {new Date(affiliation.affiliatedAt).toLocaleDateString('it-IT')}
                                             </p>
                                         )}

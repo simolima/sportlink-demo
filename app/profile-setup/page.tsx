@@ -80,24 +80,24 @@ export default function Page() {
     // Non serve più controllare user: la pagina si mostra se i dati sono in localStorage
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-gradient-to-br from-base-100 to-white flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-4xl">
-                <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-green-100">
+                <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-base-300">
                     {/* Header */}
                     <div className="text-center mb-8">
                         <div className="flex justify-center mb-4">
                             <Image src="/logo.svg" alt="SPRINTA" width={40} height={40} className="rounded" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Benvenuto!</h1>
-                        <p className="text-gray-600">Seleziona il tuo ruolo professionale</p>
+                        <h1 className="text-3xl font-bold text-secondary mb-2">Benvenuto!</h1>
+                        <p className="text-secondary/80">Seleziona il tuo ruolo professionale</p>
                     </div>
 
                     {/* Progress */}
                     <div className="mb-8">
                         <div className="flex items-center justify-center gap-2">
-                            <div className="flex-1 h-1 bg-green-600 rounded"></div>
-                            <span className="text-xs font-semibold text-gray-600">Passo 1 di 2</span>
-                            <div className="flex-1 h-1 bg-green-600 rounded"></div>
+                            <div className="flex-1 h-1 bg-primary rounded"></div>
+                            <span className="text-xs font-semibold text-secondary/60">Passo 1 di 2</span>
+                            <div className="flex-1 h-1 bg-primary rounded"></div>
                         </div>
                     </div>
 
@@ -113,8 +113,8 @@ export default function Page() {
                                     key={role}
                                     onClick={() => setSelectedRole(role)}
                                     className={`p-4 rounded-xl border-2 transition-all text-left ${selectedRole === role
-                                        ? 'border-green-600 bg-green-50 ring-2 ring-green-500'
-                                        : 'border-gray-200 bg-white hover:border-green-300'
+                                        ? 'border-primary bg-primary/5 ring-2 ring-primary'
+                                        : 'border-gray-200 bg-white hover:border-primary/30'
                                         }`}
                                 >
                                     <div className="font-semibold text-gray-900">{ROLE_TRANSLATIONS[role]}</div>
@@ -128,7 +128,7 @@ export default function Page() {
                             <button
                                 onClick={handleComplete}
                                 disabled={loading || !selectedRole}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                className="bg-primary hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
                                 {loading ? 'Avanti...' : 'Avanti →'}
                             </button>

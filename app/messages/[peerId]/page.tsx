@@ -80,7 +80,7 @@ export default function ChatWithPeerPage() {
                     <button onClick={() => router.back()} className="text-sm text-gray-600 hover:text-gray-900">Indietro</button>
                     <h1 className="text-xl font-semibold">Chat con {peerId}</h1>
                 </div>
-                <Link href={`/profile/${peerId}`} className="text-sm text-green-600 hover:underline">Vedi profilo</Link>
+                <Link href={`/profile/${peerId}`} className="text-sm text-primary hover:underline">Vedi profilo</Link>
             </div>
             <div className="bg-white rounded-lg shadow p-4 h-[60vh] overflow-y-auto mb-4">
                 {loading && <div>Caricamento...</div>}
@@ -109,7 +109,7 @@ export default function ChatWithPeerPage() {
                 <button
                     onClick={sendMessage}
                     disabled={sending || !text.trim()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
                 >Invia</button>
             </div>
         </div>

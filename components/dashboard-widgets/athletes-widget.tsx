@@ -38,9 +38,9 @@ export default function AthletesWidget({
                         <Link
                             key={athlete.id}
                             href={`/profile/${athlete.id}`}
-                            className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-green-300 hover:bg-green-50 transition"
+                            className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-primary/30 hover:bg-primary/5 transition"
                         >
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                 {athlete.firstName.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -62,7 +62,7 @@ export default function AthletesWidget({
             {athletes.length > maxItems && (
                 <Link
                     href="/people"
-                    className="block mt-4 text-center py-2 text-green-600 hover:text-green-700 font-semibold text-sm"
+                    className="block mt-4 text-center py-2 text-primary hover:text-blue-700 font-semibold text-sm"
                 >
                     Vedi tutti ({athletes.length}) →
                 </Link>

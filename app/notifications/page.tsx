@@ -1,11 +1,39 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, Trash2, Check } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Bell, Trash2, Check, ExternalLink } from 'lucide-react'
 import { Notification } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 
+// Get destination URL based on notification type and metadata
+function getNotificationDestination(type: string, metadata?: any): string | null {
+  switch (type) {
+    // Player receives affiliation request -> go to player affiliations page
+    case 'affiliation_request':
+      return '/player/affiliations'
+    // Agent receives acceptance/rejection -> go to agent affiliations page  
+    case 'affiliation_accepted':
+    case 'affiliation_rejected':
+      return '/agent/affiliations'
+    // Affiliation removed - check metadata to determine who received it
+    case 'affiliation_removed':
+      // If metadata has playerId, it means the agent received this notification
+      // If metadata has agentId, it means the player received this notification
+      if (metadata?.playerId) {
+        return '/agent/affiliations'
+      } else if (metadata?.agentId) {
+        // Player received notification - no redirect, stay on notifications
+        return null
+      }
+      return null
+    default:
+      return null
+  }
+}
+
 export default function NotificationsPage() {
+  const router = useRouter()
   const { user, isLoading: authLoading } = useRequireAuth(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
@@ -81,6 +109,10 @@ export default function NotificationsPage() {
         return 'bg-blue-100 text-blue-800'
       case 'affiliation_accepted':
         return 'bg-success/10 text-success'
+      case 'affiliation_rejected':
+        return 'bg-red-100 text-red-800'
+      case 'affiliation_removed':
+        return 'bg-orange-100 text-orange-800'
       case 'application_received':
         return 'bg-purple-100 text-purple-800'
       case 'application_status_update':
@@ -141,60 +173,74 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {notifications.map((notif) => (
-            <div
-              key={notif.id}
-              className={`border rounded-lg p-4 transition-colors ${notif.read ? 'bg-white' : 'bg-blue-50 border-blue-200'
-                }`}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded ${getTypeColor(
-                        notif.type
-                      )}`}
-                    >
-                      {notif.type.replace(/_/g, ' ').toUpperCase()}
-                    </span>
-                    {!notif.read && (
-                      <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                    )}
+          {notifications.map((notif) => {
+            const destination = getNotificationDestination(notif.type, notif.metadata)
+            return (
+              <div
+                key={notif.id}
+                className={`border rounded-lg p-4 transition-colors ${notif.read ? 'bg-white' : 'bg-blue-50 border-blue-200'
+                  } ${destination ? 'cursor-pointer hover:shadow-md' : ''}`}
+                onClick={async () => {
+                  if (destination) {
+                    if (!notif.read) {
+                      await markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))
+                    }
+                    router.push(destination)
+                  }
+                }}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded ${getTypeColor(
+                          notif.type
+                        )}`}
+                      >
+                        {notif.type.replace(/_/g, ' ').toUpperCase()}
+                      </span>
+                      {!notif.read && (
+                        <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                      )}
+                      {destination && (
+                        <ExternalLink size={14} className="text-gray-400" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-900">{notif.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      {new Date(notif.createdAt).toLocaleDateString('it-IT', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
                   </div>
-                  <h3 className="font-semibold text-gray-900">{notif.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    {new Date(notif.createdAt).toLocaleDateString('it-IT', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
 
-                <div className="flex gap-2">
-                  {!notif.read && (
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    {!notif.read && (
+                      <button
+                        onClick={() => markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Segna come letta"
+                      >
+                        <Check size={18} className="text-success" />
+                      </button>
+                    )}
                     <button
-                      onClick={() => markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))}
+                      onClick={() => deleteNotification(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="Segna come letta"
+                      title="Elimina"
                     >
-                      <Check size={18} className="text-success" />
+                      <Trash2 size={18} className="text-red-600" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => deleteNotification(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Elimina"
-                  >
-                    <Trash2 size={18} className="text-red-600" />
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

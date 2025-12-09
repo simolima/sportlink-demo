@@ -1,0 +1,71 @@
+================================================================================
+SPORTLINK - RECAP SESSIONE DEV
+Data: 9 Dicembre 2025
+================================================================================
+
+OBIETTIVO
+---------
+Implementare un sistema completo di notifiche per le affiliazioni tra 
+Agenti e Giocatori.
+
+
+FUNZIONALITA' IMPLEMENTATE
+--------------------------
+
+1. NOTIFICHE AUTOMATICHE
+   Quando avviene un'azione sulle affiliazioni, viene creata automaticamente 
+   una notifica per l'utente interessato:
+
+   | Azione                    | Chi la fa   | Chi riceve notifica |
+   |---------------------------|-------------|---------------------|
+   | Richiesta affiliazione    | Agente      | Giocatore           |
+   | Accettazione richiesta    | Giocatore   | Agente              |
+   | Rifiuto richiesta         | Giocatore   | Agente              |
+   | Rimozione affiliazione    | Giocatore   | Agente              |
+   | Rimozione affiliazione    | Agente      | Giocatore           |
+
+
+2. NAVIGAZIONE INTELLIGENTE
+   Cliccando su una notifica, l'utente viene portato alla pagina corretta:
+
+   - Giocatore riceve richiesta    -> /player/affiliations
+   - Agente riceve accettazione    -> /agent/affiliations  
+   - Agente riceve rifiuto         -> /agent/affiliations
+   - Agente riceve rimozione       -> /agent/affiliations
+   - Giocatore riceve rimozione    -> resta sulla pagina notifiche
+
+
+3. BADGE E VISUALIZZAZIONE
+   - Badge rosso sulla campanella con contatore notifiche non lette
+   - Pagina /notifications con lista completa
+   - Filtri: tutte / non lette
+   - Azioni: segna come letta, elimina
+   - Colori diversi per ogni tipo di notifica
+
+
+FILE MODIFICATI
+---------------
+- app/api/affiliations/route.ts         (creazione notifiche)
+- app/notifications/page.tsx            (navigazione + fix errori)
+- components/notification-bell.tsx      (navigazione click)
+- app/player/affiliations/page.tsx      (parametri DELETE)
+- app/agent/affiliations/page.tsx       (parametri DELETE)
+- components/player-representation.tsx  (parametri DELETE)
+
+
+COME TESTARE
+------------
+1. Login come Gianna (agente) -> invia richiesta affiliazione a Simone
+2. Login come Simone (giocatore) -> verifica notifica, clicca -> va a /player/affiliations
+3. Accetta o rifiuta la richiesta
+4. Login come Gianna -> verifica notifica risposta, clicca -> va a /agent/affiliations
+5. Rimuovi affiliazione da entrambi i lati e verifica le notifiche
+
+
+UTENTI DI TEST
+--------------
+- Gianna Rossi (Agente)    -> gianna@example.com / password123
+- Simone Lima (Giocatore)  -> simo@test / password123
+
+
+================================================================================

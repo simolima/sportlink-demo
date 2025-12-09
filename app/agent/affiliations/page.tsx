@@ -123,7 +123,7 @@ export default function AgentAffiliationsPage() {
         if (!confirm('Sei sicuro di voler rimuovere questa affiliazione?')) return
 
         try {
-            const res = await fetch(`/api/affiliations?id=${affiliationId}`, {
+            const res = await fetch(`/api/affiliations?id=${affiliationId}&agentId=${currentUser.id}`, {
                 method: 'DELETE',
             })
 

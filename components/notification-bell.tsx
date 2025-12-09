@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import Link from 'next/link'
 import { Notification } from '@/lib/types'
@@ -9,7 +10,34 @@ interface NotificationBellProps {
   userId: number
 }
 
+// Get destination URL based on notification type and metadata
+function getNotificationDestination(type: string, metadata?: any): string | null {
+  switch (type) {
+    // Player receives affiliation request -> go to player affiliations page
+    case 'affiliation_request':
+      return '/player/affiliations'
+    // Agent receives acceptance/rejection -> go to agent affiliations page  
+    case 'affiliation_accepted':
+    case 'affiliation_rejected':
+      return '/agent/affiliations'
+    // Affiliation removed - check metadata to determine who received it
+    case 'affiliation_removed':
+      // If metadata has playerId, it means the agent received this notification
+      // If metadata has agentId, it means the player received this notification
+      if (metadata?.playerId) {
+        return '/agent/affiliations'
+      } else if (metadata?.agentId) {
+        // Player received notification - just go to notifications page (no specific destination)
+        return null
+      }
+      return null
+    default:
+      return null
+  }
+}
+
 export default function NotificationBell({ userId }: NotificationBellProps) {
+  const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
@@ -89,7 +117,14 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                   <div
                     key={notif.id}
                     className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))}
+                    onClick={async () => {
+                      await markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))
+                      setShowDropdown(false)
+                      const destination = getNotificationDestination(notif.type, notif.metadata)
+                      if (destination) {
+                        router.push(destination)
+                      }
+                    }}
                   >
                     <div className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />

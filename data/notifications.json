@@ -1,1 +1,184 @@
-[]
+[
+  {
+    "id": 1765317743578,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765210230393,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:02:23.578Z"
+  },
+  {
+    "id": 1765317881926,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765317881924,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:04:41.926Z"
+  },
+  {
+    "id": 1765317980213,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765317881924,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:06:20.213Z"
+  },
+  {
+    "id": 1765318504791,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765317881924,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:15:04.791Z"
+  },
+  {
+    "id": 1765318541467,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765318541465,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:15:41.467Z"
+  },
+  {
+    "id": 1765318580575,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765318541465,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:16:20.576Z"
+  },
+  {
+    "id": 1765318891939,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765318541465,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:21:31.939Z"
+  },
+  {
+    "id": 1765318991692,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765318991690,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:23:11.692Z"
+  },
+  {
+    "id": 1765319015872,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765318991690,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:23:35.872Z"
+  },
+  {
+    "id": 1765319179086,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765318991690,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:26:19.086Z"
+  },
+  {
+    "id": 1765319402211,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765319402209,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:30:02.211Z"
+  },
+  {
+    "id": 1765319423425,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765319402209,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:30:23.425Z"
+  },
+  {
+    "id": 1765319472925,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765319402209,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-09T22:31:12.925Z"
+  }
+]

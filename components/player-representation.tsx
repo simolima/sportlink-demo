@@ -93,7 +93,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         }
 
         try {
-            const res = await fetch(`/api/affiliations?id=${affiliationId}&block=true`, {
+            const res = await fetch(`/api/affiliations?id=${affiliationId}&block=true&playerId=${playerId}`, {
                 method: 'DELETE',
             })
 
@@ -112,7 +112,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         }
 
         try {
-            const res = await fetch(`/api/affiliations?id=${affiliationId}`, {
+            const res = await fetch(`/api/affiliations?id=${affiliationId}&playerId=${playerId}`, {
                 method: 'DELETE',
             })
 

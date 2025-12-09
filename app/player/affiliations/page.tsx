@@ -115,7 +115,7 @@ export default function PlayerAffiliationsPage() {
 
     try {
       // Delete affiliation and block agent
-      const res = await fetch(`/api/affiliations?id=${affiliationId}&block=true`, {
+      const res = await fetch(`/api/affiliations?id=${affiliationId}&block=true&playerId=${currentUser.id}`, {
         method: 'DELETE',
       })
 
@@ -134,7 +134,7 @@ export default function PlayerAffiliationsPage() {
     }
 
     try {
-      const res = await fetch(`/api/affiliations?id=${affiliationId}`, {
+      const res = await fetch(`/api/affiliations?id=${affiliationId}&playerId=${currentUser.id}`, {
         method: 'DELETE',
       })
 

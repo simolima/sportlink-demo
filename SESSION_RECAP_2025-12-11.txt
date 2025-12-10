@@ -1,0 +1,219 @@
+================================================================================
+SPORTLINK - RECAP SESSIONE DEV
+Data: 11 Dicembre 2025
+================================================================================
+
+OBIETTIVO SESSIONE
+------------------
+1. Implementare nuovi tipi di notifica per il sistema follow e candidature
+2. Correggere bug UI (pulsanti non funzionanti sulla pagina profilo)
+
+
+================================================================================
+FUNZIONALITÀ IMPLEMENTATE OGGI
+================================================================================
+
+1. NOTIFICA "NEW_FOLLOWER"
+   Quando un utente inizia a seguire un altro utente, viene creata una notifica.
+   
+   | Azione          | Chi la fa    | Chi riceve notifica |
+   |-----------------|--------------|---------------------|
+   | Segui utente    | Qualsiasi    | Utente seguito      |
+
+
+2. NOTIFICA "NEW_APPLICATION"  
+   Quando un professionista si candida a un'opportunità, il DS riceve notifica.
+   
+   | Azione              | Chi la fa      | Chi riceve notifica  |
+   |---------------------|----------------|----------------------|
+   | Candidatura inviata | Professionista | Sporting Director    |
+
+
+3. NOTIFICHE "CANDIDACY_ACCEPTED" / "CANDIDACY_REJECTED"
+   Quando un DS accetta o rifiuta una candidatura, il candidato viene notificato.
+   
+   | Azione                | Chi la fa | Chi riceve notifica |
+   |-----------------------|-----------|---------------------|
+   | Accetta candidatura   | DS        | Candidato           |
+   | Rifiuta candidatura   | DS        | Candidato           |
+
+
+4. FIX PULSANTI PAGINA PROFILO
+   I pulsanti "Segui" e "Contatta" sulla sidebar del profilo utente non 
+   funzionavano. Il problema era che il componente ProfileSidebar era 
+   server-side e non poteva ricevere callback.
+   
+   Soluzione: ProfileSidebar ora gestisce internamente:
+   - Stato follow (verifica se già segui l'utente)
+   - handleFollow() → POST /api/follows
+   - handleUnfollow() → DELETE /api/follows  
+   - handleMessage() → router.push(/messages/{userId})
+
+
+5. PULSANTI ACCETTA/RIFIUTA CANDIDATURE
+   Aggiunti pulsanti "Accetta" e "Rifiuta" nella pagina /club-applications
+   per permettere al DS di gestire le candidature ricevute.
+
+
+================================================================================
+ARCHITETTURA SISTEMA NOTIFICHE
+================================================================================
+
+TIPI DI NOTIFICA SUPPORTATI
+---------------------------
+const NOTIFICATION_TYPES = [
+  // Affiliazioni Agente-Giocatore
+  'affiliation_request',        // Agente richiede affiliazione
+  'affiliation_accepted',       // Giocatore accetta
+  'affiliation_rejected',       // Giocatore rifiuta
+  
+  // Adesione Club
+  'club_join_request',          // Richiesta ingresso club
+  'club_join_accepted',         // Accettata
+  'club_join_rejected',         // Rifiutata
+  
+  // Candidature Opportunità
+  'application_received',       // (legacy)
+  'application_status_changed', // (legacy)
+  'new_application',            // DS riceve candidatura ⭐ NUOVO
+  'candidacy_accepted',         // Candidato accettato ⭐ NUOVO
+  'candidacy_rejected',         // Candidato rifiutato ⭐ NUOVO
+  
+  // Social
+  'new_follower',               // Qualcuno ti segue ⭐ NUOVO
+  
+  // Altro
+  'new_opportunity',            // Nuova opportunità disponibile
+  'permission_granted',         // Permesso concesso
+  'permission_revoked'          // Permesso revocato
+]
+
+
+STRUTTURA NOTIFICA (data/notifications.json)
+--------------------------------------------
+{
+  "id": 1734012345678,
+  "userId": "123",           // Chi riceve la notifica
+  "type": "new_follower",    // Tipo (vedi sopra)
+  "title": "Nuovo follower",
+  "message": "Mario Rossi ha iniziato a seguirti",
+  "read": false,
+  "createdAt": "2025-12-11T10:00:00.000Z",
+  "metadata": {              // Dati extra (opzionale)
+    "fromUserId": "456",
+    "fromUserName": "Mario Rossi"
+  }
+}
+
+
+FLUSSO CREAZIONE NOTIFICA
+-------------------------
+1. Un'azione viene eseguita (es. click "Segui")
+2. L'API route che gestisce l'azione crea la notifica:
+   
+   POST /api/notifications
+   {
+     userId: "destinatario",
+     type: "new_follower",
+     title: "Nuovo follower",
+     message: "...",
+     metadata: { ... }
+   }
+
+3. La notifica viene salvata in data/notifications.json
+4. Il badge sulla campanella si aggiorna (polling ogni 30s)
+5. L'utente vede la notifica in /notifications
+
+
+NAVIGAZIONE DA NOTIFICA
+-----------------------
+Quando l'utente clicca su una notifica, viene portato alla pagina appropriata:
+
+| Tipo Notifica       | Destinazione                    |
+|---------------------|---------------------------------|
+| new_follower        | /profile/{fromUserId}           |
+| new_application     | /club-applications              |
+| candidacy_accepted  | /my-applications                |
+| candidacy_rejected  | /my-applications                |
+| affiliation_*       | /player/affiliations o /agent/affiliations |
+| club_join_*         | /clubs                          |
+
+
+COLORI BADGE NOTIFICA
+---------------------
+| Tipo                | Colore      |
+|---------------------|-------------|
+| new_follower        | Blu (#2341F0) |
+| new_application     | Giallo      |
+| candidacy_accepted  | Verde       |
+| candidacy_rejected  | Rosso       |
+| affiliation_*       | Viola       |
+| club_join_*         | Arancione   |
+
+
+================================================================================
+FILE MODIFICATI OGGI
+================================================================================
+
+TIPI E DEFINIZIONI
+- lib/types.ts                           → Aggiunti 4 nuovi tipi notifica
+
+API ROUTES
+- app/api/follows/route.ts               → Crea notifica new_follower
+- app/api/applications/route.ts          → Crea notifiche candidatura
+
+COMPONENTI UI
+- components/profile-sidebar.tsx         → Pulsanti Segui/Contatta funzionanti
+- components/notification-bell.tsx       → Navigazione + colori nuovi tipi
+- app/notifications/page.tsx             → Navigazione + colori nuovi tipi
+- app/club-applications/page.tsx         → Pulsanti Accetta/Rifiuta
+
+
+================================================================================
+COME AGGIUNGERE UN NUOVO TIPO DI NOTIFICA
+================================================================================
+
+1. Aggiungi il tipo in lib/types.ts → NOTIFICATION_TYPES array
+
+2. Aggiorna getNotificationDestination() in:
+   - app/notifications/page.tsx
+   - components/notification-bell.tsx
+
+3. Aggiorna getTypeColor() in app/notifications/page.tsx
+
+4. Crea la notifica nel punto appropriato (API route):
+   
+   await fetch('/api/notifications', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({
+       userId: 'id_destinatario',
+       type: 'nuovo_tipo',
+       title: 'Titolo',
+       message: 'Messaggio descrittivo',
+       metadata: { /* dati extra opzionali */ }
+     })
+   })
+
+
+================================================================================
+NOTE TECNICHE
+================================================================================
+
+- Le notifiche sono salvate in data/notifications.json (JSON file storage)
+- Il polling del badge campanella avviene ogni 30 secondi
+- Le API routes usano withCors() per compatibilità mobile
+- Il sistema non usa autenticazione reale (localStorage per demo)
+- IDs generati con Date.now() per unicità
+
+
+================================================================================
+PROSSIMI PASSI SUGGERITI
+================================================================================
+
+- [ ] Notifica push real-time (WebSocket o Server-Sent Events)
+- [ ] Notifica "messaggio_ricevuto" per nuovi messaggi in chat
+- [ ] Raggruppamento notifiche simili (es. "5 nuovi follower")
+- [ ] Impostazioni preferenze notifiche per utente
+- [ ] Migrazione a Supabase per persistenza database reale
+

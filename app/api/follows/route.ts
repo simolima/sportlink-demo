@@ -7,23 +7,67 @@ import { withCors, handleOptions } from '@/lib/cors'
 export const runtime = 'nodejs'
 
 const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
+const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
+const NOTIFICATIONS_PATH = path.join(process.cwd(), 'data', 'notifications.json')
 
-function ensureFile() {
-    if (!fs.existsSync(FOLLOWS_PATH)) {
-        fs.mkdirSync(path.dirname(FOLLOWS_PATH), { recursive: true })
-        fs.writeFileSync(FOLLOWS_PATH, '[]')
+function ensureFile(filePath: string, defaultContent: string = '[]') {
+    if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(path.dirname(filePath), { recursive: true })
+        fs.writeFileSync(filePath, defaultContent)
     }
 }
 
 function readFollows() {
-    ensureFile()
+    ensureFile(FOLLOWS_PATH)
     const raw = fs.readFileSync(FOLLOWS_PATH, 'utf8')
     try { return JSON.parse(raw || '[]') } catch { return [] }
 }
 
 function writeFollows(follows: any[]) {
-    ensureFile()
+    ensureFile(FOLLOWS_PATH)
     fs.writeFileSync(FOLLOWS_PATH, JSON.stringify(follows, null, 2))
+}
+
+function readUsers() {
+    ensureFile(USERS_PATH)
+    const raw = fs.readFileSync(USERS_PATH, 'utf8')
+    try { return JSON.parse(raw || '[]') } catch { return [] }
+}
+
+function readNotifications() {
+    ensureFile(NOTIFICATIONS_PATH)
+    const raw = fs.readFileSync(NOTIFICATIONS_PATH, 'utf8')
+    try { return JSON.parse(raw || '[]') } catch { return [] }
+}
+
+function writeNotifications(notifications: any[]) {
+    ensureFile(NOTIFICATIONS_PATH)
+    fs.writeFileSync(NOTIFICATIONS_PATH, JSON.stringify(notifications, null, 2))
+}
+
+// Helper per creare notifica "new_follower"
+function createFollowNotification(followerUser: any, followedUserId: string) {
+    const notifications = readNotifications()
+    const followerName = `${followerUser.firstName || ''} ${followerUser.lastName || ''}`.trim() || 'Un utente'
+
+    const newNotification = {
+        id: Date.now(),
+        userId: followedUserId,
+        type: 'new_follower',
+        title: 'Nuovo follower',
+        message: `${followerName} ha iniziato a seguirti.`,
+        metadata: {
+            followerId: followerUser.id,
+            followerName: followerName,
+            followerAvatar: followerUser.avatarUrl || followerUser.avatar || null
+        },
+        read: false,
+        createdAt: new Date().toISOString()
+    }
+
+    notifications.push(newNotification)
+    writeNotifications(notifications)
+    return newNotification
 }
 
 export async function OPTIONS(req: Request) {
@@ -67,6 +111,14 @@ export async function POST(req: Request) {
         const newFollow = { id: Date.now(), followerId, followingId, createdAt: new Date().toISOString() }
         follows.unshift(newFollow)
         writeFollows(follows)
+
+        // Crea notifica per l'utente seguito (new_follower)
+        const users = readUsers()
+        const followerUser = users.find((u: any) => String(u.id) === String(followerId))
+        if (followerUser) {
+            createFollowNotification(followerUser, followingId)
+        }
+
         return withCors(NextResponse.json(newFollow, { status: 201 }))
     } catch (err) {
         return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))

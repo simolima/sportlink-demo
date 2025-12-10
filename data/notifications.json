@@ -180,5 +180,120 @@
     },
     "read": true,
     "createdAt": "2025-12-09T22:31:12.925Z"
+  },
+  {
+    "id": 1765405568172,
+    "userId": "1765111800200",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Simone Lima ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "1765202028769",
+      "followerName": "Simone Lima",
+      "followerAvatar": null
+    },
+    "read": false,
+    "createdAt": "2025-12-10T22:26:08.172Z"
+  },
+  {
+    "id": 1765405572194,
+    "userId": "2",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Simone Lima ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "1765202028769",
+      "followerName": "Simone Lima",
+      "followerAvatar": null
+    },
+    "read": true,
+    "createdAt": "2025-12-10T22:26:12.194Z"
+  },
+  {
+    "id": 1765406559432,
+    "userId": "1765196290455",
+    "type": "new_application",
+    "title": "Nuova candidatura",
+    "message": "Simone Lima si è candidato al tuo annuncio \"Cerco uno alto\".",
+    "metadata": {
+      "applicantId": "1765202028769",
+      "applicantName": "Simone Lima",
+      "applicantAvatar": null,
+      "opportunityId": 1765406535648,
+      "opportunityTitle": "Cerco uno alto"
+    },
+    "read": true,
+    "createdAt": "2025-12-10T22:42:39.432Z"
+  },
+  {
+    "id": 1765407386711,
+    "userId": "1765202028769",
+    "type": "candidacy_rejected",
+    "title": "Candidatura rifiutata",
+    "message": "La tua candidatura all'annuncio \"Cerco nano\" è stata rifiutata.",
+    "metadata": {
+      "applicationId": 1765405865330,
+      "opportunityId": 1765405826103,
+      "opportunityTitle": "Cerco nano",
+      "reviewerId": "1765196290455"
+    },
+    "read": false,
+    "createdAt": "2025-12-10T22:56:26.711Z"
+  },
+  {
+    "id": 1765407457982,
+    "userId": "1765196290455",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Gianna Rossi ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "2",
+      "followerName": "Gianna Rossi",
+      "followerAvatar": null
+    },
+    "read": false,
+    "createdAt": "2025-12-10T22:57:37.982Z"
+  },
+  {
+    "id": 1765407460072,
+    "userId": "1765202028769",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Gianna Rossi ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "2",
+      "followerName": "Gianna Rossi",
+      "followerAvatar": null
+    },
+    "read": true,
+    "createdAt": "2025-12-10T22:57:40.072Z"
+  },
+  {
+    "id": 1765408002469,
+    "userId": "1765202028769",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Gianna Rossi ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "2",
+      "followerName": "Gianna Rossi",
+      "followerAvatar": null
+    },
+    "read": true,
+    "createdAt": "2025-12-10T23:06:42.469Z"
+  },
+  {
+    "id": 1765408028806,
+    "userId": "2",
+    "type": "new_follower",
+    "title": "Nuovo follower",
+    "message": "Simone Lima ha iniziato a seguirti.",
+    "metadata": {
+      "followerId": "1765202028769",
+      "followerName": "Simone Lima",
+      "followerAvatar": null
+    },
+    "read": true,
+    "createdAt": "2025-12-10T23:07:08.806Z"
   }
 ]

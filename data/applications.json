@@ -47,17 +47,19 @@
     "id": 1765202044760,
     "opportunityId": 1765201506930,
     "applicantId": "1765202028769",
-    "status": "pending",
+    "status": "withdrawn",
     "message": "",
-    "appliedAt": "2025-12-08T13:54:04.760Z"
+    "appliedAt": "2025-12-08T13:54:04.760Z",
+    "updatedAt": "2025-12-10T22:31:11.051Z"
   },
   {
     "id": 1765202262942,
     "opportunityId": 1765200030818,
     "applicantId": "1765202028769",
-    "status": "pending",
+    "status": "withdrawn",
     "message": "",
-    "appliedAt": "2025-12-08T13:57:42.942Z"
+    "appliedAt": "2025-12-08T13:57:42.942Z",
+    "updatedAt": "2025-12-10T22:31:12.573Z"
   },
   {
     "id": 1765202436547,
@@ -67,5 +69,25 @@
     "message": "",
     "appliedAt": "2025-12-08T14:00:36.547Z",
     "updatedAt": "2025-12-08T16:11:04.153Z"
+  },
+  {
+    "id": 1765405865330,
+    "opportunityId": 1765405826103,
+    "applicantId": "1765202028769",
+    "status": "rejected",
+    "message": "",
+    "appliedAt": "2025-12-10T22:31:05.330Z",
+    "updatedAt": "2025-12-10T22:56:26.708Z",
+    "reviewedBy": "1765196290455"
+  },
+  {
+    "id": 1765406559430,
+    "opportunityId": 1765406535648,
+    "applicantId": "1765202028769",
+    "status": "accepted",
+    "message": "",
+    "appliedAt": "2025-12-10T22:42:39.430Z",
+    "updatedAt": "2025-12-10T22:48:29.822Z",
+    "reviewedBy": "1765196290455"
   }
 ]

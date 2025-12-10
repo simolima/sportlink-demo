@@ -99,6 +99,44 @@ export default function ClubApplicationsPage() {
 
     const selectedOpportunity = opportunities.find(o => o.id.toString() === selectedOpportunityId?.toString())
 
+    // Funzione per aggiornare lo stato di una candidatura
+    const handleStatusChange = async (applicationId: string, newStatus: 'accepted' | 'rejected') => {
+        try {
+            const res = await fetch('/api/applications', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: applicationId,
+                    status: newStatus,
+                    reviewedBy: userId
+                })
+            })
+
+            if (res.ok) {
+                // Aggiorna la lista delle candidature
+                setApplications(prev =>
+                    prev.map(app =>
+                        app.id === applicationId
+                            ? { ...app, status: newStatus }
+                            : app
+                    )
+                )
+                showToast(
+                    'success',
+                    newStatus === 'accepted' ? 'Candidatura accettata' : 'Candidatura rifiutata',
+                    newStatus === 'accepted'
+                        ? 'Il candidato è stato accettato per questa posizione.'
+                        : 'La candidatura è stata rifiutata.'
+                )
+            } else {
+                showToast('error', 'Errore', 'Impossibile aggiornare lo stato della candidatura')
+            }
+        } catch (error) {
+            console.error('Error updating application status:', error)
+            showToast('error', 'Errore', 'Impossibile aggiornare lo stato della candidatura')
+        }
+    }
+
     const stats = {
         pending: applications.filter(a => a.status === 'pending').length,
         accepted: applications.filter(a => a.status === 'accepted').length,
@@ -288,8 +326,29 @@ export default function ClubApplicationsPage() {
                                                                 Candidato il {new Date(app.appliedAt).toLocaleDateString('it-IT')}
                                                             </p>
                                                         </div>
-                                                        <div className="text-right">
+                                                        <div className="flex items-center gap-2">
                                                             {getStatusBadge(app.status)}
+                                                            {/* Pulsanti Accetta/Rifiuta solo per candidature pending */}
+                                                            {app.status === 'pending' && (
+                                                                <div className="flex gap-2 ml-3">
+                                                                    <button
+                                                                        onClick={() => handleStatusChange(app.id, 'accepted')}
+                                                                        className="flex items-center gap-1 px-3 py-1.5 bg-success/10 text-success hover:bg-success/20 rounded-lg text-xs font-medium transition"
+                                                                        title="Accetta candidatura"
+                                                                    >
+                                                                        <CheckCircleIcon className="w-4 h-4" />
+                                                                        Accetta
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleStatusChange(app.id, 'rejected')}
+                                                                        className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-medium transition"
+                                                                        title="Rifiuta candidatura"
+                                                                    >
+                                                                        <XCircleIcon className="w-4 h-4" />
+                                                                        Rifiuta
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>

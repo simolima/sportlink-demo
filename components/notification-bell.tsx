@@ -31,6 +31,19 @@ function getNotificationDestination(type: string, metadata?: any): string | null
         return null
       }
       return null
+    // New follower -> go to follower's profile
+    case 'new_follower':
+      if (metadata?.followerId) {
+        return `/profile/${metadata.followerId}`
+      }
+      return null
+    // Sporting Director receives application to their announcement
+    case 'new_application':
+      return '/club-applications'
+    // Candidato riceve esito della sua candidatura
+    case 'candidacy_accepted':
+    case 'candidacy_rejected':
+      return '/my-applications'
     default:
       return null
   }

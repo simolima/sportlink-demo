@@ -130,6 +130,11 @@ export const APPLICATION_STATUS = [
 export type ApplicationStatus = typeof APPLICATION_STATUS[number];
 
 // Tipi notifica
+// Per aggiungere un nuovo tipo di notifica:
+// 1. Aggiungi il tipo qui sotto in NOTIFICATION_TYPES
+// 2. Aggiorna getNotificationDestination() in notifications/page.tsx e notification-bell.tsx
+// 3. Aggiorna getTypeColor() in notifications/page.tsx per stile/icona
+// 4. Crea la notifica nel punto appropriato (es. API route) chiamando POST /api/notifications
 export const NOTIFICATION_TYPES = [
   'affiliation_request',
   'affiliation_accepted',
@@ -141,7 +146,11 @@ export const NOTIFICATION_TYPES = [
   'application_status_changed',
   'new_opportunity',
   'permission_granted',
-  'permission_revoked'
+  'permission_revoked',
+  'new_follower', // Notifica quando un utente inizia a seguirti
+  'new_application', // Notifica per Sporting Director quando riceve una candidatura a un annuncio
+  'candidacy_accepted', // Notifica per candidato quando la sua candidatura viene accettata
+  'candidacy_rejected' // Notifica per candidato quando la sua candidatura viene rifiutata
 ] as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[number];

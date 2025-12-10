@@ -9,6 +9,7 @@ const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
 const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
 const usersPath = path.join(process.cwd(), 'data', 'users.json')
 const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
+const notificationsPath = path.join(process.cwd(), 'data', 'notifications.json')
 
 function ensureFile(p: string) {
     if (!fs.existsSync(p)) {
@@ -28,10 +29,90 @@ function writeApplications(applications: any[]) {
     fs.writeFileSync(applicationsPath, JSON.stringify(applications, null, 2))
 }
 
+function writeNotifications(notifications: any[]) {
+    ensureFile(notificationsPath)
+    fs.writeFileSync(notificationsPath, JSON.stringify(notifications, null, 2))
+}
+
 function readApplications() { return readJson(applicationsPath) }
 function readOpportunities() { return readJson(opportunitiesPath) }
 function readUsers() { return readJson(usersPath) }
 function readClubs() { return readJson(clubsPath) }
+function readNotifications() { return readJson(notificationsPath) }
+
+// Helper per creare notifica "new_application" per lo Sporting Director
+function createApplicationNotification(
+    applicant: any,
+    opportunity: any,
+    sportingDirectorId: string
+) {
+    const notifications = readNotifications()
+    const applicantName = `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || 'Un candidato'
+    const opportunityTitle = opportunity.title || null
+
+    const message = opportunityTitle
+        ? `${applicantName} si è candidato al tuo annuncio "${opportunityTitle}".`
+        : `${applicantName} si è candidato a uno dei tuoi annunci.`
+
+    const newNotification = {
+        id: Date.now(),
+        userId: sportingDirectorId,
+        type: 'new_application',
+        title: 'Nuova candidatura',
+        message,
+        metadata: {
+            applicantId: applicant.id,
+            applicantName,
+            applicantAvatar: applicant.avatarUrl || applicant.avatar || null,
+            opportunityId: opportunity.id,
+            opportunityTitle
+        },
+        read: false,
+        createdAt: new Date().toISOString()
+    }
+
+    notifications.push(newNotification)
+    writeNotifications(notifications)
+    return newNotification
+}
+
+// Helper per creare notifica "candidacy_accepted" o "candidacy_rejected" per il candidato
+function createCandidacyStatusNotification(
+    applicantId: string,
+    opportunity: any,
+    newStatus: 'accepted' | 'rejected',
+    applicationId: string | number,
+    reviewerId?: string
+) {
+    const notifications = readNotifications()
+    const opportunityTitle = opportunity?.title || null
+    const type = newStatus === 'accepted' ? 'candidacy_accepted' : 'candidacy_rejected'
+    const title = newStatus === 'accepted' ? 'Candidatura accettata' : 'Candidatura rifiutata'
+
+    const message = opportunityTitle
+        ? `La tua candidatura all'annuncio "${opportunityTitle}" è stata ${newStatus === 'accepted' ? 'accettata' : 'rifiutata'}.`
+        : `La tua candidatura è stata ${newStatus === 'accepted' ? 'accettata' : 'rifiutata'}.`
+
+    const newNotification = {
+        id: Date.now(),
+        userId: applicantId,
+        type,
+        title,
+        message,
+        metadata: {
+            applicationId,
+            opportunityId: opportunity?.id || null,
+            opportunityTitle,
+            reviewerId: reviewerId || null
+        },
+        read: false,
+        createdAt: new Date().toISOString()
+    }
+
+    notifications.push(newNotification)
+    writeNotifications(notifications)
+    return newNotification
+}
 
 export async function OPTIONS(req: Request) {
     return handleOptions()
@@ -160,6 +241,16 @@ export async function POST(request: Request) {
     applications.push(newApplication)
     writeApplications(applications)
 
+    // Crea notifica per lo Sporting Director (creatore dell'annuncio)
+    const opportunities = readOpportunities()
+    const users = readUsers()
+    const opportunity = opportunities.find((o: any) => o.id?.toString() === opportunityId.toString())
+    const applicant = users.find((u: any) => u.id?.toString() === applicantId.toString())
+
+    if (opportunity && applicant && opportunity.createdBy) {
+        createApplicationNotification(applicant, opportunity, opportunity.createdBy.toString())
+    }
+
     return withCors(NextResponse.json(newApplication, { status: 201 }))
 }
 
@@ -179,6 +270,7 @@ export async function PUT(request: Request) {
         return withCors(NextResponse.json({ error: 'Application not found' }, { status: 404 }))
     }
 
+    const previousStatus = applications[index].status
     applications[index].status = status
     applications[index].updatedAt = new Date().toISOString()
 
@@ -187,6 +279,25 @@ export async function PUT(request: Request) {
     }
 
     writeApplications(applications)
+
+    // Crea notifica per il candidato quando lo stato cambia in accepted o rejected
+    // Solo se lo stato precedente era diverso (evita notifiche duplicate)
+    if ((status === 'accepted' || status === 'rejected') && previousStatus !== status) {
+        const application = applications[index]
+        const opportunities = readOpportunities()
+        const opportunity = opportunities.find((o: any) => o.id?.toString() === application.opportunityId?.toString())
+
+        if (application.applicantId) {
+            createCandidacyStatusNotification(
+                application.applicantId.toString(),
+                opportunity,
+                status,
+                application.id,
+                reviewedBy?.toString()
+            )
+        }
+    }
+
     return withCors(NextResponse.json(applications[index]))
 }
 

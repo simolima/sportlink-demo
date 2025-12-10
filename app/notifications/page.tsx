@@ -27,6 +27,21 @@ function getNotificationDestination(type: string, metadata?: any): string | null
         return null
       }
       return null
+    // New follower -> go to follower's profile
+    case 'new_follower':
+      if (metadata?.followerId) {
+        return `/profile/${metadata.followerId}`
+      }
+      return null
+    // Sporting Director receives application to their announcement
+    case 'new_application':
+      // Redirect to club applications page where they can see all applications
+      return '/club-applications'
+    // Candidato riceve esito della sua candidatura
+    case 'candidacy_accepted':
+    case 'candidacy_rejected':
+      // Redirect to user's applications page to see status
+      return '/my-applications'
     default:
       return null
   }
@@ -119,6 +134,14 @@ export default function NotificationsPage() {
         return 'bg-yellow-100 text-yellow-800'
       case 'club_invitation':
         return 'bg-indigo-100 text-indigo-800'
+      case 'new_follower':
+        return 'bg-green-100 text-green-800'
+      case 'new_application':
+        return 'bg-purple-100 text-purple-800'
+      case 'candidacy_accepted':
+        return 'bg-success/10 text-success'
+      case 'candidacy_rejected':
+        return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }

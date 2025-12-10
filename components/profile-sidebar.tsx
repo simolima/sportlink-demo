@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Avatar from './avatar'
 import {
     UserPlusIcon,
@@ -16,12 +17,8 @@ interface ProfileSidebarProps {
     followingCount?: number
     assistatiCount?: number
     isOwn?: boolean
-    onFollow?: () => void
-    onUnfollow?: () => void
-    onMessage?: () => void
     onApply?: () => void
     onAddPlayer?: () => void
-    isFollowing?: boolean
 }
 
 export default function ProfileSidebar({
@@ -31,14 +28,15 @@ export default function ProfileSidebar({
     followingCount = 0,
     assistatiCount = 0,
     isOwn = false,
-    onFollow,
-    onUnfollow,
-    onMessage,
     onApply,
     onAddPlayer,
-    isFollowing = false
 }: ProfileSidebarProps) {
+    const router = useRouter()
     const [isSelf, setIsSelf] = useState(isOwn)
+    const [isFollowing, setIsFollowing] = useState(false)
+    const [followLoading, setFollowLoading] = useState(false)
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
     const role = user?.professionalRole || 'Professionista'
     const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
     const isCoach = role.toLowerCase().includes('coach') || role.toLowerCase().includes('allenatore')
@@ -75,11 +73,79 @@ export default function ProfileSidebar({
     }
 
     useEffect(() => {
-        const currentId = typeof window !== 'undefined' ? localStorage.getItem('currentUserId') : null
-        if (currentId && user?.id && String(currentId) === String(user.id)) {
-            setIsSelf(true)
+        const checkUserAndFollow = async () => {
+            if (typeof window === 'undefined') return
+            const storedUserId = localStorage.getItem('currentUserId')
+            setCurrentUserId(storedUserId)
+
+            if (!storedUserId || !user?.id) return
+
+            // Check se è il proprio profilo
+            if (String(storedUserId) === String(user.id)) {
+                setIsSelf(true)
+                return
+            }
+
+            // Check se segue già questo utente
+            try {
+                const res = await fetch(`/api/follows?followerId=${storedUserId}`)
+                if (res.ok) {
+                    const data = await res.json()
+                    const exists = (data || []).find((f: any) => String(f.followingId) === String(user.id))
+                    setIsFollowing(Boolean(exists))
+                }
+            } catch (e) {
+                console.error('Error fetching follow status', e)
+            }
         }
+        checkUserAndFollow()
     }, [user?.id])
+
+    // Funzione per seguire l'utente
+    const handleFollow = async () => {
+        if (followLoading || !currentUserId || !user?.id) return
+        setFollowLoading(true)
+        try {
+            const res = await fetch('/api/follows', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ followerId: currentUserId, followingId: user.id })
+            })
+            if (res.ok) {
+                setIsFollowing(true)
+            }
+        } catch (e) {
+            console.error('Error following user', e)
+        } finally {
+            setFollowLoading(false)
+        }
+    }
+
+    // Funzione per smettere di seguire l'utente
+    const handleUnfollow = async () => {
+        if (followLoading || !currentUserId || !user?.id) return
+        setFollowLoading(true)
+        try {
+            const res = await fetch('/api/follows', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ followerId: currentUserId, followingId: user.id })
+            })
+            if (res.ok) {
+                setIsFollowing(false)
+            }
+        } catch (e) {
+            console.error('Error unfollowing user', e)
+        } finally {
+            setFollowLoading(false)
+        }
+    }
+
+    // Funzione per contattare l'utente (apre la chat)
+    const handleMessage = () => {
+        if (!user?.id) return
+        router.push(`/messages/${user.id}`)
+    }
 
     const calculateAge = (birthDate: string) => {
         const today = new Date()
@@ -160,25 +226,27 @@ export default function ProfileSidebar({
                     {/* Segui/Smetti di seguire */}
                     {isFollowing ? (
                         <button
-                            onClick={onUnfollow}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition border border-gray-300"
+                            onClick={handleUnfollow}
+                            disabled={followLoading}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition border border-gray-300 disabled:opacity-50"
                         >
                             <CheckIcon className="w-5 h-5" />
-                            Stai seguendo
+                            {followLoading ? 'Caricamento...' : 'Stai seguendo'}
                         </button>
                     ) : (
                         <button
-                            onClick={onFollow}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg"
+                            onClick={handleFollow}
+                            disabled={followLoading}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg disabled:opacity-50"
                         >
                             <UserPlusIcon className="w-5 h-5" />
-                            Segui
+                            {followLoading ? 'Caricamento...' : 'Segui'}
                         </button>
                     )}
 
                     {/* Contatta */}
                     <button
-                        onClick={onMessage}
+                        onClick={handleMessage}
                         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition border border-gray-300"
                     >
                         <EnvelopeIcon className="w-5 h-5" />

@@ -1,19 +1,28 @@
+/**
+ * API Route: /api/notifications
+ * 
+ * Gestisce le operazioni CRUD sulle notifiche usando il repository centralizzato.
+ * Integra il dispatcher SSE per notifiche real-time.
+ */
+
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import {
+    getUserNotifications,
+    createNotification,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    deleteAllUserNotifications,
+    isNotificationTypeEnabled,
+    getUnreadCount
+} from '@/lib/notifications-repository'
+import { dispatchToUser, dispatchUnreadCount } from '@/lib/notification-dispatcher'
 
-const notificationsPath = path.join(process.cwd(), 'data', 'notifications.json')
-
-function readNotifications() {
-    const data = fs.readFileSync(notificationsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeNotifications(notifications: any[]) {
-    fs.writeFileSync(notificationsPath, JSON.stringify(notifications, null, 2))
-}
-
-// GET /api/notifications - Get notifications
+// ============================================================================
+// GET /api/notifications
+// ============================================================================
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
@@ -23,114 +32,120 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'userId required' }, { status: 400 })
     }
 
-    let notifications = readNotifications()
-
-    // Filter by user
-    notifications = notifications.filter((n: any) => n.userId.toString() === userId)
-
-    // Filter by unread
-    if (unreadOnly) {
-        notifications = notifications.filter((n: any) => !n.read)
-    }
-
-    // Sort by date (most recent first)
-    notifications.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const notifications = getUserNotifications({
+        userId,
+        unreadOnly,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+    })
 
     return NextResponse.json(notifications)
 }
 
-// POST /api/notifications - Create notification
+// ============================================================================
+// POST /api/notifications - Crea notifica
+// ============================================================================
 export async function POST(request: Request) {
     const body = await request.json()
     const { userId, type, title, message, metadata } = body
 
     if (!userId || !type || !title || !message) {
-        return NextResponse.json({ error: 'userId, type, title, and message required' }, { status: 400 })
+        return NextResponse.json(
+            { error: 'userId, type, title, and message required' },
+            { status: 400 }
+        )
     }
 
-    const notifications = readNotifications()
+    // Verifica preferenze utente
+    if (!isNotificationTypeEnabled(String(userId), type)) {
+        return NextResponse.json({
+            skipped: true,
+            reason: 'notification_disabled_by_user',
+            message: 'User has disabled notifications for this category'
+        }, { status: 200 })
+    }
 
-    const newNotification = {
-        id: Date.now(),
+    // Crea la notifica
+    const newNotification = createNotification({
         userId,
         type,
         title,
         message,
-        metadata: metadata || {},
-        read: false,
-        createdAt: new Date().toISOString()
-    }
+        metadata
+    })
 
-    notifications.push(newNotification)
-    writeNotifications(notifications)
+    // Dispatch real-time via SSE
+    dispatchToUser(userId, newNotification)
+    dispatchUnreadCount(userId, getUnreadCount(userId))
 
     return NextResponse.json(newNotification, { status: 201 })
 }
 
-// PUT /api/notifications - Mark as read/unread
+// ============================================================================
+// PUT /api/notifications - Segna come letta/non letta
+// ============================================================================
 export async function PUT(request: Request) {
     const body = await request.json()
-    const { id, read, markAllAsRead, userId } = body
+    const { id, read, markAllAsRead: markAll, userId } = body
 
-    const notifications = readNotifications()
+    // Segna tutte come lette
+    if (markAll && userId) {
+        const count = markAllAsRead(String(userId))
 
-    // Mark all as read for a user
-    if (markAllAsRead && userId) {
-        notifications.forEach((n: any) => {
-            if (n.userId.toString() === userId.toString()) {
-                n.read = true
-            }
-        })
-        writeNotifications(notifications)
-        return NextResponse.json({ success: true, markedCount: notifications.length })
+        // Aggiorna contatore SSE
+        dispatchUnreadCount(userId, 0)
+
+        return NextResponse.json({ success: true, markedCount: count })
     }
 
-    // Mark single notification
+    // Segna singola notifica
     if (!id) {
         return NextResponse.json({ error: 'id required' }, { status: 400 })
     }
 
-    const index = notifications.findIndex((n: any) => n.id.toString() === id.toString())
+    const notification = markAsRead(id, read)
 
-    if (index === -1) {
+    if (!notification) {
         return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
-    if (read !== undefined) {
-        notifications[index].read = read
+    // Aggiorna contatore SSE
+    if (notification.userId) {
+        dispatchUnreadCount(notification.userId, getUnreadCount(notification.userId))
     }
 
-    writeNotifications(notifications)
-    return NextResponse.json(notifications[index])
+    return NextResponse.json(notification)
 }
 
-// DELETE /api/notifications - Delete notification
+// ============================================================================
+// DELETE /api/notifications - Elimina notifica
+// ============================================================================
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const userId = searchParams.get('userId')
     const deleteAll = searchParams.get('deleteAll') === 'true'
 
-    const notifications = readNotifications()
-
-    // Delete all for user
+    // Elimina tutte per utente
     if (deleteAll && userId) {
-        const filtered = notifications.filter((n: any) => n.userId.toString() !== userId)
-        writeNotifications(filtered)
-        return NextResponse.json({ success: true })
+        const count = deleteAllUserNotifications(String(userId))
+
+        // Aggiorna contatore SSE
+        dispatchUnreadCount(userId, 0)
+
+        return NextResponse.json({ success: true, deletedCount: count })
     }
 
-    // Delete single
+    // Elimina singola
     if (!id) {
         return NextResponse.json({ error: 'id required' }, { status: 400 })
     }
 
-    const filtered = notifications.filter((n: any) => n.id.toString() !== id)
+    const deleted = deleteNotification(id)
 
-    if (notifications.length === filtered.length) {
+    if (!deleted) {
         return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
-    writeNotifications(filtered)
     return NextResponse.json({ success: true })
 }

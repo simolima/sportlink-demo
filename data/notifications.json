@@ -237,7 +237,7 @@
       "opportunityTitle": "Cerco nano",
       "reviewerId": "1765196290455"
     },
-    "read": false,
+    "read": true,
     "createdAt": "2025-12-10T22:56:26.711Z"
   },
   {
@@ -251,7 +251,7 @@
       "followerName": "Gianna Rossi",
       "followerAvatar": null
     },
-    "read": false,
+    "read": true,
     "createdAt": "2025-12-10T22:57:37.982Z"
   },
   {
@@ -295,5 +295,80 @@
     },
     "read": true,
     "createdAt": "2025-12-10T23:07:08.806Z"
+  },
+  {
+    "id": 1765468906449,
+    "userId": "1765202028769",
+    "type": "message_received",
+    "title": "Nuovo messaggio ricevuto",
+    "message": "Mario Rossi ti ha inviato un nuovo messaggio",
+    "metadata": {
+      "fromUserId": "1765103614007",
+      "fromUserName": "Mario Rossi",
+      "conversationId": "1765103614007",
+      "messageId": 1765468906396
+    },
+    "read": true,
+    "createdAt": "2025-12-11T16:01:46.449Z"
+  },
+  {
+    "id": 1765470668438,
+    "userId": "1765196290455",
+    "type": "message_received",
+    "title": "Nuovo messaggio ricevuto",
+    "message": "Simone Lima ti ha inviato un nuovo messaggio",
+    "metadata": {
+      "fromUserId": "1765202028769",
+      "fromUserName": "Simone Lima",
+      "conversationId": "1765202028769",
+      "messageId": 1765470668384
+    },
+    "read": true,
+    "createdAt": "2025-12-11T16:31:08.438Z"
+  },
+  {
+    "id": 1765470700199,
+    "userId": "1765202028769",
+    "type": "message_received",
+    "title": "Nuovo messaggio ricevuto",
+    "message": "Admin Test ti ha inviato un nuovo messaggio",
+    "metadata": {
+      "fromUserId": "1765196290455",
+      "fromUserName": "Admin Test",
+      "conversationId": "1765196290455",
+      "messageId": 1765470700174
+    },
+    "read": true,
+    "createdAt": "2025-12-11T16:31:40.199Z"
+  },
+  {
+    "id": 1765470725816,
+    "userId": "2",
+    "type": "message_received",
+    "title": "Nuovo messaggio ricevuto",
+    "message": "Admin Test ti ha inviato un nuovo messaggio",
+    "metadata": {
+      "fromUserId": "1765196290455",
+      "fromUserName": "Admin Test",
+      "conversationId": "1765196290455",
+      "messageId": 1765470725783
+    },
+    "read": false,
+    "createdAt": "2025-12-11T16:32:05.816Z"
+  },
+  {
+    "id": 1765471224905,
+    "userId": "1765196290455",
+    "type": "message_received",
+    "title": "Nuovo messaggio ricevuto",
+    "message": "Simone Lima ti ha inviato un nuovo messaggio",
+    "metadata": {
+      "fromUserId": "1765202028769",
+      "fromUserName": "Simone Lima",
+      "conversationId": "1765202028769",
+      "messageId": 1765471224860
+    },
+    "read": false,
+    "createdAt": "2025-12-11T16:40:24.905Z"
   }
 ]

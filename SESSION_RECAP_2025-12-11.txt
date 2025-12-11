@@ -1,219 +1,250 @@
 ================================================================================
-SPORTLINK - RECAP SESSIONE DEV
-Data: 11 Dicembre 2025
+SPORTLINK/SPRINTA - RECAP SESSIONE DEV
+Data: 11 Dicembre 2025 (Sessione 2 - Pomeriggio)
 ================================================================================
 
-OBIETTIVO SESSIONE
+OBIETTIVI SESSIONE
 ------------------
-1. Implementare nuovi tipi di notifica per il sistema follow e candidature
-2. Correggere bug UI (pulsanti non funzionanti sulla pagina profilo)
+1. Fase 3: SSE per notifiche real-time (sostituire polling)
+2. Separare notifiche messaggi da notifiche sistema
+3. Redesign sezione Messaggi (stile LinkedIn split view)
+4. Ristrutturare sezione Opportunità (hub con prospettive career/club)
 
 
 ================================================================================
 FUNZIONALITÀ IMPLEMENTATE OGGI
 ================================================================================
 
-1. NOTIFICA "NEW_FOLLOWER"
-   Quando un utente inizia a seguire un altro utente, viene creata una notifica.
+1. SSE (SERVER-SENT EVENTS) PER NOTIFICHE REAL-TIME ✅
+   ─────────────────────────────────────────────────
+   Sostituito il polling ogni 30s con connessione SSE persistente.
    
-   | Azione          | Chi la fa    | Chi riceve notifica |
-   |-----------------|--------------|---------------------|
-   | Segui utente    | Qualsiasi    | Utente seguito      |
-
-
-2. NOTIFICA "NEW_APPLICATION"  
-   Quando un professionista si candida a un'opportunità, il DS riceve notifica.
+   File creati:
+   - lib/notifications-repository.ts    → Astrazione storage notifiche
+   - lib/notification-dispatcher.ts     → Gestione client SSE connessi
+   - app/api/notifications/stream/route.ts → Endpoint SSE
    
-   | Azione              | Chi la fa      | Chi riceve notifica  |
-   |---------------------|----------------|----------------------|
-   | Candidatura inviata | Professionista | Sporting Director    |
+   Funzionamento:
+   - Client si connette a /api/notifications/stream?userId=xxx
+   - Server invia eventi: connected, unread_count, notification, heartbeat
+   - Heartbeat ogni 30s per mantenere connessione attiva
+   - Quando arriva nuova notifica → dispatchToUser() la invia in real-time
 
 
-3. NOTIFICHE "CANDIDACY_ACCEPTED" / "CANDIDACY_REJECTED"
-   Quando un DS accetta o rifiuta una candidatura, il candidato viene notificato.
+2. SEPARAZIONE NOTIFICHE MESSAGGI VS SISTEMA ✅
+   ─────────────────────────────────────────────
+   Le notifiche "message_received" ora sono ESCLUSE da:
+   - Badge campanella (non incrementano counter)
+   - Centro notifiche (/notifications)
    
-   | Azione                | Chi la fa | Chi riceve notifica |
-   |-----------------------|-----------|---------------------|
-   | Accetta candidatura   | DS        | Candidato           |
-   | Rifiuta candidatura   | DS        | Candidato           |
+   File modificati:
+   - lib/notification-utils.ts → isMessageNotification(), filterSystemNotifications()
+   - lib/notifications-repository.ts → getUnreadCount() esclude messaggi
+   - components/notification-bell.tsx → Filtra notifiche messaggi
+   - app/notifications/page.tsx → Mostra solo notifiche sistema
 
 
-4. FIX PULSANTI PAGINA PROFILO
-   I pulsanti "Segui" e "Contatta" sulla sidebar del profilo utente non 
-   funzionavano. Il problema era che il componente ProfileSidebar era 
-   server-side e non poteva ricevere callback.
+3. REDESIGN SEZIONE MESSAGGI (SPLIT VIEW) ✅
+   ─────────────────────────────────────────
+   Nuova UI stile LinkedIn con layout a due colonne.
    
-   Soluzione: ProfileSidebar ora gestisce internamente:
-   - Stato follow (verifica se già segui l'utente)
-   - handleFollow() → POST /api/follows
-   - handleUnfollow() → DELETE /api/follows  
-   - handleMessage() → router.push(/messages/{userId})
-
-
-5. PULSANTI ACCETTA/RIFIUTA CANDIDATURE
-   Aggiunti pulsanti "Accetta" e "Rifiuta" nella pagina /club-applications
-   per permettere al DS di gestire le candidature ricevute.
-
-
-================================================================================
-ARCHITETTURA SISTEMA NOTIFICHE
-================================================================================
-
-TIPI DI NOTIFICA SUPPORTATI
----------------------------
-const NOTIFICATION_TYPES = [
-  // Affiliazioni Agente-Giocatore
-  'affiliation_request',        // Agente richiede affiliazione
-  'affiliation_accepted',       // Giocatore accetta
-  'affiliation_rejected',       // Giocatore rifiuta
-  
-  // Adesione Club
-  'club_join_request',          // Richiesta ingresso club
-  'club_join_accepted',         // Accettata
-  'club_join_rejected',         // Rifiutata
-  
-  // Candidature Opportunità
-  'application_received',       // (legacy)
-  'application_status_changed', // (legacy)
-  'new_application',            // DS riceve candidatura ⭐ NUOVO
-  'candidacy_accepted',         // Candidato accettato ⭐ NUOVO
-  'candidacy_rejected',         // Candidato rifiutato ⭐ NUOVO
-  
-  // Social
-  'new_follower',               // Qualcuno ti segue ⭐ NUOVO
-  
-  // Altro
-  'new_opportunity',            // Nuova opportunità disponibile
-  'permission_granted',         // Permesso concesso
-  'permission_revoked'          // Permesso revocato
-]
-
-
-STRUTTURA NOTIFICA (data/notifications.json)
---------------------------------------------
-{
-  "id": 1734012345678,
-  "userId": "123",           // Chi riceve la notifica
-  "type": "new_follower",    // Tipo (vedi sopra)
-  "title": "Nuovo follower",
-  "message": "Mario Rossi ha iniziato a seguirti",
-  "read": false,
-  "createdAt": "2025-12-11T10:00:00.000Z",
-  "metadata": {              // Dati extra (opzionale)
-    "fromUserId": "456",
-    "fromUserName": "Mario Rossi"
-  }
-}
-
-
-FLUSSO CREAZIONE NOTIFICA
--------------------------
-1. Un'azione viene eseguita (es. click "Segui")
-2. L'API route che gestisce l'azione crea la notifica:
+   Nuovi componenti creati (components/messages/):
+   - MessageBubble.tsx      → Bolle chat (blu Sprinta per propri msg)
+   - MessageInput.tsx       → Input con auto-resize, Enter per inviare
+   - ChatHeader.tsx         → Header chat con avatar, nome, link profilo
+   - ChatPanel.tsx          → Lista messaggi con separatori giornalieri
+   - ConversationList.tsx   → Lista conversazioni con ricerca
+   - ConversationListItem.tsx → Item singola conversazione
+   - NewChatModal.tsx       → Modal per nuova chat (cerca utenti)
+   - index.ts               → Export centralizzato
    
-   POST /api/notifications
-   {
-     userId: "destinatario",
-     type: "new_follower",
-     title: "Nuovo follower",
-     message: "...",
-     metadata: { ... }
-   }
-
-3. La notifica viene salvata in data/notifications.json
-4. Il badge sulla campanella si aggiorna (polling ogni 30s)
-5. L'utente vede la notifica in /notifications
-
-
-NAVIGAZIONE DA NOTIFICA
------------------------
-Quando l'utente clicca su una notifica, viene portato alla pagina appropriata:
-
-| Tipo Notifica       | Destinazione                    |
-|---------------------|---------------------------------|
-| new_follower        | /profile/{fromUserId}           |
-| new_application     | /club-applications              |
-| candidacy_accepted  | /my-applications                |
-| candidacy_rejected  | /my-applications                |
-| affiliation_*       | /player/affiliations o /agent/affiliations |
-| club_join_*         | /clubs                          |
-
-
-COLORI BADGE NOTIFICA
----------------------
-| Tipo                | Colore      |
-|---------------------|-------------|
-| new_follower        | Blu (#2341F0) |
-| new_application     | Giallo      |
-| candidacy_accepted  | Verde       |
-| candidacy_rejected  | Rosso       |
-| affiliation_*       | Viola       |
-| club_join_*         | Arancione   |
-
-
-================================================================================
-FILE MODIFICATI OGGI
-================================================================================
-
-TIPI E DEFINIZIONI
-- lib/types.ts                           → Aggiunti 4 nuovi tipi notifica
-
-API ROUTES
-- app/api/follows/route.ts               → Crea notifica new_follower
-- app/api/applications/route.ts          → Crea notifiche candidatura
-
-COMPONENTI UI
-- components/profile-sidebar.tsx         → Pulsanti Segui/Contatta funzionanti
-- components/notification-bell.tsx       → Navigazione + colori nuovi tipi
-- app/notifications/page.tsx             → Navigazione + colori nuovi tipi
-- app/club-applications/page.tsx         → Pulsanti Accetta/Rifiuta
-
-
-================================================================================
-COME AGGIUNGERE UN NUOVO TIPO DI NOTIFICA
-================================================================================
-
-1. Aggiungi il tipo in lib/types.ts → NOTIFICATION_TYPES array
-
-2. Aggiorna getNotificationDestination() in:
-   - app/notifications/page.tsx
-   - components/notification-bell.tsx
-
-3. Aggiorna getTypeColor() in app/notifications/page.tsx
-
-4. Crea la notifica nel punto appropriato (API route):
+   File modificati:
+   - app/messages/page.tsx → Riscritta completamente con split view
+   - app/messages/[peerId]/page.tsx → Redirect a /messages?chat=<id>
    
-   await fetch('/api/notifications', {
-     method: 'POST',
-     headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify({
-       userId: 'id_destinatario',
-       type: 'nuovo_tipo',
-       title: 'Titolo',
-       message: 'Messaggio descrittivo',
-       metadata: { /* dati extra opzionali */ }
-     })
-   })
+   Caratteristiche:
+   - Desktop: 2 colonne (380px lista + chat)
+   - Mobile: Vista singola con navigazione
+   - URL deep link: /messages?chat=<peerId>
+   - Connessione SSE per aggiornamenti real-time
+
+
+4. RISTRUTTURAZIONE SEZIONE OPPORTUNITÀ ✅
+   ──────────────────────────────────────
+   Trasformata in "hub" con due prospettive.
+   
+   a) Nuova pagina /opportunities/new
+      - Form completo creazione opportunità
+      - Query param ?clubId= per preselezionare club
+      - Mostra solo club dove utente è Admin/Manager
+      - Redirect a /opportunities?tab=clubs dopo creazione
+   
+   b) Pagina /opportunities ristrutturata
+      
+      TAB "Per la mia carriera":
+      - Sub-tab "Tutte le opportunità" (con filtri)
+      - Sub-tab "Le mie candidature"
+      - Cards opportunità con candidatura
+      
+      TAB "Per i miei club":
+      - Visibile solo se Admin/Manager di almeno un club
+      - Opportunità raggruppate per club
+      - Bottone "Crea opportunità per un club"
+      - Azioni: visualizza candidature, elimina
+   
+   c) Pagina club - Bottone aggiornato
+      - "Crea Opportunità" ora → /opportunities/new?clubId=<id>
+      - Rimosso form inline (non più necessario)
 
 
 ================================================================================
-NOTE TECNICHE
+ARCHITETTURA SSE NOTIFICHE
 ================================================================================
 
-- Le notifiche sono salvate in data/notifications.json (JSON file storage)
-- Il polling del badge campanella avviene ogni 30 secondi
-- Le API routes usano withCors() per compatibilità mobile
-- Il sistema non usa autenticazione reale (localStorage per demo)
-- IDs generati con Date.now() per unicità
+FLUSSO REAL-TIME
+----------------
+1. Client apre connessione:
+   EventSource('/api/notifications/stream?userId=123')
+
+2. Server registra client:
+   addClient(userId, { id, controller })
+
+3. Quando arriva notifica (POST /api/notifications):
+   - Salva in notifications.json
+   - Chiama dispatchToUser(userId, notification)
+   - SSE invia evento a tutti i client dell'utente
+
+4. Client riceve evento e aggiorna UI istantaneamente
+
+
+EVENTI SSE
+----------
+| Evento        | Payload                    | Quando                    |
+|---------------|----------------------------|---------------------------|
+| connected     | { userId }                 | Connessione stabilita     |
+| unread_count  | { count }                  | Iniziale + dopo modifiche |
+| notification  | { notification }           | Nuova notifica            |
+| heartbeat     | { timestamp }              | Ogni 30 secondi           |
+
+
+DISPATCHER (lib/notification-dispatcher.ts)
+-------------------------------------------
+const clients = new Map<string, Set<SSEClient>>()
+
+- addClient(userId, client)      → Registra nuovo client
+- removeClient(userId, clientId) → Rimuove client disconnesso
+- dispatchToUser(userId, notification) → Invia notifica
+- dispatchUnreadCount(userId, count)   → Aggiorna badge
+- sendHeartbeat(userId)          → Mantiene connessione
+
+
+================================================================================
+STRUTTURA COMPONENTI MESSAGGI
+================================================================================
+
+components/messages/
+├── index.ts                 → Export centralizzato
+├── MessageBubble.tsx        → Bolla singolo messaggio
+│   Props: message, isOwn, showAvatar
+│   Stili: blu Sprinta (own) / grigio (other)
+│   Icone: ✓ (inviato) / ✓✓ (letto)
+│
+├── MessageInput.tsx         → Area input messaggio
+│   Props: value, onChange, onSend, disabled
+│   Features: auto-resize, Enter per inviare, Shift+Enter newline
+│
+├── ChatHeader.tsx           → Header conversazione
+│   Props: peer, onBack
+│   Mostra: avatar, nome, ruolo, link profilo
+│
+├── ChatPanel.tsx            → Pannello chat completo
+│   Props: messages, currentUserId, peer, onSendMessage
+│   Features: scroll automatico, separatori data, placeholder
+│
+├── ConversationList.tsx     → Lista tutte le conversazioni
+│   Props: conversations, selectedId, onSelect, onNewChat
+│   Features: ricerca, ordinamento, badge unread
+│
+├── ConversationListItem.tsx → Singola conversazione in lista
+│   Props: conversation, isSelected, onClick
+│   Mostra: avatar, nome, preview, data, badge unread
+│
+└── NewChatModal.tsx         → Modal nuova chat
+    Props: isOpen, onClose, onSelectUser, currentUserId
+    Features: ricerca utenti, esclude utente corrente
+
+
+================================================================================
+FILE CREATI/MODIFICATI OGGI
+================================================================================
+
+NUOVI FILE
+----------
+lib/notifications-repository.ts      → Astrazione storage notifiche
+lib/notification-dispatcher.ts       → Registry client SSE
+app/api/notifications/stream/route.ts → Endpoint SSE
+app/opportunities/new/page.tsx       → Pagina creazione opportunità
+components/messages/index.ts         → Export componenti messaggi
+components/messages/MessageBubble.tsx
+components/messages/MessageInput.tsx
+components/messages/ChatHeader.tsx
+components/messages/ChatPanel.tsx
+components/messages/ConversationList.tsx
+components/messages/ConversationListItem.tsx
+components/messages/NewChatModal.tsx
+
+FILE MODIFICATI
+---------------
+lib/notification-utils.ts            → isMessageNotification(), filterSystemNotifications()
+components/notification-bell.tsx     → SSE + filtro messaggi
+app/notifications/page.tsx           → SSE + filtro messaggi
+app/api/notifications/route.ts       → Usa repository + dispatcher
+app/messages/page.tsx                → Riscritta con split view
+app/messages/[peerId]/page.tsx       → Redirect a unified page
+app/opportunities/page.tsx           → Due tab career/clubs
+app/clubs/[id]/page.tsx              → Bottone redirect + rimosso form
+
+
+================================================================================
+PALETTE COLORI SPRINTA (Riferimento)
+================================================================================
+
+| Nome              | HEX       | Uso                          |
+|-------------------|-----------|------------------------------|
+| Primary Blue      | #2341F0   | CTA, link, elementi primari  |
+| Primary Hover     | #3B52F5   | Hover states                 |
+| Navy              | #0A0F32   | Testi scuri, header          |
+| White             | #FFFFFF   | Background, testi su blu     |
+| Gray Light        | #F3F4F6   | Background sezioni           |
+| Gray Medium       | #9CA3AF   | Testi secondari              |
+| Success           | #10B981   | Conferme, stati positivi     |
+| Warning           | #F59E0B   | Attenzione                   |
+| Error             | #EF4444   | Errori, eliminazioni         |
 
 
 ================================================================================
 PROSSIMI PASSI SUGGERITI
 ================================================================================
 
-- [ ] Notifica push real-time (WebSocket o Server-Sent Events)
-- [ ] Notifica "messaggio_ricevuto" per nuovi messaggi in chat
-- [ ] Raggruppamento notifiche simili (es. "5 nuovi follower")
+- [ ] Fase 4: Test e-2-e di tutte le notifiche
+- [ ] Notifica push browser (Service Worker)
+- [ ] Raggruppamento notifiche simili
 - [ ] Impostazioni preferenze notifiche per utente
-- [ ] Migrazione a Supabase per persistenza database reale
+- [ ] Emoji picker nel MessageInput
+- [ ] Upload immagini nei messaggi
+- [ ] Typing indicator ("sta scrivendo...")
+- [ ] Migrazione a Supabase per persistenza reale
+
+
+================================================================================
+NOTE TECNICHE
+================================================================================
+
+- SSE richiede gestione cleanup quando client si disconnette
+- Timer heartbeat usa ReturnType<typeof setInterval> per TypeScript
+- Mobile app richiede IP locale per API (non localhost)
+- Tutte le API routes usano withCors() per compatibilità mobile
+- IDs generati con Date.now() per unicità
+- Storage JSON in data/*.json (futuro: Supabase PostgreSQL)
+
 

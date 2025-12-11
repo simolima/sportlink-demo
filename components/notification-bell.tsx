@@ -1,79 +1,143 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import Link from 'next/link'
 import { Notification } from '@/lib/types'
+import { getNotificationDestination, getNotificationDotColor, isMessageNotification, filterSystemNotifications } from '@/lib/notification-utils'
 
 interface NotificationBellProps {
   userId: number
 }
 
-// Get destination URL based on notification type and metadata
-function getNotificationDestination(type: string, metadata?: any): string | null {
-  switch (type) {
-    // Player receives affiliation request -> go to player affiliations page
-    case 'affiliation_request':
-      return '/player/affiliations'
-    // Agent receives acceptance/rejection -> go to agent affiliations page  
-    case 'affiliation_accepted':
-    case 'affiliation_rejected':
-      return '/agent/affiliations'
-    // Affiliation removed - check metadata to determine who received it
-    case 'affiliation_removed':
-      // If metadata has playerId, it means the agent received this notification
-      // If metadata has agentId, it means the player received this notification
-      if (metadata?.playerId) {
-        return '/agent/affiliations'
-      } else if (metadata?.agentId) {
-        // Player received notification - just go to notifications page (no specific destination)
-        return null
-      }
-      return null
-    // New follower -> go to follower's profile
-    case 'new_follower':
-      if (metadata?.followerId) {
-        return `/profile/${metadata.followerId}`
-      }
-      return null
-    // Sporting Director receives application to their announcement
-    case 'new_application':
-      return '/club-applications'
-    // Candidato riceve esito della sua candidatura
-    case 'candidacy_accepted':
-    case 'candidacy_rejected':
-      return '/my-applications'
-    default:
-      return null
-  }
-}
+// Configurazione SSE
+const SSE_RECONNECT_DELAY = 3000
+const POLLING_INTERVAL = 30000
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
+  const [hasNewNotification, setHasNewNotification] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'fallback'>('connecting')
 
-  useEffect(() => {
-    fetchNotifications()
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
-  }, [userId])
+  const eventSourceRef = useRef<EventSource | null>(null)
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fetchNotifications = async () => {
+  // Fetch iniziale notifiche (esclude messaggi)
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch(`/api/notifications?userId=${userId}&unreadOnly=true`)
       if (res.ok) {
         const data = await res.json()
-        setNotifications(data)
-        setUnreadCount(data.length)
+        // Filtra le notifiche messaggi - vanno mostrate solo nell'area chat
+        const systemNotifications = filterSystemNotifications(data)
+        setNotifications(systemNotifications)
+        setUnreadCount(systemNotifications.length)
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
     }
-  }
+  }, [userId])
+
+  // Connessione SSE
+  const connectSSE = useCallback(() => {
+    // Cleanup precedente connessione
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+    }
+
+    try {
+      const es = new EventSource(`/api/notifications/stream?userId=${userId}`)
+      eventSourceRef.current = es
+
+      es.addEventListener('connected', () => {
+        console.log('[SSE] Connected')
+        setConnectionStatus('connected')
+        // Cancella polling fallback se attivo
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+          pollingIntervalRef.current = null
+        }
+      })
+
+      es.addEventListener('unread_count', (e) => {
+        const data = JSON.parse(e.data)
+        const newCount = data.count
+        // Pulse animation se aumenta
+        if (newCount > unreadCount) {
+          setHasNewNotification(true)
+          setTimeout(() => setHasNewNotification(false), 2000)
+        }
+        setUnreadCount(newCount)
+      })
+
+      es.addEventListener('notification', (e) => {
+        const notification = JSON.parse(e.data)
+        // Ignora le notifiche messaggi - vanno mostrate solo nell'area chat
+        if (isMessageNotification(notification)) {
+          return
+        }
+        setNotifications(prev => [notification, ...prev].slice(0, 10))
+        setHasNewNotification(true)
+        setTimeout(() => setHasNewNotification(false), 2000)
+      })
+
+      es.addEventListener('heartbeat', () => {
+        // Connessione ancora attiva
+      })
+
+      es.onerror = () => {
+        console.log('[SSE] Connection error, reconnecting...')
+        es.close()
+        eventSourceRef.current = null
+        setConnectionStatus('connecting')
+
+        // Tentativo riconnessione
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectSSE()
+        }, SSE_RECONNECT_DELAY)
+
+        // Fallback a polling
+        if (!pollingIntervalRef.current) {
+          setConnectionStatus('fallback')
+          pollingIntervalRef.current = setInterval(fetchNotifications, POLLING_INTERVAL)
+        }
+      }
+    } catch (error) {
+      console.error('[SSE] Failed to create EventSource:', error)
+      setConnectionStatus('fallback')
+      // Fallback a polling
+      if (!pollingIntervalRef.current) {
+        pollingIntervalRef.current = setInterval(fetchNotifications, POLLING_INTERVAL)
+      }
+    }
+  }, [userId, fetchNotifications, unreadCount])
+
+  // Inizializzazione: fetch + connessione SSE
+  useEffect(() => {
+    fetchNotifications()
+    connectSSE()
+
+    return () => {
+      // Cleanup
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
+    }
+  }, [fetchNotifications, connectSSE])
 
   const markAsRead = async (id: number) => {
     try {
@@ -92,11 +156,12 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     <div className="relative">
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="relative p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+        className={`relative p-2 hover:bg-white/10 rounded-full transition-colors text-white ${hasNewNotification ? 'animate-pulse' : ''}`}
+        title={connectionStatus === 'connected' ? 'Real-time' : connectionStatus === 'fallback' ? 'Polling' : 'Connecting...'}
       >
         <Bell size={20} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+          <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold ${hasNewNotification ? 'animate-bounce' : ''}`}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -140,7 +205,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                     }}
                   >
                     <div className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getNotificationDotColor(notif.type)}`} />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm">{notif.title}</p>
                         <p className="text-xs text-gray-600 mt-1">{notif.message}</p>

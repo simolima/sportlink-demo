@@ -603,95 +603,11 @@ export default function ClubDetailPage() {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-900">Opportunità</h2>
                             {isAdmin && (
-                                <button onClick={() => setShowCreateForm((v) => !v)} className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 font-semibold text-sm">
-                                    {showCreateForm ? 'Annulla' : 'Crea Opportunità'}
+                                <button onClick={() => router.push(`/opportunities/new?clubId=${clubId}`)} className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 font-semibold text-sm">
+                                    Crea Opportunità
                                 </button>
                             )}
                         </div>
-                        {showCreateForm && isAdmin && (
-                            <form onSubmit={handleCreateAnnouncement} className="space-y-4 mb-8 bg-primary/5 p-6 rounded-lg border border-primary/20">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Titolo Opportunità *</label>
-                                        <input required className="w-full px-3 py-2 border rounded" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Tipo *</label>
-                                        <select required className="w-full px-3 py-2 border rounded" value={form.type} onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}>
-                                            {OPPORTUNITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Sport *</label>
-                                        <select required className="w-full px-3 py-2 border rounded" value={form.sport} onChange={e => setForm(prev => ({ ...prev, sport: e.target.value }))}>
-                                            <option value="">Seleziona</option>
-                                            {SUPPORTED_SPORTS.map((s: string) => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Ruolo richiesto *</label>
-                                        <select required className="w-full px-3 py-2 border rounded" value={form.roleRequired} onChange={e => setForm(prev => ({ ...prev, roleRequired: e.target.value }))}>
-                                            <option value="">Seleziona</option>
-                                            {PROFESSIONAL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Posizione</label>
-                                        <input className="w-full px-3 py-2 border rounded" value={form.position} onChange={e => setForm(prev => ({ ...prev, position: e.target.value }))} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Location *</label>
-                                        <input required className="w-full px-3 py-2 border rounded" value={form.location} onChange={e => setForm(prev => ({ ...prev, location: e.target.value }))} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Città</label>
-                                        <input className="w-full px-3 py-2 border rounded" value={form.city} onChange={e => setForm(prev => ({ ...prev, city: e.target.value }))} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Contratto</label>
-                                        <select className="w-full px-3 py-2 border rounded" value={form.contractType} onChange={e => setForm(prev => ({ ...prev, contractType: e.target.value }))}>
-                                            <option value="">Seleziona</option>
-                                            {CONTRACT_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Compenso</label>
-                                        <input className="w-full px-3 py-2 border rounded" value={form.salary} onChange={e => setForm(prev => ({ ...prev, salary: e.target.value }))} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Livello</label>
-                                        <select className="w-full px-3 py-2 border rounded" value={form.level} onChange={e => setForm(prev => ({ ...prev, level: e.target.value }))}>
-                                            <option value="">Seleziona</option>
-                                            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Scadenza *</label>
-                                        <input
-                                            required
-                                            type="date"
-                                            className="w-full px-3 py-2 border rounded"
-                                            value={form.expiryDate}
-                                            min={new Date().toISOString().split('T')[0]}
-                                            onChange={e => setForm(prev => ({ ...prev, expiryDate: e.target.value }))}
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1">La data deve essere nel futuro</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Descrizione *</label>
-                                    <textarea required rows={3} className="w-full px-3 py-2 border rounded" value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Requisiti</label>
-                                    <textarea rows={2} className="w-full px-3 py-2 border rounded" value={form.requirements} onChange={e => setForm(prev => ({ ...prev, requirements: e.target.value }))} />
-                                </div>
-                                <div className="flex gap-4 pt-2">
-                                    <button type="submit" disabled={creating} className="px-6 py-2 bg-primary text-white rounded font-semibold hover:bg-blue-700 disabled:opacity-50">{creating ? 'Creazione...' : 'Crea Opportunità'}</button>
-                                    <button type="button" onClick={() => setShowCreateForm(false)} className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">Annulla</button>
-                                </div>
-                            </form>
-                        )}
                         {loadingAnnouncements ? (
                             <div className="text-gray-500">Caricamento annunci...</div>
                         ) : announcements.length === 0 ? (

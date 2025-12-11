@@ -1,121 +1,165 @@
 "use client"
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { ConversationSummary } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
+import { ConversationList, ChatPanel, NewChatModal } from '@/components/messages'
 
+interface User {
+    id: string | number
+    firstName?: string
+    lastName?: string
+    email?: string
+    avatarUrl?: string | null
+    currentRole?: string
+}
+
+/**
+ * MessagesPage - Pagina messaggi unificata stile LinkedIn
+ * 
+ * Layout split view:
+ * - Desktop: lista conversazioni (1/3) + chat (2/3) affiancate
+ * - Mobile: lista o chat a schermo intero con toggle
+ * 
+ * URL: /messages?chat=<peerId> per deep linking
+ */
 export default function MessagesPage() {
+    const router = useRouter()
+    const searchParams = useSearchParams()
     const { user, isLoading: authLoading } = useRequireAuth(false)
-    const [loading, setLoading] = useState(true)
+
+    // Stato
     const [conversations, setConversations] = useState<ConversationSummary[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const [search, setSearch] = useState('')
-    const [users, setUsers] = useState<any[]>([])
-    const [showNew, setShowNew] = useState(false)
+    const [users, setUsers] = useState<User[]>([])
+    const [loading, setLoading] = useState(true)
+    const [showNewChatModal, setShowNewChatModal] = useState(false)
+
+    // Responsive: su mobile mostra solo lista o chat
+    const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
 
     const currentUserId = user?.id ? String(user.id) : null
+    const selectedPeerId = searchParams.get('chat')
 
-    useEffect(() => {
-        const fetchConvos = async () => {
-            if (!currentUserId) return
-            setLoading(true)
-            try {
-                const res = await fetch(`/api/messages?userId=${currentUserId}`)
-                const data = await res.json()
-                setConversations(Array.isArray(data) ? data : [])
-                setError(null)
-            } catch (e: any) {
-                setError('Errore nel caricamento conversazioni')
-            } finally {
-                setLoading(false)
-            }
+    // Fetch conversazioni
+    const fetchConversations = useCallback(async () => {
+        if (!currentUserId) return
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/messages?userId=${currentUserId}`)
+            const data = await res.json()
+            setConversations(Array.isArray(data) ? data : [])
+        } catch (e) {
+            console.error('Errore caricamento conversazioni:', e)
+        } finally {
+            setLoading(false)
         }
-        fetchConvos()
-        const fetchUsers = async () => {
-            try {
-                const res = await fetch('/api/users')
-                const data = await res.json()
-                setUsers(Array.isArray(data) ? data : [])
-            } catch { /* silent */ }
-        }
-        fetchUsers()
     }, [currentUserId])
 
-    const filtered = conversations.filter(c => {
-        if (!search.trim()) return true
-        const user = users.find(u => String(u.id) === String(c.peerId))
-        const name = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : c.peerId
-        return name.toLowerCase().includes(search.toLowerCase()) || c.lastMessage.text.toLowerCase().includes(search.toLowerCase())
-    })
+    // Fetch utenti
+    const fetchUsers = useCallback(async () => {
+        try {
+            const res = await fetch('/api/users')
+            const data = await res.json()
+            setUsers(Array.isArray(data) ? data : [])
+        } catch { /* silent */ }
+    }, [])
 
+    // Init
+    useEffect(() => {
+        fetchConversations()
+        fetchUsers()
+    }, [fetchConversations, fetchUsers])
+
+    // Se c'è un peerId nell'URL, mostra la chat su mobile
+    useEffect(() => {
+        if (selectedPeerId) {
+            setMobileView('chat')
+        }
+    }, [selectedPeerId])
+
+    // Seleziona conversazione
+    const handleSelectConversation = (peerId: string) => {
+        router.push(`/messages?chat=${peerId}`, { scroll: false })
+        setMobileView('chat')
+        // Refresh conversazioni per aggiornare unread
+        setTimeout(fetchConversations, 500)
+    }
+
+    // Torna alla lista (mobile)
+    const handleBack = () => {
+        router.push('/messages', { scroll: false })
+        setMobileView('list')
+        fetchConversations()
+    }
+
+    // Nuova chat
+    const handleNewChat = (peerId: string) => {
+        setShowNewChatModal(false)
+        handleSelectConversation(peerId)
+    }
+
+    // Auth check
     if (authLoading || !user) {
-        return null
+        return (
+            <div className="h-[calc(100vh-64px)] flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-2 border-[#2341F0] border-t-transparent rounded-full" />
+            </div>
+        )
     }
 
     if (!currentUserId) {
-        return <div className="max-w-4xl mx-auto p-6">Devi essere loggato per vedere i messaggi.</div>
+        return (
+            <div className="h-[calc(100vh-64px)] flex items-center justify-center">
+                <p className="text-gray-500">Devi essere loggato per vedere i messaggi.</p>
+            </div>
+        )
     }
 
+    const existingPeerIds = conversations.map(c => c.peerId)
+
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-semibold">Messaggi</h1>
-                <button onClick={() => setShowNew(v => !v)} className="text-sm px-3 py-1.5 rounded bg-sprinta-blue text-white hover:bg-sprinta-blue-hover">
-                    {showNew ? 'Chiudi' : 'Nuova chat'}
-                </button>
-            </div>
-            <div className="mb-4 flex items-center gap-3">
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Cerca conversazione..."
-                    className="border rounded px-3 py-2 text-sm w-full"
+        <div className="h-[calc(100vh-64px)] flex bg-gray-100">
+            {/* Lista conversazioni - Desktop: sempre visibile, Mobile: solo se mobileView === 'list' */}
+            <div className={`
+                w-full lg:w-[380px] lg:min-w-[320px] lg:max-w-[420px] 
+                border-r border-gray-200 
+                ${mobileView === 'list' ? 'block' : 'hidden lg:block'}
+            `}>
+                <ConversationList
+                    conversations={conversations}
+                    users={users}
+                    selectedPeerId={selectedPeerId}
+                    onSelectConversation={handleSelectConversation}
+                    onNewChat={() => setShowNewChatModal(true)}
+                    currentUserId={currentUserId}
+                    loading={loading}
                 />
             </div>
-            {loading && <div>Caricamento...</div>}
-            {error && <div className="text-red-600 text-sm mb-4">{error}</div>}
-            {!loading && filtered.length === 0 && (
-                <div className="text-sm text-gray-500">Nessuna conversazione.</div>
-            )}
-            <ul className="divide-y bg-white rounded-lg shadow">
-                {filtered.map(c => (
-                    <li key={c.peerId} className="p-4 hover:bg-gray-50 flex items-center justify-between">
-                        <div className="min-w-0">
-                            {(() => {
-                                const u = users.find(u => String(u.id) === String(c.peerId))
-                                const display = u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || c.peerId : c.peerId
-                                return (
-                                    <Link href={`/messages/${c.peerId}`} className="font-medium text-sprinta-blue hover:underline">{display}</Link>
-                                )
-                            })()}
-                            <p className="text-xs text-gray-500 truncate max-w-md mt-1">{c.lastMessage.text}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-[10px] text-gray-400">{new Date(c.lastMessage.timestamp).toLocaleString()}</span>
-                            {c.unread > 0 && (
-                                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{c.unread}</span>
-                            )}
-                        </div>
-                    </li>
-                ))}
-            </ul>
-            {showNew && (
-                <div className="mt-6 bg-white rounded-lg shadow p-4">
-                    <h2 className="font-semibold mb-3 text-sm">Avvia nuova conversazione</h2>
-                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {users
-                            .filter(u => String(u.id) !== String(currentUserId))
-                            .map(u => {
-                                const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || u.id
-                                return (
-                                    <Link key={u.id} href={`/messages/${u.id}`} className="border rounded p-3 text-sm hover:bg-blue-50 hover:border-sprinta-blue transition-colors">
-                                        <div className="font-medium">{name}</div>
-                                        <div className="text-xs text-gray-500 truncate">{u.currentRole}</div>
-                                    </Link>
-                                )
-                            })}
-                    </div>
-                </div>
+
+            {/* Chat Panel - Desktop: sempre visibile, Mobile: solo se mobileView === 'chat' */}
+            <div className={`
+                flex-1 
+                ${mobileView === 'chat' ? 'block' : 'hidden lg:block'}
+            `}>
+                <ChatPanel
+                    peerId={selectedPeerId}
+                    currentUserId={currentUserId}
+                    users={users}
+                    onBack={handleBack}
+                    showBackButton={true}
+                />
+            </div>
+
+            {/* Modal nuova chat */}
+            {showNewChatModal && (
+                <NewChatModal
+                    users={users}
+                    currentUserId={currentUserId}
+                    existingPeerIds={existingPeerIds}
+                    onSelect={handleNewChat}
+                    onClose={() => setShowNewChatModal(false)}
+                />
             )}
         </div>
     )

@@ -110,6 +110,40 @@ export async function POST(req: Request) {
 
         messages.push(newMessage)
         writeMessages(messages)
+
+        // ========== CREA NOTIFICA PER IL DESTINATARIO ==========
+        try {
+            // Carica i dati degli utenti per ottenere il nome del mittente
+            const usersPath = path.join(process.cwd(), 'data', 'users.json')
+            const usersData = fs.readFileSync(usersPath, 'utf8')
+            const users = JSON.parse(usersData)
+            const sender = users.find((u: any) => normalizeId(u.id) === senderId)
+            const senderName = sender
+                ? `${sender.firstName} ${sender.lastName}`
+                : 'Un utente'
+
+            // Crea notifica message_received
+            await fetch(`${req.headers.get('origin') || 'http://localhost:3000'}/api/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: receiverId,
+                    type: 'message_received',
+                    title: 'Nuovo messaggio ricevuto',
+                    message: `${senderName} ti ha inviato un nuovo messaggio`,
+                    metadata: {
+                        fromUserId: senderId,
+                        fromUserName: senderName,
+                        conversationId: senderId, // Usa senderId come conversationId
+                        messageId: newMessage.id
+                    }
+                })
+            })
+        } catch (notifError) {
+            // Se la notifica fallisce, non bloccare la creazione del messaggio
+            console.error('Failed to create message notification:', notifError)
+        }
+
         return NextResponse.json(newMessage, { status: 201 })
     } catch (err) {
         return NextResponse.json({ error: 'invalid body' }, { status: 400 })

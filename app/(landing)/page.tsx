@@ -1,17 +1,10 @@
 "use client"
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 export default function Page() {
   const router = useRouter()
-
-  useEffect(() => {
-    // Hide navbar on this page
-    const header = document.querySelector('header')
-    if (header) header.classList.add('hidden')
-    return () => { if (header) header.classList.remove('hidden') }
-  }, [])
 
   const handleAccedi = () => {
     router.push('/login')

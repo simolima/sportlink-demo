@@ -32,12 +32,6 @@ export default function CompleteProfilePage() {
         }
     }, [checked, user, isLoading, router])
 
-    useEffect(() => {
-        const header = document.querySelector('header')
-        if (header) header.classList.add('hidden')
-        return () => { if (header) header.classList.remove('hidden') }
-    }, [])
-
     const handleSelectSport = (sport: string) => {
         if (user && isMultiSportRole(user.professionalRole as ProfessionalRole)) {
             setSelectedSports((prev) => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport])

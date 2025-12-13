@@ -1,0 +1,191 @@
+================================================================================
+SPORTLINK/SPRINTA - RECAP SESSIONE DEV
+Data: 13 Dicembre 2025
+================================================================================
+
+OBIETTIVI SESSIONE
+------------------
+1. Preparazione migrazione Supabase - centralizzare gestione sessione
+2. Centralizzare pulizia draft signup
+3. Aggiungere tipi TypeScript per auth/signup
+4. Refactoring architetturale senza cambiamenti di comportamento
+
+
+================================================================================
+FUNZIONALITÀ IMPLEMENTATE OGGI
+================================================================================
+
+1. SESSION SERVICE - GESTIONE SESSIONE CENTRALIZZATA ✅
+   ────────────────────────────────────────────────────
+   Creato nuovo service per isolare operazioni localStorage sessione.
+   
+   File creato:
+   - lib/services/session.ts
+   
+   Funzioni esportate:
+   
+   A) setCurrentUserSession(params)
+      Imposta i dati sessione utente in localStorage:
+      - currentUserId (obbligatorio)
+      - currentUserEmail
+      - currentUserName
+      - currentUserAvatar
+      - currentUserRole
+      - currentUserSports
+   
+   B) clearSignupDraft()
+      Rimuove i dati temporanei di registrazione:
+      - signup_firstName
+      - signup_lastName
+      - signup_email
+      - signup_password
+      - signup_birthDate
+   
+   Costanti definite:
+   - SESSION_KEYS → chiavi localStorage sessione
+   - SIGNUP_DRAFT_KEYS → chiavi localStorage draft signup
+
+
+2. AUTH SERVICE - GIÀ ESISTENTE, VERIFICATO ✅
+   ─────────────────────────────────────────────
+   Il service era già stato creato in sessione precedente.
+   
+   File esistente:
+   - lib/services/auth-service.ts
+   
+   Funzione:
+   - createUser(payload) → POST /api/users
+   
+
+3. TIPI TYPESCRIPT PER AUTH/SIGNUP ✅
+   ────────────────────────────────────
+   Aggiunti tipi centralizzati in lib/types.ts per facilitare
+   migrazione Supabase e migliorare type safety.
+   
+   Tipi aggiunti (lib/types.ts):
+   
+   A) SignupDraft
+      Dati temporanei onboarding in localStorage:
+      - firstName, lastName, email, password
+      - birthDate? (opzionale)
+      - role: ProfessionalRole
+   
+   B) CreateUserPayload
+      Payload per POST /api/users:
+      - firstName, lastName, email, password
+      - birthDate? (opzionale)
+      - professionalRole: ProfessionalRole
+      - sports: string[]
+      - verified? (opzionale)
+   
+   C) CreatedUser
+      Risposta API dopo creazione utente:
+      - id: string | number
+      - email, firstName, lastName
+      - professionalRole: ProfessionalRole
+      - sports: string[]
+      - avatarUrl? (opzionale)
+   
+   File modificato:
+   - lib/services/auth-service.ts
+     → Rimossi tipi locali
+     → Import da @/lib/types
+     → Re-export per compatibilità
+
+
+4. INTEGRAZIONE IN SELECT-SPORT PAGE ✅
+   ─────────────────────────────────────
+   Aggiornata pagina onboarding per usare i nuovi services.
+   
+   File modificato:
+   - app/(onboarding)/select-sport/page.tsx
+   
+   Cambiamenti:
+   - Import: setCurrentUserSession, clearSignupDraft
+   - Sostituiti 5x localStorage.setItem() → setCurrentUserSession({...})
+   - Sostituiti 5x localStorage.removeItem() → clearSignupDraft()
+   - Zero cambiamenti logica/comportamento
+   - Stesse chiavi localStorage di prima
+
+
+================================================================================
+STRUTTURA FILE CREATI/MODIFICATI
+================================================================================
+
+NUOVI FILE:
+-----------
+lib/services/session.ts          → Gestione sessione localStorage
+
+MODIFICATI:
+-----------
+lib/types.ts                     → +3 tipi (SignupDraft, CreateUserPayload, CreatedUser)
+lib/services/auth-service.ts     → Import tipi da types.ts
+app/(onboarding)/select-sport/page.tsx → Usa session service
+
+
+================================================================================
+ARCHITETTURA SERVICES (POST-REFACTOR)
+================================================================================
+
+lib/services/
+├── auth-service.ts     → createUser() - creazione utente via API
+└── session.ts          → setCurrentUserSession(), clearSignupDraft()
+
+lib/types.ts
+└── Auth types: SignupDraft, CreateUserPayload, CreatedUser
+
+
+================================================================================
+PREPARAZIONE MIGRAZIONE SUPABASE
+================================================================================
+
+Punti di modifica isolati per passaggio a Supabase:
+
+1. auth-service.ts
+   - Attuale: fetch('/api/users') 
+   - Futuro: supabase.auth.signUp() + insert profilo
+
+2. session.ts  
+   - Attuale: localStorage per sessione
+   - Futuro: Supabase session handling (opzionale mantenere localStorage come cache)
+
+3. Tipi in types.ts
+   - Già allineati con struttura dati Supabase
+   - ProfessionalRole tipizzato (non string generico)
+
+
+================================================================================
+VINCOLI RISPETTATI
+================================================================================
+
+✅ Nessun cambio chiavi localStorage
+✅ Nessun cambio ordine operazioni
+✅ Nessun cambio UI/routing/logica onboarding
+✅ Nessun cambio chiamate API
+✅ Zero errori TypeScript
+✅ Comportamento runtime identico
+
+
+================================================================================
+PROSSIMI PASSI SUGGERITI
+================================================================================
+
+1. [ ] Creare Supabase project e configurare auth
+2. [ ] Aggiornare auth-service.ts per usare Supabase SDK
+3. [ ] Testare flusso signup end-to-end con Supabase
+4. [ ] Migrare dati JSON → PostgreSQL (users.json → table users)
+5. [ ] Aggiornare altre API routes per usare Supabase client
+
+
+================================================================================
+NOTE TECNICHE
+================================================================================
+
+Branch: ale_branch
+Framework: Next.js 14 App Router
+Styling: Tailwind + DaisyUI (tema "sprinta")
+Font: Neulis Sans (Adobe Typekit) + Inter fallback
+Auth attuale: localStorage-based (demo)
+Data storage: JSON files in data/
+
+================================================================================

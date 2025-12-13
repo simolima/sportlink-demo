@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 
-export default function LoginFormPage() {
+export default function LoginPage() {
     const router = useRouter()
     const { login } = useAuth()
     const [email, setEmail] = useState('')
@@ -12,13 +12,6 @@ export default function LoginFormPage() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
-
-    useEffect(() => {
-        // Hide navbar on this page
-        const header = document.querySelector('header')
-        if (header) header.classList.add('hidden')
-        return () => { if (header) header.classList.remove('hidden') }
-    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -133,12 +126,10 @@ export default function LoginFormPage() {
                     </form>
 
                     {/* Demo Credentials */}
-                    <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: '#2341F0', opacity: 0.05, borderColor: '#2341F0' }}>
-                        <div style={{ opacity: 1 / 0.05 }}>
-                            <p className="text-xs font-semibold mb-2" style={{ color: '#2341F0' }}>🧪 Credenziali Demo:</p>
-                            <p className="text-xs text-gray-600">Email: <code className="bg-white px-1 rounded">marco.rossi@sprinta.com</code></p>
-                            <p className="text-xs text-gray-600">Password: <code className="bg-white px-1 rounded">demo123</code></p>
-                        </div>
+                    <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(35, 65, 240, 0.05)', borderColor: '#2341F0' }}>
+                        <p className="text-xs font-semibold mb-2" style={{ color: '#2341F0' }}>🧪 Credenziali Demo:</p>
+                        <p className="text-xs text-gray-600">Email: <code className="bg-white px-1 rounded">marco.rossi@sprinta.com</code></p>
+                        <p className="text-xs text-gray-600">Password: <code className="bg-white px-1 rounded">demo123</code></p>
                     </div>
 
                     {/* Sign up Link */}
@@ -153,7 +144,7 @@ export default function LoginFormPage() {
 
                     {/* Back to landing */}
                     <div className="mt-4 text-center">
-                        <Link href="/login" className="text-sm text-gray-500 hover:text-gray-700">
+                        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
                             ← Torna alla pagina iniziale
                         </Link>
                     </div>

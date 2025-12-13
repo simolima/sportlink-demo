@@ -5,6 +5,42 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import Link from 'next/link'
 import type { User } from '@/lib/types'
 
+// Utility per formattare nomi in Title Case con gestione particelle italiane
+const PARTICLES = ['de', 'del', 'della', 'di', 'da', 'dal', 'dei', 'degli', 'delle', 'van', 'von', 'la', 'le', 'lo', 'du', 'des', 'd']
+
+function capitalizeSegment(segment: string): string {
+    if (!segment) return ''
+    return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+}
+
+function formatNamePart(part: string): string {
+    // Gestisce trattini: "anna-maria" → "Anna-Maria"
+    if (part.includes('-')) {
+        return part.split('-').map(capitalizeSegment).join('-')
+    }
+    // Gestisce apostrofi: "d'angelo" → "D'Angelo"
+    if (part.includes("'")) {
+        return part.split("'").map(capitalizeSegment).join("'")
+    }
+    return capitalizeSegment(part)
+}
+
+function formatPersonName(input: string): string {
+    if (!input) return ''
+    // Trim e normalizza spazi multipli
+    const normalized = input.trim().replace(/\s+/g, ' ')
+    const words = normalized.split(' ')
+
+    return words.map((word, index) => {
+        const lowerWord = word.toLowerCase()
+        // Particelle minuscole solo se NON sono la prima parola
+        if (index > 0 && PARTICLES.includes(lowerWord)) {
+            return lowerWord
+        }
+        return formatNamePart(word)
+    }).join(' ')
+}
+
 export default function SignupPage() {
     const router = useRouter()
     const { isAuthenticated, hasCompletedProfile } = useAuth()
@@ -35,12 +71,6 @@ export default function SignupPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated, hasCompletedProfile, didRedirect])
 
-    useEffect(() => {
-        const header = document.querySelector('header')
-        if (header) header.classList.add('hidden')
-        return () => { if (header) header.classList.remove('hidden') }
-    }, [])
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({
             ...prev,
@@ -48,9 +78,21 @@ export default function SignupPage() {
         }))
     }
 
+    // Formatta nome/cognome su blur
+    const handleNameBlur = (field: 'firstName' | 'lastName') => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: formatPersonName(prev[field])
+        }))
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
+
+        // Formatta nomi prima del submit (sicurezza extra)
+        const firstName = formatPersonName(formData.firstName)
+        const lastName = formatPersonName(formData.lastName)
 
         // Validazioni
         if (formData.password !== formData.confirmPassword) {
@@ -75,9 +117,9 @@ export default function SignupPage() {
         setLoading(true)
 
         try {
-            // Salva i dati base in localStorage
-            localStorage.setItem('signup_firstName', formData.firstName)
-            localStorage.setItem('signup_lastName', formData.lastName)
+            // Salva i dati base in localStorage (nomi già formattati)
+            localStorage.setItem('signup_firstName', firstName)
+            localStorage.setItem('signup_lastName', lastName)
             localStorage.setItem('signup_email', formData.email)
             localStorage.setItem('signup_password', formData.password)
             localStorage.setItem('signup_birthDate', formData.birthDate)
@@ -127,6 +169,7 @@ export default function SignupPage() {
                                     type="text"
                                     value={formData.firstName}
                                     onChange={handleChange}
+                                    onBlur={() => handleNameBlur('firstName')}
                                     required
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="Mario"
@@ -143,6 +186,7 @@ export default function SignupPage() {
                                     type="text"
                                     value={formData.lastName}
                                     onChange={handleChange}
+                                    onBlur={() => handleNameBlur('lastName')}
                                     required
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="Rossi"

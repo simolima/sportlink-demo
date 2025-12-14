@@ -156,6 +156,52 @@ export const NOTIFICATION_TYPES = [
 export type NotificationType = typeof NOTIFICATION_TYPES[number];
 
 // ============================================================================
+// AUTH & SIGNUP TYPES (per migrazione Supabase)
+// ============================================================================
+
+/**
+ * Dati temporanei di registrazione salvati in localStorage
+ * durante il flusso di onboarding multi-step.
+ */
+export type SignupDraft = {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  birthDate?: string
+  role: ProfessionalRole
+}
+
+/**
+ * Payload per la creazione di un nuovo utente via API.
+ * Usato da auth-service.ts -> POST /api/users
+ */
+export type CreateUserPayload = {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  birthDate?: string
+  professionalRole: ProfessionalRole
+  sports: string[]
+  verified?: boolean
+}
+
+/**
+ * Utente restituito dall'API dopo la creazione.
+ * Usato per popolare la sessione localStorage.
+ */
+export type CreatedUser = {
+  id: string | number
+  email: string
+  firstName: string
+  lastName: string
+  professionalRole: ProfessionalRole
+  sports: string[]
+  avatarUrl?: string
+}
+
+// ============================================================================
 // CORE DATA MODELS
 // ============================================================================
 

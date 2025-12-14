@@ -1,3 +1,7 @@
+/* Adobe Typekit - Neulis Sans */
+@import url("https://p.typekit.net/p.css?s=1&k=sxg1qhc&ht=tk&f=53796.53797.53799.53801.53805.53811&a=99430940&app=typekit&e=css");
+
+/* Google Fonts - Inter (fallback) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
 @tailwind base;
@@ -22,7 +26,7 @@ body,
 }
 
 body {
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Arial, sans-serif;
+    font-family: "neulis-sans", Inter, system-ui, sans-serif;
     background-color: var(--navy);
     color: var(--secondary);
     -webkit-font-smoothing: antialiased;
@@ -80,4 +84,9 @@ body {
 .btn-secondary:hover {
     background: var(--blue);
     color: var(--white);
+}
+
+/* Font utility for Neulis Sans Hairline variant */
+.font-hairline {
+    font-family: "neulis-sans-hairline", "neulis-sans", Inter, sans-serif;
 }

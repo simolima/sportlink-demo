@@ -175,9 +175,14 @@ export default function PlayerAffiliationsPage() {
       </div>
 
       {/* Pending Requests */}
-      {pendingAffiliations.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Richieste in Attesa</h2>
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Richieste in Attesa</h2>
+        {pendingAffiliations.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <Shield size={40} className="mx-auto mb-3 text-gray-300" />
+            <p className="text-gray-600">Nessuna richiesta di affiliazione al momento</p>
+          </div>
+        ) : (
           <div className="space-y-4">
             {pendingAffiliations.map((affiliation) => (
               <div key={affiliation.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -193,51 +198,50 @@ export default function PlayerAffiliationsPage() {
                         {affiliation.agent?.firstName} {affiliation.agent?.lastName}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">Ruolo: Agente</p>
-                      {affiliation.message && (
+                      {affiliation.notes && (
                         <p className="text-sm text-gray-700 mt-3 p-3 bg-white rounded-lg">
-                          {affiliation.message}
+                          {affiliation.notes}
                         </p>
                       )}
                       <p className="text-xs text-gray-500 mt-2">
-                        Richiesta il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
+                        Richiesta ricevuta il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
                       </p>
                     </div>
                   </div>
-
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 min-w-[140px] items-end">
                     <button
-                      onClick={() =>
-                        handleAccept(
-                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
-                        )
-                      }
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                      onClick={() => {
+                        if (confirm('Vuoi accettare questa richiesta di affiliazione?')) {
+                          handleAccept(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                        }
+                      }}
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 w-full"
                     >
                       <Check size={18} />
                       Accetta
                     </button>
                     <button
-                      onClick={() =>
-                        handleReject(
-                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
-                        )
-                      }
-                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
+                      onClick={() => {
+                        if (confirm('Vuoi rifiutare questa richiesta?')) {
+                          handleReject(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                        }
+                      }}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2 w-full"
                     >
                       <X size={18} />
                       Rifiuta
                     </button>
                     <button
-                      onClick={() =>
-                        handleBlock(
-                          typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id),
-                          typeof affiliation.agentId === 'number'
-                            ? affiliation.agentId
-                            : parseInt(affiliation.agentId)
-                        )
-                      }
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
-                      title="Non conosco questa persona"
+                      onClick={() => {
+                        if (confirm('Bloccare questo agente significa che non potrà più inviarti richieste. Confermi?')) {
+                          handleBlock(
+                            typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id),
+                            typeof affiliation.agentId === 'number' ? affiliation.agentId : parseInt(affiliation.agentId)
+                          )
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 w-full"
+                      title="Blocca questo agente: non potrà più inviarti richieste."
                     >
                       <Ban size={18} />
                       Blocca
@@ -247,8 +251,8 @@ export default function PlayerAffiliationsPage() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Accepted Affiliations */}
       <div>
@@ -256,7 +260,8 @@ export default function PlayerAffiliationsPage() {
         {acceptedAffiliations.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <Shield size={48} className="mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600">Non hai ancora agenti affiliati</p>
+            <p className="text-gray-600 mb-2">Non hai ancora agenti affiliati</p>
+            <p className="text-gray-400 text-sm max-w-md mx-auto">Un agente può aiutarti a trovare opportunità, negoziare contratti e gestire la tua carriera sportiva. Quando accetterai una richiesta, comparirà qui.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -281,17 +286,24 @@ export default function PlayerAffiliationsPage() {
                       )}
                     </div>
                   </div>
-
-                  <button
-                    onClick={() =>
-                      handleRemove(
-                        typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
-                      )
-                    }
-                    className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
-                  >
-                    Rimuovi
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push(`/messages/${affiliation.agent?.id}`)}
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                    >
+                      Messaggia
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Vuoi rimuovere questa affiliazione?')) {
+                          handleRemove(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                        }
+                      }}
+                      className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
+                    >
+                      Rimuovi affiliazione
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

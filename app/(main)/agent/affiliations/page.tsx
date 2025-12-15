@@ -383,18 +383,54 @@ export default function AgentAffiliationsPage() {
                                                 : 'Rifiutata'}
                                     </span>
 
-                                    {/* Actions */}
-                                    {affiliation.status === 'accepted' && (
+                                    {/* Actions for pending */}
+                                    {affiliation.status === 'pending' && (
                                         <button
-                                            onClick={() =>
-                                                handleRemoveAffiliation(
-                                                    typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
-                                                )
-                                            }
-                                            className="px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition font-medium"
+                                            onClick={async () => {
+                                                if (confirm('Vuoi annullare questa richiesta?')) {
+                                                    const res = await fetch('/api/affiliations', {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            id: affiliation.id,
+                                                            status: 'rejected',
+                                                            playerId: affiliation.player?.id,
+                                                        }),
+                                                    })
+                                                    if (res.ok) {
+                                                        showToast('success', 'Richiesta annullata', 'La richiesta è stata annullata con successo')
+                                                        fetchAffiliations(currentUser.id)
+                                                    } else {
+                                                        showToast('error', 'Errore', 'Impossibile annullare la richiesta')
+                                                    }
+                                                }
+                                            }}
+                                            className="ml-2 px-3 py-1 text-warning border border-warning/40 rounded-lg bg-warning/10 hover:bg-warning/20 text-xs font-medium transition"
                                         >
-                                            Rimuovi
+                                            Annulla richiesta
                                         </button>
+                                    )}
+
+                                    {/* Actions for accepted */}
+                                    {affiliation.status === 'accepted' && (
+                                        <>
+                                            <button
+                                                onClick={() => router.push(`/messages/${affiliation.player?.id}`)}
+                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition font-medium mr-2"
+                                            >
+                                                Messaggia
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    handleRemoveAffiliation(
+                                                        typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
+                                                    )
+                                                }
+                                                className="px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition font-medium"
+                                            >
+                                                Rimuovi
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>

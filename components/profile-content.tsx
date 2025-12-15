@@ -20,18 +20,40 @@ const formatDate = (value?: string) => {
 }
 
 const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
-    const role = (user?.professionalRole || '').toLowerCase()
-    const availability = user?.availability ? user.availability : 'Non specificato'
-    const level = user?.level ? user.level : 'Non specificato'
-    const sportLabel = sports.length ? sports.join(', ') : (user?.sport || 'Non specificato')
+    const role = (user?.professionalRole || '').toLowerCase();
+    const availability = user?.availability ? user.availability : 'Non specificato';
+    const level = user?.level ? user.level : 'Non specificato';
+    const sportLabel = sports.length ? sports.join(', ') : (user?.sport || 'Non specificato');
+
+    // Player + Calcio + campi calcio
+    const isFootballPlayer =
+        (role.includes('player') || role.includes('giocatore')) &&
+        Array.isArray(sports) && sports.includes('Calcio') &&
+        (user?.footballPrimaryPosition || user?.footballSecondaryPosition);
+
+    if (isFootballPlayer) {
+        return [
+            { label: 'Sport', value: sportLabel },
+            { label: 'Ruolo (Calcio)', value: user.footballPrimaryPosition || 'Non specificato' },
+            { label: 'Dettaglio ruolo', value: user.footballSecondaryPosition || 'Non specificato' },
+            { label: 'Livello / categoria', value: level },
+            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'N/A' },
+            { label: 'Disponibilità', value: availability }
+        ];
+    }
 
     if (role.includes('player') || role.includes('giocatore')) {
-        return [
+        const details = [
             { label: 'Sport', value: sportLabel },
             { label: 'Ruolo in campo', value: user?.currentRole || user?.professionalRoleLabel || 'Non specificato' },
             { label: 'Livello / categoria', value: level },
+            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'N/A' },
             { label: 'Disponibilità', value: availability }
-        ]
+        ];
+        if (user?.secondaryRole) {
+            details.splice(2, 0, { label: 'Ruolo secondario', value: user.secondaryRole });
+        }
+        return details;
     }
 
     if (role.includes('agent') || role.includes('agente')) {
@@ -40,7 +62,7 @@ const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
             { label: 'Ruolo', value: user?.currentRole || user?.professionalRole || 'Agente' },
             { label: 'Portfolio attivo', value: `${user?.annunciAttivi ?? 0} ricerche` },
             { label: 'Richieste gestite', value: `${user?.candidatureRicevute ?? 0} candidature` }
-        ]
+        ];
     }
 
     if (role.includes('director') || role.includes('ds')) {
@@ -49,7 +71,7 @@ const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
             { label: 'Ruolo', value: user?.currentRole || 'Direttore Sportivo' },
             { label: 'Annunci gestiti', value: `${user?.annunciAttivi ?? 0}` },
             { label: 'Candidature ricevute', value: `${user?.candidatureRicevute ?? 0}` }
-        ]
+        ];
     }
 
     return [
@@ -57,7 +79,7 @@ const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
         { label: 'Ambito', value: sportLabel },
         { label: 'Ruolo attuale', value: user?.currentRole || 'Non specificato' },
         { label: 'Disponibilità', value: availability }
-    ]
+    ];
 }
 
 const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubName?: string | null; followersCount?: number }) => {
@@ -152,6 +174,25 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                             <p className="text-sm font-semibold text-gray-900">{item.value || 'Non indicato'}</p>
                         </div>
                     ))}
+                    {/* Ruolo specifico e dominanza SOLO per Player e sport coerente */}
+                    {user?.professionalRole === 'Player' && user?.specificRole && (
+                        <div className="rounded-lg border border-gray-100 p-3">
+                            <p className="text-xs text-gray-500">Ruolo specifico</p>
+                            <p className="text-sm font-semibold text-gray-900">{user.specificRole}</p>
+                        </div>
+                    )}
+                    {user?.professionalRole === 'Player' && user?.dominantFoot && Array.isArray(user?.sports) && user.sports[0] === 'Calcio' && (
+                        <div className="rounded-lg border border-gray-100 p-3">
+                            <p className="text-xs text-gray-500">Piede dominante</p>
+                            <p className="text-sm font-semibold text-gray-900">{user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro'}</p>
+                        </div>
+                    )}
+                    {user?.professionalRole === 'Player' && user?.dominantHand && Array.isArray(user?.sports) && (user.sports[0] === 'Basket' || user.sports[0] === 'Pallavolo') && (
+                        <div className="rounded-lg border border-gray-100 p-3">
+                            <p className="text-xs text-gray-500">Mano dominante</p>
+                            <p className="text-sm font-semibold text-gray-900">{user.dominantHand === 'destra' ? 'Destra' : user.dominantHand === 'sinistra' ? 'Sinistra' : 'Ambidestra'}</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

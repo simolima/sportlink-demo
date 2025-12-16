@@ -370,5 +370,75 @@
     },
     "read": false,
     "createdAt": "2025-12-11T16:40:24.905Z"
+  },
+  {
+    "id": 1765793731148,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765793731137,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-15T10:15:31.148Z"
+  },
+  {
+    "id": 1765793828860,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765793731137,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-15T10:17:08.860Z"
+  },
+  {
+    "id": 1765798311351,
+    "userId": "1765202028769",
+    "type": "affiliation_removed",
+    "title": "Affiliazione terminata",
+    "message": "Gianna Rossi ha terminato l'affiliazione con te.",
+    "metadata": {
+      "affiliationId": 1765793731137,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-15T11:31:51.351Z"
+  },
+  {
+    "id": 1765798321373,
+    "userId": "1765202028769",
+    "type": "affiliation_request",
+    "title": "Nuova richiesta di affiliazione",
+    "message": "Gianna Rossi ha richiesto di diventare il tuo agente.",
+    "metadata": {
+      "affiliationId": 1765798321371,
+      "agentId": "2",
+      "agentName": "Gianna Rossi"
+    },
+    "read": true,
+    "createdAt": "2025-12-15T11:32:01.373Z"
+  },
+  {
+    "id": 1765798347972,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Simone Lima ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765798321371,
+      "playerId": "1765202028769",
+      "playerName": "Simone Lima"
+    },
+    "read": true,
+    "createdAt": "2025-12-15T11:32:27.972Z"
   }
 ]

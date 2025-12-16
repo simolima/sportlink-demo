@@ -5,6 +5,20 @@ import { UserCircleIcon, MagnifyingGlassIcon, MapPinIcon } from '@heroicons/reac
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
 import { SUPPORTED_SPORTS, PROFESSIONAL_ROLES } from '@/lib/types'
+// Opzioni ruolo specifico e dominanza
+const footballPrimaryOptions = [
+    { value: "Portiere", label: "Portiere" },
+    { value: "Difensore", label: "Difensore" },
+    { value: "Centrocampista", label: "Centrocampista" },
+    { value: "Attaccante", label: "Attaccante" },
+];
+const basketRoles = ["Playmaker", "Guardia", "Ala piccola", "Ala grande", "Centro"];
+const volleyRoles = ["Palleggiatore", "Schiacciatore", "Centrale", "Opposto", "Libero"];
+const handOptions = [
+    { value: "destra", label: "Destra" },
+    { value: "sinistra", label: "Sinistra" },
+    { value: "ambidestra", label: "Ambidestra" },
+];
 
 export default function PeoplePage() {
     const router = useRouter()
@@ -16,242 +30,264 @@ export default function PeoplePage() {
     const [selectedRole, setSelectedRole] = useState('all')
     const [selectedAvailability, setSelectedAvailability] = useState('all')
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    // Filtri avanzati contestuali
+    const [selectedSpecificRole, setSelectedSpecificRole] = useState('')
+    const [selectedDominant, setSelectedDominant] = useState('')
+    // mainSport è una costante derivata
 
+
+    // useEffect #1: auth + fetchUsers
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        const id = localStorage.getItem('currentUserId')
-        setCurrentUserId(id)
-
+        if (typeof window === 'undefined') return;
+        const id = localStorage.getItem('currentUserId');
         if (!id) {
-            router.push('/login')
-            return
+            router.push('/login');
+            return;
         }
+        setCurrentUserId(id);
+        setLoading(true);
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => {
+                setUsers(Array.isArray(data) ? data : []);
+                setFilteredUsers(Array.isArray(data) ? data : []);
+            })
+            .catch(e => {
+                setUsers([]);
+                setFilteredUsers([]);
+            })
+            .finally(() => setLoading(false));
+    }, [router]);
 
-        const fetchUsers = async () => {
-            try {
-                const res = await fetch('/api/users')
-                const data = await res.json()
-                // Escludi l'utente corrente
-                const others = (data || []).filter((u: any) => String(u.id) !== String(id))
-                setUsers(others)
-                setFilteredUsers(others)
-            } catch (e) {
-                console.error('Error fetching users:', e)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchUsers()
-    }, [router])
-
+    // useEffect #2: reset filtri avanzati quando cambia sport
     useEffect(() => {
-        let result = users
+        setSelectedSpecificRole('');
+        setSelectedDominant('');
+    }, [selectedSport]);
+
+    // useEffect #3: reset filtri avanzati quando cambia ruolo e diventa != Player
+    useEffect(() => {
+        if (selectedRole !== 'Player' && selectedRole !== 'all') {
+            setSelectedSpecificRole('');
+            setSelectedDominant('');
+        }
+    }, [selectedRole]);
+
+    // mainSport come costante derivata
+    const mainSport = selectedSport !== 'all' ? selectedSport : '';
+
+    // useEffect #4: filtro utenti
+    useEffect(() => {
+        let result = users;
 
         // Search filter
         if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase()
+            const query = searchQuery.toLowerCase();
             result = result.filter(u =>
                 `${u.firstName} ${u.lastName}`.toLowerCase().includes(query) ||
                 u.email?.toLowerCase().includes(query) ||
                 u.currentRole?.toLowerCase().includes(query) ||
                 u.username?.toLowerCase().includes(query) ||
                 u.bio?.toLowerCase().includes(query)
-            )
+            );
         }
 
-        // Sport filter
+        // Sport filter (supporta sia u.sport che u.sports)
         if (selectedSport !== 'all') {
-            result = result.filter(u => u.sport === selectedSport)
+            result = result.filter(u => {
+                const uSport = u.sport || '';
+                const uSports = Array.isArray(u.sports) ? u.sports : [];
+                return uSport === selectedSport || uSports.includes(selectedSport);
+            });
         }
 
-        // Role filter
+        // professionalRole filter
         if (selectedRole !== 'all') {
-            result = result.filter(u => u.professionalRole === selectedRole)
+            result = result.filter(u => u.professionalRole === selectedRole);
         }
 
-        // Availability filter
+        // availability filter
         if (selectedAvailability !== 'all') {
-            result = result.filter(u => u.availability === selectedAvailability)
+            result = result.filter(u => u.availability === selectedAvailability);
         }
 
-        setFilteredUsers(result)
-    }, [searchQuery, selectedSport, selectedRole, selectedAvailability, users])
+        // Filtri avanzati SOLO se mainSport !== '' e (selectedRole === 'Player' || selectedRole === 'all')
+        if (
+            mainSport !== '' &&
+            (selectedRole === 'Player' || selectedRole === 'all')
+        ) {
+            // Applica SOLO a u.professionalRole === 'Player'
+            if (selectedSpecificRole) {
+                result = result.filter(u => u.professionalRole === 'Player' && u.specificRole === selectedSpecificRole);
+            }
+            if (selectedDominant) {
+                if (mainSport === 'Calcio') {
+                    result = result.filter(u => u.professionalRole === 'Player' && u.dominantFoot === selectedDominant);
+                } else if (mainSport === 'Basket' || mainSport === 'Pallavolo') {
+                    result = result.filter(u => u.professionalRole === 'Player' && u.dominantHand === selectedDominant);
+                }
+            }
+        }
 
-    if (!currentUserId) return null
+        setFilteredUsers(result);
+    }, [searchQuery, selectedSport, selectedRole, selectedAvailability, users, selectedSpecificRole, selectedDominant, mainSport]);
+
+    // ...existing code...
+
+
+    if (!currentUserId) return null;
 
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-4xl mx-auto py-6 px-4">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Scopri persone</h1>
-                    <p className="text-gray-600">Trova atleti, coach, dirigenti e inizia a seguirli</p>
-                </div>
-
-                {/* Filters */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Search bar */}
-                        <div className="relative md:col-span-2">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                placeholder="Cerca per nome, ruolo o bio..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                            />
+                {/* Filtri avanzati: visibili SOLO se mainSport !== '' e (selectedRole === 'Player' || selectedRole === 'all') */}
+                {mainSport !== '' && (selectedRole === 'Player' || selectedRole === 'all') && (
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Ruolo specifico */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Ruolo specifico</label>
+                            {mainSport === 'Calcio' ? (
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    value={selectedSpecificRole}
+                                    onChange={e => setSelectedSpecificRole(e.target.value)}
+                                >
+                                    <option value="">Tutti i ruoli</option>
+                                    {footballPrimaryOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            ) : mainSport === 'Basket' ? (
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    value={selectedSpecificRole}
+                                    onChange={e => setSelectedSpecificRole(e.target.value)}
+                                >
+                                    <option value="">Tutti i ruoli</option>
+                                    {basketRoles.map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            ) : mainSport === 'Pallavolo' ? (
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    value={selectedSpecificRole}
+                                    onChange={e => setSelectedSpecificRole(e.target.value)}
+                                >
+                                    <option value="">Tutti i ruoli</option>
+                                    {volleyRoles.map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            ) : null}
                         </div>
-
-                        {/* Sport Filter */}
-                        <select
-                            value={selectedSport}
-                            onChange={(e) => setSelectedSport(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        >
-                            <option value="all">Tutti gli sport</option>
-                            {SUPPORTED_SPORTS.map((sport) => (
-                                <option key={sport} value={sport}>{sport}</option>
-                            ))}
-                        </select>
-
-                        {/* Role Filter */}
-                        <select
-                            value={selectedRole}
-                            onChange={(e) => setSelectedRole(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        >
-                            <option value="all">Tutti i ruoli</option>
-                            {PROFESSIONAL_ROLES.map((role) => (
-                                <option key={role} value={role}>{role}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Availability Filter */}
-                    <div className="mt-4 flex gap-3">
-                        <button
-                            onClick={() => setSelectedAvailability('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'all'
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                        >
-                            Tutti
-                        </button>
-                        <button
-                            onClick={() => setSelectedAvailability('Disponibile')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'Disponibile'
-                                ? 'bg-sprinta-primary text-sprinta-text'
-                                : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
-                                }`}
-                        >
-                            Disponibile
-                        </button>
-                        <button
-                            onClick={() => setSelectedAvailability('Valuta proposte')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedAvailability === 'Valuta proposte'
-                                ? 'bg-sprinta-primary text-sprinta-text'
-                                : 'bg-sprinta-card text-sprinta-text-secondary hover:bg-sprinta-card-hover'
-                                }`}
-                        >
-                            Valuta proposte
-                        </button>
-                    </div>
-
-                    <div className="mt-4 text-sm text-gray-600">
-                        Trovati <span className="font-semibold">{filteredUsers.length}</span> risultati
-                    </div>
-                </div>
-
-                {/* Users grid */}
-                {loading ? (
-                    <div className="text-center py-12 text-gray-500">Caricamento utenti...</div>
-                ) : filteredUsers.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                        <UserCircleIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-2">Nessun utente trovato</p>
-                        <p className="text-sm text-gray-400">Prova a modificare i filtri di ricerca</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {filteredUsers.map(user => (
-                            <div key={user.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-6">
-                                <div className="flex items-start gap-4">
-                                    {/* Avatar */}
-                                    <div
-                                        className="cursor-pointer"
-                                        onClick={() => router.push(`/profile/${user.id}`)}
-                                    >
-                                        <Avatar
-                                            src={user.avatarUrl}
-                                            alt={`${user.firstName} ${user.lastName}`}
-                                            size="lg"
-                                            fallbackText={user.firstName?.[0] || 'U'}
-                                            className="w-16 h-16"
-                                        />
-                                    </div>
-
-                                    {/* User info */}
-                                    <div className="flex-1 min-w-0">
-                                        <h3
-                                            className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-sprinta-blue"
-                                            onClick={() => router.push(`/profile/${user.id}`)}
-                                        >
-                                            {user.firstName} {user.lastName}
-                                        </h3>
-                                        {user.username && (
-                                            <p className="text-sm text-gray-500">@{user.username}</p>
-                                        )}
-
-                                        {/* Sport & Role */}
-                                        <div className="flex items-center gap-2 mt-1">
-                                            {user.professionalRole && (
-                                                <span className="text-sprinta-blue font-medium text-sm">{user.professionalRole}</span>
-                                            )}
-                                            {user.professionalRole && user.sport && <span className="text-gray-400">•</span>}
-                                            {user.sport && (
-                                                <span className="text-gray-600 text-sm">{user.sport}</span>
-                                            )}
-                                        </div>
-
-                                        {/* City & Availability */}
-                                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                            {user.city && (
-                                                <div className="flex items-center">
-                                                    <MapPinIcon className="h-4 w-4 mr-1" />
-                                                    {user.city}
-                                                </div>
-                                            )}
-                                            {user.availability && (
-                                                <>
-                                                    {user.city && <span>•</span>}
-                                                    <span className={`font-medium ${user.availability === 'Disponibile' ? 'text-sprinta-blue' :
-                                                        user.availability === 'Valuta proposte' ? 'text-blue-600' :
-                                                            'text-gray-500'
-                                                        }`}>
-                                                        {user.availability}
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {user.bio && (
-                                            <p className="text-gray-600 text-sm mt-2 line-clamp-2">{user.bio}</p>
-                                        )}
-                                    </div>
-
-                                    {/* Follow button */}
-                                    <div className="flex-shrink-0">
-                                        <FollowButton targetId={user.id} />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                        {/* Dominanza */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">{mainSport === 'Calcio' ? 'Piede dominante' : (mainSport === 'Basket' || mainSport === 'Pallavolo') ? 'Mano dominante' : 'Dominanza'}</label>
+                            {mainSport === 'Calcio' ? (
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    value={selectedDominant}
+                                    onChange={e => setSelectedDominant(e.target.value)}
+                                >
+                                    <option value="">Qualsiasi piede</option>
+                                    <option value="destro">Destro</option>
+                                    <option value="sinistro">Sinistro</option>
+                                    <option value="ambidestro">Ambidestro</option>
+                                </select>
+                            ) : (mainSport === 'Basket' || mainSport === 'Pallavolo') ? (
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    value={selectedDominant}
+                                    onChange={e => setSelectedDominant(e.target.value)}
+                                >
+                                    <option value="">Qualsiasi mano</option>
+                                    {handOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            ) : null}
+                        </div>
                     </div>
                 )}
+
+                {/* Lista utenti filtrati */}
+                <div className="mt-6 space-y-4">
+                    {filteredUsers.map(user => (
+                        <div key={user.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-6">
+                            <div className="flex items-start gap-4">
+                                {/* Avatar */}
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={() => router.push(`/profile/${user.id}`)}
+                                >
+                                    <Avatar
+                                        src={user.avatarUrl}
+                                        alt={`${user.firstName} ${user.lastName}`}
+                                        size="lg"
+                                        fallbackText={user.firstName?.[0] || 'U'}
+                                        className="w-16 h-16"
+                                    />
+                                </div>
+
+                                {/* User info */}
+                                <div className="flex-1 min-w-0">
+                                    <h3
+                                        className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-sprinta-blue"
+                                        onClick={() => router.push(`/profile/${user.id}`)}
+                                    >
+                                        {user.firstName} {user.lastName}
+                                    </h3>
+                                    {user.username && (
+                                        <p className="text-sm text-gray-500">@{user.username}</p>
+                                    )}
+
+                                    {/* Sport & Role */}
+                                    <div className="flex items-center gap-2 mt-1">
+                                        {user.professionalRole && (
+                                            <span className="text-sprinta-blue font-medium text-sm">{user.professionalRole}</span>
+                                        )}
+                                        {user.professionalRole && user.sport && <span className="text-gray-400">•</span>}
+                                        {user.sport && (
+                                            <span className="text-gray-600 text-sm">{user.sport}</span>
+                                        )}
+                                    </div>
+
+                                    {/* City & Availability */}
+                                    <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                        {user.city && (
+                                            <div className="flex items-center">
+                                                <MapPinIcon className="h-4 w-4 mr-1" />
+                                                {user.city}
+                                            </div>
+                                        )}
+                                        {user.availability && (
+                                            <>
+                                                {user.city && <span>•</span>}
+                                                <span className={`font-medium ${user.availability === 'Disponibile' ? 'text-sprinta-blue' :
+                                                    user.availability === 'Valuta proposte' ? 'text-blue-600' :
+                                                        'text-gray-500'
+                                                    }`}>
+                                                    {user.availability}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {user.bio && (
+                                        <p className="text-gray-600 text-sm mt-2 line-clamp-2">{user.bio}</p>
+                                    )}
+                                </div>
+
+                                {/* Follow button */}
+                                <div className="flex-shrink-0">
+                                    <FollowButton targetId={user.id} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
-    )
+    );
 }

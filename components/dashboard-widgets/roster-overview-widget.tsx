@@ -89,7 +89,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                         </div>
                     </div>
                     <Link
-                        href="/people"
+                        href="/agent/affiliations"
                         className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
                     >
                         Gestisci →

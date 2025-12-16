@@ -30,6 +30,12 @@ interface FormState {
     coverUrl: string
     experiences: Experience[]
     availability: string
+    dominantFoot?: 'destro' | 'sinistro' | 'ambidestro'
+    dominantHand?: 'destra' | 'sinistra' | 'ambidestra'
+    specificRole?: string
+    secondaryRole?: string
+    footballPrimaryPosition?: 'Portiere' | 'Difensore' | 'Centrocampista' | 'Attaccante'
+    footballSecondaryPosition?: string
 }
 
 const emptyExperience = (): Experience => ({
@@ -56,30 +62,46 @@ const initialForm: FormState = {
     coverUrl: "",
     experiences: [],
     availability: "Disponibile",
+    dominantFoot: undefined,
+    dominantHand: undefined,
+    specificRole: undefined,
+    secondaryRole: undefined,
 }
 
 export default function EditProfilePage() {
-    const router = useRouter()
-    const [form, setForm] = useState<FormState>(initialForm)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-
+    // --- HOOKS: always before any return ---
+    const router = useRouter();
     const userId = useMemo(() => {
-        if (typeof window === "undefined") return null
-        return localStorage.getItem("currentUserId")
-    }, [])
+        if (typeof window === "undefined") return null;
+        return localStorage.getItem("currentUserId");
+    }, []);
+    const [form, setForm] = useState<FormState>(initialForm);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [isPlayer, setIsPlayer] = useState(false);
+    const [isFootball, setIsFootball] = useState(false);
 
+    // --- Sport principale per logica ruolo/dominanza ---
+    const [mainSport, setMainSport] = useState<string | undefined>(undefined);
     useEffect(() => {
-        if (!userId) return
+        let didRedirect = false;
         const fetchUser = async () => {
             try {
-                const res = await fetch("/api/users")
-                const users = await res.json()
-                const user = (users || []).find((u: any) => String(u.id) === String(userId))
+                const res = await fetch("/api/users");
+                if (!res.ok) throw new Error("Impossibile caricare il profilo");
+                const users = await res.json();
+                const user = (users || []).find((u: any) => String(u.id) === String(userId));
                 if (!user) {
-                    router.push("/login")
-                    return
+                    alert("Utente non trovato o sessione scaduta");
+                    didRedirect = true;
+                    router.push("/home");
+                    return;
                 }
+                setIsPlayer(user.professionalRole === "Player");
+                setIsFootball(Array.isArray(user.sports) && user.sports.includes("Calcio"));
+                const sport = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports[0] : user.sport || undefined;
+                setMainSport(sport);
+                // Solo Player può vedere/gestire questi campi
                 setForm({
                     firstName: user.firstName || "",
                     lastName: user.lastName || "",
@@ -104,19 +126,102 @@ export default function EditProfilePage() {
                         }))
                         : [],
                     availability: user.availability || "Disponibile",
-                })
+                    dominantFoot: user.professionalRole === "Player" && sport === "Calcio" ? user.dominantFoot ?? undefined : undefined,
+                    dominantHand: user.professionalRole === "Player" && (sport === "Basket" || sport === "Pallavolo") ? user.dominantHand ?? undefined : undefined,
+                    specificRole: user.professionalRole === "Player" ? user.specificRole ?? undefined : undefined,
+                    secondaryRole: user.secondaryRole ?? undefined,
+                    footballPrimaryPosition: user.footballPrimaryPosition ?? undefined,
+                    footballSecondaryPosition: user.footballSecondaryPosition ?? undefined,
+                });
             } catch (error) {
-                console.error("Failed to load user", error)
+                console.error(error);
+                alert("Errore nel caricamento del profilo");
+                didRedirect = true;
+                router.push("/home");
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
+        };
+        if (userId) fetchUser();
+        else {
+            setLoading(false);
+            alert("Sessione scaduta");
+            router.push("/home");
         }
-        fetchUser()
-    }, [router, userId])
+    }, [router, userId]);
+    // --- Opzioni ruolo specifico ---
+    const basketRoles = [
+        "Playmaker",
+        "Guardia",
+        "Ala piccola",
+        "Ala grande",
+        "Centro"
+    ];
+    const volleyRoles = [
+        "Palleggiatore",
+        "Schiacciatore",
+        "Centrale",
+        "Opposto",
+        "Libero"
+    ];
 
-    const updateField = (key: keyof FormState, value: string) => {
+    // ...existing code...
+    const updateField = (key: keyof FormState, value: any) => {
         setForm((prev) => ({ ...prev, [key]: value }))
     }
+
+    // --- Calcio: opzioni guidate ---
+    const footballPrimaryOptions = [
+        { value: "Portiere", label: "Portiere" },
+        { value: "Difensore", label: "Difensore" },
+        { value: "Centrocampista", label: "Centrocampista" },
+        { value: "Attaccante", label: "Attaccante" },
+    ];
+    const footballSecondaryOptions: Record<string, { value: string; label: string }[]> = {
+        Portiere: [{ value: "Portiere", label: "Portiere" }],
+        Difensore: [
+            { value: "Difensore centrale", label: "Difensore centrale" },
+            { value: "Terzino destro", label: "Terzino destro" },
+            { value: "Terzino sinistro", label: "Terzino sinistro" },
+        ],
+        Centrocampista: [
+            { value: "Mediano", label: "Mediano" },
+            { value: "Mezzala", label: "Mezzala" },
+            { value: "Trequartista", label: "Trequartista" },
+            { value: "Esterno destro", label: "Esterno destro" },
+            { value: "Esterno sinistro", label: "Esterno sinistro" },
+        ],
+        Attaccante: [
+            { value: "Ala destra", label: "Ala destra" },
+            { value: "Ala sinistra", label: "Ala sinistra" },
+            { value: "Punta centrale", label: "Punta centrale" },
+            { value: "Seconda punta", label: "Seconda punta" },
+        ],
+    };
+
+    // Gestione auto-popola e compatibilità
+    const handleFootballPrimaryChange = (value: string) => {
+        setForm(prev => {
+            // Se il dettaglio non è valido per il nuovo primario, resetta
+            const validSecondaries = footballSecondaryOptions[value] || [];
+            const isValid = validSecondaries.some(opt => opt.value === prev.footballSecondaryPosition);
+            return {
+                ...prev,
+                footballPrimaryPosition: value as any,
+                footballSecondaryPosition: isValid ? prev.footballSecondaryPosition : undefined,
+                // Auto-popola compatibilità
+                secondaryRole: value || undefined,
+                currentRole: isValid ? prev.footballSecondaryPosition || "" : "",
+            };
+        });
+    };
+    const handleFootballSecondaryChange = (value: string) => {
+        setForm(prev => ({
+            ...prev,
+            footballSecondaryPosition: value,
+            currentRole: value,
+        }));
+    };
 
     const handleExperienceChange = (id: string, key: keyof Experience, value: string) => {
         setForm((prev) => ({
@@ -153,10 +258,28 @@ export default function EditProfilePage() {
         if (!userId) return
         setSaving(true)
         try {
+            // Sanificazione payload
+            let payload = { ...form, id: userId };
+            if (isPlayer) {
+                // Player: logica sport dominanza
+                if (mainSport === "Calcio") {
+                    payload.dominantHand = undefined;
+                } else if (mainSport === "Basket" || mainSport === "Pallavolo") {
+                    payload.dominantFoot = undefined;
+                } else {
+                    payload.dominantFoot = undefined;
+                    payload.dominantHand = undefined;
+                }
+            } else {
+                // Non Player: azzera tutto
+                payload.specificRole = undefined;
+                payload.dominantFoot = undefined;
+                payload.dominantHand = undefined;
+            }
             const res = await fetch("/api/users", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: userId, ...form }),
+                body: JSON.stringify(payload),
             })
             if (!res.ok) throw new Error("Save failed")
             const updated = await res.json()
@@ -276,15 +399,87 @@ export default function EditProfilePage() {
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
-                            <div>
-                                <p className="text-sm text-gray-600">Ruolo</p>
-                                <input
-                                    value={form.currentRole}
-                                    onChange={(e) => updateField("currentRole", e.target.value)}
-                                    placeholder="Es. Procuratore, Attaccante..."
-                                    className={inputBase}
-                                />
-                            </div>
+                            {/* Ruolo specifico e dominanza: SOLO Player */}
+                            {isPlayer && (
+                                <>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo specifico</label>
+                                        {mainSport === "Calcio" ? (
+                                            <select
+                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                value={form.specificRole || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, specificRole: e.target.value || undefined }))}
+                                            >
+                                                <option value="">Seleziona</option>
+                                                {footballPrimaryOptions.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        ) : mainSport === "Basket" ? (
+                                            <select
+                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                value={form.specificRole || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, specificRole: e.target.value || undefined }))}
+                                            >
+                                                <option value="">Seleziona</option>
+                                                {basketRoles.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : mainSport === "Pallavolo" ? (
+                                            <select
+                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                value={form.specificRole || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, specificRole: e.target.value || undefined }))}
+                                            >
+                                                <option value="">Seleziona</option>
+                                                {volleyRoles.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                className={inputBase}
+                                                value={form.specificRole || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, specificRole: e.target.value || undefined }))}
+                                                placeholder="Ruolo specifico (es. playmaker, centrale...)"
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* Dominanza: logica condizionale */}
+                                    {(mainSport === "Calcio") && (
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Piede dominante</label>
+                                            <select
+                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                value={form.dominantFoot || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, dominantFoot: e.target.value as any || undefined, dominantHand: undefined }))}
+                                            >
+                                                <option value="">Seleziona</option>
+                                                <option value="destro">Destro</option>
+                                                <option value="sinistro">Sinistro</option>
+                                                <option value="ambidestro">Ambidestro</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                    {(mainSport === "Basket" || mainSport === "Pallavolo") && (
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Mano dominante</label>
+                                            <select
+                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                value={form.dominantHand || ''}
+                                                onChange={e => setForm(prev => ({ ...prev, dominantHand: e.target.value as any || undefined, dominantFoot: undefined }))}
+                                            >
+                                                <option value="">Seleziona</option>
+                                                <option value="destra">Destra</option>
+                                                <option value="sinistra">Sinistra</option>
+                                                <option value="ambidestra">Ambidestra</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                             <div>
                                 <p className="text-sm text-gray-600">Localita</p>
                                 <div className="grid grid-cols-2 gap-3">

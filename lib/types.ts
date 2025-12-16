@@ -223,9 +223,18 @@ export type User = {
   country?: string;
   availability?: AvailabilityStatus;
   level?: Level;
+  dominantFoot?: 'destro' | 'sinistro' | 'ambidestro';
+  secondaryRole?: string;
+  // --- Calcio specifici ---
+  footballPrimaryPosition?: 'Portiere' | 'Difensore' | 'Centrocampista' | 'Attaccante';
+  footballSecondaryPosition?: string;
   verified?: boolean;
   createdAt: string;
   updatedAt?: string;
+  /** Ruolo specifico per sport (es. playmaker, centrale, etc) */
+  specificRole?: string;
+  /** Mano dominante (basket, volley) */
+  dominantHand?: 'destra' | 'sinistra' | 'ambidestra';
 };
 
 // Club Membership - relazione User <-> Club

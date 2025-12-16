@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, UserPlus, Send } from 'lucide-react'
 import { Affiliation } from '@/lib/types'
@@ -11,16 +11,21 @@ interface AffiliationWithDetails extends Affiliation {
 }
 
 export default function AgentAffiliationsPage() {
+    // Tutti gli hook PRIMA di qualsiasi return condizionale
     const router = useRouter()
     const { showToast } = useToast()
     const [affiliations, setAffiliations] = useState<AffiliationWithDetails[]>([])
     const [loading, setLoading] = useState(true)
     const [currentUser, setCurrentUser] = useState<any>(null)
     const [filter, setFilter] = useState<'all' | 'pending' | 'accepted'>('all')
-    const [showRequestForm, setShowRequestForm] = useState(false)
+    const [showRequestModal, setShowRequestModal] = useState(false)
     const [players, setPlayers] = useState<any[]>([])
-    const [selectedPlayerId, setSelectedPlayerId] = useState('')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [filteredPlayers, setFilteredPlayers] = useState<any[]>([])
+    const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null)
     const [requestMessage, setRequestMessage] = useState('')
+    const [modalStep, setModalStep] = useState<1 | 2>(1)
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         const loadData = async () => {
@@ -57,15 +62,13 @@ export default function AgentAffiliationsPage() {
                 showToast('error', 'Errore', 'Impossibile caricare i dati')
             }
         }
-
         loadData()
     }, [])
 
     const fetchAffiliations = async (agentId: string) => {
         setLoading(true)
         try {
-            const statusParam = filter !== 'all' ? `&status=${filter}` : ''
-            const res = await fetch(`/api/affiliations?agentId=${agentId}${statusParam}`)
+            const res = await fetch(`/api/affiliations?agentId=${agentId}`)
             const data = await res.json()
             setAffiliations(data)
         } catch (error) {
@@ -82,33 +85,34 @@ export default function AgentAffiliationsPage() {
             // Filter only players
             const playersList = users.filter((u: any) => u.professionalRole === 'Player')
             setPlayers(playersList)
+            setFilteredPlayers(playersList)
         } catch (error) {
             console.error('Error fetching players:', error)
         }
     }
 
     const handleSendRequest = async () => {
-        if (!selectedPlayerId) {
+        if (!selectedPlayer) {
             showToast('error', 'Errore', 'Seleziona un giocatore')
             return
         }
-
         try {
             const res = await fetch('/api/affiliations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     agentId: currentUser.id,
-                    playerId: selectedPlayerId,
+                    playerId: selectedPlayer.id,
                     notes: requestMessage,
                 }),
             })
-
             if (res.ok) {
                 showToast('success', 'Richiesta inviata!', 'La richiesta di affiliazione è stata inviata al giocatore')
-                setShowRequestForm(false)
-                setSelectedPlayerId('')
+                setShowRequestModal(false)
+                setSelectedPlayer(null)
                 setRequestMessage('')
+                setModalStep(1)
+                setSearchTerm('')
                 fetchAffiliations(currentUser.id)
             } else {
                 const error = await res.json()
@@ -136,12 +140,42 @@ export default function AgentAffiliationsPage() {
         }
     }
 
-    useEffect(() => {
-        if (currentUser) {
-            fetchAffiliations(currentUser.id)
-        }
-    }, [filter])
 
+
+    useEffect(() => {
+        if (showRequestModal && modalStep === 1 && searchInputRef.current) {
+            setTimeout(() => searchInputRef.current?.focus(), 200)
+        }
+    }, [showRequestModal, modalStep])
+
+
+
+
+    // Filtra i giocatori in base al searchTerm (hook sempre prima dei return!)
+    useEffect(() => {
+        if (searchTerm.trim() === '') {
+            setFilteredPlayers(players)
+        } else {
+            setFilteredPlayers(
+                players.filter((p) =>
+                    `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            )
+        }
+    }, [searchTerm, players])
+
+    // Filtri derivati da affiliations per status/tab
+    const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
+    const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
+    const rejectedAffiliations = affiliations.filter((a) => a.status === 'rejected')
+    const filteredAffiliations =
+        filter === 'all'
+            ? affiliations
+            : filter === 'pending'
+                ? pendingAffiliations
+                : acceptedAffiliations
+
+    // --- DOPO tutti gli hook, ora i return condizionali ---
     if (loading && !currentUser) {
         return (
             <div className="max-w-6xl mx-auto p-6">
@@ -154,17 +188,6 @@ export default function AgentAffiliationsPage() {
     if (currentUser && currentUser.professionalRole !== 'Agent') {
         return null
     }
-
-    const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
-    const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
-    const rejectedAffiliations = affiliations.filter((a) => a.status === 'rejected')
-
-    const filteredAffiliations =
-        filter === 'all'
-            ? affiliations
-            : filter === 'pending'
-                ? pendingAffiliations
-                : acceptedAffiliations
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -180,77 +203,113 @@ export default function AgentAffiliationsPage() {
                     </div>
                     <button
                         onClick={() => {
-                            setShowRequestForm(!showRequestForm)
-                            if (!showRequestForm) {
-                                fetchPlayers()
-                            }
+                            setShowRequestModal(true)
+                            setModalStep(1)
+                            setSelectedPlayer(null)
+                            setRequestMessage('')
+                            setSearchTerm('')
+                            fetchPlayers()
                         }}
-                        className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
                     >
                         <UserPlus size={20} />
                         Richiedi Affiliazione
                     </button>
                 </div>
 
-                {/* Request Form */}
-                {showRequestForm && (
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-2 border-primary/20">
-                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                            <Send size={20} className="text-primary" />
-                            Invia Richiesta di Affiliazione
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Seleziona Giocatore *
-                                </label>
-                                <select
-                                    value={selectedPlayerId}
-                                    onChange={(e) => setSelectedPlayerId(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                                >
-                                    <option value="">-- Seleziona un giocatore --</option>
-                                    {players.map((player) => (
-                                        <option key={player.id} value={player.id}>
-                                            {player.firstName} {player.lastName} {player.sport && `- ${player.sport}`}
-                                        </option>
-                                    ))}
-                                </select>
+                {/* MODAL: Richiedi Affiliazione */}
+                {showRequestModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                        <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-0 overflow-hidden animate-fade-in">
+                            <div className="p-6 border-b flex items-center gap-2">
+                                <Send size={20} className="text-primary" />
+                                <span className="font-semibold text-lg">Richiedi Affiliazione</span>
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Messaggio (opzionale)
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    value={requestMessage}
-                                    onChange={(e) => setRequestMessage(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                                    placeholder="Presenta te stesso e spiega perché vuoi rappresentare questo giocatore. Descrivi la tua esperienza, i tuoi contatti e come puoi aiutare la sua carriera..."
-                                />
+                            <div className="p-6">
+                                {modalStep === 1 && (
+                                    <>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Cerca un giocatore</label>
+                                        <input
+                                            ref={searchInputRef}
+                                            type="text"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary mb-4"
+                                            placeholder="Nome o cognome..."
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                        />
+                                        <div className="max-h-64 overflow-y-auto space-y-2">
+                                            {filteredPlayers.length === 0 && (
+                                                <div className="text-gray-400 text-center py-8">Nessun giocatore trovato</div>
+                                            )}
+                                            {filteredPlayers.map((player) => (
+                                                <button
+                                                    key={player.id}
+                                                    className={`w-full flex items-center gap-4 p-3 rounded-lg border hover:bg-green-50 transition ${selectedPlayer?.id === player.id ? 'border-green-600 bg-green-50' : 'border-gray-200'}`}
+                                                    onClick={() => {
+                                                        setSelectedPlayer(player)
+                                                        setModalStep(2)
+                                                    }}
+                                                >
+                                                    <img src={player.avatarUrl || '/default-avatar.png'} alt={player.firstName} className="w-10 h-10 rounded-full object-cover border" />
+                                                    <div className="flex-1 text-left">
+                                                        <div className="font-semibold">{player.firstName} {player.lastName}</div>
+                                                        <div className="text-xs text-gray-500">{player.sport || 'Sport non specificato'}</div>
+                                                        {/* Stato disponibilità futuro */}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                                {modalStep === 2 && selectedPlayer && (
+                                    <>
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <img src={selectedPlayer.avatarUrl || '/default-avatar.png'} alt={selectedPlayer.firstName} className="w-14 h-14 rounded-full object-cover border" />
+                                            <div>
+                                                <div className="font-semibold text-lg">{selectedPlayer.firstName} {selectedPlayer.lastName}</div>
+                                                <div className="text-sm text-gray-500">{selectedPlayer.sport || 'Sport non specificato'}</div>
+                                            </div>
+                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Messaggio (opzionale)</label>
+                                        <textarea
+                                            rows={4}
+                                            value={requestMessage}
+                                            onChange={e => setRequestMessage(e.target.value)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary mb-4"
+                                            placeholder="Presentati e spiega perché vuoi rappresentare questo giocatore"
+                                        />
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    setModalStep(1)
+                                                    setSelectedPlayer(null)
+                                                }}
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                            >
+                                                Indietro
+                                            </button>
+                                            <button
+                                                onClick={handleSendRequest}
+                                                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                                            >
+                                                <Send size={18} />
+                                                Invia richiesta
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowRequestForm(false)
-                                        setSelectedPlayerId('')
-                                        setRequestMessage('')
-                                    }}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                                >
-                                    Annulla
-                                </button>
-                                <button
-                                    onClick={handleSendRequest}
-                                    disabled={!selectedPlayerId}
-                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    <Send size={18} />
-                                    Invia Richiesta
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowRequestModal(false)
+                                    setModalStep(1)
+                                    setSelectedPlayer(null)
+                                    setRequestMessage('')
+                                    setSearchTerm('')
+                                }}
+                                className="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost"
+                                aria-label="Chiudi"
+                            >✕</button>
                         </div>
                     </div>
                 )}
@@ -310,8 +369,15 @@ export default function AgentAffiliationsPage() {
                     <p className="text-gray-600">Nessuna affiliazione da visualizzare</p>
                     {filter === 'all' && (
                         <button
-                            onClick={() => setShowRequestForm(true)}
-                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition"
+                            onClick={() => {
+                                setShowRequestModal(true)
+                                setModalStep(1)
+                                setSelectedPlayer(null)
+                                setRequestMessage('')
+                                setSearchTerm('')
+                                fetchPlayers()
+                            }}
+                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition"
                         >
                             Invia la tua prima richiesta
                         </button>
@@ -383,18 +449,53 @@ export default function AgentAffiliationsPage() {
                                                 : 'Rifiutata'}
                                     </span>
 
-                                    {/* Actions */}
-                                    {affiliation.status === 'accepted' && (
+                                    {/* Actions for pending */}
+                                    {affiliation.status === 'pending' && (
                                         <button
-                                            onClick={() =>
-                                                handleRemoveAffiliation(
-                                                    typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
-                                                )
-                                            }
-                                            className="px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition font-medium"
+                                            onClick={async () => {
+                                                if (confirm('Vuoi annullare questa richiesta?')) {
+                                                    const res = await fetch('/api/affiliations', {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            id: affiliation.id,
+                                                            status: 'rejected'
+                                                        }),
+                                                    })
+                                                    if (res.ok) {
+                                                        showToast('success', 'Richiesta annullata', 'La richiesta è stata annullata con successo')
+                                                        fetchAffiliations(currentUser.id)
+                                                    } else {
+                                                        showToast('error', 'Errore', 'Impossibile annullare la richiesta')
+                                                    }
+                                                }
+                                            }}
+                                            className="ml-2 px-3 py-1 text-warning border border-warning/40 rounded-lg bg-warning/10 hover:bg-warning/20 text-xs font-medium transition"
                                         >
-                                            Rimuovi
+                                            Annulla richiesta
                                         </button>
+                                    )}
+
+                                    {/* Actions for accepted */}
+                                    {affiliation.status === 'accepted' && (
+                                        <>
+                                            <button
+                                                onClick={() => router.push(`/messages/${affiliation.player?.id}`)}
+                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition font-medium mr-2"
+                                            >
+                                                Messaggia
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    handleRemoveAffiliation(
+                                                        typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id)
+                                                    )
+                                                }
+                                                className="px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition font-medium"
+                                            >
+                                                Rimuovi
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>

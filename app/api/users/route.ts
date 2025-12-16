@@ -66,6 +66,14 @@ export async function POST(req: Request) {
             currentRole: body.currentRole ?? '',
             availability: body.availability ?? 'unavailable',
             level: body.level ?? '',
+            dominantFoot: body.dominantFoot ?? undefined,
+            secondaryRole: body.secondaryRole ?? undefined,
+            // --- Calcio specifici ---
+            footballPrimaryPosition: body.footballPrimaryPosition ?? undefined,
+            footballSecondaryPosition: body.footballSecondaryPosition ?? undefined,
+            // --- Nuovi campi filtrabili ---
+            specificRole: body.specificRole ?? undefined,
+            dominantHand: body.dominantHand ?? undefined,
             experiences: Array.isArray(body.experiences) ? body.experiences : [],
             verified: body.verified ?? false,
             createdAt: new Date().toISOString(),
@@ -102,6 +110,14 @@ export async function PATCH(req: Request) {
             currentRole: body.currentRole ?? current.currentRole,
             availability: body.availability ?? current.availability,
             level: body.level ?? current.level,
+            dominantFoot: body.dominantFoot ?? current.dominantFoot,
+            secondaryRole: body.secondaryRole ?? current.secondaryRole,
+            // --- Calcio specifici ---
+            footballPrimaryPosition: body.footballPrimaryPosition ?? current.footballPrimaryPosition,
+            footballSecondaryPosition: body.footballSecondaryPosition ?? current.footballSecondaryPosition,
+            // --- Nuovi campi filtrabili ---
+            specificRole: body.specificRole ?? current.specificRole,
+            dominantHand: body.dominantHand ?? current.dominantHand,
             bio: body.bio ?? current.bio,
             avatarUrl: body.avatarUrl ?? current.avatarUrl,
             coverUrl: body.coverUrl ?? current.coverUrl,

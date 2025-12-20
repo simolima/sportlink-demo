@@ -68,7 +68,7 @@ create table public.profiles (
   -- Anagrafica
   first_name text,
   last_name text,
-  username text unique,
+  username text unique check (username ~ '^[a-zA-Z0-9_-]{3,30}$'),
   email text,
   
   -- Ruolo Applicativo (FK verso i 7 ruoli)

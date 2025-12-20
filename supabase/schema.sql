@@ -69,7 +69,7 @@ create table public.profiles (
   first_name text,
   last_name text,
   username text unique check (username ~ '^[a-zA-Z0-9_-]{3,30}$'),
-  email text,
+  email text unique not null,
   
   -- Ruolo Applicativo (FK verso i 7 ruoli)
   role_id text references public.lookup_roles(id),

@@ -176,9 +176,11 @@ create table public.club_join_requests (
   created_at timestamptz default now(),
   
   -- Vincolo: Non puoi mandare 2 richieste in sospeso allo stesso club
-  unique(club_id, user_id, status)
+  -- (Rimosso unique(club_id, user_id, status); vedi indice parziale sotto)
 );
 
+-- Indice unico parziale: solo una richiesta "pending" per club/utente
+create unique index idx_pending_requests on public.club_join_requests (club_id, user_id) where status = 'pending';
 create table public.club_memberships (
   id uuid default gen_random_uuid() primary key,
   club_id uuid references public.clubs(id) on delete cascade not null,

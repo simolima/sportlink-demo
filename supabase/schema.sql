@@ -229,6 +229,8 @@ create table public.opportunities (
   updated_at timestamptz default now()
 );
 
+-- Index to optimize queries filtering by status (e.g., status = 'open')
+CREATE INDEX idx_opportunities_status ON public.opportunities(status);
 create table public.applications (
   id uuid default gen_random_uuid() primary key,
   opportunity_id uuid references public.opportunities(id) on delete cascade not null,

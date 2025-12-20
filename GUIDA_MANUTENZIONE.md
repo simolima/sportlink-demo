@@ -1,7 +1,7 @@
 # 🛠 Guida alla Manutenzione e Modifiche Future
 
 ## 1. Come aggiungere un nuovo SPORT (es. Padel)
-Non serve modificare il codice del database.
+Non serve modificare la struttura del database.
 1.  Apri l'editor SQL di Supabase.
 2.  Esegui:
     ```sql

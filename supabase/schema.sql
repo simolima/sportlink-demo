@@ -286,7 +286,6 @@ create table public.messages (
   created_at timestamptz default now()
 );
 
-create table public.notifications (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   type text not null,

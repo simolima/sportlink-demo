@@ -195,8 +195,7 @@ create table public.club_memberships (
   career_start_date date,
   left_at date,
   status text default 'active' check (status in ('active', 'past', 'suspended')),
-  created_at timestamptz default now(),
-  unique(club_id, user_id, career_start_date)
+  created_at timestamptz default now()
 );
 
 

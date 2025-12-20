@@ -334,3 +334,26 @@ from public.profiles p;
 
 -- ESEMPIO DI USO NEL CODICE:
 -- supabase.from('profile_stats').select('*').eq('profile_id', '123...')
+
+
+-- =============================================
+-- 9. ROW LEVEL SECURITY (RLS)
+-- =============================================
+-- Abilita RLS sulle tabelle principali. Definisci policy specifiche in seguito.
+
+-- Abilita RLS su tutte le tabelle user-facing
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.opportunities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
+
+-- Esempio di policy di base (da personalizzare secondo le esigenze di sicurezza):
+-- Consenti agli utenti di vedere solo il proprio profilo
+-- CREATE POLICY "Profiles: users can view their own profile"
+--   ON public.profiles
+--   FOR SELECT
+--   USING (id = auth.uid());
+
+-- TODO: Definire policy dettagliate per SELECT, INSERT, UPDATE, DELETE su ogni tabella.
+-- Vedi GUIDA_MANUTENZIONE.md (linea 34) per dettagli sulle policy consigliate.

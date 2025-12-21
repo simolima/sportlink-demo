@@ -518,17 +518,36 @@
     "currentRole": "Punta centrale",
     "availability": "unavailable",
     "level": "",
-    "experiences": [],
+    "experiences": [
+      {
+        "id": "1766317825998-0",
+        "role": "Punta centrale",
+        "team": "Casarile FC",
+        "category": "CSI",
+        "from": "2016",
+        "to": "2017",
+        "summary": "Punta titolare",
+        "goals": 12,
+        "appearances": 26,
+        "pointsPerGame": null,
+        "assists": null,
+        "rebounds": null,
+        "volleyAces": null,
+        "volleyBlocks": null,
+        "volleyDigs": null
+      }
+    ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2025-12-15T17:49:02.635Z",
+    "updatedAt": "2025-12-21T11:50:48.452Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
     "secondaryRole": "Attaccante",
     "footballPrimaryPosition": "Attaccante",
     "footballSecondaryPosition": "Punta centrale",
-    "username": ""
+    "username": "",
+    "specificRole": "Attaccante"
   },
   {
     "id": "2",

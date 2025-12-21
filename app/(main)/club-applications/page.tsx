@@ -48,25 +48,41 @@ export default function ClubApplicationsPage() {
 
     useEffect(() => {
         const id = localStorage.getItem('currentUserId')
-        const club = localStorage.getItem('selectedClubId')
+
+        // Leggi i parametri dalla URL
+        const urlParams = new URLSearchParams(window.location.search)
+        const urlClubId = urlParams.get('clubId')
+        const urlOpportunityId = urlParams.get('opportunityId')
+
+        const club = urlClubId || localStorage.getItem('selectedClubId')
         if (!id || !club) {
             router.push('/home')
             return
         }
         setUserId(id)
         setClubId(club)
-        fetchOpportunities(club)
+
+        // Salva il club selezionato se arriva dalla URL
+        if (urlClubId) {
+            localStorage.setItem('selectedClubId', urlClubId)
+        }
+
+        fetchOpportunities(club, urlOpportunityId)
     }, [router])
 
-    const fetchOpportunities = async (club: string) => {
+    const fetchOpportunities = async (club: string, preferredOpportunityId?: string | null) => {
         try {
             const res = await fetch(`/api/opportunities?clubId=${club}&activeOnly=false`)
             if (res.ok) {
                 const data = await res.json()
                 setOpportunities(data)
                 if (data.length > 0) {
-                    setSelectedOpportunityId(data[0].id)
-                    fetchApplications(data[0].id)
+                    // Usa l'opportunityId dalla URL se disponibile, altrimenti il primo
+                    const opportunityToSelect = preferredOpportunityId && data.find((o: Opportunity) => o.id.toString() === preferredOpportunityId)
+                        ? preferredOpportunityId
+                        : data[0].id
+                    setSelectedOpportunityId(opportunityToSelect)
+                    fetchApplications(opportunityToSelect)
                 }
             }
         } catch (error) {

@@ -101,12 +101,18 @@ export default function ReceivedApplicationsWidget({ userId, clubId }: ReceivedA
                             <p className="text-xs text-gray-500">Ultime candidature arrivate</p>
                         </div>
                     </div>
-                    <Link
-                        href="/club-applications"
-                        className="text-xs font-semibold text-primary hover:text-primary/80"
-                    >
-                        Gestisci →
-                    </Link>
+                    {clubId ? (
+                        <Link
+                            href={`/club-applications?clubId=${clubId}`}
+                            className="text-xs font-semibold text-primary hover:text-primary/80"
+                        >
+                            Gestisci →
+                        </Link>
+                    ) : (
+                        <span className="text-xs font-semibold text-gray-400 cursor-not-allowed">
+                            Gestisci →
+                        </span>
+                    )}
                 </div>
             </div>
 

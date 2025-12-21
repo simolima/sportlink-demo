@@ -48,5 +48,15 @@
     "permissions": [],
     "joinedAt": "2025-12-08T16:05:24.096Z",
     "isActive": true
+  },
+  {
+    "id": 1766317962829,
+    "clubId": "1765053528599",
+    "userId": "1765627973949",
+    "role": "Player",
+    "position": "",
+    "permissions": [],
+    "joinedAt": "2025-12-21T11:52:42.829Z",
+    "isActive": true
   }
 ]

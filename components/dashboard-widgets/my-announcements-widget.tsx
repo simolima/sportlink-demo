@@ -97,21 +97,23 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
                             <p className="text-xs text-gray-500">{activeAnnouncements.length} annunci attivi</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Link
-                            href={`/opportunities?clubId=${clubId}`}
-                            className="text-sm font-medium text-gray-600 hover:text-gray-800"
-                        >
-                            Vai a tutti
-                        </Link>
-                        <Link
-                            href={`/clubs/${clubId}`}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
-                        >
-                            <PlusIcon className="w-4 h-4" />
-                            Nuovo
-                        </Link>
-                    </div>
+                    {clubId && (
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href={`/club-applications?clubId=${clubId}`}
+                                className="text-sm font-medium text-gray-600 hover:text-gray-800"
+                            >
+                                Vai a tutti
+                            </Link>
+                            <Link
+                                href={`/opportunities/new?clubId=${clubId}`}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Nuovo
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -139,7 +141,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
 
                             return (
                                 <Link
-                                    href={`/opportunities?focus=${announcement.id}`}
+                                    href={`/club-applications?clubId=${clubId}&opportunityId=${announcement.id}`}
                                     key={announcement.id}
                                     className={`min-w-[230px] max-w-[260px] snap-start p-4 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-sm transition bg-white ${expired ? 'bg-red-50 border-red-100' : expiringSoon ? 'bg-amber-50 border-amber-100' : ''}`}
                                 >

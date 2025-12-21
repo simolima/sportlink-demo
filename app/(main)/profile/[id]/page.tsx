@@ -58,6 +58,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     // Esperienze formattate
     const experiences = Array.isArray(user.experiences) ? user.experiences : []
     const sports = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports : (user.sport ? [user.sport] : [])
+    const sportNorm = (sports[0] || user.sport || '').toString().toLowerCase()
+    const isPlayerRole = (user.professionalRole || '').toString().toLowerCase().includes('player') || (user.professionalRole || '').toString().toLowerCase().includes('giocatore')
 
     return (
         <div className="min-h-screen bg-white py-8">
@@ -150,6 +152,57 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                                             {exp.summary}
                                                         </p>
                                                     )}
+                                                    {isPlayerRole && (() => {
+                                                        const goals = typeof exp.goals === 'number' ? exp.goals : (exp.goals === '' ? undefined : Number(exp.goals))
+                                                        const cleanSheets = typeof exp.cleanSheets === 'number' ? exp.cleanSheets : (exp.cleanSheets === '' ? undefined : Number(exp.cleanSheets))
+                                                        const appearances = typeof exp.appearances === 'number' ? exp.appearances : (exp.appearances === '' ? undefined : Number(exp.appearances))
+                                                        const pointsPerGame = typeof exp.pointsPerGame === 'number' ? exp.pointsPerGame : (exp.pointsPerGame === '' ? undefined : Number(exp.pointsPerGame))
+                                                        const assists = typeof exp.assists === 'number' ? exp.assists : (exp.assists === '' ? undefined : Number(exp.assists))
+                                                        const rebounds = typeof exp.rebounds === 'number' ? exp.rebounds : (exp.rebounds === '' ? undefined : Number(exp.rebounds))
+                                                        const volleyAces = typeof exp.volleyAces === 'number' ? exp.volleyAces : (exp.volleyAces === '' ? undefined : Number(exp.volleyAces))
+                                                        const volleyBlocks = typeof exp.volleyBlocks === 'number' ? exp.volleyBlocks : (exp.volleyBlocks === '' ? undefined : Number(exp.volleyBlocks))
+                                                        const volleyDigs = typeof exp.volleyDigs === 'number' ? exp.volleyDigs : (exp.volleyDigs === '' ? undefined : Number(exp.volleyDigs))
+
+                                                        const hasAny = [goals, cleanSheets, appearances, pointsPerGame, assists, rebounds, volleyAces, volleyBlocks, volleyDigs]
+                                                            .some(v => v !== null && v !== undefined && !Number.isNaN(v))
+                                                        if (!hasAny) return null
+
+                                                        const isFootball = sportNorm === 'calcio'
+                                                        const isBasket = sportNorm === 'basket'
+                                                        const isVolley = sportNorm === 'pallavolo'
+
+                                                        return (
+                                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                                                {isFootball && goals != null && !Number.isNaN(goals) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Gol: {goals}</span>
+                                                                )}
+                                                                {isFootball && cleanSheets != null && !Number.isNaN(cleanSheets) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Clean sheet: {cleanSheets}</span>
+                                                                )}
+                                                                {isBasket && pointsPerGame != null && !Number.isNaN(pointsPerGame) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">PPG: {pointsPerGame}</span>
+                                                                )}
+                                                                {isBasket && assists != null && !Number.isNaN(assists) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Assist: {assists}</span>
+                                                                )}
+                                                                {isBasket && rebounds != null && !Number.isNaN(rebounds) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Rimbalzi: {rebounds}</span>
+                                                                )}
+                                                                {isVolley && volleyAces != null && !Number.isNaN(volleyAces) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Ace: {volleyAces}</span>
+                                                                )}
+                                                                {isVolley && volleyBlocks != null && !Number.isNaN(volleyBlocks) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Muri: {volleyBlocks}</span>
+                                                                )}
+                                                                {isVolley && volleyDigs != null && !Number.isNaN(volleyDigs) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Difese: {volleyDigs}</span>
+                                                                )}
+                                                                {appearances != null && !Number.isNaN(appearances) && (
+                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Presenze: {appearances}</span>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })()}
                                                 </div>
                                             </div>
                                         </div>

@@ -440,5 +440,19 @@
     },
     "read": true,
     "createdAt": "2025-12-15T11:32:27.972Z"
+  },
+  {
+    "id": 1766318200893,
+    "userId": "2",
+    "type": "affiliation_accepted",
+    "title": "Richiesta di affiliazione accettata",
+    "message": "Mario Rossi ha accettato la tua richiesta di affiliazione.",
+    "metadata": {
+      "affiliationId": 1765316681367,
+      "playerId": "1765103614007",
+      "playerName": "Mario Rossi"
+    },
+    "read": false,
+    "createdAt": "2025-12-21T11:56:40.893Z"
   }
 ]

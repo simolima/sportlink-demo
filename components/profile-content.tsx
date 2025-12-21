@@ -96,6 +96,13 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
         return user?.sport ? [user.sport] : []
     }, [user])
 
+    const mainSport = sports[0] || user?.sport || undefined
+    const sportNorm = (mainSport || '').toString().toLowerCase()
+    const isPlayerRole = useMemo(() => {
+        const r = (user?.professionalRole || '').toLowerCase()
+        return r.includes('player') || r.includes('giocatore')
+    }, [user?.professionalRole])
+
     const experiences = Array.isArray(user?.experiences) ? user.experiences : []
     const roleDetails = buildRoleDetails(user, sports)
 
@@ -200,6 +207,11 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                 <div className="lg:col-span-2 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Esperienze e percorso</h3>
                     {(() => {
+                        const toNumber = (v: any) => {
+                            if (v === null || v === undefined || v === '') return undefined
+                            const n = typeof v === 'number' ? v : Number(v)
+                            return Number.isFinite(n) ? n : undefined
+                        }
                         const careerEntries = (Array.isArray(experiences) ? experiences : []).map((exp: any) => ({
                             role: exp.role || exp.title || 'Ruolo non indicato',
                             team: exp.team || exp.company || '',
@@ -207,6 +219,17 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                             from: exp.from || '',
                             to: exp.to || '',
                             summary: exp.summary || exp.description || '',
+                            stats: {
+                                goals: toNumber(exp.goals),
+                                cleanSheets: toNumber(exp.cleanSheets),
+                                appearances: toNumber(exp.appearances),
+                                pointsPerGame: toNumber(exp.pointsPerGame),
+                                assists: toNumber(exp.assists),
+                                rebounds: toNumber(exp.rebounds),
+                                volleyAces: toNumber(exp.volleyAces),
+                                volleyBlocks: toNumber(exp.volleyBlocks),
+                                volleyDigs: toNumber(exp.volleyDigs),
+                            }
                         }))
 
                         if (!careerEntries || careerEntries.length === 0) {
@@ -234,6 +257,46 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                                             {exp.summary && (
                                                 <p className="text-sm text-gray-700">{exp.summary}</p>
                                             )}
+                                            {isPlayerRole && (() => {
+                                                const s = exp.stats || {}
+                                                const hasAny = [s.goals, s.cleanSheets, s.pointsPerGame, s.assists, s.rebounds, s.volleyAces, s.volleyBlocks, s.volleyDigs, s.appearances]
+                                                    .some(v => v !== null && v !== undefined)
+                                                if (!hasAny) return null
+                                                const isFootball = sportNorm === 'calcio'
+                                                const isBasket = sportNorm === 'basket'
+                                                const isVolley = sportNorm === 'pallavolo'
+                                                return (
+                                                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                                        {isFootball && s.goals != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Gol: {s.goals}</span>
+                                                        )}
+                                                        {isFootball && s.cleanSheets != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Clean sheet: {s.cleanSheets}</span>
+                                                        )}
+                                                        {isBasket && s.pointsPerGame != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">PPG: {s.pointsPerGame}</span>
+                                                        )}
+                                                        {isBasket && s.assists != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Assist: {s.assists}</span>
+                                                        )}
+                                                        {isBasket && s.rebounds != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Rimbalzi: {s.rebounds}</span>
+                                                        )}
+                                                        {isVolley && s.volleyAces != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Ace: {s.volleyAces}</span>
+                                                        )}
+                                                        {isVolley && s.volleyBlocks != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Muri: {s.volleyBlocks}</span>
+                                                        )}
+                                                        {isVolley && s.volleyDigs != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Difese: {s.volleyDigs}</span>
+                                                        )}
+                                                        {s.appearances != null && (
+                                                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Presenze: {s.appearances}</span>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })()}
                                         </div>
                                     </div>
                                 ))}

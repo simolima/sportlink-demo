@@ -14,6 +14,16 @@ interface Experience {
     from: string
     to: string
     summary: string
+    // Statistiche opzionali per sport
+    goals?: number
+    cleanSheets?: number
+    appearances?: number
+    pointsPerGame?: number
+    assists?: number
+    rebounds?: number
+    volleyAces?: number
+    volleyBlocks?: number
+    volleyDigs?: number
 }
 
 interface FormState {
@@ -123,6 +133,15 @@ export default function EditProfilePage() {
                             from: e.from || "",
                             to: e.to || "",
                             summary: e.summary || e.description || "",
+                            goals: e.goals === '' ? undefined : typeof e.goals === 'number' ? e.goals : Number(e.goals ?? undefined),
+                            cleanSheets: e.cleanSheets === '' ? undefined : typeof e.cleanSheets === 'number' ? e.cleanSheets : Number(e.cleanSheets ?? undefined),
+                            appearances: e.appearances === '' ? undefined : typeof e.appearances === 'number' ? e.appearances : Number(e.appearances ?? undefined),
+                            pointsPerGame: e.pointsPerGame === '' ? undefined : typeof e.pointsPerGame === 'number' ? e.pointsPerGame : Number(e.pointsPerGame ?? undefined),
+                            assists: e.assists === '' ? undefined : typeof e.assists === 'number' ? e.assists : Number(e.assists ?? undefined),
+                            rebounds: e.rebounds === '' ? undefined : typeof e.rebounds === 'number' ? e.rebounds : Number(e.rebounds ?? undefined),
+                            volleyAces: e.volleyAces === '' ? undefined : typeof e.volleyAces === 'number' ? e.volleyAces : Number(e.volleyAces ?? undefined),
+                            volleyBlocks: e.volleyBlocks === '' ? undefined : typeof e.volleyBlocks === 'number' ? e.volleyBlocks : Number(e.volleyBlocks ?? undefined),
+                            volleyDigs: e.volleyDigs === '' ? undefined : typeof e.volleyDigs === 'number' ? e.volleyDigs : Number(e.volleyDigs ?? undefined),
                         }))
                         : [],
                     availability: user.availability || "Disponibile",
@@ -223,11 +242,17 @@ export default function EditProfilePage() {
         }));
     };
 
-    const handleExperienceChange = (id: string, key: keyof Experience, value: string) => {
+    const handleExperienceChange = (id: string, key: keyof Experience, value: string | number) => {
+        const numericKeys: (keyof Experience)[] = [
+            'goals', 'cleanSheets', 'appearances', 'pointsPerGame', 'assists', 'rebounds', 'volleyAces', 'volleyBlocks', 'volleyDigs'
+        ]
+        const coercedValue = numericKeys.includes(key)
+            ? (typeof value === 'number' ? value : value === '' ? undefined : Number(value))
+            : value
         setForm((prev) => ({
             ...prev,
             experiences: prev.experiences.map((exp) =>
-                exp.id === id ? { ...exp, [key]: value } : exp
+                exp.id === id ? { ...exp, [key]: coercedValue as any } : exp
             ),
         }))
     }
@@ -402,19 +427,51 @@ export default function EditProfilePage() {
                             {/* Ruolo specifico e dominanza: SOLO Player */}
                             {isPlayer && (
                                 <>
+                                    {/* Campi specifici per Calcio */}
+                                    {mainSport === "Calcio" && (
+                                        <>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo (Calcio)</label>
+                                                <select
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    value={form.footballPrimaryPosition || ''}
+                                                    onChange={e => handleFootballPrimaryChange(e.target.value)}
+                                                >
+                                                    <option value="">Seleziona</option>
+                                                    {footballPrimaryOptions.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            {form.footballPrimaryPosition && (
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Dettaglio ruolo</label>
+                                                    <select
+                                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                        value={form.footballSecondaryPosition || ''}
+                                                        onChange={e => handleFootballSecondaryChange(e.target.value)}
+                                                    >
+                                                        <option value="">Seleziona</option>
+                                                        {(footballSecondaryOptions[form.footballPrimaryPosition] || []).map(opt => (
+                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Ruolo specifico generico */}
                                     <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo specifico</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{mainSport === "Calcio" ? "Altro ruolo" : "Ruolo specifico"}</label>
                                         {mainSport === "Calcio" ? (
-                                            <select
-                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                            <input
+                                                className={inputBase}
                                                 value={form.specificRole || ''}
                                                 onChange={e => setForm(prev => ({ ...prev, specificRole: e.target.value || undefined }))}
-                                            >
-                                                <option value="">Seleziona</option>
-                                                {footballPrimaryOptions.map(opt => (
-                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                ))}
-                                            </select>
+                                                placeholder="Altre informazioni (opzionale)"
+                                            />
                                         ) : mainSport === "Basket" ? (
                                             <select
                                                 className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
@@ -633,6 +690,138 @@ export default function EditProfilePage() {
                                                     className={`${inputBase} md:col-span-2 resize-none`}
                                                     rows={3}
                                                 />
+                                                {isPlayer && mainSport === "Calcio" && (
+                                                    <div className="mt-3 md:col-span-2 w-full">
+                                                        <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Gol</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.goals ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'goals', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Clean sheet</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.cleanSheets ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'cleanSheets', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Presenze</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.appearances ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {isPlayer && mainSport === "Basket" && (
+                                                    <div className="mt-3 md:col-span-2 w-full">
+                                                        <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Punti/partita</label>
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.1"
+                                                                    min={0}
+                                                                    value={exp.pointsPerGame ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'pointsPerGame', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Assist</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.assists ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Rimbalzi</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.rebounds ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'rebounds', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Presenze</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.appearances ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {isPlayer && mainSport === "Pallavolo" && (
+                                                    <div className="mt-3 md:col-span-2 w-full">
+                                                        <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Ace</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.volleyAces ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'volleyAces', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Muri</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.volleyBlocks ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'volleyBlocks', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Difese</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.volleyDigs ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'volleyDigs', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs text-gray-600">Presenze</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={exp.appearances ?? ''}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <button
                                                 type="button"

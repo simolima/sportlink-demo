@@ -1,29 +1,8 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors, handleOptions } from '@/lib/cors'
+import { readUsers, writeUsers } from '@/lib/file-system'
 
 export const runtime = 'nodejs'
-
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-
-function ensureFile() {
-    if (!fs.existsSync(USERS_PATH)) {
-        fs.mkdirSync(path.dirname(USERS_PATH), { recursive: true })
-        fs.writeFileSync(USERS_PATH, '[]')
-    }
-}
-
-function readUsers() {
-    ensureFile()
-    const raw = fs.readFileSync(USERS_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function writeUsers(users: any[]) {
-    ensureFile()
-    fs.writeFileSync(USERS_PATH, JSON.stringify(users, null, 2))
-}
 
 // Handle preflight requests
 export async function OPTIONS(req: Request) {

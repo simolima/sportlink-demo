@@ -1,31 +1,13 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors, handleOptions } from '@/lib/cors'
-
-const membershipsPath = path.join(process.cwd(), 'data', 'club-memberships.json')
-
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-
-function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeClubs(clubs: any[]) {
-    fs.writeFileSync(clubsPath, JSON.stringify(clubs, null, 2))
-}
-
-function readMemberships() {
-    const data = fs.readFileSync(membershipsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeMemberships(memberships: any[]) {
-    fs.writeFileSync(membershipsPath, JSON.stringify(memberships, null, 2))
-}
+import {
+    readClubs,
+    writeClubs,
+    readClubMemberships,
+    writeClubMemberships
+} from '@/lib/file-system'
 
 // OPTIONS /api/clubs - CORS preflight
 export async function OPTIONS() {
@@ -101,7 +83,7 @@ export async function POST(request: Request) {
 
     // Ensure creator is added as Admin if provided
     if (creatorId) {
-        const memberships = readMemberships()
+        const memberships = readClubMemberships()
         const alreadyMember = memberships.find((m: any) =>
             m.clubId.toString() === newClub.id.toString() &&
             m.userId.toString() === creatorId &&
@@ -124,7 +106,7 @@ export async function POST(request: Request) {
                 joinedAt: new Date().toISOString(),
                 isActive: true
             })
-            writeMemberships(memberships)
+            writeClubMemberships(memberships)
         }
     }
 

@@ -1,60 +1,16 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-const affiliationsPath = path.join(process.cwd(), 'data', 'affiliations.json')
-const blockedAgentsPath = path.join(process.cwd(), 'data', 'blocked-agents.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-const notificationsPath = path.join(process.cwd(), 'data', 'notifications.json')
-
-function readAffiliations() {
-    const data = fs.readFileSync(affiliationsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeAffiliations(affiliations: any[]) {
-    fs.writeFileSync(affiliationsPath, JSON.stringify(affiliations, null, 2))
-}
-
-function readBlockedAgents() {
-    const data = fs.readFileSync(blockedAgentsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeBlockedAgents(blocked: any[]) {
-    fs.writeFileSync(blockedAgentsPath, JSON.stringify(blocked, null, 2))
-}
-
-function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function readNotifications() {
-    const data = fs.readFileSync(notificationsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeNotifications(notifications: any[]) {
-    fs.writeFileSync(notificationsPath, JSON.stringify(notifications, null, 2))
-}
-
-function createNotification(userId: string | number, type: string, title: string, message: string, metadata: any = {}) {
-    const notifications = readNotifications()
-    const newNotification = {
-        id: Date.now(),
-        userId,
-        type,
-        title,
-        message,
-        metadata,
-        read: false,
-        createdAt: new Date().toISOString()
-    }
-    notifications.push(newNotification)
-    writeNotifications(notifications)
-    return newNotification
-}
+import {
+    readAffiliations,
+    writeAffiliations,
+    readBlockedAgents,
+    writeBlockedAgents,
+    readUsers
+} from '@/lib/file-system'
+import {
+    createAffiliationRequestNotification,
+    createAffiliationStatusNotification,
+    createAffiliationRemovedNotification
+} from '@/lib/notification-helpers'
 
 // GET /api/affiliations - Get affiliations for a user (agent or player)
 export async function GET(request: Request) {
@@ -140,17 +96,7 @@ export async function POST(request: Request) {
     writeAffiliations(affiliations)
 
     // Create notification for player
-    const users = readUsers()
-    const agent = users.find((u: any) => u.id.toString() === agentId.toString())
-    if (agent) {
-        createNotification(
-            playerId,
-            'affiliation_request',
-            'Nuova richiesta di affiliazione',
-            `${agent.firstName} ${agent.lastName} ha richiesto di diventare il tuo agente.`,
-            { affiliationId: newAffiliation.id, agentId, agentName: `${agent.firstName} ${agent.lastName}` }
-        )
-    }
+    createAffiliationRequestNotification(agentId, playerId, newAffiliation.id)
 
     return NextResponse.json(newAffiliation, { status: 201 })
 }
@@ -189,24 +135,7 @@ export async function PUT(request: Request) {
     writeAffiliations(affiliations)
 
     // Create notification for agent
-    const users = readUsers()
-    const player = users.find((u: any) => u.id.toString() === affiliation.playerId.toString())
-    if (player) {
-        const notifTitle = status === 'accepted'
-            ? 'Richiesta di affiliazione accettata'
-            : 'Richiesta di affiliazione rifiutata'
-        const notifMessage = status === 'accepted'
-            ? `${player.firstName} ${player.lastName} ha accettato la tua richiesta di affiliazione.`
-            : `${player.firstName} ${player.lastName} ha rifiutato la tua richiesta di affiliazione.`
-
-        createNotification(
-            affiliation.agentId,
-            status === 'accepted' ? 'affiliation_accepted' : 'affiliation_rejected',
-            notifTitle,
-            notifMessage,
-            { affiliationId: affiliation.id, playerId: affiliation.playerId, playerName: `${player.firstName} ${player.lastName}` }
-        )
-    }
+    createAffiliationStatusNotification(affiliation, status)
 
     return NextResponse.json(affiliation)
 }
@@ -248,35 +177,7 @@ export async function DELETE(request: Request) {
 
         // Create notification based on who removed the affiliation
         if (affiliation.status === 'accepted') {
-            const users = readUsers()
-
-            // Check who is removing: if playerId is passed, it's the player removing the agent
-            // If agentId is passed, it's the agent removing the player
-            if (playerId && playerId.toString() === affiliation.playerId.toString()) {
-                // Player is removing the agent -> notify the agent
-                const player = users.find((u: any) => u.id.toString() === affiliation.playerId.toString())
-                if (player) {
-                    createNotification(
-                        affiliation.agentId,
-                        'affiliation_removed',
-                        'Affiliazione terminata',
-                        `${player.firstName} ${player.lastName} ha terminato l'affiliazione con te.`,
-                        { affiliationId: affiliation.id, playerId: affiliation.playerId, playerName: `${player.firstName} ${player.lastName}` }
-                    )
-                }
-            } else if (agentId && agentId.toString() === affiliation.agentId.toString()) {
-                // Agent is removing the player -> notify the player
-                const agent = users.find((u: any) => u.id.toString() === affiliation.agentId.toString())
-                if (agent) {
-                    createNotification(
-                        affiliation.playerId,
-                        'affiliation_removed',
-                        'Affiliazione terminata',
-                        `${agent.firstName} ${agent.lastName} ha terminato l'affiliazione con te.`,
-                        { affiliationId: affiliation.id, agentId: affiliation.agentId, agentName: `${agent.firstName} ${agent.lastName}` }
-                    )
-                }
-            }
+            createAffiliationRemovedNotification(affiliation, playerId || undefined, agentId || undefined)
         }
 
         // Remove affiliation

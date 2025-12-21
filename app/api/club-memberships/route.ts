@@ -1,43 +1,13 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors, handleOptions } from '@/lib/cors'
+import {
+    readClubMemberships,
+    writeClubMemberships,
+    readClubs,
+    readUsers
+} from '@/lib/file-system'
 
 export const runtime = 'nodejs'
-
-const membershipsPath = path.join(process.cwd(), 'data', 'club-memberships.json')
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-
-function ensureFile(p: string) {
-    if (!fs.existsSync(p)) {
-        fs.mkdirSync(path.dirname(p), { recursive: true })
-        fs.writeFileSync(p, '[]', 'utf-8')
-    }
-}
-
-function readMemberships() {
-    ensureFile(membershipsPath)
-    const data = fs.readFileSync(membershipsPath, 'utf-8') || '[]'
-    try { return JSON.parse(data) } catch { return [] }
-}
-
-function writeMemberships(memberships: any[]) {
-    ensureFile(membershipsPath)
-    fs.writeFileSync(membershipsPath, JSON.stringify(memberships, null, 2))
-}
-
-function readClubs() {
-    ensureFile(clubsPath)
-    const data = fs.readFileSync(clubsPath, 'utf-8') || '[]'
-    try { return JSON.parse(data) } catch { return [] }
-}
-
-function readUsers() {
-    ensureFile(usersPath)
-    const data = fs.readFileSync(usersPath, 'utf-8') || '[]'
-    try { return JSON.parse(data) } catch { return [] }
-}
 
 // Preflight
 export async function OPTIONS(req: Request) {
@@ -50,7 +20,7 @@ export async function GET(request: Request) {
     const clubId = searchParams.get('clubId')
     const userId = searchParams.get('userId')
 
-    let memberships = readMemberships()
+    let memberships = readClubMemberships()
     const clubs = readClubs()
     const users = readUsers()
 
@@ -99,7 +69,7 @@ export async function POST(request: Request) {
         return withCors(NextResponse.json({ error: 'clubId, userId, and role required' }, { status: 400 }))
     }
 
-    const memberships = readMemberships()
+    const memberships = readClubMemberships()
 
     // Check if membership already exists
     const existing = memberships.find((m: any) =>
@@ -124,7 +94,7 @@ export async function POST(request: Request) {
     }
 
     memberships.push(newMembership)
-    writeMemberships(memberships)
+    writeClubMemberships(memberships)
 
     return withCors(NextResponse.json(newMembership, { status: 201 }))
 }
@@ -138,7 +108,7 @@ export async function PUT(request: Request) {
         return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
-    const memberships = readMemberships()
+    const memberships = readClubMemberships()
     const index = memberships.findIndex((m: any) => m.id.toString() === id.toString())
 
     if (index === -1) {
@@ -150,7 +120,7 @@ export async function PUT(request: Request) {
     if (permissions !== undefined) memberships[index].permissions = permissions
     if (isActive !== undefined) memberships[index].isActive = isActive
 
-    writeMemberships(memberships)
+    writeClubMemberships(memberships)
     return withCors(NextResponse.json(memberships[index]))
 }
 
@@ -163,13 +133,13 @@ export async function DELETE(request: Request) {
         return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
-    const memberships = readMemberships()
+    const memberships = readClubMemberships()
     const filtered = memberships.filter((m: any) => m.id.toString() !== id)
 
     if (memberships.length === filtered.length) {
         return withCors(NextResponse.json({ error: 'Membership not found' }, { status: 404 }))
     }
 
-    writeMemberships(filtered)
+    writeClubMemberships(filtered)
     return withCors(NextResponse.json({ success: true }))
 }

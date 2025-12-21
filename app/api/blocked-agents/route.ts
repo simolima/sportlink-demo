@@ -1,23 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-const blockedAgentsPath = path.join(process.cwd(), 'data', 'blocked-agents.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-
-function readBlockedAgents() {
-    const data = fs.readFileSync(blockedAgentsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeBlockedAgents(blocked: any[]) {
-    fs.writeFileSync(blockedAgentsPath, JSON.stringify(blocked, null, 2))
-}
-
-function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
-}
+import { readBlockedAgents, writeBlockedAgents, readUsers } from '@/lib/file-system'
 
 // GET /api/blocked-agents - Get blocked agents
 export async function GET(request: Request) {

@@ -1,32 +1,8 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { readMessages, writeMessages, readUsers } from '@/lib/file-system'
+import { normalizeId } from '@/lib/notification-helpers'
 
 export const runtime = 'nodejs'
-
-// Percorso file JSON
-const MESSAGES_PATH = path.join(process.cwd(), 'data', 'messages.json')
-
-function ensureFile() {
-    if (!fs.existsSync(MESSAGES_PATH)) {
-        fs.mkdirSync(path.dirname(MESSAGES_PATH), { recursive: true })
-        fs.writeFileSync(MESSAGES_PATH, '[]')
-    }
-}
-
-function readMessages() {
-    ensureFile()
-    const raw = fs.readFileSync(MESSAGES_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function writeMessages(messages: any[]) {
-    ensureFile()
-    fs.writeFileSync(MESSAGES_PATH, JSON.stringify(messages, null, 2))
-}
-
-// Helpers
-function normalizeId(id: any) { return String(id) }
 
 // GET /api/messages
 // Modalità 1: ?userId=U&peerId=P -> ritorna thread conversazione (ordinato per timestamp asc)
@@ -114,9 +90,7 @@ export async function POST(req: Request) {
         // ========== CREA NOTIFICA PER IL DESTINATARIO ==========
         try {
             // Carica i dati degli utenti per ottenere il nome del mittente
-            const usersPath = path.join(process.cwd(), 'data', 'users.json')
-            const usersData = fs.readFileSync(usersPath, 'utf8')
-            const users = JSON.parse(usersData)
+            const users = readUsers()
             const sender = users.find((u: any) => normalizeId(u.id) === senderId)
             const senderName = sender
                 ? `${sender.firstName} ${sender.lastName}`

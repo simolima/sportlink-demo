@@ -1,118 +1,18 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors, handleOptions } from '@/lib/cors'
+import {
+    readApplications,
+    writeApplications,
+    readOpportunities,
+    readUsers,
+    readClubs
+} from '@/lib/file-system'
+import {
+    createApplicationNotification,
+    createCandidacyStatusNotification
+} from '@/lib/notification-helpers'
 
 export const runtime = 'nodejs'
-
-const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
-const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-const notificationsPath = path.join(process.cwd(), 'data', 'notifications.json')
-
-function ensureFile(p: string) {
-    if (!fs.existsSync(p)) {
-        fs.mkdirSync(path.dirname(p), { recursive: true })
-        fs.writeFileSync(p, '[]', 'utf-8')
-    }
-}
-
-function readJson(p: string) {
-    ensureFile(p)
-    const data = fs.readFileSync(p, 'utf-8') || '[]'
-    try { return JSON.parse(data) } catch { return [] }
-}
-
-function writeApplications(applications: any[]) {
-    ensureFile(applicationsPath)
-    fs.writeFileSync(applicationsPath, JSON.stringify(applications, null, 2))
-}
-
-function writeNotifications(notifications: any[]) {
-    ensureFile(notificationsPath)
-    fs.writeFileSync(notificationsPath, JSON.stringify(notifications, null, 2))
-}
-
-function readApplications() { return readJson(applicationsPath) }
-function readOpportunities() { return readJson(opportunitiesPath) }
-function readUsers() { return readJson(usersPath) }
-function readClubs() { return readJson(clubsPath) }
-function readNotifications() { return readJson(notificationsPath) }
-
-// Helper per creare notifica "new_application" per lo Sporting Director
-function createApplicationNotification(
-    applicant: any,
-    opportunity: any,
-    sportingDirectorId: string
-) {
-    const notifications = readNotifications()
-    const applicantName = `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || 'Un candidato'
-    const opportunityTitle = opportunity.title || null
-
-    const message = opportunityTitle
-        ? `${applicantName} si è candidato al tuo annuncio "${opportunityTitle}".`
-        : `${applicantName} si è candidato a uno dei tuoi annunci.`
-
-    const newNotification = {
-        id: Date.now(),
-        userId: sportingDirectorId,
-        type: 'new_application',
-        title: 'Nuova candidatura',
-        message,
-        metadata: {
-            applicantId: applicant.id,
-            applicantName,
-            applicantAvatar: applicant.avatarUrl || applicant.avatar || null,
-            opportunityId: opportunity.id,
-            opportunityTitle
-        },
-        read: false,
-        createdAt: new Date().toISOString()
-    }
-
-    notifications.push(newNotification)
-    writeNotifications(notifications)
-    return newNotification
-}
-
-// Helper per creare notifica "candidacy_accepted" o "candidacy_rejected" per il candidato
-function createCandidacyStatusNotification(
-    applicantId: string,
-    opportunity: any,
-    newStatus: 'accepted' | 'rejected',
-    applicationId: string | number,
-    reviewerId?: string
-) {
-    const notifications = readNotifications()
-    const opportunityTitle = opportunity?.title || null
-    const type = newStatus === 'accepted' ? 'candidacy_accepted' : 'candidacy_rejected'
-    const title = newStatus === 'accepted' ? 'Candidatura accettata' : 'Candidatura rifiutata'
-
-    const message = opportunityTitle
-        ? `La tua candidatura all'annuncio "${opportunityTitle}" è stata ${newStatus === 'accepted' ? 'accettata' : 'rifiutata'}.`
-        : `La tua candidatura è stata ${newStatus === 'accepted' ? 'accettata' : 'rifiutata'}.`
-
-    const newNotification = {
-        id: Date.now(),
-        userId: applicantId,
-        type,
-        title,
-        message,
-        metadata: {
-            applicationId,
-            opportunityId: opportunity?.id || null,
-            opportunityTitle,
-            reviewerId: reviewerId || null
-        },
-        read: false,
-        createdAt: new Date().toISOString()
-    }
-
-    notifications.push(newNotification)
-    writeNotifications(notifications)
-    return newNotification
-}
 
 export async function OPTIONS(req: Request) {
     return handleOptions()

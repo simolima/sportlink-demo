@@ -1,29 +1,10 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-const requestsPath = path.join(process.cwd(), 'data', 'club-join-requests.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-
-function readRequests() {
-    const data = fs.readFileSync(requestsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeRequests(requests: any[]) {
-    fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2))
-}
-
-function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
-}
+import {
+    readClubJoinRequests,
+    writeClubJoinRequests,
+    readUsers,
+    readClubs
+} from '@/lib/file-system'
 
 // GET /api/club-join-requests - Get join requests
 export async function GET(request: Request) {
@@ -32,7 +13,7 @@ export async function GET(request: Request) {
     const userId = searchParams.get('userId')
     const status = searchParams.get('status')
 
-    let requests = readRequests()
+    let requests = readClubJoinRequests()
     const users = readUsers()
     const clubs = readClubs()
 
@@ -89,7 +70,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'clubId, userId, and requestedRole required' }, { status: 400 })
     }
 
-    const requests = readRequests()
+    const requests = readClubJoinRequests()
 
     // Check if request already exists
     const existing = requests.find((r: any) => 
@@ -114,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     requests.push(newRequest)
-    writeRequests(requests)
+    writeClubJoinRequests(requests)
 
     return NextResponse.json(newRequest, { status: 201 })
 }
@@ -128,7 +109,7 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'id and status required' }, { status: 400 })
     }
 
-    const requests = readRequests()
+    const requests = readClubJoinRequests()
     const index = requests.findIndex((r: any) => r.id.toString() === id.toString())
 
     if (index === -1) {
@@ -142,7 +123,7 @@ export async function PUT(request: Request) {
         requests[index].respondedBy = respondedBy
     }
 
-    writeRequests(requests)
+    writeClubJoinRequests(requests)
     return NextResponse.json(requests[index])
 }
 
@@ -155,13 +136,13 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'id required' }, { status: 400 })
     }
 
-    const requests = readRequests()
+    const requests = readClubJoinRequests()
     const filtered = requests.filter((r: any) => r.id.toString() !== id)
 
     if (requests.length === filtered.length) {
         return NextResponse.json({ error: 'Request not found' }, { status: 404 })
     }
 
-    writeRequests(filtered)
+    writeClubJoinRequests(filtered)
     return NextResponse.json({ success: true })
 }

@@ -1,74 +1,14 @@
 // Clean, single implementation of follow/unfollow API.
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors, handleOptions } from '@/lib/cors'
+import {
+    readFollows,
+    writeFollows,
+    readUsers
+} from '@/lib/file-system'
+import { createFollowNotification, normalizeId } from '@/lib/notification-helpers'
 
 export const runtime = 'nodejs'
-
-const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-const NOTIFICATIONS_PATH = path.join(process.cwd(), 'data', 'notifications.json')
-
-function ensureFile(filePath: string, defaultContent: string = '[]') {
-    if (!fs.existsSync(filePath)) {
-        fs.mkdirSync(path.dirname(filePath), { recursive: true })
-        fs.writeFileSync(filePath, defaultContent)
-    }
-}
-
-function readFollows() {
-    ensureFile(FOLLOWS_PATH)
-    const raw = fs.readFileSync(FOLLOWS_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function writeFollows(follows: any[]) {
-    ensureFile(FOLLOWS_PATH)
-    fs.writeFileSync(FOLLOWS_PATH, JSON.stringify(follows, null, 2))
-}
-
-function readUsers() {
-    ensureFile(USERS_PATH)
-    const raw = fs.readFileSync(USERS_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function readNotifications() {
-    ensureFile(NOTIFICATIONS_PATH)
-    const raw = fs.readFileSync(NOTIFICATIONS_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function writeNotifications(notifications: any[]) {
-    ensureFile(NOTIFICATIONS_PATH)
-    fs.writeFileSync(NOTIFICATIONS_PATH, JSON.stringify(notifications, null, 2))
-}
-
-// Helper per creare notifica "new_follower"
-function createFollowNotification(followerUser: any, followedUserId: string) {
-    const notifications = readNotifications()
-    const followerName = `${followerUser.firstName || ''} ${followerUser.lastName || ''}`.trim() || 'Un utente'
-
-    const newNotification = {
-        id: Date.now(),
-        userId: followedUserId,
-        type: 'new_follower',
-        title: 'Nuovo follower',
-        message: `${followerName} ha iniziato a seguirti.`,
-        metadata: {
-            followerId: followerUser.id,
-            followerName: followerName,
-            followerAvatar: followerUser.avatarUrl || followerUser.avatar || null
-        },
-        read: false,
-        createdAt: new Date().toISOString()
-    }
-
-    notifications.push(newNotification)
-    writeNotifications(notifications)
-    return newNotification
-}
 
 export async function OPTIONS(req: Request) {
     return handleOptions()

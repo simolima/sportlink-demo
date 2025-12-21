@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { readNotificationPreferences, writeNotificationPreferences } from '@/lib/file-system'
 
 export const runtime = 'nodejs'
-
-// Percorso file JSON per le preferenze
-const PREFERENCES_PATH = path.join(process.cwd(), 'data', 'notification-preferences.json')
 
 // Categorie di default
 const DEFAULT_PREFERENCES = {
@@ -18,28 +14,6 @@ const DEFAULT_PREFERENCES = {
     permissions: true
 }
 
-function ensureFile() {
-    if (!fs.existsSync(PREFERENCES_PATH)) {
-        fs.mkdirSync(path.dirname(PREFERENCES_PATH), { recursive: true })
-        fs.writeFileSync(PREFERENCES_PATH, '[]')
-    }
-}
-
-function readPreferences(): Array<{ userId: string; preferences: Record<string, boolean> }> {
-    ensureFile()
-    try {
-        const raw = fs.readFileSync(PREFERENCES_PATH, 'utf8')
-        return JSON.parse(raw || '[]')
-    } catch {
-        return []
-    }
-}
-
-function writePreferences(data: Array<{ userId: string; preferences: Record<string, boolean> }>) {
-    ensureFile()
-    fs.writeFileSync(PREFERENCES_PATH, JSON.stringify(data, null, 2))
-}
-
 // GET /api/notification-preferences?userId={id}
 // Restituisce le preferenze notifiche dell'utente
 export async function GET(req: Request) {
@@ -50,7 +24,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'userId required' }, { status: 400 })
     }
 
-    const allPreferences = readPreferences()
+    const allPreferences = readNotificationPreferences()
     const userPrefs = allPreferences.find(p => p.userId === String(userId))
 
     if (userPrefs) {
@@ -88,7 +62,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'preferences object required' }, { status: 400 })
         }
 
-        const allPreferences = readPreferences()
+        const allPreferences = readNotificationPreferences()
         const existingIndex = allPreferences.findIndex(p => p.userId === String(userId))
 
         const userPrefs = {
@@ -107,7 +81,7 @@ export async function POST(req: Request) {
             allPreferences.push(userPrefs)
         }
 
-        writePreferences(allPreferences)
+        writeNotificationPreferences(allPreferences)
 
         return NextResponse.json(userPrefs, { status: 200 })
     } catch (err) {

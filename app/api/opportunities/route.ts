@@ -1,29 +1,10 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-const opportunitiesPath = path.join(process.cwd(), 'data', 'opportunities.json')
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-const applicationsPath = path.join(process.cwd(), 'data', 'applications.json')
-
-function readOpportunities() {
-    const data = fs.readFileSync(opportunitiesPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function writeOpportunities(opportunities: any[]) {
-    fs.writeFileSync(opportunitiesPath, JSON.stringify(opportunities, null, 2))
-}
-
-function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function readApplications() {
-    const data = fs.readFileSync(applicationsPath, 'utf-8')
-    return JSON.parse(data)
-}
+import {
+    readOpportunities,
+    writeOpportunities,
+    readClubs,
+    readApplications
+} from '@/lib/file-system'
 
 // GET /api/opportunities - Get opportunities with filters
 export async function GET(request: Request) {

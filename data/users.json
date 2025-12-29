@@ -1,5 +1,66 @@
 [
   {
+    "id": "1767049738414",
+    "firstName": "Allenatore",
+    "lastName": "Test",
+    "email": "allenatore@test",
+    "password": "password123",
+    "birthDate": "2001-01-22",
+    "professionalRole": "Coach",
+    "sports": [
+      "Calcio"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": "",
+    "coverUrl": "",
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "unavailable",
+    "level": "",
+    "experiences": [
+      {
+        "id": "1767051071259-0",
+        "role": "",
+        "primaryPosition": "",
+        "positionDetail": "",
+        "team": "",
+        "country": "",
+        "category": "",
+        "from": "",
+        "to": "",
+        "summary": ""
+      },
+      {
+        "id": "1767051075654",
+        "role": "",
+        "primaryPosition": "",
+        "positionDetail": "",
+        "team": "",
+        "country": "",
+        "category": "",
+        "from": "",
+        "to": "",
+        "summary": ""
+      }
+    ],
+    "uefaLicenses": [
+      "UEFA Pro License"
+    ],
+    "coachSpecializations": "",
+    "hasFifaLicense": false,
+    "fifaLicenseNumber": "",
+    "agentNotes": "",
+    "certifications": [],
+    "verified": false,
+    "createdAt": "2025-12-29T23:08:58.415Z",
+    "updatedAt": "2025-12-29T23:31:21.412Z",
+    "username": ""
+  },
+  {
     "id": "1765820750351",
     "firstName": "Mila",
     "lastName": "Shiro",
@@ -123,18 +184,28 @@
     "sport": "",
     "bio": "",
     "avatar": null,
-    "avatarUrl": null,
-    "coverUrl": null,
+    "avatarUrl": "",
+    "coverUrl": "",
     "city": "",
     "country": "",
     "professionalRoleLabel": "",
     "currentRole": "",
-    "availability": "unavailable",
+    "availability": "Disponibile",
     "level": "",
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-13T12:28:31.434Z",
-    "updatedAt": ""
+    "updatedAt": "2025-12-29T22:57:48.157Z",
+    "username": "",
+    "certifications": [
+      {
+        "id": "1767049042348",
+        "name": "cazzone",
+        "issuingOrganization": "ente del cazzeggio",
+        "yearObtained": "2001",
+        "expiryDate": ""
+      }
+    ]
   },
   {
     "id": "1765628484653",
@@ -205,8 +276,8 @@
     "sport": "",
     "bio": "",
     "avatar": null,
-    "avatarUrl": null,
-    "coverUrl": null,
+    "avatarUrl": "",
+    "coverUrl": "",
     "city": "",
     "country": "",
     "professionalRoleLabel": "",
@@ -216,7 +287,11 @@
     "experiences": [],
     "verified": false,
     "createdAt": "2025-12-13T12:12:53.949Z",
-    "updatedAt": ""
+    "updatedAt": "2025-12-29T23:00:16.400Z",
+    "username": "",
+    "hasFifaLicense": true,
+    "fifaLicenseNumber": "2222222",
+    "agentNotes": ""
   },
   {
     "id": "1765627654733",
@@ -516,18 +591,22 @@
     "country": "",
     "professionalRoleLabel": "",
     "currentRole": "Punta centrale",
-    "availability": "unavailable",
+    "availability": "Disponibile",
     "level": "",
     "experiences": [
       {
-        "id": "1766317825998-0",
-        "role": "Punta centrale",
+        "id": "1767047392412-0",
+        "role": "",
+        "primaryPosition": "",
+        "positionDetail": "",
         "team": "Casarile FC",
-        "category": "CSI",
+        "country": "Altro",
+        "category": "",
         "from": "2016",
         "to": "2017",
         "summary": "Punta titolare",
         "goals": 12,
+        "cleanSheets": null,
         "appearances": 26,
         "pointsPerGame": null,
         "assists": null,
@@ -539,7 +618,7 @@
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2025-12-21T11:50:48.452Z",
+    "updatedAt": "2025-12-29T22:30:38.000Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
@@ -556,8 +635,8 @@
     "firstName": "Gianna",
     "lastName": "Rossi",
     "avatar": null,
-    "avatarUrl": null,
-    "coverUrl": null,
+    "avatarUrl": "",
+    "coverUrl": "",
     "professionalRole": "Agent",
     "sports": [
       "Calcio",
@@ -570,12 +649,27 @@
     "currentRole": "",
     "availability": "unavailable",
     "level": "",
-    "experiences": [],
+    "experiences": [
+      {
+        "id": "1767048707226",
+        "role": "",
+        "primaryPosition": "",
+        "positionDetail": "",
+        "team": "",
+        "country": "",
+        "category": "",
+        "from": "",
+        "to": "",
+        "summary": ""
+      }
+    ],
     "verified": false,
     "createdAt": "2024-12-06",
-    "updatedAt": "",
+    "updatedAt": "2025-12-29T22:52:18.689Z",
     "annunciAttivi": 7,
     "candidatureRicevute": 22,
-    "followers": 156
+    "followers": 156,
+    "birthDate": "",
+    "username": ""
   }
 ]

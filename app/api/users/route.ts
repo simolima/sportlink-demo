@@ -75,6 +75,13 @@ export async function POST(req: Request) {
             specificRole: body.specificRole ?? undefined,
             dominantHand: body.dominantHand ?? undefined,
             experiences: Array.isArray(body.experiences) ? body.experiences : [],
+            // --- Qualifiche & Certificazioni ---
+            uefaLicenses: Array.isArray(body.uefaLicenses) ? body.uefaLicenses : [],
+            coachSpecializations: body.coachSpecializations ?? '',
+            hasFifaLicense: !!body.hasFifaLicense,
+            fifaLicenseNumber: body.fifaLicenseNumber ?? '',
+            agentNotes: body.agentNotes ?? '',
+            certifications: Array.isArray(body.certifications) ? body.certifications : [],
             verified: body.verified ?? false,
             createdAt: new Date().toISOString(),
             updatedAt: '',
@@ -125,6 +132,13 @@ export async function PATCH(req: Request) {
             city: body.city ?? current.city,
             country: body.country ?? current.country,
             experiences: Array.isArray(body.experiences) ? body.experiences : current.experiences,
+            // --- Qualifiche & Certificazioni ---
+            uefaLicenses: Array.isArray(body.uefaLicenses) ? body.uefaLicenses : current.uefaLicenses,
+            coachSpecializations: body.coachSpecializations ?? current.coachSpecializations,
+            hasFifaLicense: body.hasFifaLicense ?? current.hasFifaLicense,
+            fifaLicenseNumber: body.fifaLicenseNumber ?? current.fifaLicenseNumber,
+            agentNotes: body.agentNotes ?? current.agentNotes,
+            certifications: Array.isArray(body.certifications) ? body.certifications : current.certifications,
             updatedAt: new Date().toISOString(),
         }
         users[idx] = updated

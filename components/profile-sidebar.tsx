@@ -46,17 +46,20 @@ export default function ProfileSidebar({
     // Determina statistiche in base al ruolo
     const getStats = () => {
         if (isPlayer) {
+            const foot = user?.preferredFoot || user?.dominantFoot
+            const footLabel = foot === 'destro' ? 'Destro' : foot === 'sinistro' ? 'Sinistro' : foot === 'ambidestro' ? 'Ambidestro' : undefined
             return [
-                { label: 'Età', value: user?.age || user?.birthDate ? calculateAge(user.birthDate) : 'N/A' },
-                { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'N/A' },
-                { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'N/A' },
-                { label: 'Piede', value: user?.preferredFoot || 'N/A' }
+                { label: 'Età', value: user?.birthDate ? calculateAge(user.birthDate) : 'Non specificato' },
+                { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'Non specificato' },
+                { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'Non specificato' },
+                { label: 'Piede', value: footLabel || 'Non specificato' }
             ]
         }
         if (isCoach) {
+            const licenses = Array.isArray(user?.uefaLicenses) ? user.uefaLicenses.filter(Boolean) : []
+            const licenseLabel = licenses.length > 0 ? licenses.join(', ') : 'Non specificato'
             return [
-                { label: 'Licenza', value: user?.license || 'N/A' },
-                { label: 'Specializzazione', value: user?.specialization || 'N/A' }
+                { label: 'Licenza', value: licenseLabel }
             ]
         }
         if (isDS) {
@@ -65,9 +68,16 @@ export default function ProfileSidebar({
             ]
         }
         if (isAgent) {
-            return [
-                { label: 'Assistiti', value: assistatiCount || 0 }
+            const hasFifa = !!user?.hasFifaLicense
+            const fifaNumber = user?.fifaLicenseNumber
+            const stats = [
+                { label: 'Assistiti', value: assistatiCount || 0 },
+                { label: 'Licenza FIFA', value: hasFifa ? 'Sì' : 'No' },
             ]
+            if (hasFifa && fifaNumber) {
+                stats.push({ label: 'Numero licenza', value: fifaNumber })
+            }
+            return stats
         }
         return []
     }

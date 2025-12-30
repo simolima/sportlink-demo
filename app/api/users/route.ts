@@ -64,7 +64,7 @@ export async function POST(req: Request) {
             country: body.country ?? '',
             professionalRoleLabel: '',
             currentRole: body.currentRole ?? '',
-            availability: body.availability ?? 'unavailable',
+            availability: body.availability ?? 'Non disponibile',
             level: body.level ?? '',
             dominantFoot: body.dominantFoot ?? undefined,
             secondaryRole: body.secondaryRole ?? undefined,

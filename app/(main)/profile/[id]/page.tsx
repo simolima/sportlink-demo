@@ -110,6 +110,83 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             )}
                         </ProfileSection>
 
+                        {/* Qualifiche */}
+                        {(() => {
+                            const role = (user.professionalRole || '').toString()
+                            const isCoach = role === 'Coach'
+                            const isAgent = role === 'Agent'
+                            const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur'].includes(role)
+
+                            if (!isCoach && !isAgent && !isStaff) return null
+
+                            return (
+                                <ProfileSection
+                                    title="Qualifiche"
+                                    subtitle="Licenze, abilitazioni e certificazioni"
+                                >
+                                    {isCoach && (() => {
+                                        const licenses = Array.isArray(user?.uefaLicenses) ? user.uefaLicenses : []
+                                        const hasLicenses = licenses.length > 0
+                                        return (
+                                            <div className="mt-1">
+                                                {!hasLicenses && !user?.coachSpecializations && (
+                                                    <p className="text-sm text-gray-600">Nessuna qualifica inserita.</p>
+                                                )}
+                                                {hasLicenses && (
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {licenses.map((lic: string) => (
+                                                            <span key={lic} className="text-xs rounded-full bg-gray-100 text-gray-800 px-2 py-1 font-semibold border border-gray-200">{lic}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {user?.coachSpecializations && (
+                                                    <p className="mt-2 text-sm text-gray-700">{user.coachSpecializations}</p>
+                                                )}
+                                            </div>
+                                        )
+                                    })()}
+
+                                    {isAgent && (() => {
+                                        const hasLicense = !!user?.hasFifaLicense
+                                        return (
+                                            <div className="mt-1 space-y-1 text-sm text-gray-700">
+                                                <p>Licenza FIFA: {hasLicense ? 'Sì' : 'No'}</p>
+                                                {hasLicense && user?.fifaLicenseNumber && (
+                                                    <p>Numero licenza: {user.fifaLicenseNumber}</p>
+                                                )}
+                                                {user?.agentNotes && (
+                                                    <p className="text-gray-700">{user.agentNotes}</p>
+                                                )}
+                                            </div>
+                                        )
+                                    })()}
+
+                                    {isStaff && (() => {
+                                        const certs = Array.isArray(user?.certifications) ? user.certifications : []
+                                        return (
+                                            <div className="mt-1">
+                                                {certs.length === 0 ? (
+                                                    <p className="text-sm text-gray-600">Nessuna certificazione inserita.</p>
+                                                ) : (
+                                                    <div className="mt-2 space-y-2">
+                                                        {certs.map((c: any, idx: number) => (
+                                                            <div key={`${c.name}-${idx}`} className="rounded-lg bg-white p-3 shadow-sm border border-gray-200">
+                                                                <p className="text-sm font-semibold text-gray-900">{c.name || 'Certificazione'}</p>
+                                                                <p className="text-xs text-gray-600">{[c.issuingOrganization, c.yearObtained].filter(Boolean).join(' • ')}</p>
+                                                                {c.expiryDate && (
+                                                                    <p className="text-xs text-gray-600">Scadenza: {c.expiryDate}</p>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })()}
+                                </ProfileSection>
+                            )
+                        })()}
+
                         {/* Esperienze / Carriera */}
                         <ProfileSection
                             title="Esperienze e Carriera"

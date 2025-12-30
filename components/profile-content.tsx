@@ -37,7 +37,7 @@ const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
             { label: 'Ruolo (Calcio)', value: user.footballPrimaryPosition || 'Non specificato' },
             { label: 'Dettaglio ruolo', value: user.footballSecondaryPosition || 'Non specificato' },
             { label: 'Livello / categoria', value: level },
-            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'N/A' },
+            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'Non specificato' },
             { label: 'Disponibilità', value: availability }
         ];
     }
@@ -47,7 +47,7 @@ const buildRoleDetails = (user: any, sports: string[]): InfoItem[] => {
             { label: 'Sport', value: sportLabel },
             { label: 'Ruolo in campo', value: user?.currentRole || user?.professionalRoleLabel || 'Non specificato' },
             { label: 'Livello / categoria', value: level },
-            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'N/A' },
+            { label: 'Piede', value: user?.dominantFoot ? (user.dominantFoot === 'destro' ? 'Destro' : user.dominantFoot === 'sinistro' ? 'Sinistro' : 'Ambidestro') : 'Non specificato' },
             { label: 'Disponibilità', value: availability }
         ];
         if (user?.secondaryRole) {
@@ -327,6 +327,79 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                             </div>
                         )}
                     </div>
+                    {/* Qualifiche & Certificazioni */}
+                    {(() => {
+                        const role = (user?.professionalRole || '').toString()
+                        const isCoach = role === 'Coach'
+                        const isAgent = role === 'Agent'
+                        const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur'].includes(role)
+
+                        if (isCoach) {
+                            const licenses = Array.isArray(user?.uefaLicenses) ? user.uefaLicenses : []
+                            const hasLicenses = licenses.length > 0
+                            return (
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-semibold text-gray-900">Qualifiche (Coach)</h4>
+                                    {!hasLicenses && !user?.coachSpecializations && (
+                                        <p className="text-sm text-gray-600">Nessuna qualifica inserita.</p>
+                                    )}
+                                    {hasLicenses && (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {licenses.map((lic: string) => (
+                                                <span key={lic} className="text-xs rounded-full bg-base-300 text-primary px-2 py-1 font-semibold">{lic}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {user?.coachSpecializations && (
+                                        <p className="mt-2 text-sm text-gray-700">{user.coachSpecializations}</p>
+                                    )}
+                                </div>
+                            )
+                        }
+
+                        if (isAgent) {
+                            const hasLicense = !!user?.hasFifaLicense
+                            return (
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-semibold text-gray-900">Qualifiche (Agente)</h4>
+                                    <div className="mt-2 space-y-1 text-sm text-gray-700">
+                                        <p>Licenza FIFA: {hasLicense ? 'Sì' : 'No'}</p>
+                                        {hasLicense && user?.fifaLicenseNumber && (
+                                            <p>Numero licenza: {user.fifaLicenseNumber}</p>
+                                        )}
+                                        {user?.agentNotes && (
+                                            <p className="text-gray-700">{user.agentNotes}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                        if (isStaff) {
+                            const certs = Array.isArray(user?.certifications) ? user.certifications : []
+                            return (
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-semibold text-gray-900">Certificazioni</h4>
+                                    {certs.length === 0 ? (
+                                        <p className="text-sm text-gray-600">Nessuna certificazione inserita.</p>
+                                    ) : (
+                                        <div className="mt-2 space-y-2">
+                                            {certs.map((c: any, idx: number) => (
+                                                <div key={`${c.name}-${idx}`} className="rounded-lg bg-white p-3 shadow-sm border border-gray-200">
+                                                    <p className="text-sm font-semibold text-gray-900">{c.name || 'Certificazione'}</p>
+                                                    <p className="text-xs text-gray-600">{[c.issuingOrganization, c.yearObtained].filter(Boolean).join(' • ')}</p>
+                                                    {c.expiryDate && (
+                                                        <p className="text-xs text-gray-600">Scadenza: {c.expiryDate}</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        }
+                        return null
+                    })()}
                 </div>
             </div>
         </div>

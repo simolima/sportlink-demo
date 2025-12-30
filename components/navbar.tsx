@@ -80,7 +80,7 @@ export default function Navbar() {
                                 <HomeIcon className="w-5 h-5" />
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/people" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
+                            <Link href="/professionals" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <UserGroupIcon className="w-5 h-5" />
                                 <span className="mt-1">Scopri</span>
                             </Link>
@@ -118,7 +118,7 @@ export default function Navbar() {
                                 <HomeIcon className="w-5 h-5" />
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/people" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
+                            <Link href="/professionals" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <UserGroupIcon className="w-5 h-5" />
                                 <span className="mt-1">Scopri</span>
                             </Link>

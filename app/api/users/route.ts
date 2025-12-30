@@ -74,6 +74,8 @@ export async function POST(req: Request) {
             // --- Nuovi campi filtrabili ---
             specificRole: body.specificRole ?? undefined,
             dominantHand: body.dominantHand ?? undefined,
+            height: body.height ?? undefined,
+            weight: body.weight ?? undefined,
             experiences: Array.isArray(body.experiences) ? body.experiences : [],
             // --- Qualifiche & Certificazioni ---
             uefaLicenses: Array.isArray(body.uefaLicenses) ? body.uefaLicenses : [],
@@ -125,6 +127,8 @@ export async function PATCH(req: Request) {
             // --- Nuovi campi filtrabili ---
             specificRole: body.specificRole ?? current.specificRole,
             dominantHand: body.dominantHand ?? current.dominantHand,
+            height: body.height ?? current.height,
+            weight: body.weight ?? current.weight,
             bio: body.bio ?? current.bio,
             avatarUrl: body.avatarUrl ?? current.avatarUrl,
             coverUrl: body.coverUrl ?? current.coverUrl,

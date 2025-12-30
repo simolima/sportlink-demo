@@ -14,6 +14,7 @@ interface Experience {
     team: string
     country: string
     category: string
+    categoryTier?: string
     from: string
     to: string
     summary: string
@@ -51,6 +52,8 @@ interface FormState {
     coverUrl: string
     experiences: Experience[]
     availability: string
+    height?: number
+    weight?: number
     dominantFoot?: 'destro' | 'sinistro' | 'ambidestro'
     dominantHand?: 'destra' | 'sinistra' | 'ambidestra'
     specificRole?: string
@@ -76,6 +79,7 @@ const emptyExperience = (): Experience => ({
     team: "",
     country: "",
     category: "",
+    categoryTier: "",
     from: "",
     to: "",
     summary: "",
@@ -102,7 +106,7 @@ const initialForm: FormState = {
     avatarUrl: "",
     coverUrl: "",
     experiences: [],
-    availability: "Disponibile",
+    availability: "Non disponibile",
     dominantFoot: undefined,
     dominantHand: undefined,
     specificRole: undefined,
@@ -167,6 +171,8 @@ export default function EditProfilePage() {
                     country: user.country || "",
                     avatarUrl: user.avatarUrl || user.avatar || "",
                     coverUrl: user.coverUrl || "",
+                    height: user.height || undefined,
+                    weight: user.weight || undefined,
                     experiences: Array.isArray(user.experiences)
                         ? user.experiences.map((e: any, idx: number) => ({
                             id: `${Date.now()}-${idx}`,
@@ -254,6 +260,100 @@ export default function EditProfilePage() {
         Francia: ["Ligue 1", "Ligue 2", "National", "National 2", "Giovanili"],
         Germania: ["Bundesliga", "2. Bundesliga", "3. Liga", "Regionalliga", "Giovanili"],
         Inghilterra: ["Premier League", "Championship", "League One", "League Two", "National League", "Giovanili"],
+    };
+
+    // Calcio: macro-categorie e categorie dettagliate (Italia)
+    const footballMacroCategories = [
+        "Professionisti",
+        "Dilettanti",
+        "Amatori",
+        "Settore giovanile professionistico",
+        "Settore giovanile dilettantistico",
+        "Altro",
+    ];
+
+    const footballCategoriesByTierItaly: Record<string, string[]> = {
+        Professionisti: ["Serie A", "Serie B", "Lega Pro", "Altro"],
+        Dilettanti: [
+            "Serie D",
+            "Eccellenza",
+            "Promozione",
+            "Prima Categoria",
+            "Seconda Categoria",
+            "Terza Categoria",
+            "Altro",
+        ],
+        Amatori: ["CSI", "Altro"],
+        "Settore giovanile professionistico": [
+            "Primavera 1",
+            "Primavera 2",
+            "Primavera 3",
+            "Primavera 4",
+            "Under 18 Nazionali",
+            "Under 17 Nazionali",
+            "Under 17 Nazionali Serie C",
+            "Under 16 Nazionali",
+            "Under 16 Nazionali Serie C",
+            "Under 15 Nazionali",
+            "Under 15 Nazionali Serie C",
+            "Under 14 Nazionali",
+            "Altro",
+        ],
+        "Settore giovanile dilettantistico": [
+            "Juniores Nazionale U19",
+            "Juniores Élite U19",
+            "Juniores Regionali U19",
+            "Juniores Provinciali U19",
+            "Under 18 Regionali",
+            "Under 17 Élite",
+            "Under 17 Regionali",
+            "Under 17 Provinciali",
+            "Under 16 Élite",
+            "Under 16 Regionali",
+            "Under 16 Provinciali",
+            "Under 15 Élite",
+            "Under 15 Regionali",
+            "Under 15 Provinciali",
+            "Under 14 Élite",
+            "Under 14 Regionali",
+            "Under 14 Provinciali",
+            "Altro",
+        ],
+        Altro: ["Altro"],
+    };
+
+    // Calcio Femminile (Italia)
+    const footballFemaleCategoriesItaly = [
+        "Serie A Femminile",
+        "Serie B Femminile",
+        "Serie C Femminile",
+        "Dilettanti (Eccellenza)",
+        "Primavera 1 Femminile",
+        "Primavera 2 Femminile",
+        "Under 19 Femminile",
+        "Under 17 Femminile",
+        "Under 15 Femminile",
+        "Altro",
+    ];
+
+    // Calcio Femminile (fallback per altri Paesi)
+    const footballFemaleCategoriesDefault = [
+        "Prima Divisione Femminile",
+        "Seconda Divisione Femminile",
+        "Giovanili U19 Femminile",
+        "Giovanili U17 Femminile",
+        "Giovanili U15 Femminile",
+        "Altro",
+    ];
+
+    // Fallback categorie per altri Paesi (MVP semplificato)
+    const footballCategoriesByTierDefault: Record<string, string[]> = {
+        Professionisti: ["Prima Divisione", "Seconda Divisione", "Coppe", "Altro"],
+        Dilettanti: ["Divisioni Regionali", "Divisioni Locali", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        "Settore giovanile professionistico": ["U19", "U17", "U15", "Altro"],
+        "Settore giovanile dilettantistico": ["U19 Regional", "U17 Regional", "U15 Regional", "Altro"],
+        Altro: ["Altro"],
     };
 
     const basketCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
@@ -433,10 +533,12 @@ export default function EditProfilePage() {
                     payload.dominantHand = undefined;
                 }
             } else {
-                // Non Player: azzera tutto
+                // Non Player: azzera campi specifici giocatore
                 payload.specificRole = undefined;
                 payload.dominantFoot = undefined;
                 payload.dominantHand = undefined;
+                payload.height = undefined;
+                payload.weight = undefined;
             }
 
             // Sanificazione campi qualifiche per ruolo
@@ -569,6 +671,64 @@ export default function EditProfilePage() {
                                     <option value="Non disponibile">Non disponibile</option>
                                 </select>
                             </div>
+                            {isPlayer && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-700">Altezza (cm)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="250"
+                                            value={form.height || ""}
+                                            onChange={(e) => updateField("height", e.target.value ? Number(e.target.value) : undefined)}
+                                            placeholder="Es: 180"
+                                            className={inputBase}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-700">Peso (kg)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="200"
+                                            value={form.weight || ""}
+                                            onChange={(e) => updateField("weight", e.target.value ? Number(e.target.value) : undefined)}
+                                            placeholder="Es: 75"
+                                            className={inputBase}
+                                        />
+                                    </div>
+                                    {mainSport === "Calcio" && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-700">Piede dominante</label>
+                                            <select
+                                                value={form.dominantFoot || ""}
+                                                onChange={(e) => updateField("dominantFoot", e.target.value || undefined)}
+                                                className={inputBase}
+                                            >
+                                                <option value="">Seleziona piede</option>
+                                                <option value="destro">Destro</option>
+                                                <option value="sinistro">Sinistro</option>
+                                                <option value="ambidestro">Ambidestro</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                    {(mainSport === "Basket" || mainSport === "Pallavolo") && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-700">Mano dominante</label>
+                                            <select
+                                                value={form.dominantHand || ""}
+                                                onChange={(e) => updateField("dominantHand", e.target.value || undefined)}
+                                                className={inputBase}
+                                            >
+                                                <option value="">Seleziona mano</option>
+                                                <option value="destra">Destra</option>
+                                                <option value="sinistra">Sinistra</option>
+                                                <option value="ambidestra">Ambidestra</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </section>
 
@@ -848,19 +1008,80 @@ export default function EditProfilePage() {
                                                 placeholder="Organizzazione/Club"
                                                 className={inputBase}
                                             />
-                                            {isPlayer && (mainSport === "Calcio" || mainSport === "Basket" || mainSport === "Pallavolo") ? (
+                                            {isPlayer && mainSport === "Calcio" ? (
+                                                <>
+                                                    {/* Nazione */}
+                                                    <select
+                                                        value={exp.country}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "country", e.target.value)
+                                                            // Reset categoria e tier quando cambia nazione
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                            handleExperienceChange(exp.id, "categoryTier", "")
+                                                        }}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Seleziona nazione</option>
+                                                        {footballCountries.map((country) => (
+                                                            <option key={country} value={country}>{country}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Macro categoria */}
+                                                    <select
+                                                        value={exp.categoryTier || ""}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                            // Reset categoria quando cambia macro
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                        disabled={!exp.country}
+                                                    >
+                                                        <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
+                                                        {footballMacroCategories.map((tier) => (
+                                                            <option key={tier} value={tier}>{tier}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Categoria dettagliata */}
+                                                    {exp.categoryTier === "Altro" ? (
+                                                        <input
+                                                            value={exp.category}
+                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            placeholder="Categoria (testo libero)"
+                                                            className={inputBase}
+                                                            disabled={!exp.country}
+                                                        />
+                                                    ) : (
+                                                        <select
+                                                            value={exp.category}
+                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            className={inputBase}
+                                                            disabled={!exp.country || !exp.categoryTier}
+                                                        >
+                                                            <option value="">{exp.categoryTier ? "Seleziona categoria" : "Prima seleziona macro categoria"}</option>
+                                                            {(exp.country ? (exp.country === "Italia"
+                                                                ? footballCategoriesByTierItaly[exp.categoryTier || ""]
+                                                                : footballCategoriesByTierDefault[exp.categoryTier || ""]
+                                                            ) : [])?.map((cat) => (
+                                                                <option key={cat} value={cat}>{cat}</option>
+                                                            ))}
+                                                        </select>
+                                                    )}
+                                                </>
+                                            ) : isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
                                                 <>
                                                     <select
                                                         value={exp.country}
                                                         onChange={(e) => {
                                                             handleExperienceChange(exp.id, "country", e.target.value)
-                                                            // Reset categoria quando cambia nazione
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
                                                         className={inputBase}
                                                     >
                                                         <option value="">Seleziona nazione</option>
-                                                        {(mainSport === "Calcio" ? footballCountries : mainSport === "Basket" ? basketCountries : volleyCountries).map((country) => (
+                                                        {(mainSport === "Basket" ? basketCountries : volleyCountries).map((country) => (
                                                             <option key={country} value={country}>{country}</option>
                                                         ))}
                                                     </select>
@@ -879,7 +1100,7 @@ export default function EditProfilePage() {
                                                             disabled={!exp.country}
                                                         >
                                                             <option value="">{exp.country ? "Seleziona categoria" : "Prima seleziona una nazione"}</option>
-                                                            {exp.country && (mainSport === "Calcio" ? footballCategoriesByCountry : mainSport === "Basket" ? basketCategoriesByCountry : volleyCategoriesByCountry)[exp.country]?.map((cat) => (
+                                                            {exp.country && (mainSport === "Basket" ? basketCategoriesByCountry : volleyCategoriesByCountry)[exp.country]?.map((cat) => (
                                                                 <option key={cat} value={cat}>{cat}</option>
                                                             ))}
                                                         </select>

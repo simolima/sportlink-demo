@@ -454,5 +454,37 @@
     },
     "read": false,
     "createdAt": "2025-12-21T11:56:40.893Z"
+  },
+  {
+    "id": 1767107037209,
+    "userId": "1765103614007",
+    "type": "new_application",
+    "title": "Nuova candidatura",
+    "message": "Mario Rossi si è candidato al tuo annuncio \"Centrocampista\".",
+    "metadata": {
+      "applicantId": "1765103614007",
+      "applicantName": "Mario Rossi",
+      "applicantAvatar": null,
+      "opportunityId": 1765196131961,
+      "opportunityTitle": "Centrocampista"
+    },
+    "read": false,
+    "createdAt": "2025-12-30T15:03:57.209Z"
+  },
+  {
+    "id": 1767107041336,
+    "userId": "1765196290455",
+    "type": "new_application",
+    "title": "Nuova candidatura",
+    "message": "Mario Rossi si è candidato al tuo annuncio \"Cerco uno alto\".",
+    "metadata": {
+      "applicantId": "1765103614007",
+      "applicantName": "Mario Rossi",
+      "applicantAvatar": null,
+      "opportunityId": 1765406535648,
+      "opportunityTitle": "Cerco uno alto"
+    },
+    "read": false,
+    "createdAt": "2025-12-30T15:04:01.336Z"
   }
 ]

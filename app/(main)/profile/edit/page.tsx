@@ -577,187 +577,6 @@ export default function EditProfilePage() {
                             <div>
                                 <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Esperienze</p>
                                 <h2 className="text-xl font-semibold mt-1 text-gray-900">Percorso professionale</h2>
-                                {/* Sezione Qualifiche Coach */}
-                                {isCoach && (
-                                    <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                                        <div className="mb-6">
-                                            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                            <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenze e Specializzazioni</h2>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {/* Licenze UEFA */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-3">
-                                                    Licenze UEFA e Qualifiche
-                                                </label>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    {uefaLicenseOptions.map((license) => (
-                                                        <label
-                                                            key={license}
-                                                            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition"
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={(form.uefaLicenses || []).includes(license)}
-                                                                onChange={() => toggleUefaLicense(license)}
-                                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                            />
-                                                            <span className="text-sm text-gray-700">{license}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Specializzazioni */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Specializzazioni
-                                                </label>
-                                                <textarea
-                                                    value={form.coachSpecializations || ""}
-                                                    onChange={(e) => updateField("coachSpecializations", e.target.value)}
-                                                    rows={3}
-                                                    placeholder="Es: Tattica difensiva, Settore giovanile, Preparazione fisica..."
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                                />
-                                            </div>
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Sezione Qualifiche Agent */}
-                                {isAgent && (
-                                    <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                                        <div className="mb-6">
-                                            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                            <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenza e Informazioni</h2>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            {/* Licenza FIFA */}
-                                            <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={form.hasFifaLicense || false}
-                                                    onChange={(e) => updateField("hasFifaLicense", e.target.checked)}
-                                                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                />
-                                                <div>
-                                                    <span className="block text-sm font-semibold text-gray-900">Licenza FIFA</span>
-                                                    <span className="text-xs text-gray-500">Sono un agente FIFA registrato</span>
-                                                </div>
-                                            </label>
-
-                                            {/* Numero Licenza */}
-                                            {form.hasFifaLicense && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                        Numero Licenza FIFA
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={form.fifaLicenseNumber || ""}
-                                                        onChange={(e) => updateField("fifaLicenseNumber", e.target.value)}
-                                                        placeholder="Es: 123456789"
-                                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Note Agente */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Informazioni Aggiuntive
-                                                </label>
-                                                <textarea
-                                                    value={form.agentNotes || ""}
-                                                    onChange={(e) => updateField("agentNotes", e.target.value)}
-                                                    rows={3}
-                                                    placeholder="Es: Specializzazione in trasferimenti internazionali, focus su giovani talenti..."
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                                />
-                                            </div>
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Sezione Certificazioni Staff */}
-                                {isStaff && (
-                                    <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div>
-                                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni e Abilitazioni</h2>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={addCertification}
-                                                className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
-                                            >
-                                                <PlusIcon className="h-4 w-4" />
-                                                Aggiungi certificazione
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            {(form.certifications || []).length === 0 && (
-                                                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
-                                                    Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
-                                                </div>
-                                            )}
-
-                                            {(form.certifications || []).map((cert) => (
-                                                <div
-                                                    key={cert.id}
-                                                    className="rounded-xl border border-gray-200 bg-white p-4"
-                                                >
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="flex-1 grid gap-3 md:grid-cols-2">
-                                                            <input
-                                                                value={cert.name}
-                                                                onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
-                                                                placeholder="Nome certificazione"
-                                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                            />
-                                                            <input
-                                                                value={cert.issuingOrganization}
-                                                                onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
-                                                                placeholder="Ente rilascio"
-                                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                            />
-                                                            <input
-                                                                type="number"
-                                                                value={cert.yearObtained}
-                                                                onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
-                                                                placeholder="Anno conseguimento"
-                                                                min="1950"
-                                                                max={new Date().getFullYear()}
-                                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                            />
-                                                            <input
-                                                                type="number"
-                                                                value={cert.expiryDate || ""}
-                                                                onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
-                                                                placeholder="Scadenza (opzionale)"
-                                                                min={cert.yearObtained || "1950"}
-                                                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeCertification(cert.id)}
-                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
-                                                        >
-                                                            <XMarkIcon className="h-5 w-5" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
                             </div>
                             <button
                                 type="button"
@@ -1069,6 +888,187 @@ export default function EditProfilePage() {
                             ))}
                         </div>
                     </section>
+
+                    {/* Sezione Qualifiche Coach */}
+                    {isCoach && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="mb-6">
+                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenze e Specializzazioni</h2>
+                            </div>
+
+                            <div className="space-y-6">
+                                {/* Licenze UEFA */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                                        Licenze UEFA e Qualifiche
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {uefaLicenseOptions.map((license) => (
+                                            <label
+                                                key={license}
+                                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={(form.uefaLicenses || []).includes(license)}
+                                                    onChange={() => toggleUefaLicense(license)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="text-sm text-gray-700">{license}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Specializzazioni */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Specializzazioni
+                                    </label>
+                                    <textarea
+                                        value={form.coachSpecializations || ""}
+                                        onChange={(e) => updateField("coachSpecializations", e.target.value)}
+                                        rows={3}
+                                        placeholder="Es: Tattica difensiva, Settore giovanile, Preparazione fisica..."
+                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Qualifiche Agent */}
+                    {isAgent && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="mb-6">
+                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenza e Informazioni</h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Licenza FIFA */}
+                                <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.hasFifaLicense || false}
+                                        onChange={(e) => updateField("hasFifaLicense", e.target.checked)}
+                                        className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                    />
+                                    <div>
+                                        <span className="block text-sm font-semibold text-gray-900">Licenza FIFA</span>
+                                        <span className="text-xs text-gray-500">Sono un agente FIFA registrato</span>
+                                    </div>
+                                </label>
+
+                                {/* Numero Licenza */}
+                                {form.hasFifaLicense && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Numero Licenza FIFA
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={form.fifaLicenseNumber || ""}
+                                            onChange={(e) => updateField("fifaLicenseNumber", e.target.value)}
+                                            placeholder="Es: 123456789"
+                                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Note Agente */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Informazioni Aggiuntive
+                                    </label>
+                                    <textarea
+                                        value={form.agentNotes || ""}
+                                        onChange={(e) => updateField("agentNotes", e.target.value)}
+                                        rows={3}
+                                        placeholder="Es: Specializzazione in trasferimenti internazionali, focus su giovani talenti..."
+                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Certificazioni Staff */}
+                    {isStaff && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni e Abilitazioni</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCertification}
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Aggiungi certificazione
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {(form.certifications || []).length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
+                                    </div>
+                                )}
+
+                                {(form.certifications || []).map((cert) => (
+                                    <div
+                                        key={cert.id}
+                                        className="rounded-xl border border-gray-200 bg-white p-4"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                <input
+                                                    value={cert.name}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
+                                                    placeholder="Nome certificazione"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    value={cert.issuingOrganization}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
+                                                    placeholder="Ente rilascio"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.yearObtained}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
+                                                    placeholder="Anno conseguimento"
+                                                    min="1950"
+                                                    max={new Date().getFullYear()}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.expiryDate || ""}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
+                                                    placeholder="Scadenza (opzionale)"
+                                                    min={cert.yearObtained || "1950"}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCertification(cert.id)}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                            >
+                                                <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                         <button

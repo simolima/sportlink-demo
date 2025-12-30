@@ -75,7 +75,7 @@ export default function HomePage() {
 
                 // Restore last selection or default to first
                 const stored = typeof window !== 'undefined' ? localStorage.getItem('selectedClubId') : null
-                const fallbackId = stored && clubs.find(c => c.id === stored) ? stored : (clubs[0]?.id || null)
+                const fallbackId = stored && clubs.find((c: any) => c.id === stored) ? stored : (clubs[0]?.id || null)
                 setSelectedClubId(fallbackId)
                 if (fallbackId) {
                     localStorage.setItem('selectedClubId', fallbackId)

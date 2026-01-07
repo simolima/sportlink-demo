@@ -1,5 +1,39 @@
 [
   {
+    "id": "1767110349619",
+    "firstName": "Simona",
+    "lastName": "Calcio",
+    "email": "calciofemminile@test",
+    "password": "password123",
+    "birthDate": "2001-02-22",
+    "gender": "",
+    "professionalRole": "Player",
+    "sports": [
+      "Calcio"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "Non disponibile",
+    "level": "",
+    "experiences": [],
+    "uefaLicenses": [],
+    "coachSpecializations": "",
+    "hasFifaLicense": false,
+    "fifaLicenseNumber": "",
+    "agentNotes": "",
+    "certifications": [],
+    "verified": false,
+    "createdAt": "2025-12-30T15:59:09.619Z",
+    "updatedAt": ""
+  },
+  {
     "id": "1767049738414",
     "firstName": "Allenatore",
     "lastName": "Test",
@@ -23,7 +57,7 @@
     "level": "",
     "experiences": [
       {
-        "id": "1767051071259-0",
+        "id": "1767104119874-0",
         "role": "",
         "primaryPosition": "",
         "positionDetail": "",
@@ -35,7 +69,7 @@
         "summary": ""
       },
       {
-        "id": "1767051075654",
+        "id": "1767104119874-1",
         "role": "",
         "primaryPosition": "",
         "positionDetail": "",
@@ -57,7 +91,7 @@
     "certifications": [],
     "verified": false,
     "createdAt": "2025-12-29T23:08:58.415Z",
-    "updatedAt": "2025-12-29T23:31:21.412Z",
+    "updatedAt": "2025-12-30T14:15:45.969Z",
     "username": ""
   },
   {
@@ -190,7 +224,7 @@
     "country": "",
     "professionalRoleLabel": "",
     "currentRole": "",
-    "availability": "unavailable",
+    "availability": "Non disponibile",
     "level": "",
     "experiences": [],
     "verified": false,
@@ -591,34 +625,27 @@
     "country": "",
     "professionalRoleLabel": "",
     "currentRole": "Punta centrale",
-    "availability": "unavailable",
+    "availability": "Disponibile",
     "level": "",
     "experiences": [
       {
-        "id": "1767047392412-0",
-        "role": "",
-        "primaryPosition": "",
+        "id": "1767108839353-0",
+        "role": "Attaccante",
+        "primaryPosition": "Attaccante",
         "positionDetail": "",
         "team": "Casarile FC",
-        "country": "Altro",
+        "country": "Italia",
         "category": "",
         "from": "2016",
         "to": "2017",
         "summary": "Punta titolare",
         "goals": 12,
-        "cleanSheets": null,
-        "appearances": 26,
-        "pointsPerGame": null,
-        "assists": null,
-        "rebounds": null,
-        "volleyAces": null,
-        "volleyBlocks": null,
-        "volleyDigs": null
+        "appearances": 26
       }
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2025-12-29T22:30:38.000Z",
+    "updatedAt": "2025-12-30T15:34:02.719Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
@@ -626,7 +653,10 @@
     "footballPrimaryPosition": "Attaccante",
     "footballSecondaryPosition": "Punta centrale",
     "username": "",
-    "specificRole": "Attaccante"
+    "specificRole": "Attaccante",
+    "dominantFoot": "destro",
+    "height": 180,
+    "weight": 75
   },
   {
     "id": "2",

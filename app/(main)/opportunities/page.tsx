@@ -330,8 +330,8 @@ export default function OpportunitiesPage() {
               <button
                 onClick={() => setMainTab('career')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'career'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 <Briefcase size={18} className="inline mr-2" />
@@ -340,8 +340,8 @@ export default function OpportunitiesPage() {
               <button
                 onClick={() => setMainTab('clubs')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'clubs'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 <Building2 size={18} className="inline mr-2" />
@@ -364,8 +364,8 @@ export default function OpportunitiesPage() {
               <button
                 onClick={() => setCareerSubTab('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'all'
-                    ? 'bg-primary text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
               >
                 Tutte le opportunità
@@ -373,8 +373,8 @@ export default function OpportunitiesPage() {
               <button
                 onClick={() => setCareerSubTab('applications')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'applications'
-                    ? 'bg-primary text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
               >
                 Le mie candidature
@@ -489,92 +489,94 @@ export default function OpportunitiesPage() {
                   return (
                     <div
                       key={announcement.id}
-                      className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 ${!isCompatible ? 'opacity-60 border-2 border-gray-200' : 'border-2 border-transparent'
+                      className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 h-full flex flex-col ${!isCompatible ? 'opacity-60 border-2 border-gray-200' : 'border-2 border-transparent'
                         }`}
                     >
-                      {!isCompatible && (
-                        <div className="mb-3 px-3 py-2 bg-warning/10 border border-warning/30 rounded-lg">
-                          <p className="text-xs text-warning font-medium">
-                            ⚠️ Questo annuncio è per: <strong>{requiredRole}</strong>
-                          </p>
-                        </div>
-                      )}
-                      {userRole === 'Agent' && requiredRole === 'Player' && (
-                        <div className="mb-3 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg">
-                          <p className="text-xs text-primary font-medium">
-                            ✓ Puoi candidare i tuoi assistiti
-                          </p>
-                        </div>
-                      )}
+                      <div className="flex-1 flex flex-col">
+                        {!isCompatible && (
+                          <div className="mb-3 px-3 py-2 bg-warning/10 border border-warning/30 rounded-lg">
+                            <p className="text-xs text-warning font-medium">
+                              ⚠️ Questo annuncio è per: <strong>{requiredRole}</strong>
+                            </p>
+                          </div>
+                        )}
+                        {userRole === 'Agent' && requiredRole === 'Player' && (
+                          <div className="mb-3 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg">
+                            <p className="text-xs text-primary font-medium">
+                              ✓ Puoi candidare i tuoi assistiti
+                            </p>
+                          </div>
+                        )}
 
-                      {announcement.club && (
-                        <div className="flex items-center gap-3 mb-4">
-                          {announcement.club.logoUrl ? (
-                            <img
-                              src={announcement.club.logoUrl}
-                              alt={announcement.club.name}
-                              className="w-12 h-12 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Building2 size={24} className="text-primary" />
+                        {announcement.club && (
+                          <div className="flex items-center gap-3 mb-4">
+                            {announcement.club.logoUrl ? (
+                              <img
+                                src={announcement.club.logoUrl}
+                                alt={announcement.club.name}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Building2 size={24} className="text-primary" />
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{announcement.club.name}</h3>
+                              <p className="text-sm text-gray-500">{announcement.sport}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className="inline-block px-3 py-1 bg-secondary/10 text-primary text-xs font-medium rounded-full">
+                            {announcement.type}
+                          </span>
+                          {announcement.roleRequired && (
+                            <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                              🎯 {announcement.roleRequired}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          {announcement.description}
+                        </p>
+
+                        <div className="space-y-2 mb-4 text-sm text-gray-600">
+                          {announcement.contractType && (
+                            <div className="flex items-center gap-2">
+                              <Briefcase size={16} />
+                              <span>{announcement.contractType}</span>
                             </div>
                           )}
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{announcement.club.name}</h3>
-                            <p className="text-sm text-gray-500">{announcement.sport}</p>
+                          {announcement.level && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">Livello:</span>
+                              <span>{announcement.level}</span>
+                            </div>
+                          )}
+                          {announcement.city && (
+                            <div className="flex items-center gap-2">
+                              <MapPin size={16} />
+                              <span>{announcement.city}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Calendar size={16} />
+                            <span>Scade: {new Date(announcement.expiryDate).toLocaleDateString('it-IT')}</span>
                           </div>
                         </div>
-                      )}
 
-                      <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <span className="inline-block px-3 py-1 bg-secondary/10 text-primary text-xs font-medium rounded-full">
-                          {announcement.type}
-                        </span>
-                        {announcement.roleRequired && (
-                          <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                            🎯 {announcement.roleRequired}
-                          </span>
+                        {announcement.applicationsCount !== undefined && (
+                          <p className="text-xs text-gray-500 mb-4">
+                            {announcement.applicationsCount} candidatur{announcement.applicationsCount === 1 ? 'a' : 'e'}
+                          </p>
                         )}
                       </div>
 
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                        {announcement.description}
-                      </p>
-
-                      <div className="space-y-2 mb-4 text-sm text-gray-600">
-                        {announcement.contractType && (
-                          <div className="flex items-center gap-2">
-                            <Briefcase size={16} />
-                            <span>{announcement.contractType}</span>
-                          </div>
-                        )}
-                        {announcement.level && (
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">Livello:</span>
-                            <span>{announcement.level}</span>
-                          </div>
-                        )}
-                        {announcement.city && (
-                          <div className="flex items-center gap-2">
-                            <MapPin size={16} />
-                            <span>{announcement.city}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} />
-                          <span>Scade: {new Date(announcement.expiryDate).toLocaleDateString('it-IT')}</span>
-                        </div>
-                      </div>
-
-                      {announcement.applicationsCount !== undefined && (
-                        <p className="text-xs text-gray-500 mb-4">
-                          {announcement.applicationsCount} candidatur{announcement.applicationsCount === 1 ? 'a' : 'e'}
-                        </p>
-                      )}
-
-                      <div className="space-y-2">
+                      <div className="space-y-2 mt-4">
                         <button
                           onClick={() =>
                             handleApply(
@@ -584,10 +586,10 @@ export default function OpportunitiesPage() {
                           }
                           disabled={!isCompatible || hasApplied}
                           className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
-                              ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
-                              : isCompatible
-                                ? 'bg-primary text-white hover:bg-primary-hover'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                            : isCompatible
+                              ? 'bg-primary text-white hover:bg-primary-hover'
+                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }`}
                         >
                           {hasApplied

@@ -87,6 +87,7 @@ create table public.profiles (
   first_name text not null,
   last_name text not null,
   username text unique,
+  gender text check (gender in ('male', 'female', 'other', 'prefer_not_to_say')),
   
   -- Contatti (sincronizzati con auth.users via trigger)
   email text,
@@ -132,7 +133,14 @@ create table public.profiles (
   ),
   constraint check_names_valid check (
     char_length(first_name) > 0 and char_length(last_name) > 0
-  ) -- previene nome e cognome vuoti nel database
+  ), -- previene nome e cognome vuoti nel database
+  constraint check_gender_required_for_athletes check (
+    -- Player, Coach e ruoli sportivi DEVONO specificare M o F
+    (role_id in ('player', 'coach') and gender in ('male', 'female'))
+    or
+    -- Altri ruoli possono avere qualsiasi valore o null
+    (role_id not in ('player', 'coach'))
+  )
 );
 
 -- 3.1 DATI FISICI (Opzionale, 1:1)

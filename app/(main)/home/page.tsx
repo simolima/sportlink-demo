@@ -25,8 +25,8 @@ const AGENT_ROLES = ['Agent']
 // Ruoli che vedono la dashboard Sporting Director / Club Admin
 const DS_ROLES = ['Sporting Director']
 
-// Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur)
-const STAFF_ROLES = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur']
+// Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout)
+const STAFF_ROLES = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur', 'Talent Scout']
 
 export default function HomePage() {
     const router = useRouter()
@@ -185,7 +185,7 @@ export default function HomePage() {
                     </div>
                 )}
 
-                {/* Dashboard per Staff (Athletic Trainer, Nutritionist, Physio/Masseur) */}
+                {/* Dashboard per Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout) */}
                 {isStaff && (
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">

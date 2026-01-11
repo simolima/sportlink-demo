@@ -15,6 +15,7 @@ const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
     'Athletic Trainer': 'Prepara atleti al massimo livello',
     'Nutritionist': 'Ottimizza le performance alimentari',
     'Physio/Masseur': 'Cura e recupero degli atleti',
+    'Talent Scout': 'Scopri e valuta nuovi talenti',
 }
 
 export default function Page() {

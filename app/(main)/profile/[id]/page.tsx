@@ -115,7 +115,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             const role = (user.professionalRole || '').toString()
                             const isCoach = role === 'Coach'
                             const isAgent = role === 'Agent'
-                            const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur'].includes(role)
+                            const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur', 'Talent Scout'].includes(role)
 
                             if (!isCoach && !isAgent && !isStaff) return null
 
@@ -219,11 +219,33 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    {(exp.from || exp.to) && (
-                                                        <p className="text-xs text-gray-500 mb-2">
-                                                            {exp.from || '—'} - {exp.to || 'Presente'}
-                                                        </p>
-                                                    )}
+                                                    {(() => {
+                                                        // Priorità: mostra stagione se presente, altrimenti mostra date specifiche
+                                                        if (exp.season && exp.season.trim() !== '') {
+                                                            // Mostra stagione + eventualmente date precise tra parentesi
+                                                            let periodText = `Stagione ${exp.season}`
+                                                            if (exp.from || exp.to) {
+                                                                const fromFormatted = exp.from ? new Date(exp.from).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+                                                                const toFormatted = exp.isCurrentlyPlaying ? 'Presente' : exp.to ? new Date(exp.to).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+                                                                if (fromFormatted || toFormatted) {
+                                                                    periodText += ` (${fromFormatted || '—'} - ${toFormatted || 'Presente'})`
+                                                                }
+                                                            }
+                                                            return (
+                                                                <p className="text-xs text-gray-500 mb-2">
+                                                                    {periodText}
+                                                                </p>
+                                                            )
+                                                        } else if (exp.from || exp.to) {
+                                                            // Fallback: mostra solo date (vecchio formato)
+                                                            return (
+                                                                <p className="text-xs text-gray-500 mb-2">
+                                                                    {exp.from || '—'} - {exp.to || 'Presente'}
+                                                                </p>
+                                                            )
+                                                        }
+                                                        return null
+                                                    })()}
                                                     {exp.summary && (
                                                         <p className="text-sm text-gray-700">
                                                             {exp.summary}

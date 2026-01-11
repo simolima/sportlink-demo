@@ -20,7 +20,8 @@ export const PROFESSIONAL_ROLES = [
   'Sporting Director',
   'Athletic Trainer',
   'Nutritionist',
-  'Physio/Masseur'
+  'Physio/Masseur',
+  'Talent Scout'
 ] as const;
 
 export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
@@ -34,7 +35,8 @@ export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
   'Sporting Director': 'Direttore Sportivo',
   'Athletic Trainer': 'Preparatore Atletico',
   'Nutritionist': 'Nutrizionista',
-  'Physio/Masseur': 'Fisioterapista/Massaggiatore'
+  'Physio/Masseur': 'Fisioterapista/Massaggiatore',
+  'Talent Scout': 'Talent Scout'
 };
 
 // Tipi di opportunità

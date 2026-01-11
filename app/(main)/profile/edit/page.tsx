@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CameraIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
 import Avatar from "@/components/avatar"
 import { uploadService } from "@/lib/upload-service"
 
 interface Experience {
     id: string
+    season: string // "2024/2025" - OBBLIGATORIO
     role: string
     primaryPosition?: string
     positionDetail?: string
@@ -15,10 +16,13 @@ interface Experience {
     country: string
     category: string
     categoryTier?: string
-    from: string
-    to: string
+    competitionType?: string // 'male' | 'female' | 'open' | 'mixed'
+    // Date opzionali per precisione temporale
+    from?: string
+    to?: string
+    isCurrentlyPlaying?: boolean // "Gioca/Allena ancora qui"
     summary: string
-    // Statistiche opzionali per sport
+    // Statistiche opzionali per Player
     goals?: number
     cleanSheets?: number
     appearances?: number
@@ -28,6 +32,12 @@ interface Experience {
     volleyAces?: number
     volleyBlocks?: number
     volleyDigs?: number
+    // Statistiche opzionali per Coach
+    matchesCoached?: number
+    wins?: number
+    draws?: number
+    losses?: number
+    trophies?: number
 }
 
 interface Certification {
@@ -73,6 +83,7 @@ interface FormState {
 
 const emptyExperience = (): Experience => ({
     id: Date.now().toString(),
+    season: "", // Sarà selezionato dall'utente
     role: "",
     primaryPosition: "",
     positionDetail: "",
@@ -80,8 +91,10 @@ const emptyExperience = (): Experience => ({
     country: "",
     category: "",
     categoryTier: "",
+    competitionType: "",
     from: "",
     to: "",
+    isCurrentlyPlaying: false,
     summary: "",
 })
 
@@ -137,6 +150,13 @@ export default function EditProfilePage() {
 
     // --- Sport principale per logica ruolo/dominanza ---
     const [mainSport, setMainSport] = useState<string | undefined>(undefined);
+
+    // --- Stati per gestire date opzionali per esperienza ---
+    const [showDatesForExp, setShowDatesForExp] = useState<Record<string, boolean>>({})
+
+    // --- Stati per errori validazione date ---
+    const [dateErrors, setDateErrors] = useState<Record<string, string>>({})
+
     useEffect(() => {
         let didRedirect = false;
         const fetchUser = async () => {
@@ -155,7 +175,7 @@ export default function EditProfilePage() {
                 setIsFootball(Array.isArray(user.sports) && user.sports.includes("Calcio"));
                 setIsCoach(user.professionalRole === "Coach");
                 setIsAgent(user.professionalRole === "Agent");
-                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur"].includes(user.professionalRole));
+                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(user.professionalRole));
                 const sport = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports[0] : user.sport || undefined;
                 setMainSport(sport);
 
@@ -176,14 +196,18 @@ export default function EditProfilePage() {
                     experiences: Array.isArray(user.experiences)
                         ? user.experiences.map((e: any, idx: number) => ({
                             id: `${Date.now()}-${idx}`,
+                            season: e.season || "", // Nuovo campo
                             role: e.role || e.title || "",
                             primaryPosition: e.primaryPosition || "",
                             positionDetail: e.positionDetail || "",
                             team: e.team || e.company || "",
                             country: e.country || "",
                             category: e.category || "",
+                            categoryTier: e.categoryTier || "",
+                            competitionType: e.competitionType || "",
                             from: e.from || "",
                             to: e.to || "",
+                            isCurrentlyPlaying: e.isCurrentlyPlaying || false,
                             summary: e.summary || e.description || "",
                             goals: typeof e.goals === 'number' ? e.goals : undefined,
                             cleanSheets: typeof e.cleanSheets === 'number' ? e.cleanSheets : undefined,
@@ -194,6 +218,11 @@ export default function EditProfilePage() {
                             volleyAces: typeof e.volleyAces === 'number' ? e.volleyAces : undefined,
                             volleyBlocks: typeof e.volleyBlocks === 'number' ? e.volleyBlocks : undefined,
                             volleyDigs: typeof e.volleyDigs === 'number' ? e.volleyDigs : undefined,
+                            matchesCoached: typeof e.matchesCoached === 'number' ? e.matchesCoached : undefined,
+                            wins: typeof e.wins === 'number' ? e.wins : undefined,
+                            draws: typeof e.draws === 'number' ? e.draws : undefined,
+                            losses: typeof e.losses === 'number' ? e.losses : undefined,
+                            trophies: typeof e.trophies === 'number' ? e.trophies : undefined,
                         }))
                         : [],
                     availability: user.availability || "Disponibile",
@@ -251,6 +280,97 @@ export default function EditProfilePage() {
         "Ala grande",
         "Centro",
     ];
+
+    // Coach: ruoli
+    const coachRoles = [
+        "Allenatore",
+        "Allenatore in Seconda",
+        "Analista Tattico",
+        "Collaboratore Tecnico",
+    ];
+
+    // Coach Calcio: ruolo specifico
+    const coachFootballRoles = [
+        "Allenatore",
+        "Allenatore in Seconda",
+        "Allenatore dei Portieri",
+        "Analista Tattico",
+        "Collaboratore Tecnico",
+    ];
+
+    // Funzione per generare lista stagioni
+    const generateSeasons = (): string[] => {
+        const seasons: string[] = []
+        const startYear = 2014
+        const currentDate = new Date()
+        const currentYear = currentDate.getFullYear()
+        const currentMonth = currentDate.getMonth() + 1 // 1-12
+
+        // Se siamo post-1 agosto (mese 8), aggiungi la stagione successiva
+        const endYear = currentMonth >= 8 ? currentYear + 1 : currentYear
+
+        // Genera dalla più recente alla più vecchia
+        for (let year = endYear; year >= startYear; year--) {
+            seasons.push(`${year}/${year + 1}`)
+        }
+
+        return seasons
+    }
+
+    const availableSeasons = generateSeasons()
+
+    // Funzione per estrarre gli anni dalla stagione (es. "2022/2023" -> {startYear: 2022, endYear: 2023})
+    const getSeasonYearRange = (season: string): { startYear: number; endYear: number } | null => {
+        const match = season.match(/^(\d{4})\/(\d{4})$/)
+        if (!match) return null
+        return {
+            startYear: parseInt(match[1]),
+            endYear: parseInt(match[2])
+        }
+    }
+
+    // Funzione per validare le date di un'esperienza rispetto alla stagione
+    const validateExperienceDates = (exp: Experience, showDates: boolean): string | null => {
+        // IMPORTANTE: Validare solo se l'utente ha attivato il checkbox "Specifica periodo esatto"
+        if (!showDates) return null
+
+        // Se non c'è stagione o non ci sono date inserite, skip validazione
+        if (!exp.season) return null
+        if (!exp.from && !exp.to) return null
+
+        const range = getSeasonYearRange(exp.season)
+        if (!range) return null
+
+        const minDate = `${range.startYear}-01-01`
+        const maxDate = `${range.endYear}-12-31`
+
+        // Validazione data inizio
+        if (exp.from && exp.from < minDate) {
+            return `La data di inizio deve essere successiva al 1 gennaio ${range.startYear} (stagione ${exp.season})`
+        }
+
+        if (exp.from && exp.from > maxDate) {
+            return `La data di inizio deve essere precedente al 31 dicembre ${range.endYear} (stagione ${exp.season})`
+        }
+
+        // Validazione data fine (solo se non sta ancora giocando/allenando)
+        if (!exp.isCurrentlyPlaying && exp.to) {
+            if (exp.to < minDate) {
+                return `La data di fine deve essere successiva al 1 gennaio ${range.startYear} (stagione ${exp.season})`
+            }
+
+            if (exp.to > maxDate) {
+                return `La data di fine deve essere precedente al 31 dicembre ${range.endYear} (stagione ${exp.season})`
+            }
+        }
+
+        // Validazione coerenza inizio-fine
+        if (exp.from && exp.to && !exp.isCurrentlyPlaying && exp.from > exp.to) {
+            return "La data di inizio non può essere successiva alla data di fine"
+        }
+
+        return null // Tutto OK
+    }
 
     // Paesi e categorie per sport (semplificati, demo)
     const footballCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
@@ -336,6 +456,16 @@ export default function EditProfilePage() {
         "Altro",
     ];
 
+    // Calcio Femminile organizzato per macro-categoria (Italia)
+    const footballFemaleCategoriesByTierItaly: Record<string, string[]> = {
+        Professionisti: ["Serie A", "Serie B", "Serie C"],
+        Dilettanti: ["Eccellenza"],
+        "Settore giovanile professionistico": ["Primavera 1", "Primavera 2"],
+        "Settore giovanile dilettantistico": ["Under 19", "Under 17", "Under 15"],
+        Amatori: ["Altro"],
+        Altro: ["Altro"],
+    };
+
     // Calcio Femminile (fallback per altri Paesi)
     const footballFemaleCategoriesDefault = [
         "Prima Divisione Femminile",
@@ -344,6 +474,24 @@ export default function EditProfilePage() {
         "Giovanili U17 Femminile",
         "Giovanili U15 Femminile",
         "Altro",
+    ];
+
+    // Calcio Femminile per altri paesi (fallback)
+    const footballFemaleCategoriesByTierDefault: Record<string, string[]> = {
+        Professionisti: ["Prima Divisione", "Seconda Divisione", "Altro"],
+        Dilettanti: ["Divisioni Regionali", "Divisioni Locali", "Altro"],
+        "Settore giovanile professionistico": ["U19", "U17", "U15", "Altro"],
+        "Settore giovanile dilettantistico": ["U19 Regional", "U17 Regional", "U15 Regional", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        Altro: ["Altro"],
+    };
+
+    // Tipologie Competizione (universale per tutti gli sport)
+    const competitionTypes = [
+        { value: "male", label: "Maschile" },
+        { value: "female", label: "Femminile" },
+        { value: "open", label: "Open" },
+        { value: "mixed", label: "Misto" },
     ];
 
     // Fallback categorie per altri Paesi (MVP semplificato)
@@ -358,12 +506,18 @@ export default function EditProfilePage() {
 
     const basketCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
     const basketCategoriesByCountry: Record<string, string[]> = {
-        Italia: ["Serie A", "Serie A2", "Serie B", "Serie C", "Divisioni Regionali", "Amatori"],
+        Italia: ["Serie A1", "Serie A2", "Serie B", "Serie C", "Divisioni Regionali", "Amatori"],
         Spagna: ["Liga ACB", "LEB Oro", "LEB Plata", "Liga EBA", "Regional"],
         Francia: ["LNB Pro A", "LNB Pro B", "Nationale 1", "Nationale 2", "Régionales"],
         Germania: ["BBL", "ProA", "ProB", "Regionalliga", "Oberliga"],
         Inghilterra: ["BBL", "NBL Division 1", "NBL Division 2", "Regional"],
     };
+
+    // Basket Femminile (Italia)
+    const basketFemaleCategoriesItaly = ["Serie A1", "Serie A2", "Serie B", "Serie C", "Divisioni Regionali", "Under 19", "Under 17", "Under 15"];
+
+    // Basket Femminile (altri paesi - fallback)
+    const basketFemaleCategoriesDefault = ["Prima Divisione", "Seconda Divisione", "Divisioni Regionali", "U19", "U17", "U15"];
 
     const volleyCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
     const volleyCategoriesByCountry: Record<string, string[]> = {
@@ -373,6 +527,12 @@ export default function EditProfilePage() {
         Germania: ["1. Bundesliga", "2. Bundesliga", "3. Liga", "Regionalliga"],
         Inghilterra: ["Super League", "National League", "Regional"],
     };
+
+    // Pallavolo Femminile (Italia)
+    const volleyFemaleCategoriesItaly = ["Serie A1", "Serie A2", "Serie B1", "Serie B2", "Serie C", "Divisioni Regionali", "Under 19", "Under 17", "Under 15"];
+
+    // Pallavolo Femminile (altri paesi - fallback)
+    const volleyFemaleCategoriesDefault = ["Prima Divisione", "Seconda Divisione", "Divisioni Regionali", "U19", "U17", "U15"];
 
     // --- Coach: Licenze UEFA ---
     const uefaLicenseOptions = [
@@ -479,19 +639,46 @@ export default function EditProfilePage() {
         }));
     };
 
-    const handleExperienceChange = (id: string, key: keyof Experience, value: string | number) => {
+    const handleExperienceChange = (id: string, key: keyof Experience, value: string | number | boolean) => {
         const numericKeys: (keyof Experience)[] = [
-            'goals', 'cleanSheets', 'appearances', 'pointsPerGame', 'assists', 'rebounds', 'volleyAces', 'volleyBlocks', 'volleyDigs'
+            'goals', 'cleanSheets', 'appearances', 'pointsPerGame', 'assists', 'rebounds',
+            'volleyAces', 'volleyBlocks', 'volleyDigs',
+            'matchesCoached', 'wins', 'draws', 'losses', 'trophies'
         ]
         const coercedValue = numericKeys.includes(key)
             ? (typeof value === 'number' ? value : value === '' ? undefined : Number(value))
             : value
+
+        // Aggiorna l'esperienza
         setForm((prev) => ({
             ...prev,
             experiences: prev.experiences.map((exp) =>
                 exp.id === id ? { ...exp, [key]: coercedValue as any } : exp
             ),
         }))
+
+        // Se il campo modificato è rilevante per la validazione date, valida dopo l'update
+        if (['season', 'from', 'to', 'isCurrentlyPlaying'].includes(key)) {
+            // Usa setTimeout per permettere allo state di aggiornarsi prima della validazione
+            setTimeout(() => {
+                setForm((prev) => {
+                    const exp = prev.experiences.find(e => e.id === id)
+                    if (!exp) return prev
+
+                    const error = validateExperienceDates(exp, showDatesForExp[id] || false)
+                    setDateErrors(prevErrors => {
+                        if (error) {
+                            return { ...prevErrors, [id]: error }
+                        } else {
+                            const { [id]: _, ...rest } = prevErrors
+                            return rest
+                        }
+                    })
+
+                    return prev
+                })
+            }, 0)
+        }
     }
 
     const addExperience = () => {
@@ -503,6 +690,60 @@ export default function EditProfilePage() {
             ...prev,
             experiences: prev.experiences.filter((exp) => exp.id !== id),
         }))
+        // Rimuovi anche lo stato delle date per questa esperienza
+        setShowDatesForExp(prev => {
+            const { [id]: _, ...rest } = prev
+            return rest
+        })
+        // Rimuovi anche eventuali errori di validazione date
+        setDateErrors(prev => {
+            const { [id]: _, ...rest } = prev
+            return rest
+        })
+    }
+
+    const toggleDatesForExp = (id: string) => {
+        setShowDatesForExp(prev => {
+            const newValue = !prev[id]
+
+            // Se si attiva il checkbox (da false a true), valida le date
+            if (newValue) {
+                setTimeout(() => {
+                    const exp = form.experiences.find(e => e.id === id)
+                    if (exp) {
+                        const error = validateExperienceDates(exp, true)
+                        setDateErrors(prevErrors => {
+                            if (error) {
+                                return { ...prevErrors, [id]: error }
+                            } else {
+                                const { [id]: _, ...rest } = prevErrors
+                                return rest
+                            }
+                        })
+                    }
+                }, 0)
+            } else {
+                // Se si disattiva il checkbox, rimuovi eventuali errori
+                setDateErrors(prevErrors => {
+                    const { [id]: _, ...rest } = prevErrors
+                    return rest
+                })
+            }
+
+            return {
+                ...prev,
+                [id]: newValue
+            }
+        })
+    }
+
+    // Validazione coerenza statistiche Coach
+    const validateCoachStats = (exp: Experience): boolean => {
+        if (!isCoach) return true
+        const { matchesCoached, wins, draws, losses } = exp
+        if (!matchesCoached || matchesCoached === 0) return true // Se non inserito, skip validazione
+        const total = (wins || 0) + (draws || 0) + (losses || 0)
+        return total === matchesCoached
     }
 
     const handleUpload = async (file: File, folder: "avatars" | "covers", field: "avatarUrl" | "coverUrl") => {
@@ -518,10 +759,41 @@ export default function EditProfilePage() {
 
     const handleSave = async () => {
         if (!userId) return
+
+        // Validazione pre-salvataggio: verifica errori date (solo per esperienze con date specificate)
+        const experiencesWithDateErrors: string[] = []
+        form.experiences.forEach(exp => {
+            const error = validateExperienceDates(exp, showDatesForExp[exp.id] || false)
+            if (error) {
+                experiencesWithDateErrors.push(exp.id)
+                setDateErrors(prev => ({ ...prev, [exp.id]: error }))
+            }
+        })
+
+        if (experiencesWithDateErrors.length > 0) {
+            alert(`Ci sono ${experiencesWithDateErrors.length} esperienze con date non valide. Correggi gli errori prima di salvare.`)
+            return
+        }
+
         setSaving(true)
         try {
             // Sanificazione payload
             let payload = { ...form, id: userId };
+
+            // Pulisci campi from/to se l'utente non ha attivato il checkbox "Specifica periodo esatto"
+            payload.experiences = payload.experiences.map(exp => {
+                if (!showDatesForExp[exp.id]) {
+                    // Se il checkbox non è attivo, rimuovi from/to/isCurrentlyPlaying
+                    return {
+                        ...exp,
+                        from: undefined,
+                        to: undefined,
+                        isCurrentlyPlaying: undefined
+                    }
+                }
+                return exp
+            })
+
             if (isPlayer) {
                 // Player: logica sport dominanza
                 if (mainSport === "Calcio") {
@@ -943,8 +1215,151 @@ export default function EditProfilePage() {
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 grid gap-3 md:grid-cols-2">
-                                            {isPlayer && mainSport === "Calcio" ? (
+                                            {isCoach ? (
                                                 <>
+                                                    {/* Stagione - OBBLIGATORIO */}
+                                                    <select
+                                                        value={exp.season}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        className={inputBase}
+                                                        required
+                                                    >
+                                                        <option value="">Seleziona stagione *</option>
+                                                        {availableSeasons.map((season) => (
+                                                            <option key={season} value={season}>
+                                                                Stagione {season}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Ruolo Coach */}
+                                                    <select
+                                                        value={exp.role}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Seleziona ruolo</option>
+                                                        {(mainSport === "Calcio" ? coachFootballRoles : coachRoles).map((role) => (
+                                                            <option key={role} value={role}>{role}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Team/Club */}
+                                                    <input
+                                                        value={exp.team}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
+                                                        placeholder="Organizzazione/Club"
+                                                        className={inputBase}
+                                                    />
+
+                                                    {/* Nazione */}
+                                                    <select
+                                                        value={exp.country}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "country", e.target.value)
+                                                            handleExperienceChange(exp.id, "categoryTier", "")
+                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Seleziona nazione</option>
+                                                        {footballCountries.map((country) => (
+                                                            <option key={country} value={country}>{country}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Macro Categoria */}
+                                                    <select
+                                                        value={exp.categoryTier || ""}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                        disabled={!exp.country}
+                                                    >
+                                                        <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
+                                                        {footballMacroCategories.map((tier) => (
+                                                            <option key={tier} value={tier}>{tier}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Tipologia Competizione */}
+                                                    <select
+                                                        value={exp.competitionType || ""}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                        disabled={!exp.country || !exp.categoryTier}
+                                                    >
+                                                        <option value="">{exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria"}</option>
+                                                        {competitionTypes.map((type) => (
+                                                            <option key={type.value} value={type.value}>{type.label}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Categoria */}
+                                                    {exp.categoryTier === "Altro" ? (
+                                                        <input
+                                                            value={exp.category}
+                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            placeholder="Categoria (testo libero)"
+                                                            className={inputBase}
+                                                            disabled={!exp.country}
+                                                        />
+                                                    ) : (
+                                                        <select
+                                                            value={exp.category}
+                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            className={inputBase}
+                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
+                                                        >
+                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
+                                                            {exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                exp.competitionType === "female" ? (
+                                                                    // Categorie femminili
+                                                                    exp.country === "Italia"
+                                                                        ? footballFemaleCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                        : footballFemaleCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                ) : (
+                                                                    // Categorie maschili/open/miste
+                                                                    exp.country === "Italia"
+                                                                        ? footballCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                        : footballCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                )
+                                                            ) : null}
+                                                        </select>
+                                                    )}
+                                                </>
+                                            ) : isPlayer && mainSport === "Calcio" ? (
+                                                <>
+                                                    {/* Stagione - OBBLIGATORIO */}
+                                                    <select
+                                                        value={exp.season}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        className={inputBase}
+                                                        required
+                                                    >
+                                                        <option value="">Seleziona stagione *</option>
+                                                        {availableSeasons.map((season) => (
+                                                            <option key={season} value={season}>
+                                                                Stagione {season}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+
                                                     <select
                                                         value={exp.primaryPosition || ''}
                                                         onChange={(e) => {
@@ -973,27 +1388,61 @@ export default function EditProfilePage() {
                                                     </select>
                                                 </>
                                             ) : isPlayer && mainSport === "Basket" ? (
-                                                <select
-                                                    value={exp.role}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
-                                                    className={inputBase}
-                                                >
-                                                    <option value="">Seleziona ruolo</option>
-                                                    {basketRoles.map((role) => (
-                                                        <option key={role} value={role}>{role}</option>
-                                                    ))}
-                                                </select>
+                                                <>
+                                                    {/* Stagione - OBBLIGATORIO */}
+                                                    <select
+                                                        value={exp.season}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        className={inputBase}
+                                                        required
+                                                    >
+                                                        <option value="">Seleziona stagione *</option>
+                                                        {availableSeasons.map((season) => (
+                                                            <option key={season} value={season}>
+                                                                Stagione {season}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+
+                                                    <select
+                                                        value={exp.role}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Seleziona ruolo</option>
+                                                        {basketRoles.map((role) => (
+                                                            <option key={role} value={role}>{role}</option>
+                                                        ))}
+                                                    </select>
+                                                </>
                                             ) : isPlayer && mainSport === "Pallavolo" ? (
-                                                <select
-                                                    value={exp.role}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
-                                                    className={inputBase}
-                                                >
-                                                    <option value="">Seleziona ruolo</option>
-                                                    {volleyRoles.map((role) => (
-                                                        <option key={role} value={role}>{role}</option>
-                                                    ))}
-                                                </select>
+                                                <>
+                                                    {/* Stagione - OBBLIGATORIO */}
+                                                    <select
+                                                        value={exp.season}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        className={inputBase}
+                                                        required
+                                                    >
+                                                        <option value="">Seleziona stagione *</option>
+                                                        {availableSeasons.map((season) => (
+                                                            <option key={season} value={season}>
+                                                                Stagione {season}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+
+                                                    <select
+                                                        value={exp.role}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Seleziona ruolo</option>
+                                                        {volleyRoles.map((role) => (
+                                                            <option key={role} value={role}>{role}</option>
+                                                        ))}
+                                                    </select>
+                                                </>
                                             ) : (
                                                 <input
                                                     value={exp.role}
@@ -1002,22 +1451,25 @@ export default function EditProfilePage() {
                                                     className={inputBase}
                                                 />
                                             )}
-                                            <input
-                                                value={exp.team}
-                                                onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
-                                                placeholder="Organizzazione/Club"
-                                                className={inputBase}
-                                            />
-                                            {isPlayer && mainSport === "Calcio" ? (
+                                            {!isCoach && (
+                                                <input
+                                                    value={exp.team}
+                                                    onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
+                                                    placeholder="Organizzazione/Club"
+                                                    className={inputBase}
+                                                />
+                                            )}
+                                            {!isCoach && isPlayer && mainSport === "Calcio" ? (
                                                 <>
                                                     {/* Nazione */}
                                                     <select
                                                         value={exp.country}
                                                         onChange={(e) => {
                                                             handleExperienceChange(exp.id, "country", e.target.value)
-                                                            // Reset categoria e tier quando cambia nazione
-                                                            handleExperienceChange(exp.id, "category", "")
+                                                            // Reset tutti i campi successivi quando cambia nazione
                                                             handleExperienceChange(exp.id, "categoryTier", "")
+                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                            handleExperienceChange(exp.id, "category", "")
                                                         }}
                                                         className={inputBase}
                                                     >
@@ -1032,7 +1484,8 @@ export default function EditProfilePage() {
                                                         value={exp.categoryTier || ""}
                                                         onChange={(e) => {
                                                             handleExperienceChange(exp.id, "categoryTier", e.target.value)
-                                                            // Reset categoria quando cambia macro
+                                                            // Reset campi successivi quando cambia macro
+                                                            handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
                                                         className={inputBase}
@@ -1041,6 +1494,23 @@ export default function EditProfilePage() {
                                                         <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
                                                         {footballMacroCategories.map((tier) => (
                                                             <option key={tier} value={tier}>{tier}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {/* Tipologia Competizione (NUOVO) */}
+                                                    <select
+                                                        value={exp.competitionType || ""}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                            // Reset categoria quando cambia tipologia
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                        disabled={!exp.country || !exp.categoryTier}
+                                                    >
+                                                        <option value="">{exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria"}</option>
+                                                        {competitionTypes.map((type) => (
+                                                            <option key={type.value} value={type.value}>{type.label}</option>
                                                         ))}
                                                     </select>
 
@@ -1058,24 +1528,40 @@ export default function EditProfilePage() {
                                                             value={exp.category}
                                                             onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
                                                             className={inputBase}
-                                                            disabled={!exp.country || !exp.categoryTier}
+                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
                                                         >
-                                                            <option value="">{exp.categoryTier ? "Seleziona categoria" : "Prima seleziona macro categoria"}</option>
-                                                            {(exp.country ? (exp.country === "Italia"
-                                                                ? footballCategoriesByTierItaly[exp.categoryTier || ""]
-                                                                : footballCategoriesByTierDefault[exp.categoryTier || ""]
-                                                            ) : [])?.map((cat) => (
-                                                                <option key={cat} value={cat}>{cat}</option>
-                                                            ))}
+                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
+                                                            {exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                exp.competitionType === "female" ? (
+                                                                    // Categorie femminili
+                                                                    exp.country === "Italia"
+                                                                        ? footballFemaleCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                        : footballFemaleCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                ) : (
+                                                                    // Categorie maschili/open/miste (usa struttura esistente)
+                                                                    exp.country === "Italia"
+                                                                        ? footballCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                        : footballCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                )
+                                                            ) : null}
                                                         </select>
                                                     )}
                                                 </>
-                                            ) : isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
+                                            ) : !isCoach && isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
                                                 <>
                                                     <select
                                                         value={exp.country}
                                                         onChange={(e) => {
                                                             handleExperienceChange(exp.id, "country", e.target.value)
+                                                            handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
                                                         className={inputBase}
@@ -1085,6 +1571,23 @@ export default function EditProfilePage() {
                                                             <option key={country} value={country}>{country}</option>
                                                         ))}
                                                     </select>
+
+                                                    {/* Tipologia Competizione (Basket/Pallavolo) */}
+                                                    <select
+                                                        value={exp.competitionType || ""}
+                                                        onChange={(e) => {
+                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                            handleExperienceChange(exp.id, "category", "")
+                                                        }}
+                                                        className={inputBase}
+                                                        disabled={!exp.country}
+                                                    >
+                                                        <option value="">{exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione"}</option>
+                                                        {competitionTypes.map((type) => (
+                                                            <option key={type.value} value={type.value}>{type.label}</option>
+                                                        ))}
+                                                    </select>
+
                                                     {exp.country === "Altro" ? (
                                                         <input
                                                             value={exp.category}
@@ -1097,16 +1600,30 @@ export default function EditProfilePage() {
                                                             value={exp.category}
                                                             onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
                                                             className={inputBase}
-                                                            disabled={!exp.country}
+                                                            disabled={!exp.country || !exp.competitionType}
                                                         >
-                                                            <option value="">{exp.country ? "Seleziona categoria" : "Prima seleziona una nazione"}</option>
-                                                            {exp.country && (mainSport === "Basket" ? basketCategoriesByCountry : volleyCategoriesByCountry)[exp.country]?.map((cat) => (
-                                                                <option key={cat} value={cat}>{cat}</option>
-                                                            ))}
+                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
+                                                            {exp.country && exp.competitionType ? (
+                                                                exp.competitionType === "female" ? (
+                                                                    // Categorie femminili per Basket/Pallavolo
+                                                                    exp.country === "Italia"
+                                                                        ? (mainSport === "Basket" ? basketFemaleCategoriesItaly : volleyFemaleCategoriesItaly).map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                        : (mainSport === "Basket" ? basketFemaleCategoriesDefault : volleyFemaleCategoriesDefault).map((cat) => (
+                                                                            <option key={cat} value={cat}>{cat}</option>
+                                                                        ))
+                                                                ) : (
+                                                                    // Categorie maschili/open/miste
+                                                                    (mainSport === "Basket" ? basketCategoriesByCountry : volleyCategoriesByCountry)[exp.country]?.map((cat) => (
+                                                                        <option key={cat} value={cat}>{cat}</option>
+                                                                    ))
+                                                                )
+                                                            ) : null}
                                                         </select>
                                                     )}
                                                 </>
-                                            ) : (
+                                            ) : !isCoach ? (
                                                 <>
                                                     <input
                                                         value={exp.country}
@@ -1114,6 +1631,16 @@ export default function EditProfilePage() {
                                                         placeholder="Nazione"
                                                         className={inputBase}
                                                     />
+                                                    <select
+                                                        value={exp.competitionType || ""}
+                                                        onChange={(e) => handleExperienceChange(exp.id, "competitionType", e.target.value)}
+                                                        className={inputBase}
+                                                    >
+                                                        <option value="">Tipologia competizione (opzionale)</option>
+                                                        {competitionTypes.map((type) => (
+                                                            <option key={type.value} value={type.value}>{type.label}</option>
+                                                        ))}
+                                                    </select>
                                                     <input
                                                         value={exp.category}
                                                         onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
@@ -1121,23 +1648,76 @@ export default function EditProfilePage() {
                                                         className={inputBase}
                                                     />
                                                 </>
-                                            )}
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <input
-                                                    type="date"
-                                                    value={exp.from}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "from", e.target.value)}
-                                                    placeholder="Inizio"
-                                                    className={inputBase}
-                                                />
-                                                <input
-                                                    type="date"
-                                                    value={exp.to}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "to", e.target.value)}
-                                                    placeholder="Fine"
-                                                    className={inputBase}
-                                                />
+                                            ) : null}
+
+                                            {/* Checkbox per mostrare date opzionali */}
+                                            <div className="md:col-span-2 space-y-3">
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={showDatesForExp[exp.id] || false}
+                                                        onChange={() => toggleDatesForExp(exp.id)}
+                                                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                    />
+                                                    <span className="text-sm text-gray-700">
+                                                        Specifica periodo esatto (opzionale)
+                                                    </span>
+                                                </label>
+
+                                                {/* Date opzionali - mostrate solo se checkbox attivo */}
+                                                {showDatesForExp[exp.id] && (
+                                                    <div className="space-y-3 pl-6 border-l-2 border-gray-200">
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label className="text-xs text-gray-600 mb-1 block">Data inizio</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={exp.from || ""}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, "from", e.target.value)}
+                                                                    placeholder="Inizio"
+                                                                    className={inputBase}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-xs text-gray-600 mb-1 block">Data fine</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={exp.to || ""}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, "to", e.target.value)}
+                                                                    placeholder="Fine"
+                                                                    className={inputBase}
+                                                                    disabled={exp.isCurrentlyPlaying}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={exp.isCurrentlyPlaying || false}
+                                                                onChange={(e) => {
+                                                                    handleExperienceChange(exp.id, "isCurrentlyPlaying", e.target.checked)
+                                                                    if (e.target.checked) {
+                                                                        handleExperienceChange(exp.id, "to", "")
+                                                                    }
+                                                                }}
+                                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                            />
+                                                            <span className="text-sm text-gray-700">
+                                                                {isCoach ? "Alleno ancora qui" : "Gioco ancora qui"}
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                )}
+
+                                                {/* Messaggio di errore validazione date */}
+                                                {dateErrors[exp.id] && (
+                                                    <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
+                                                        <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                                        <span>{dateErrors[exp.id]}</span>
+                                                    </div>
+                                                )}
                                             </div>
+
                                             <textarea
                                                 value={exp.summary}
                                                 onChange={(e) => handleExperienceChange(exp.id, "summary", e.target.value)}
@@ -1275,6 +1855,70 @@ export default function EditProfilePage() {
                                                             />
                                                         </div>
                                                     </div>
+                                                </div>
+                                            )}
+                                            {isCoach && (
+                                                <div className="mt-3 md:col-span-2 w-full">
+                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Partite Allenate</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.matchesCoached ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'matchesCoached', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Vittorie</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.wins ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'wins', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Pareggi</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.draws ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'draws', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Sconfitte</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.losses ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'losses', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Trofei</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.trophies ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'trophies', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {!validateCoachStats(exp) && (
+                                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                            <p className="text-sm text-red-700">
+                                                                ⚠️ Errore: Le partite allenate ({exp.matchesCoached}) devono essere uguali alla somma di vittorie ({exp.wins || 0}) + pareggi ({exp.draws || 0}) + sconfitte ({exp.losses || 0}) = {(exp.wins || 0) + (exp.draws || 0) + (exp.losses || 0)}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

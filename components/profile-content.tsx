@@ -212,25 +212,34 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                             const n = typeof v === 'number' ? v : Number(v)
                             return Number.isFinite(n) ? n : undefined
                         }
-                        const careerEntries = (Array.isArray(experiences) ? experiences : []).map((exp: any) => ({
-                            role: exp.role || exp.title || 'Ruolo non indicato',
-                            team: exp.team || exp.company || '',
-                            category: exp.category || '',
-                            from: exp.from || '',
-                            to: exp.to || '',
-                            summary: exp.summary || exp.description || '',
-                            stats: {
-                                goals: toNumber(exp.goals),
-                                cleanSheets: toNumber(exp.cleanSheets),
-                                appearances: toNumber(exp.appearances),
-                                pointsPerGame: toNumber(exp.pointsPerGame),
-                                assists: toNumber(exp.assists),
-                                rebounds: toNumber(exp.rebounds),
-                                volleyAces: toNumber(exp.volleyAces),
-                                volleyBlocks: toNumber(exp.volleyBlocks),
-                                volleyDigs: toNumber(exp.volleyDigs),
+
+                        // DEBUG: Verifica dati experiences
+                        console.log('🔍 DEBUG Experiences:', experiences)
+
+                        const careerEntries = (Array.isArray(experiences) ? experiences : []).map((exp: any) => {
+                            console.log('🔍 DEBUG Mapping exp:', { season: exp.season, from: exp.from, to: exp.to, team: exp.team })
+                            return {
+                                role: exp.role || exp.title || 'Ruolo non indicato',
+                                team: exp.team || exp.company || '',
+                                category: exp.category || '',
+                                season: exp.season,
+                                from: exp.from,
+                                to: exp.to,
+                                isCurrentlyPlaying: exp.isCurrentlyPlaying,
+                                summary: exp.summary || exp.description || '',
+                                stats: {
+                                    goals: toNumber(exp.goals),
+                                    cleanSheets: toNumber(exp.cleanSheets),
+                                    appearances: toNumber(exp.appearances),
+                                    pointsPerGame: toNumber(exp.pointsPerGame),
+                                    assists: toNumber(exp.assists),
+                                    rebounds: toNumber(exp.rebounds),
+                                    volleyAces: toNumber(exp.volleyAces),
+                                    volleyBlocks: toNumber(exp.volleyBlocks),
+                                    volleyDigs: toNumber(exp.volleyDigs),
+                                }
                             }
-                        }))
+                        })
 
                         if (!careerEntries || careerEntries.length === 0) {
                             return <p className="text-sm text-gray-600">Nessuna esperienza inserita. {isOwner && 'Aggiungila da Modifica profilo.'}</p>
@@ -251,9 +260,38 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                                                     <span className="text-xs rounded-full bg-base-300 text-primary px-2 py-1 font-semibold">{exp.category}</span>
                                                 )}
                                             </div>
-                                            {(exp.from || exp.to) && (
-                                                <p className="text-xs text-gray-500">{exp.from || '—'} - {exp.to || 'Presente'}</p>
-                                            )}
+                                            {(() => {
+                                                // DEBUG: Verifica valori exp nel rendering
+                                                console.log('🎨 DEBUG Rendering exp:', {
+                                                    season: exp.season,
+                                                    seasonType: typeof exp.season,
+                                                    hasSeason: !!exp.season,
+                                                    seasonTrimmed: exp.season?.trim(),
+                                                    from: exp.from,
+                                                    to: exp.to
+                                                })
+
+                                                // Priorità: mostra stagione se presente, altrimenti mostra date specifiche
+                                                if (exp.season && exp.season.trim() !== '') {
+                                                    console.log('✅ Showing season:', exp.season)
+                                                    // Mostra stagione + eventualmente date precise tra parentesi
+                                                    let periodText = `Stagione ${exp.season}`
+                                                    if (exp.from || exp.to) {
+                                                        const fromFormatted = exp.from ? new Date(exp.from).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+                                                        const toFormatted = exp.isCurrentlyPlaying ? 'Presente' : exp.to ? new Date(exp.to).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+                                                        if (fromFormatted || toFormatted) {
+                                                            periodText += ` (${fromFormatted || '—'} - ${toFormatted || 'Presente'})`
+                                                        }
+                                                    }
+                                                    return <p className="text-xs text-gray-500">{periodText}</p>
+                                                } else if (exp.from || exp.to) {
+                                                    console.log('⚠️ Showing old format dates')
+                                                    // Fallback: mostra solo date (vecchio formato)
+                                                    return <p className="text-xs text-gray-500">{exp.from || '—'} - {exp.to || 'Presente'}</p>
+                                                }
+                                                console.log('❌ No period to show')
+                                                return null
+                                            })()}
                                             {exp.summary && (
                                                 <p className="text-sm text-gray-700">{exp.summary}</p>
                                             )}
@@ -332,7 +370,7 @@ const InformazioniTab = ({ user, clubName, followersCount }: { user: any; clubNa
                         const role = (user?.professionalRole || '').toString()
                         const isCoach = role === 'Coach'
                         const isAgent = role === 'Agent'
-                        const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur'].includes(role)
+                        const isStaff = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur', 'Talent Scout'].includes(role)
 
                         if (isCoach) {
                             const licenses = Array.isArray(user?.uefaLicenses) ? user.uefaLicenses : []

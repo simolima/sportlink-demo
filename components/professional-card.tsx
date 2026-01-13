@@ -79,13 +79,12 @@ export default function ProfessionalCard({ professional, currentUserId }: Profes
                     {/* Availability */}
                     {professional.availability && (
                         <div className="mt-2">
-                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                                professional.availability === 'Disponibile'
+                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${professional.availability === 'Disponibile'
                                     ? 'bg-green-100 text-green-800'
                                     : professional.availability === 'Valuta proposte'
                                         ? 'bg-amber-100 text-amber-800'
                                         : 'bg-gray-100 text-gray-700'
-                            }`}>
+                                }`}>
                                 {professional.availability}
                             </span>
                         </div>

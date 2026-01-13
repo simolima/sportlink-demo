@@ -27,8 +27,8 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-            {/* Header with amber/orange gradient for Agents */}
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 h-20" />
+            {/* Header with gradient for Agents */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
 
             {/* Content */}
             <div className="px-4 pb-4 flex flex-col h-full">
@@ -124,7 +124,7 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
                 {/* View Profile Button */}
                 <button
                     onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
                 >
                     Visualizza Profilo
                 </button>

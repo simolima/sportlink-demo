@@ -26,8 +26,8 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-            {/* Header with purple gradient for Coaches */}
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-20" />
+            {/* Header with gradient for Coaches */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
 
             {/* Content */}
             <div className="px-4 pb-4 flex flex-col h-full">
@@ -123,7 +123,7 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
                 {/* View Profile Button */}
                 <button
                     onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
                 >
                     Visualizza Profilo
                 </button>

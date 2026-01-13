@@ -1,5 +1,71 @@
 [
   {
+    "id": "1768342738771",
+    "firstName": "Fisio",
+    "lastName": "Terapista",
+    "email": "fisioterapista@test",
+    "password": "password123",
+    "birthDate": "2001-01-01",
+    "professionalRole": "Physio/Masseur",
+    "sports": [
+      "Pallavolo"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "Non disponibile",
+    "level": "",
+    "experiences": [],
+    "uefaLicenses": [],
+    "coachSpecializations": "",
+    "hasFifaLicense": false,
+    "fifaLicenseNumber": "",
+    "agentNotes": "",
+    "certifications": [],
+    "verified": false,
+    "createdAt": "2026-01-13T22:18:58.771Z",
+    "updatedAt": ""
+  },
+  {
+    "id": "1768342591710",
+    "firstName": "Allenatore",
+    "lastName": "Pallavolo",
+    "email": "allenatorepallavolo@test",
+    "password": "password123",
+    "birthDate": "2001-01-01",
+    "professionalRole": "Coach",
+    "sports": [
+      "Pallavolo"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "Non disponibile",
+    "level": "",
+    "experiences": [],
+    "uefaLicenses": [],
+    "coachSpecializations": "",
+    "hasFifaLicense": false,
+    "fifaLicenseNumber": "",
+    "agentNotes": "",
+    "certifications": [],
+    "verified": false,
+    "createdAt": "2026-01-13T22:16:31.710Z",
+    "updatedAt": ""
+  },
+  {
     "id": "1768148405045",
     "firstName": "Talent",
     "lastName": "Scout",
@@ -90,7 +156,7 @@
     "level": "",
     "experiences": [
       {
-        "id": "1768146063061-0",
+        "id": "1768342490492-0",
         "season": "2020/2021",
         "role": "",
         "primaryPosition": "",
@@ -100,9 +166,6 @@
         "category": "",
         "categoryTier": "",
         "competitionType": "",
-        "from": "2026-01-01",
-        "to": "",
-        "isCurrentlyPlaying": true,
         "summary": ""
       }
     ],
@@ -116,7 +179,7 @@
     "certifications": [],
     "verified": false,
     "createdAt": "2025-12-29T23:08:58.415Z",
-    "updatedAt": "2026-01-11T15:41:37.282Z",
+    "updatedAt": "2026-01-13T22:15:26.774Z",
     "username": ""
   },
   {

@@ -1,5 +1,38 @@
 [
   {
+    "id": "1768148405045",
+    "firstName": "Talent",
+    "lastName": "Scout",
+    "email": "talentscout@test",
+    "password": "password123",
+    "birthDate": "1999-12-12",
+    "professionalRole": "Talent Scout",
+    "sports": [
+      "Calcio"
+    ],
+    "sport": "",
+    "bio": "",
+    "avatar": null,
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "",
+    "country": "",
+    "professionalRoleLabel": "",
+    "currentRole": "",
+    "availability": "Non disponibile",
+    "level": "",
+    "experiences": [],
+    "uefaLicenses": [],
+    "coachSpecializations": "",
+    "hasFifaLicense": false,
+    "fifaLicenseNumber": "",
+    "agentNotes": "",
+    "certifications": [],
+    "verified": false,
+    "createdAt": "2026-01-11T16:20:05.045Z",
+    "updatedAt": ""
+  },
+  {
     "id": "1767110349619",
     "firstName": "Simona",
     "lastName": "Calcio",
@@ -57,27 +90,19 @@
     "level": "",
     "experiences": [
       {
-        "id": "1767104119874-0",
+        "id": "1768146063061-0",
+        "season": "2020/2021",
         "role": "",
         "primaryPosition": "",
         "positionDetail": "",
         "team": "",
         "country": "",
         "category": "",
-        "from": "",
+        "categoryTier": "",
+        "competitionType": "",
+        "from": "2026-01-01",
         "to": "",
-        "summary": ""
-      },
-      {
-        "id": "1767104119874-1",
-        "role": "",
-        "primaryPosition": "",
-        "positionDetail": "",
-        "team": "",
-        "country": "",
-        "category": "",
-        "from": "",
-        "to": "",
+        "isCurrentlyPlaying": true,
         "summary": ""
       }
     ],
@@ -91,7 +116,7 @@
     "certifications": [],
     "verified": false,
     "createdAt": "2025-12-29T23:08:58.415Z",
-    "updatedAt": "2025-12-30T14:15:45.969Z",
+    "updatedAt": "2026-01-11T15:41:37.282Z",
     "username": ""
   },
   {
@@ -629,23 +654,24 @@
     "level": "",
     "experiences": [
       {
-        "id": "1767108839353-0",
+        "id": "1768147765922-0",
+        "season": "2020/2021",
         "role": "Attaccante",
         "primaryPosition": "Attaccante",
-        "positionDetail": "",
-        "team": "Casarile FC",
+        "positionDetail": "Punta centrale",
+        "team": "",
         "country": "Italia",
-        "category": "",
-        "from": "2016",
-        "to": "2017",
-        "summary": "Punta titolare",
+        "category": "Serie B",
+        "categoryTier": "Professionisti",
+        "competitionType": "male",
+        "summary": "",
         "goals": 12,
-        "appearances": 26
+        "appearances": 20
       }
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2025-12-30T15:34:02.719Z",
+    "updatedAt": "2026-01-11T16:09:27.629Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,

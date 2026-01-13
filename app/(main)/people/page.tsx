@@ -1,24 +1,41 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserCircleIcon, MagnifyingGlassIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
 import { SUPPORTED_SPORTS, PROFESSIONAL_ROLES } from '@/lib/types'
-// Opzioni ruolo specifico e dominanza
-const footballPrimaryOptions = [
-    { value: "Portiere", label: "Portiere" },
-    { value: "Difensore", label: "Difensore" },
-    { value: "Centrocampista", label: "Centrocampista" },
-    { value: "Attaccante", label: "Attaccante" },
-];
-const basketRoles = ["Playmaker", "Guardia", "Ala piccola", "Ala grande", "Centro"];
-const volleyRoles = ["Palleggiatore", "Schiacciatore", "Centrale", "Opposto", "Libero"];
-const handOptions = [
-    { value: "destra", label: "Destra" },
-    { value: "sinistra", label: "Sinistra" },
-    { value: "ambidestra", label: "Ambidestra" },
-];
+
+// Sport-specific roles for cascade filtering
+const rolesByProfession: Record<string, string[]> = {
+    'Calcio': ['Portiere', 'Difensore', 'Centrocampista', 'Attaccante'],
+    'Basket': ['Playmaker', 'Guardia', 'Ala piccola', 'Ala grande', 'Centro'],
+    'Pallavolo': ['Palleggiatore', 'Schiacciatore', 'Centrale', 'Opposto', 'Libero'],
+}
+
+const dominanceOptions = {
+    'Calcio': [
+        { value: 'destro', label: 'Piede destro' },
+        { value: 'sinistro', label: 'Piede sinistro' },
+        { value: 'ambidestro', label: 'Ambidestro' },
+    ],
+    'Basket': [
+        { value: 'destra', label: 'Mano destra' },
+        { value: 'sinistra', label: 'Mano sinistra' },
+        { value: 'ambidestra', label: 'Ambidestra' },
+    ],
+    'Pallavolo': [
+        { value: 'destra', label: 'Mano destra' },
+        { value: 'sinistra', label: 'Mano sinistra' },
+        { value: 'ambidestra', label: 'Ambidestra' },
+    ],
+}
+
+const categoryOptions = {
+    'Calcio': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
+    'Basket': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
+    'Pallavolo': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
+}
 
 export default function PeoplePage() {
     const router = useRouter()
@@ -137,155 +154,276 @@ export default function PeoplePage() {
 
     if (!currentUserId) return null;
 
+    // Reset advanced filters when sport changes
+    const handleSportChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedSport(e.target.value)
+        setSelectedSpecificRole('')
+        setSelectedDominant('')
+    }
+
+    // Reset advanced filters when role changes
+    const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedRole(e.target.value)
+        setSelectedSpecificRole('')
+        setSelectedDominant('')
+    }
+
+    // Reset all filters
+    const handleResetFilters = () => {
+        setSearchQuery('')
+        setSelectedSport('all')
+        setSelectedRole('all')
+        setSelectedAvailability('all')
+        setSelectedSpecificRole('')
+        setSelectedDominant('')
+    }
+
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-4xl mx-auto py-6 px-4">
-                {/* Filtri avanzati: visibili SOLO se mainSport !== '' e (selectedRole === 'Player' || selectedRole === 'all') */}
-                {mainSport !== '' && (selectedRole === 'Player' || selectedRole === 'all') && (
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Ruolo specifico */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Ruolo specifico</label>
-                            {mainSport === 'Calcio' ? (
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    value={selectedSpecificRole}
-                                    onChange={e => setSelectedSpecificRole(e.target.value)}
-                                >
-                                    <option value="">Tutti i ruoli</option>
-                                    {footballPrimaryOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-                            ) : mainSport === 'Basket' ? (
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    value={selectedSpecificRole}
-                                    onChange={e => setSelectedSpecificRole(e.target.value)}
-                                >
-                                    <option value="">Tutti i ruoli</option>
-                                    {basketRoles.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
-                            ) : mainSport === 'Pallavolo' ? (
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    value={selectedSpecificRole}
-                                    onChange={e => setSelectedSpecificRole(e.target.value)}
-                                >
-                                    <option value="">Tutti i ruoli</option>
-                                    {volleyRoles.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
-                            ) : null}
-                        </div>
-                        {/* Dominanza */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">{mainSport === 'Calcio' ? 'Piede dominante' : (mainSport === 'Basket' || mainSport === 'Pallavolo') ? 'Mano dominante' : 'Dominanza'}</label>
-                            {mainSport === 'Calcio' ? (
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    value={selectedDominant}
-                                    onChange={e => setSelectedDominant(e.target.value)}
-                                >
-                                    <option value="">Qualsiasi piede</option>
-                                    <option value="destro">Destro</option>
-                                    <option value="sinistro">Sinistro</option>
-                                    <option value="ambidestro">Ambidestro</option>
-                                </select>
-                            ) : (mainSport === 'Basket' || mainSport === 'Pallavolo') ? (
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    value={selectedDominant}
-                                    onChange={e => setSelectedDominant(e.target.value)}
-                                >
-                                    <option value="">Qualsiasi mano</option>
-                                    {handOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-                            ) : null}
-                        </div>
-                    </div>
-                )}
+            <div className="max-w-6xl mx-auto py-6 px-4">
+                {/* Title */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Scopri Professionisti</h1>
+                    <p className="text-gray-600 mt-1">Trova e connettiti con i migliori talenti dello sport</p>
+                </div>
 
-                {/* Lista utenti filtrati */}
-                <div className="mt-6 space-y-4">
-                    {filteredUsers.map(user => (
-                        <div key={user.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-6">
-                            <div className="flex items-start gap-4">
-                                {/* Avatar */}
-                                <div
-                                    className="cursor-pointer"
-                                    onClick={() => router.push(`/profile/${user.id}`)}
-                                >
-                                    <Avatar
-                                        src={user.avatarUrl}
-                                        alt={`${user.firstName} ${user.lastName}`}
-                                        size="lg"
-                                        fallbackText={user.firstName?.[0] || 'U'}
-                                        className="w-16 h-16"
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Filtri Sidebar */}
+                    <aside className="lg:col-span-1">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-20">
+                            {/* Filter Header */}
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <FunnelIcon className="w-5 h-5 text-green-600" />
+                                    <h2 className="font-bold text-gray-900">Filtra</h2>
+                                </div>
+                                {(selectedSport !== 'all' || selectedRole !== 'all' || selectedAvailability !== 'all' || searchQuery) && (
+                                    <button
+                                        onClick={handleResetFilters}
+                                        className="text-xs text-green-600 hover:text-green-700 font-medium"
+                                    >
+                                        Ripristina
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Search Input */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Ricerca</label>
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Nome, email..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                                     />
                                 </div>
+                            </div>
 
-                                {/* User info */}
-                                <div className="flex-1 min-w-0">
-                                    <h3
-                                        className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-sprinta-blue"
-                                        onClick={() => router.push(`/profile/${user.id}`)}
-                                    >
-                                        {user.firstName} {user.lastName}
-                                    </h3>
-                                    {user.username && (
-                                        <p className="text-sm text-gray-500">@{user.username}</p>
+                            {/* Sport Filter */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Sport</label>
+                                <select
+                                    value={selectedSport}
+                                    onChange={handleSportChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm bg-white"
+                                >
+                                    <option value="all">Tutti gli sport</option>
+                                    {SUPPORTED_SPORTS.map(sport => (
+                                        <option key={sport} value={sport}>{sport}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Professional Role Filter */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo Professionale</label>
+                                <select
+                                    value={selectedRole}
+                                    onChange={handleRoleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm bg-white"
+                                >
+                                    <option value="all">Tutti i ruoli</option>
+                                    {PROFESSIONAL_ROLES.map(role => (
+                                        <option key={role} value={role}>{role}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Availability Filter */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Disponibilità</label>
+                                <select
+                                    value={selectedAvailability}
+                                    onChange={(e) => setSelectedAvailability(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm bg-white"
+                                >
+                                    <option value="all">Qualsiasi</option>
+                                    <option value="Disponibile">Disponibile</option>
+                                    <option value="Valuta proposte">Valuta proposte</option>
+                                    <option value="Non disponibile">Non disponibile</option>
+                                </select>
+                            </div>
+
+                            {/* Cascading Filters for Players */}
+                            {selectedRole === 'Player' && mainSport !== '' && (
+                                <>
+                                    {/* Specific Role Filter */}
+                                    {rolesByProfession[mainSport] && (
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo Specifico</label>
+                                            <select
+                                                value={selectedSpecificRole}
+                                                onChange={(e) => setSelectedSpecificRole(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm bg-white"
+                                            >
+                                                <option value="">Tutti i ruoli</option>
+                                                {rolesByProfession[mainSport].map(role => (
+                                                    <option key={role} value={role}>{role}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     )}
 
-                                    {/* Sport & Role */}
-                                    <div className="flex items-center gap-2 mt-1">
-                                        {user.professionalRole && (
-                                            <span className="text-sprinta-blue font-medium text-sm">{user.professionalRole}</span>
-                                        )}
-                                        {user.professionalRole && user.sport && <span className="text-gray-400">•</span>}
-                                        {user.sport && (
-                                            <span className="text-gray-600 text-sm">{user.sport}</span>
-                                        )}
-                                    </div>
-
-                                    {/* City & Availability */}
-                                    <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                        {user.city && (
-                                            <div className="flex items-center">
-                                                <MapPinIcon className="h-4 w-4 mr-1" />
-                                                {user.city}
-                                            </div>
-                                        )}
-                                        {user.availability && (
-                                            <>
-                                                {user.city && <span>•</span>}
-                                                <span className={`font-medium ${user.availability === 'Disponibile' ? 'text-sprinta-blue' :
-                                                    user.availability === 'Valuta proposte' ? 'text-blue-600' :
-                                                        'text-gray-500'
-                                                    }`}>
-                                                    {user.availability}
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {user.bio && (
-                                        <p className="text-gray-600 text-sm mt-2 line-clamp-2">{user.bio}</p>
+                                    {/* Dominance Filter */}
+                                    {dominanceOptions[mainSport] && (
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                {mainSport === 'Calcio' ? 'Piede Dominante' : 'Mano Dominante'}
+                                            </label>
+                                            <select
+                                                value={selectedDominant}
+                                                onChange={(e) => setSelectedDominant(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm bg-white"
+                                            >
+                                                <option value="">Qualsiasi</option>
+                                                {dominanceOptions[mainSport].map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     )}
-                                </div>
+                                </>
+                            )}
 
-                                {/* Follow button */}
-                                <div className="flex-shrink-0">
-                                    <FollowButton targetId={user.id} />
-                                </div>
+                            {/* Help text */}
+                            <div className="text-xs text-gray-500 bg-green-50 border border-green-200 rounded p-3">
+                                💡 Seleziona uno sport per visualizzare i filtri specifici
                             </div>
                         </div>
-                    ))}
+                    </aside>
+
+                    {/* Users List */}
+                    <div className="lg:col-span-3">
+                        {/* Results count */}
+                        <div className="mb-4 text-sm text-gray-600">
+                            Risultati: <span className="font-semibold text-gray-900">{filteredUsers.length}</span>
+                        </div>
+
+                        {/* Users Grid */}
+                        {filteredUsers.length > 0 ? (
+                            <div className="space-y-4">
+                                {filteredUsers.map(user => (
+                                    <div
+                                        key={user.id}
+                                        className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border border-gray-100 overflow-hidden"
+                                    >
+                                        <div className="p-6">
+                                            <div className="flex items-start gap-4">
+                                                {/* Avatar */}
+                                                <div
+                                                    className="cursor-pointer flex-shrink-0"
+                                                    onClick={() => router.push(`/profile/${user.id}`)}
+                                                >
+                                                    <Avatar
+                                                        src={user.avatarUrl}
+                                                        alt={`${user.firstName} ${user.lastName}`}
+                                                        size="lg"
+                                                        fallbackText={user.firstName?.[0] || 'U'}
+                                                        className="w-16 h-16"
+                                                    />
+                                                </div>
+
+                                                {/* User Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    {/* Name & Username */}
+                                                    <div className="flex items-center gap-2">
+                                                        <h3
+                                                            className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-green-600 truncate"
+                                                            onClick={() => router.push(`/profile/${user.id}`)}
+                                                        >
+                                                            {user.firstName} {user.lastName}
+                                                        </h3>
+                                                    </div>
+                                                    {user.username && (
+                                                        <p className="text-sm text-gray-500">@{user.username}</p>
+                                                    )}
+
+                                                    {/* Role & Sport Tags */}
+                                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                        {user.professionalRole && (
+                                                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                                {user.professionalRole}
+                                                            </span>
+                                                        )}
+                                                        {user.sport && (
+                                                            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                                {user.sport}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Location & Availability */}
+                                                    <div className="flex items-center gap-3 mt-3 text-sm text-gray-600 flex-wrap">
+                                                        {user.city && (
+                                                            <div className="flex items-center">
+                                                                <MapPinIcon className="h-4 w-4 mr-1 text-gray-400" />
+                                                                <span>{user.city}</span>
+                                                            </div>
+                                                        )}
+                                                        {user.availability && (
+                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.availability === 'Disponibile'
+                                                                    ? 'bg-green-50 text-green-700'
+                                                                    : user.availability === 'Valuta proposte'
+                                                                        ? 'bg-amber-50 text-amber-700'
+                                                                        : 'bg-gray-100 text-gray-600'
+                                                                }`}>
+                                                                {user.availability}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Bio */}
+                                                    {user.bio && (
+                                                        <p className="text-gray-600 text-sm mt-3 line-clamp-2">{user.bio}</p>
+                                                    )}
+                                                </div>
+
+                                                {/* Follow Button */}
+                                                <div className="flex-shrink-0">
+                                                    <FollowButton targetId={user.id} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                                <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900">Nessun risultato trovato</h3>
+                                <p className="text-gray-600 text-sm mt-1">Prova a modificare i filtri di ricerca</p>
+                                <button
+                                    onClick={handleResetFilters}
+                                    className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                                >
+                                    Ripristina filtri
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

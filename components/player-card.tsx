@@ -29,7 +29,7 @@ export default function PlayerCard({ player, currentUserId }: PlayerCardProps) {
     return (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
             {/* Header with blue gradient for Players */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-20" />
+            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
 
             {/* Content */}
             <div className="px-4 pb-4 flex flex-col h-full">
@@ -108,7 +108,7 @@ export default function PlayerCard({ player, currentUserId }: PlayerCardProps) {
                 {/* View Profile Button */}
                 <button
                     onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
                 >
                     Visualizza Profilo
                 </button>

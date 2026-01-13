@@ -32,6 +32,13 @@ interface Experience {
     volleyAces?: number
     volleyBlocks?: number
     volleyDigs?: number
+    // Statistiche Calcio specifiche
+    minutesPlayed?: number
+    penalties?: number
+    yellowCards?: number
+    redCards?: number
+    substitutionsIn?: number
+    substitutionsOut?: number
     // Statistiche opzionali per Coach
     matchesCoached?: number
     wins?: number
@@ -146,6 +153,9 @@ export default function EditProfilePage() {
     const [isFootball, setIsFootball] = useState(false);
     const [isCoach, setIsCoach] = useState(false);
     const [isAgent, setIsAgent] = useState(false);
+    const [isSportingDirector, setIsSportingDirector] = useState(false);
+    const [isPhysio, setIsPhysio] = useState(false);
+    const [isAthleticTrainer, setIsAthleticTrainer] = useState(false);
     const [isStaff, setIsStaff] = useState(false);
 
     // --- Sport principale per logica ruolo/dominanza ---
@@ -175,6 +185,9 @@ export default function EditProfilePage() {
                 setIsFootball(Array.isArray(user.sports) && user.sports.includes("Calcio"));
                 setIsCoach(user.professionalRole === "Coach");
                 setIsAgent(user.professionalRole === "Agent");
+                setIsSportingDirector(user.professionalRole === "Sporting Director");
+                setIsPhysio(user.professionalRole === "Physio/Masseur");
+                setIsAthleticTrainer(user.professionalRole === "Athletic Trainer");
                 setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(user.professionalRole));
                 const sport = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports[0] : user.sport || undefined;
                 setMainSport(sport);
@@ -218,6 +231,12 @@ export default function EditProfilePage() {
                             volleyAces: typeof e.volleyAces === 'number' ? e.volleyAces : undefined,
                             volleyBlocks: typeof e.volleyBlocks === 'number' ? e.volleyBlocks : undefined,
                             volleyDigs: typeof e.volleyDigs === 'number' ? e.volleyDigs : undefined,
+                            minutesPlayed: typeof e.minutesPlayed === 'number' ? e.minutesPlayed : undefined,
+                            penalties: typeof e.penalties === 'number' ? e.penalties : undefined,
+                            yellowCards: typeof e.yellowCards === 'number' ? e.yellowCards : undefined,
+                            redCards: typeof e.redCards === 'number' ? e.redCards : undefined,
+                            substitutionsIn: typeof e.substitutionsIn === 'number' ? e.substitutionsIn : undefined,
+                            substitutionsOut: typeof e.substitutionsOut === 'number' ? e.substitutionsOut : undefined,
                             matchesCoached: typeof e.matchesCoached === 'number' ? e.matchesCoached : undefined,
                             wins: typeof e.wins === 'number' ? e.wins : undefined,
                             draws: typeof e.draws === 'number' ? e.draws : undefined,
@@ -505,6 +524,38 @@ export default function EditProfilePage() {
     };
 
     const basketCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
+
+    // Basket: macro-categorie (come per il calcio)
+    const basketMacroCategories = [
+        "Professionisti",
+        "Dilettanti",
+        "Amatori",
+        "Settore giovanile professionistico",
+        "Settore giovanile dilettantistico",
+        "Altro",
+    ];
+
+    // Basket Maschile (Italia) - organizzato per macro-categoria
+    const basketMaleCategoresByTierItaly: Record<string, string[]> = {
+        Professionisti: ["Serie A (LBA)", "Serie A2", "Serie B", "Altro"],
+        Dilettanti: ["Serie B interregionale", "Serie C gold", "Serie C silver", "Serie D", "Prima Divisione", "Seconda Divisione", "Altro"],
+        Amatori: ["Promozionali / Amatori", "Altro"],
+        "Settore giovanile professionistico": ["Under 19 Eccellenza", "Under 17 Eccellenza", "Under 15 Eccellenza", "Altro"],
+        "Settore giovanile dilettantistico": ["Under 19 Gold", "Under 17 Gold", "Under 15 Gold", "Under 14", "Under 13", "Altro"],
+        Altro: ["Altro"],
+    };
+
+    // Basket Femminile (Italia) - organizzato per macro-categoria
+    const basketFemaleCategoresByTierItaly: Record<string, string[]> = {
+        Professionisti: ["Serie A1", "Serie A2", "Altro"],
+        Dilettanti: ["Serie B", "Serie C", "Serie D", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        "Settore giovanile professionistico": ["Under 19 Eccellenza", "Under 17 Eccellenza", "Under 15 Eccellenza", "Altro"],
+        "Settore giovanile dilettantistico": ["Under 19 Gold", "Under 17 Gold", "Under 15 Gold", "Under 14", "Under 13", "Altro"],
+        Altro: ["Altro"],
+    };
+
+    // Basket per altri paesi (fallback)
     const basketCategoriesByCountry: Record<string, string[]> = {
         Italia: ["Serie A1", "Serie A2", "Serie B", "Serie C", "Divisioni Regionali", "Amatori"],
         Spagna: ["Liga ACB", "LEB Oro", "LEB Plata", "Liga EBA", "Regional"],
@@ -513,13 +564,49 @@ export default function EditProfilePage() {
         Inghilterra: ["BBL", "NBL Division 1", "NBL Division 2", "Regional"],
     };
 
-    // Basket Femminile (Italia)
-    const basketFemaleCategoriesItaly = ["Serie A1", "Serie A2", "Serie B", "Serie C", "Divisioni Regionali", "Under 19", "Under 17", "Under 15"];
-
-    // Basket Femminile (altri paesi - fallback)
-    const basketFemaleCategoriesDefault = ["Prima Divisione", "Seconda Divisione", "Divisioni Regionali", "U19", "U17", "U15"];
+    // Basket fallback per altri paesi (struttura con tier)
+    const basketCategoriesByTierDefault: Record<string, string[]> = {
+        Professionisti: ["Prima Divisione", "Seconda Divisione", "Altro"],
+        Dilettanti: ["Divisioni Regionali", "Divisioni Locali", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        "Settore giovanile professionistico": ["U19", "U17", "U15", "Altro"],
+        "Settore giovanile dilettantistico": ["U19 Regional", "U17 Regional", "U15 Regional", "Altro"],
+        Altro: ["Altro"],
+    };
 
     const volleyCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
+
+    // Pallavolo: macro-categorie (come per il calcio e basket)
+    const volleyMacroCategories = [
+        "Professionisti",
+        "Dilettanti",
+        "Amatori",
+        "Settore giovanile professionistico",
+        "Settore giovanile dilettantistico",
+        "Altro",
+    ];
+
+    // Pallavolo Maschile (Italia) - organizzato per macro-categoria
+    const volleyMaleCategoresByTierItaly: Record<string, string[]> = {
+        Professionisti: ["SuperLega Serie A", "Serie A2", "Altro"],
+        Dilettanti: ["Serie A3", "Serie B", "Serie C", "Serie D", "Prima divisione", "Seconda divisione", "Terza divisione", "Altro"],
+        Amatori: ["Amatoriali", "Altro"],
+        "Settore giovanile professionistico": ["Under 19", "Under 17", "Under 15", "Altro"],
+        "Settore giovanile dilettantistico": ["Under 14", "Under 13", "Under 12", "Altro"],
+        Altro: ["Altro"],
+    };
+
+    // Pallavolo Femminile (Italia) - organizzato per macro-categoria
+    const volleyFemaleCategoresByTierItaly: Record<string, string[]> = {
+        Professionisti: ["Serie A1", "Serie A2", "Altro"],
+        Dilettanti: ["Serie B1", "Serie B2", "Serie C", "Serie D", "Divisioni provinciali", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        "Settore giovanile professionistico": ["Under 19", "Under 17", "Under 15", "Altro"],
+        "Settore giovanile dilettantistico": ["Under 14", "Under 13", "Under 12", "Altro"],
+        Altro: ["Altro"],
+    };
+
+    // Pallavolo per altri paesi (fallback)
     const volleyCategoriesByCountry: Record<string, string[]> = {
         Italia: ["SuperLega", "Serie A2", "Serie A3", "Serie B", "Serie C", "Divisioni Regionali"],
         Spagna: ["Superliga", "Superliga 2", "Primera División", "Regional"],
@@ -528,11 +615,15 @@ export default function EditProfilePage() {
         Inghilterra: ["Super League", "National League", "Regional"],
     };
 
-    // Pallavolo Femminile (Italia)
-    const volleyFemaleCategoriesItaly = ["Serie A1", "Serie A2", "Serie B1", "Serie B2", "Serie C", "Divisioni Regionali", "Under 19", "Under 17", "Under 15"];
-
-    // Pallavolo Femminile (altri paesi - fallback)
-    const volleyFemaleCategoriesDefault = ["Prima Divisione", "Seconda Divisione", "Divisioni Regionali", "U19", "U17", "U15"];
+    // Pallavolo fallback per altri paesi (struttura con tier)
+    const volleyCategoriesByTierDefault: Record<string, string[]> = {
+        Professionisti: ["Prima Divisione", "Seconda Divisione", "Altro"],
+        Dilettanti: ["Divisioni Regionali", "Divisioni Locali", "Altro"],
+        Amatori: ["Amatori", "Altro"],
+        "Settore giovanile professionistico": ["U19", "U17", "U15", "Altro"],
+        "Settore giovanile dilettantistico": ["U14", "U13", "U12", "Altro"],
+        Altro: ["Altro"],
+    };
 
     // --- Coach: Licenze UEFA ---
     const uefaLicenseOptions = [
@@ -545,6 +636,99 @@ export default function EditProfilePage() {
         "Allenatore di Base (Italia)",
         "Allenatore UEFA C Giovanile (Italia)"
     ];
+
+    // --- Certificazioni suggerite per Allenatore (Coach) ---
+    const coachCertificationOptions: Record<string, string[]> = {
+        Calcio: [
+            "Licenza UEFA Pro",
+            "Licenza UEFA A",
+            "Licenza UEFA B",
+            "Licenza UEFA C",
+            "Corsi FIGC / Settore Tecnico Coverciano",
+            "Allenatore di Base (FIGC)",
+            "Allenatore UEFA C Giovanile (FIGC)",
+            "Youth License",
+            "Grassroots License",
+        ],
+        Basket: [
+            "Corso Allenatori FIP (Federazione Italiana Pallacanestro)",
+            "Patentino Allenatore FIP A",
+            "Patentino Allenatore FIP B",
+            "Patentino Allenatore FIP C",
+            "Corso Allenatori Giovanili FIP",
+        ],
+        Pallavolo: [
+            "Corso Allenatori FIPAV (Federazione Italiana Pallavolo)",
+            "Patentino Allenatore FIPAV A",
+            "Patentino Allenatore FIPAV B",
+            "Patentino Allenatore FIPAV C",
+            "Corso Allenatori Giovanili FIPAV",
+        ],
+    };
+
+    // --- Certificazioni suggerite per Direttore Sportivo ---
+    const directorCertificationOptions: Record<string, string[]> = {
+        Calcio: [
+            "Elenco Speciale Direttori Sportivi (FIGC)",
+            "Corso Direttore Sportivo FIGC",
+            "Certificazione Gestione Sportiva",
+        ],
+        Basket: [
+            "Elenco Ufficiale Direttori Sportivi (FIP)",
+            "Corso Direttore Sportivo FIP",
+        ],
+        Pallavolo: [
+            "Elenco Ufficiale Direttori Sportivi (FIPAV)",
+            "Corso Direttore Sportivo FIPAV",
+        ],
+    };
+
+    // --- Certificazioni suggerite per Fisioterapista ---
+    const physioCertificationOptions: Record<string, string[]> = {
+        Calcio: [
+            "Laurea in Fisioterapia",
+            "Iscrizione Albo Professionale TSRM PSTRP",
+            "Specializzazione Fisioterapia dello Sport",
+            "Certificazione IAASP (International Association of Athletic and Sports Physical Therapists)",
+        ],
+        Basket: [
+            "Laurea in Fisioterapia",
+            "Iscrizione Albo Professionale TSRM PSTRP",
+            "Specializzazione Fisioterapia dello Sport",
+            "Certificazione IAASP",
+        ],
+        Pallavolo: [
+            "Laurea in Fisioterapia",
+            "Iscrizione Albo Professionale TSRM PSTRP",
+            "Specializzazione Fisioterapia dello Sport",
+            "Certificazione IAASP",
+        ],
+    };
+
+    // --- Certificazioni suggerite per Preparatore Atletico ---
+    const athleticTrainerCertificationOptions: Record<string, string[]> = {
+        Calcio: [
+            "Laurea in Scienze Motorie",
+            "NSCA CSCS (Certified Strength and Conditioning Specialist)",
+            "IUSCA IQF Levels",
+            "Certificazione Preparatore Atletico",
+            "Specializzazione Allenamento della Forza e del Condizionamento",
+        ],
+        Basket: [
+            "Laurea in Scienze Motorie",
+            "NSCA CSCS",
+            "IUSCA IQF Levels",
+            "Certificazione Preparatore Atletico",
+            "Specializzazione Allenamento della Forza e del Condizionamento",
+        ],
+        Pallavolo: [
+            "Laurea in Scienze Motorie",
+            "NSCA CSCS",
+            "IUSCA IQF Levels",
+            "Certificazione Preparatore Atletico",
+            "Specializzazione Allenamento della Forza e del Condizionamento",
+        ],
+    };
 
     // ...existing code...
     const updateField = (key: keyof FormState, value: any) => {
@@ -643,6 +827,7 @@ export default function EditProfilePage() {
         const numericKeys: (keyof Experience)[] = [
             'goals', 'cleanSheets', 'appearances', 'pointsPerGame', 'assists', 'rebounds',
             'volleyAces', 'volleyBlocks', 'volleyDigs',
+            'minutesPlayed', 'penalties', 'yellowCards', 'redCards', 'substitutionsIn', 'substitutionsOut',
             'matchesCoached', 'wins', 'draws', 'losses', 'trophies'
         ]
         const coercedValue = numericKeys.includes(key)
@@ -1004,55 +1189,6 @@ export default function EditProfilePage() {
                         </div>
                     </section>
 
-                    {/* Sezione Qualifiche Coach */}
-                    {isCoach && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                            <div className="mb-6">
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenze e Specializzazioni</h2>
-                            </div>
-
-                            <div className="space-y-6">
-                                {/* Licenze UEFA */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        Licenze UEFA e Qualifiche
-                                    </label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {uefaLicenseOptions.map((license) => (
-                                            <label
-                                                key={license}
-                                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(form.uefaLicenses || []).includes(license)}
-                                                    onChange={() => toggleUefaLicense(license)}
-                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                />
-                                                <span className="text-sm text-gray-700">{license}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Specializzazioni */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Specializzazioni
-                                    </label>
-                                    <textarea
-                                        value={form.coachSpecializations || ""}
-                                        onChange={(e) => updateField("coachSpecializations", e.target.value)}
-                                        rows={3}
-                                        placeholder="Es: Tattica difensiva, Settore giovanile, Preparazione fisica..."
-                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
                     {/* Sezione Qualifiche Agent */}
                     {isAgent && (
                         <section className="rounded-2xl border border-gray-200 bg-white p-6">
@@ -1105,6 +1241,362 @@ export default function EditProfilePage() {
                                         className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
                                     />
                                 </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Certificazioni Coach */}
+                    {isCoach && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Allenatore</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCertification}
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Aggiungi certificazione
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-3">Seleziona dalle certificazioni suggerite:</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                        {mainSport && coachCertificationOptions[mainSport]?.map((cert) => (
+                                            <button
+                                                key={cert}
+                                                type="button"
+                                                onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
+                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                            >
+                                                + {cert}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {(form.certifications || []).length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
+                                    </div>
+                                )}
+
+                                {(form.certifications || []).map((cert) => (
+                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                <input
+                                                    value={cert.name}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
+                                                    placeholder="Nome certificazione"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    value={cert.issuingOrganization}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
+                                                    placeholder="Ente rilascio (FIGC, FIP, FIPAV)"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.yearObtained}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
+                                                    placeholder="Anno conseguimento"
+                                                    min="1950"
+                                                    max={new Date().getFullYear()}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.expiryDate || ""}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
+                                                    placeholder="Scadenza (opzionale)"
+                                                    min={cert.yearObtained || "1950"}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCertification(cert.id)}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                            >
+                                                <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Certificazioni Direttore Sportivo */}
+                    {isSportingDirector && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Direttore Sportivo</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCertification}
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Aggiungi certificazione
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-3">Seleziona dalle certificazioni suggerite:</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                        {mainSport && directorCertificationOptions[mainSport]?.map((cert) => (
+                                            <button
+                                                key={cert}
+                                                type="button"
+                                                onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
+                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                            >
+                                                + {cert}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {(form.certifications || []).length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
+                                    </div>
+                                )}
+
+                                {(form.certifications || []).map((cert) => (
+                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                <input
+                                                    value={cert.name}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
+                                                    placeholder="Nome certificazione"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    value={cert.issuingOrganization}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
+                                                    placeholder="Ente rilascio (FIGC, FIP, FIPAV)"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.yearObtained}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
+                                                    placeholder="Anno conseguimento"
+                                                    min="1950"
+                                                    max={new Date().getFullYear()}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.expiryDate || ""}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
+                                                    placeholder="Scadenza (opzionale)"
+                                                    min={cert.yearObtained || "1950"}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCertification(cert.id)}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                            >
+                                                <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Certificazioni Fisioterapista */}
+                    {isPhysio && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Fisioterapista</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCertification}
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Aggiungi certificazione
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-3">Seleziona dalle certificazioni suggerite:</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                        {mainSport && physioCertificationOptions[mainSport]?.map((cert) => (
+                                            <button
+                                                key={cert}
+                                                type="button"
+                                                onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
+                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                            >
+                                                + {cert}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {(form.certifications || []).length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
+                                    </div>
+                                )}
+
+                                {(form.certifications || []).map((cert) => (
+                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                <input
+                                                    value={cert.name}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
+                                                    placeholder="Nome certificazione"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    value={cert.issuingOrganization}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
+                                                    placeholder="Ente rilascio (TSRM PSTRP, IAASP)"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.yearObtained}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
+                                                    placeholder="Anno conseguimento"
+                                                    min="1950"
+                                                    max={new Date().getFullYear()}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.expiryDate || ""}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
+                                                    placeholder="Scadenza (opzionale)"
+                                                    min={cert.yearObtained || "1950"}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCertification(cert.id)}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                            >
+                                                <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Sezione Certificazioni Preparatore Atletico */}
+                    {isAthleticTrainer && (
+                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Preparatore Atletico</h2>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCertification}
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Aggiungi certificazione
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-3">Seleziona dalle certificazioni suggerite:</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                        {mainSport && athleticTrainerCertificationOptions[mainSport]?.map((cert) => (
+                                            <button
+                                                key={cert}
+                                                type="button"
+                                                onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
+                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                            >
+                                                + {cert}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {(form.certifications || []).length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
+                                    </div>
+                                )}
+
+                                {(form.certifications || []).map((cert) => (
+                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                <input
+                                                    value={cert.name}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
+                                                    placeholder="Nome certificazione"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    value={cert.issuingOrganization}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
+                                                    placeholder="Ente rilascio (NSCA, IUSCA)"
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.yearObtained}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
+                                                    placeholder="Anno conseguimento"
+                                                    min="1950"
+                                                    max={new Date().getFullYear()}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={cert.expiryDate || ""}
+                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
+                                                    placeholder="Scadenza (opzionale)"
+                                                    min={cert.yearObtained || "1950"}
+                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCertification(cert.id)}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                            >
+                                                <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </section>
                     )}
@@ -1557,10 +2049,12 @@ export default function EditProfilePage() {
                                                 </>
                                             ) : !isCoach && isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
                                                 <>
+                                                    {/* Nazione */}
                                                     <select
                                                         value={exp.country}
                                                         onChange={(e) => {
                                                             handleExperienceChange(exp.id, "country", e.target.value)
+                                                            handleExperienceChange(exp.id, "categoryTier", "")
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
@@ -1572,7 +2066,26 @@ export default function EditProfilePage() {
                                                         ))}
                                                     </select>
 
-                                                    {/* Tipologia Competizione (Basket/Pallavolo) */}
+                                                    {/* Macro categoria (Italia per Basket e Pallavolo) */}
+                                                    {(mainSport === "Basket" || mainSport === "Pallavolo") && exp.country === "Italia" && (
+                                                        <select
+                                                            value={exp.categoryTier || ""}
+                                                            onChange={(e) => {
+                                                                handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                                handleExperienceChange(exp.id, "competitionType", "")
+                                                                handleExperienceChange(exp.id, "category", "")
+                                                            }}
+                                                            className={inputBase}
+                                                            disabled={!exp.country}
+                                                        >
+                                                            <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
+                                                            {(mainSport === "Basket" ? basketMacroCategories : volleyMacroCategories).map((tier) => (
+                                                                <option key={tier} value={tier}>{tier}</option>
+                                                            ))}
+                                                        </select>
+                                                    )}
+
+                                                    {/* Tipologia Competizione */}
                                                     <select
                                                         value={exp.competitionType || ""}
                                                         onChange={(e) => {
@@ -1580,14 +2093,15 @@ export default function EditProfilePage() {
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
                                                         className={inputBase}
-                                                        disabled={!exp.country}
+                                                        disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier : !exp.country}
                                                     >
-                                                        <option value="">{exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione"}</option>
+                                                        <option value="">{exp.country === "Italia" ? (exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria") : (exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione")}</option>
                                                         {competitionTypes.map((type) => (
                                                             <option key={type.value} value={type.value}>{type.label}</option>
                                                         ))}
                                                     </select>
 
+                                                    {/* Categoria dettagliata */}
                                                     {exp.country === "Altro" ? (
                                                         <input
                                                             value={exp.category}
@@ -1600,26 +2114,62 @@ export default function EditProfilePage() {
                                                             value={exp.category}
                                                             onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
                                                             className={inputBase}
-                                                            disabled={!exp.country || !exp.competitionType}
+                                                            disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier || !exp.competitionType : !exp.country || !exp.competitionType}
                                                         >
                                                             <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
-                                                            {exp.country && exp.competitionType ? (
-                                                                exp.competitionType === "female" ? (
-                                                                    // Categorie femminili per Basket/Pallavolo
-                                                                    exp.country === "Italia"
-                                                                        ? (mainSport === "Basket" ? basketFemaleCategoriesItaly : volleyFemaleCategoriesItaly).map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                        : (mainSport === "Basket" ? basketFemaleCategoriesDefault : volleyFemaleCategoriesDefault).map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
+                                                            {mainSport === "Basket" ? (
+                                                                exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                    exp.competitionType === "female" ? (
+                                                                        // Categorie femminili Basket
+                                                                        exp.country === "Italia"
+                                                                            ? basketFemaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                            : basketCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                    ) : (
+                                                                        // Categorie maschili/open/miste Basket
+                                                                        exp.country === "Italia"
+                                                                            ? basketMaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                            : basketCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                    )
+                                                                ) : null
+                                                            ) : (
+                                                                // Pallavolo
+                                                                exp.country === "Italia" ? (
+                                                                    exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                        exp.competitionType === "female" ? (
+                                                                            // Categorie femminili Pallavolo (Italia)
+                                                                            volleyFemaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                        ) : (
+                                                                            // Categorie maschili/open/miste Pallavolo (Italia)
+                                                                            volleyMaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                        )
+                                                                    ) : null
                                                                 ) : (
-                                                                    // Categorie maschili/open/miste
-                                                                    (mainSport === "Basket" ? basketCategoriesByCountry : volleyCategoriesByCountry)[exp.country]?.map((cat) => (
-                                                                        <option key={cat} value={cat}>{cat}</option>
-                                                                    ))
+                                                                    // Pallavolo altri paesi - senza macro-categoria
+                                                                    exp.country && exp.competitionType ? (
+                                                                        exp.competitionType === "female" ? (
+                                                                            volleyCategoriesByCountry[exp.country]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                        ) : (
+                                                                            volleyCategoriesByCountry[exp.country]?.map((cat) => (
+                                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                            ))
+                                                                        )
+                                                                    ) : null
                                                                 )
-                                                            ) : null}
+                                                            )}
                                                         </select>
                                                     )}
                                                 </>
@@ -1730,6 +2280,26 @@ export default function EditProfilePage() {
                                                     <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                         <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Presenze</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.appearances ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Minuti Giocati</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.minutesPlayed ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'minutesPlayed', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
                                                             <label className="text-xs text-gray-600">Gol</label>
                                                             <input
                                                                 type="number"
@@ -1740,7 +2310,17 @@ export default function EditProfilePage() {
                                                             />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Clean sheet</label>
+                                                            <label className="text-xs text-gray-600">Assist</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.assists ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Rete Inviolata</label>
                                                             <input
                                                                 type="number"
                                                                 min={0}
@@ -1750,13 +2330,55 @@ export default function EditProfilePage() {
                                                             />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Presenze</label>
+                                                            <label className="text-xs text-gray-600">Rigori</label>
                                                             <input
                                                                 type="number"
                                                                 min={0}
-                                                                value={exp.appearances ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                value={exp.penalties ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'penalties', e.target.value)}
                                                                 className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Ammonizioni</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.yellowCards ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'yellowCards', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Espulsioni</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.redCards ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'redCards', e.target.value)}
+                                                                className={inputBase}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Sost. (IN)</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.substitutionsIn ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsIn', e.target.value)}
+                                                                className={inputBase}
+                                                                placeholder="Entrate"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs text-gray-600">Sost. (OUT)</label>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={exp.substitutionsOut ?? ''}
+                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsOut', e.target.value)}
+                                                                className={inputBase}
+                                                                placeholder="Uscite"
                                                             />
                                                         </div>
                                                     </div>
@@ -1934,187 +2556,6 @@ export default function EditProfilePage() {
                             ))}
                         </div>
                     </section>
-
-                    {/* Sezione Qualifiche Coach */}
-                    {isCoach && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                            <div className="mb-6">
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenze e Specializzazioni</h2>
-                            </div>
-
-                            <div className="space-y-6">
-                                {/* Licenze UEFA */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        Licenze UEFA e Qualifiche
-                                    </label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {uefaLicenseOptions.map((license) => (
-                                            <label
-                                                key={license}
-                                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(form.uefaLicenses || []).includes(license)}
-                                                    onChange={() => toggleUefaLicense(license)}
-                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                />
-                                                <span className="text-sm text-gray-700">{license}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Specializzazioni */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Specializzazioni
-                                    </label>
-                                    <textarea
-                                        value={form.coachSpecializations || ""}
-                                        onChange={(e) => updateField("coachSpecializations", e.target.value)}
-                                        rows={3}
-                                        placeholder="Es: Tattica difensiva, Settore giovanile, Preparazione fisica..."
-                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Sezione Qualifiche Agent */}
-                    {isAgent && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                            <div className="mb-6">
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenza e Informazioni</h2>
-                            </div>
-
-                            <div className="space-y-4">
-                                {/* Licenza FIFA */}
-                                <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.hasFifaLicense || false}
-                                        onChange={(e) => updateField("hasFifaLicense", e.target.checked)}
-                                        className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                    />
-                                    <div>
-                                        <span className="block text-sm font-semibold text-gray-900">Licenza FIFA</span>
-                                        <span className="text-xs text-gray-500">Sono un agente FIFA registrato</span>
-                                    </div>
-                                </label>
-
-                                {/* Numero Licenza */}
-                                {form.hasFifaLicense && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Numero Licenza FIFA
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={form.fifaLicenseNumber || ""}
-                                            onChange={(e) => updateField("fifaLicenseNumber", e.target.value)}
-                                            placeholder="Es: 123456789"
-                                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Note Agente */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Informazioni Aggiuntive
-                                    </label>
-                                    <textarea
-                                        value={form.agentNotes || ""}
-                                        onChange={(e) => updateField("agentNotes", e.target.value)}
-                                        rows={3}
-                                        placeholder="Es: Specializzazione in trasferimenti internazionali, focus su giovani talenti..."
-                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Sezione Certificazioni Staff */}
-                    {isStaff && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni e Abilitazioni</h2>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
-                                >
-                                    <PlusIcon className="h-4 w-4" />
-                                    Aggiungi certificazione
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
-                                        Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
-                                    </div>
-                                )}
-
-                                {(form.certifications || []).map((cert) => (
-                                    <div
-                                        key={cert.id}
-                                        className="rounded-xl border border-gray-200 bg-white p-4"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex-1 grid gap-3 md:grid-cols-2">
-                                                <input
-                                                    value={cert.name}
-                                                    onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
-                                                    placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                />
-                                                <input
-                                                    value={cert.issuingOrganization}
-                                                    onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
-                                                    placeholder="Ente rilascio"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={cert.yearObtained}
-                                                    onChange={(e) => handleCertificationChange(cert.id, "yearObtained", e.target.value)}
-                                                    placeholder="Anno conseguimento"
-                                                    min="1950"
-                                                    max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={cert.expiryDate || ""}
-                                                    onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
-                                                    placeholder="Scadenza (opzionale)"
-                                                    min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
-                                                />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCertification(cert.id)}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
-                                            >
-                                                <XMarkIcon className="h-5 w-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                         <button

@@ -5,6 +5,7 @@ import { SparklesIcon } from '@heroicons/react/24/outline'
 import PlayerCard from '@/components/player-card'
 import CoachCard from '@/components/coach-card'
 import AgentCard from '@/components/agent-card'
+import ProfessionalCard from '@/components/professional-card'
 import DynamicFilterBar from '@/components/dynamic-filter-bar'
 
 export default function ProfessionalsPage() {
@@ -20,11 +21,22 @@ export default function ProfessionalsPage() {
     const [selectedCountry, setSelectedCountry] = useState('')
     const [selectedAvailability, setSelectedAvailability] = useState('all')
     const [selectedLevel, setSelectedLevel] = useState('all')
+    const [selectedDetailedCategory, setSelectedDetailedCategory] = useState('all')
     const [verified, setVerified] = useState(false)
 
     // Player-specific filters
     const [minGoals, setMinGoals] = useState<number | null>(null)
+    const [minCleanSheets, setMinCleanSheets] = useState<number | null>(null)
+    // Basketball stats
+    const [minPoints, setMinPoints] = useState<number | null>(null)
+    const [minAssists, setMinAssists] = useState<number | null>(null)
+    const [minRebounds, setMinRebounds] = useState<number | null>(null)
+    // Volleyball stats
+    const [minAces, setMinAces] = useState<number | null>(null)
+    const [minBlocks, setMinBlocks] = useState<number | null>(null)
+    const [minDigs, setMinDigs] = useState<number | null>(null)
     const [category, setCategory] = useState('all')
+    const [selectedSeason, setSelectedSeason] = useState('all')
 
     // Coach-specific filters
     const [uefaLicense, setUefaLicense] = useState('all')
@@ -73,11 +85,20 @@ export default function ProfessionalsPage() {
                 ...(selectedCity && { city: selectedCity }),
                 ...(selectedCountry && { country: selectedCountry }),
                 ...(selectedAvailability !== 'all' && { availability: selectedAvailability }),
-                ...(selectedLevel !== 'all' && { level: selectedLevel }),
+                ...(selectedLevel !== 'all' && { category: selectedLevel }),
+                ...(selectedDetailedCategory !== 'all' && { detailedCategory: selectedDetailedCategory }),
                 ...(verified && { verified: 'true' }),
                 // Player filters
                 ...(minGoals !== null && { minGoals: minGoals.toString() }),
+                ...(minCleanSheets !== null && { minCleanSheets: minCleanSheets.toString() }),
+                ...(minPoints !== null && { minPoints: minPoints.toString() }),
+                ...(minAssists !== null && { minAssists: minAssists.toString() }),
+                ...(minRebounds !== null && { minRebounds: minRebounds.toString() }),
+                ...(minAces !== null && { minAces: minAces.toString() }),
+                ...(minBlocks !== null && { minBlocks: minBlocks.toString() }),
+                ...(minDigs !== null && { minDigs: minDigs.toString() }),
                 ...(category !== 'all' && { category }),
+                ...(selectedSeason !== 'all' && { season: selectedSeason }),
                 // Coach filters
                 ...(uefaLicense !== 'all' && { uefaLicense }),
                 ...(specialization && { specialization }),
@@ -113,9 +134,18 @@ export default function ProfessionalsPage() {
         selectedCountry,
         selectedAvailability,
         selectedLevel,
+        selectedDetailedCategory,
         verified,
         minGoals,
+        minCleanSheets,
+        minPoints,
+        minAssists,
+        minRebounds,
+        minAces,
+        minBlocks,
+        minDigs,
         category,
+        selectedSeason,
         uefaLicense,
         specialization,
         hasUEFALicense,
@@ -137,9 +167,18 @@ export default function ProfessionalsPage() {
         selectedCountry,
         selectedAvailability,
         selectedLevel,
+        selectedDetailedCategory,
         verified,
         minGoals,
+        minCleanSheets,
+        minPoints,
+        minAssists,
+        minRebounds,
+        minAces,
+        minBlocks,
+        minDigs,
         category,
+        selectedSeason,
         uefaLicense,
         specialization,
         hasUEFALicense,
@@ -174,6 +213,19 @@ export default function ProfessionalsPage() {
                     <AgentCard
                         key={professional.id}
                         agent={professional}
+                        currentUserId={currentUserId}
+                    />
+                )
+            // Use generic ProfessionalCard for other roles
+            case 'Sporting Director':
+            case 'Athletic Trainer':
+            case 'Nutritionist':
+            case 'Physio/Masseur':
+            case 'Talent Scout':
+                return (
+                    <ProfessionalCard
+                        key={professional.id}
+                        professional={professional}
                         currentUserId={currentUserId}
                     />
                 )
@@ -221,12 +273,30 @@ export default function ProfessionalsPage() {
                             onAvailabilityChange={setSelectedAvailability}
                             selectedLevel={selectedLevel}
                             onLevelChange={setSelectedLevel}
+                            selectedDetailedCategory={selectedDetailedCategory}
+                            onDetailedCategoryChange={setSelectedDetailedCategory}
                             verified={verified}
                             onVerifiedChange={setVerified}
                             minGoals={minGoals}
                             onMinGoalsChange={setMinGoals}
+                            minCleanSheets={minCleanSheets}
+                            onMinCleanSheetsChange={setMinCleanSheets}
+                            minPoints={minPoints}
+                            onMinPointsChange={setMinPoints}
+                            minAssists={minAssists}
+                            onMinAssistsChange={setMinAssists}
+                            minRebounds={minRebounds}
+                            onMinReboundsChange={setMinRebounds}
+                            minAces={minAces}
+                            onMinAcesChange={setMinAces}
+                            minBlocks={minBlocks}
+                            onMinBlocksChange={setMinBlocks}
+                            minDigs={minDigs}
+                            onMinDigsChange={setMinDigs}
                             category={category}
                             onCategoryChange={setCategory}
+                            selectedSeason={selectedSeason}
+                            onSeasonChange={setSelectedSeason}
                             uefaLicense={uefaLicense}
                             onUefaLicenseChange={setUefaLicense}
                             specialization={specialization}

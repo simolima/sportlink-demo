@@ -185,6 +185,7 @@ create table public.profile_sports (
   sport_id bigint references public.lookup_sports(id) on delete cascade not null,
   
   -- Livello e Ruolo Primario per questo sport
+  -- NULLABLE: Solo Player/Coach hanno questi dati compilati
   level_id bigint references public.lookup_levels(id),
   primary_position_id bigint references public.lookup_positions(id),
   

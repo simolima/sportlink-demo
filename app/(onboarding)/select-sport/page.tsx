@@ -96,8 +96,14 @@ export default function SelectSportPage() {
             clearSignupDraft()
             // Vai alla home
             window.location.replace('/home')
-        } catch (err) {
-            setError('Errore nella creazione del profilo. Riprova.')
+        } catch (err: any) {
+            console.error('Signup error:', err)
+            // Mostra messaggio errore più specifico
+            if (err.message.includes('email')) {
+                setError('Email non valida o già in uso. Prova con un\'altra email.')
+            } else {
+                setError('Errore nella creazione del profilo. Riprova.')
+            }
             setIsLoading(false)
         }
     }

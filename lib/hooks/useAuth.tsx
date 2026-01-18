@@ -63,23 +63,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const res = await fetch('/api/users', { method: 'GET' })
-            const users: User[] = await res.json()
-            const user = users.find(u => u.email === email && u.password === password)
-            if (user) {
-                setUser(user)
-                localStorage.setItem('currentUserId', String(user.id))
-                localStorage.setItem('currentUserEmail', user.email)
-                localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
-                localStorage.setItem('currentUserAvatar', user.avatarUrl || '')
-                // Supporta sia sports (array) che sport (legacy)
-                const userSports = (user as any).sports || []
-                localStorage.setItem('currentUserSports', JSON.stringify(userSports))
-                localStorage.setItem('currentUserSport', userSports[0] || (user as any).sport || '')
-                localStorage.setItem('currentUserRole', user.professionalRole || '')
-                return true
+            console.log('🔐 Login attempt for:', email)
+
+            // Import Supabase client dynamically
+            const { supabase } = await import('@/lib/supabase-browser')
+
+            // Step 1: Authenticate with Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            })
+
+            console.log('🔐 Supabase Auth response:', {
+                hasUser: !!authData?.user,
+                error: authError?.message,
+                errorCode: authError?.code
+            })
+
+            if (authError || !authData.user) {
+                console.error('❌ Supabase login error:', authError)
+                return false
             }
-            return false
+
+            console.log('✅ Auth successful, user ID:', authData.user.id)
+
+            // Step 2: Get user profile from profiles table
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authData.user.id)
+                .single()
+
+            if (profileError || !profile) {
+                console.error('Profile fetch error:', profileError)
+                return false
+            }
+
+            // Step 3: Get user's sports from profile_sports
+            const { data: userSports, error: sportsError } = await supabase
+                .from('profile_sports')
+                .select('sport_id, is_main_sport, lookup_sports(name)')
+                .eq('user_id', authData.user.id)
+
+            const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
+
+            // Construct user object
+            const user: User = {
+                id: profile.id,
+                email: profile.email,
+                firstName: profile.first_name || '',
+                lastName: profile.last_name || '',
+                sports: sports,
+                professionalRole: profile.role_id || 'Player',
+                verified: false,
+                password: '',
+                birthDate: profile.birth_date || '',
+                avatarUrl: profile.avatar_url || '',
+                createdAt: profile.created_at,
+            } as any
+
+            setUser(user)
+            localStorage.setItem('currentUserId', String(user.id))
+            localStorage.setItem('currentUserEmail', user.email)
+            localStorage.setItem('currentUserName', `${user.firstName} ${user.lastName}`)
+            localStorage.setItem('currentUserAvatar', user.avatarUrl || '')
+            localStorage.setItem('currentUserSports', JSON.stringify(sports))
+            localStorage.setItem('currentUserSport', sports[0] || '')
+            localStorage.setItem('currentUserRole', user.professionalRole || '')
+
+            return true
         } catch (error) {
             console.error('Login failed:', error)
             return false

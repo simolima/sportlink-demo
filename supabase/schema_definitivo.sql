@@ -361,11 +361,19 @@ create table public.career_experiences (
   -- ====================================================================
   -- Valorizzate solo se role = 'Player'
   
-  -- Calcio
+  -- Calcio - Statistiche Base
   goals integer default 0,
   assists integer default 0,
   clean_sheets integer default 0,
   appearances integer default 0,
+  
+  -- Calcio - Statistiche Avanzate
+  minutes_played integer default 0,
+  penalties integer default 0,
+  yellow_cards integer default 0,
+  red_cards integer default 0,
+  substitutions_in integer default 0,
+  substitutions_out integer default 0,
   
   -- Basket
   points_per_game numeric(5,2) default 0,

@@ -69,7 +69,7 @@ export default function SelectSportPage() {
             const email = localStorage.getItem('signup_email') || ''
             const password = localStorage.getItem('signup_password') || ''
             const birthDate = localStorage.getItem('signup_birthDate') || ''
-            const professionalRole = role || ''
+            const professionalRole = role as ProfessionalRole
             const sports = selectedSports
 
             // Crea l'utente via service

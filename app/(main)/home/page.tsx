@@ -47,6 +47,21 @@ export default function HomePage() {
 
         const role = localStorage.getItem('currentUserRole') || ''
         const name = localStorage.getItem('currentUserName') || ''
+        const sportsJson = localStorage.getItem('currentUserSports')
+
+        // Check if profile is complete
+        if (!role || !sportsJson) {
+            console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
+            // Redirect to appropriate onboarding step
+            if (!name || name === 'User OAuth') {
+                window.location.href = '/complete-profile'
+            } else if (!role) {
+                window.location.href = '/profile-setup?oauth=true'
+            } else {
+                window.location.href = '/select-sport'
+            }
+            return
+        }
 
         setUserId(id)
         setUserRole(role)

@@ -16,6 +16,7 @@ interface AuthContextType {
     isAuthenticated: boolean
     hasCompletedProfile: boolean
     login: (email: string, password: string) => Promise<boolean>
+    loginWithGoogle: () => Promise<void>
     register: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<User | null>
     logout: () => Promise<void>
     updateUser: (updates: Partial<User>) => Promise<void>
@@ -138,6 +139,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const loginWithGoogle = async () => {
+        try {
+            const { supabase } = await import('@/lib/supabase-browser')
+
+            const redirectUrl = `${window.location.origin}/auth/callback`
+            console.log('🔵 Starting Google OAuth...')
+            console.log('🔗 Redirect URL:', redirectUrl)
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl
+                }
+            })
+
+            console.log('📤 OAuth response:', { data, error })
+
+            if (error) {
+                console.error('❌ Google login error:', error)
+                throw error
+            }
+        } catch (error) {
+            console.error('❌ Google login failed:', error)
+            throw error
+        }
+    }
+
     const register = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<User | null> => {
         try {
             const res = await fetch('/api/users', {
@@ -199,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isAuthenticated: !!user,
                 hasCompletedProfile,
                 login,
+                loginWithGoogle,
                 register,
                 logout,
                 updateUser,

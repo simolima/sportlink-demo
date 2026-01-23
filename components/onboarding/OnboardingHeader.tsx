@@ -5,7 +5,7 @@ import Image from 'next/image'
 interface OnboardingHeaderProps {
     title: string
     subtitle: string
-    currentStep: 1 | 2
+    currentStep: 1 | 2 | 3
     totalSteps?: number
 }
 

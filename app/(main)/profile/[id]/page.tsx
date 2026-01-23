@@ -1,65 +1,124 @@
-import fs from 'fs'
-import path from 'path'
+"use client"
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import ProfileSidebar from '@/components/profile-sidebar'
 import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
 import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
-
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
-const CLUBS_PATH = path.join(process.cwd(), 'data', 'clubs.json')
-const CLUB_MEMBERSHIPS_PATH = path.join(process.cwd(), 'data', 'club-memberships.json')
-const AFFILIATIONS_PATH = path.join(process.cwd(), 'data', 'affiliations.json')
-
-function readJson(p: string) {
-    if (!fs.existsSync(p)) return []
-    try { return JSON.parse(fs.readFileSync(p, 'utf8') || '[]') } catch { return [] }
-}
+import { supabase } from '@/lib/supabase-browser'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
-    const id = params.id
-    const users = readJson(USERS_PATH)
-    const follows = readJson(FOLLOWS_PATH)
-    const clubs = readJson(CLUBS_PATH)
-    const memberships = readJson(CLUB_MEMBERSHIPS_PATH)
-    const affiliations = readJson(AFFILIATIONS_PATH)
+    const router = useRouter()
+    const [user, setUser] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+    const [followersCount, setFollowersCount] = useState(0)
+    const [followingCount, setFollowingCount] = useState(0)
+    const [assistatiCount, setAssistatiCount] = useState(0)
+    const [userClub, setUserClub] = useState<string | null>(null)
+    const [sports, setSports] = useState<string[]>([])
 
-    const user = users.find((u: any) => String(u.id) === id)
-    if (!user) return (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-            <div className="text-gray-900 text-xl">Utente non trovato</div>
-        </div>
-    )
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                // Fetch user profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', params.id)
+                    .single()
 
-    const followersCount = follows.filter((f: any) => String(f.followingId) === String(id)).length
-    const followingCount = follows.filter((f: any) => String(f.followerId) === String(id)).length
+                if (profileError || !profile) {
+                    console.error('Profile fetch error:', profileError)
+                    setLoading(false)
+                    return
+                }
 
-    // Conteggio assistiti per agenti (affiliazioni accettate dove agentId = user.id)
-    const assistatiCount = affiliations.filter((a: any) => String(a.agentId) === String(id) && a.status === 'accepted').length
+                // Fetch user sports
+                const { data: userSports } = await supabase
+                    .from('profile_sports')
+                    .select('sport_id, is_main_sport, lookup_sports(name)')
+                    .eq('user_id', params.id)
 
-    // Determina il club da mostrare
-    let userClub = user.currentClub || null
+                const sportsNames = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
+                setSports(sportsNames)
 
-    // Se Player: cerca il club dalla membership
-    if (!userClub && user.professionalRole === 'Player') {
-        const playerMembership = memberships.find((m: any) => String(m.userId) === String(id) && m.isActive)
-        if (playerMembership) {
-            const club = clubs.find((c: any) => String(c.id) === String(playerMembership.clubId))
-            if (club) userClub = club.name
+                // Construct user object
+                const userData = {
+                    id: profile.id,
+                    email: profile.email,
+                    firstName: profile.first_name || '',
+                    lastName: profile.last_name || '',
+                    username: profile.username,
+                    bio: profile.bio,
+                    avatarUrl: profile.avatar_url,
+                    coverUrl: profile.cover_url,
+                    city: profile.city,
+                    country: profile.country,
+                    birthDate: profile.birth_date,
+                    gender: profile.gender,
+                    professionalRole: profile.role_id,
+                    sports: sportsNames,
+                    experiences: [], // TODO: fetch from career_experiences table
+                }
+
+                setUser(userData)
+
+                // Fetch followers/following counts
+                const { count: followersC } = await supabase
+                    .from('follows')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('following_id', params.id)
+
+                const { count: followingC } = await supabase
+                    .from('follows')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('follower_id', params.id)
+
+                setFollowersCount(followersC || 0)
+                setFollowingCount(followingC || 0)
+
+                // Fetch assistiti count (for agents)
+                const { count: assistatiC } = await supabase
+                    .from('affiliations')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('agent_id', params.id)
+                    .eq('status', 'accepted')
+
+                setAssistatiCount(assistatiC || 0)
+
+                // Fetch club info (TODO: implement club membership query)
+                // For now, leaving as null
+
+                setLoading(false)
+            } catch (err) {
+                console.error('Error fetching profile:', err)
+                setLoading(false)
+            }
         }
+
+        fetchProfile()
+    }, [params.id])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-gray-900 text-xl">Caricamento...</div>
+            </div>
+        )
     }
 
-    // Se DS: cerca il club creato da lui
-    if (!userClub && user.professionalRole === 'Sporting Director') {
-        const managedClub = clubs.find((c: any) => String(c.createdBy) === String(id))
-        if (managedClub) userClub = managedClub.name
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-gray-900 text-xl">Utente non trovato</div>
+            </div>
+        )
     }
 
-    // Esperienze formattate
     const experiences = Array.isArray(user.experiences) ? user.experiences : []
-    const sports = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports : (user.sport ? [user.sport] : [])
-    const sportNorm = (sports[0] || user.sport || '').toString().toLowerCase()
-    const isPlayerRole = (user.professionalRole || '').toString().toLowerCase().includes('player') || (user.professionalRole || '').toString().toLowerCase().includes('giocatore')
+    const sportNorm = (sports[0] || '').toString().toLowerCase()
+    const isPlayerRole = (user.professionalRole || '').toString().toLowerCase().includes('player')
 
     return (
         <div className="min-h-screen bg-white py-8">
@@ -319,7 +378,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 subtitle="Agenti e affiliazioni"
                             >
                                 <ProfileRepresentationWrapper
-                                    profileUserId={Number(id)}
+                                    profileUserId={Number(params.id)}
                                     profileUserRole={user.professionalRole}
                                 />
                             </ProfileSection>

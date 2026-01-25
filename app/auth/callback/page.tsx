@@ -77,7 +77,11 @@ export default function AuthCallbackPage() {
                 })
 
                 // Check profile completion status
-                const hasCompleteProfile = !!(profile?.first_name && profile?.last_name)
+                // Note: Trigger creates profile with "Nome", "Cognome" as placeholders
+                const isPlaceholderName = profile?.first_name === 'Nome' || profile?.last_name === 'Cognome'
+                const hasRealName = profile?.first_name && profile?.last_name && !isPlaceholderName
+
+                const hasCompleteProfile = !!hasRealName
                 const hasRole = !!profile?.role_id
                 const hasSports = !!(sports && sports.length > 0)
 
@@ -87,6 +91,7 @@ export default function AuthCallbackPage() {
                     hasSports,
                     firstName: profile?.first_name,
                     lastName: profile?.last_name,
+                    isPlaceholderName,
                     roleId: profile?.role_id,
                     sportsCount: sports?.length || 0
                 })

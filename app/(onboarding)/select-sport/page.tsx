@@ -104,10 +104,11 @@ export default function SelectSportPage() {
                 // Get OAuth user data from localStorage
                 const firstName = localStorage.getItem('oauth_firstName') || ''
                 const lastName = localStorage.getItem('oauth_lastName') || ''
+                const birthDate = localStorage.getItem('oauth_birthDate') || ''
                 const email = localStorage.getItem('currentUserEmail') || ''
                 const avatarUrl = localStorage.getItem('oauth_avatarUrl') || ''
 
-                console.log('📝 OAuth user data:', { firstName, lastName, email, avatarUrl })
+                console.log('📝 OAuth user data:', { firstName, lastName, birthDate, email, avatarUrl })
 
                 // Validate required fields
                 if (!firstName || !lastName) {
@@ -123,6 +124,11 @@ export default function SelectSportPage() {
                     first_name: firstName,
                     last_name: lastName,
                     email: email,
+                }
+
+                // Add birth_date if provided
+                if (birthDate) {
+                    profileUpdate.birth_date = birthDate
                 }
 
                 if (avatarUrl) {

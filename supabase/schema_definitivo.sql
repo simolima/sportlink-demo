@@ -623,6 +623,39 @@ create policy "Users can manage own physical stats"
   on public.physical_stats for all
   using (auth.uid() = user_id);
 
+-- Profile Sports Policies
+create policy "Profile sports viewable by everyone"
+  on public.profile_sports for select
+  using (deleted_at is null);
+
+create policy "Users can insert own profile sports"
+  on public.profile_sports for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own profile sports"
+  on public.profile_sports for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own profile sports"
+  on public.profile_sports for delete
+  using (auth.uid() = user_id);
+
+-- Profile Secondary Positions Policies
+create policy "Profile secondary positions viewable by everyone"
+  on public.profile_secondary_positions for select
+  using (deleted_at is null);
+
+create policy "Users can manage own profile secondary positions"
+  on public.profile_secondary_positions for all
+  using (
+    exists (
+      select 1 from public.profile_sports
+      where profile_sports.id = profile_secondary_positions.profile_sport_id
+      and profile_sports.user_id = auth.uid()
+    )
+  );
+
 -- Messages Policies
 create policy "Users can see their own messages"
   on public.messages for select

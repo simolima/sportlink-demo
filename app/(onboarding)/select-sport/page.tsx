@@ -208,6 +208,9 @@ export default function SelectSportPage() {
                 localStorage.setItem('currentUserRole', professionalRole)
                 localStorage.setItem('currentUserSports', JSON.stringify(sports))
 
+                // Set flag that onboarding is complete
+                localStorage.setItem('onboarding_complete', 'true')
+
                 // Vai alla home
                 window.location.replace('/home')
                 return

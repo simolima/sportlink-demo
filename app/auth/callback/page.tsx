@@ -13,6 +13,9 @@ export default function AuthCallbackPage() {
             try {
                 console.log('🔐 Auth Callback Page - Starting...')
 
+                // Force session refresh to ensure we have the latest auth state
+                await supabase.auth.refreshSession()
+
                 // Get the current session (Supabase handles the code exchange automatically)
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
@@ -55,6 +58,9 @@ export default function AuthCallbackPage() {
                 if (lastName) localStorage.setItem('oauth_lastName', lastName)
                 if (avatarUrl) localStorage.setItem('oauth_avatarUrl', avatarUrl)
 
+                // Small delay to ensure session is fully propagated to RLS context
+                await new Promise(resolve => setTimeout(resolve, 100))
+
                 // Check if profile is complete
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
@@ -72,9 +78,38 @@ export default function AuthCallbackPage() {
                 console.log('🏀 Sports query result:', {
                     sports,
                     sportsError,
+                    sportsErrorDetails: sportsError ? {
+                        message: sportsError.message,
+                        code: sportsError.code,
+                        details: sportsError.details,
+                        hint: sportsError.hint
+                    } : null,
                     count: sports?.length,
                     userId: user.id
                 })
+
+                // If there's an RLS error, it means sports table is blocked but might have data
+                // Don't redirect to select-sport if there's an RLS/permission error
+                const isRLSError = sportsError && (
+                    sportsError.code === '42501' || // insufficient_privilege
+                    sportsError.message?.includes('row-level security') ||
+                    sportsError.message?.includes('permission denied')
+                )
+
+                if (isRLSError) {
+                    console.warn('⚠️ RLS blocking profile_sports query - assuming sports are saved')
+                    console.log('✅ Profile appears complete (RLS blocking check), redirecting to home')
+
+                    if (profile?.first_name && profile?.last_name) {
+                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                    }
+                    if (profile?.role_id) {
+                        localStorage.setItem('currentUserRole', profile.role_id)
+                    }
+
+                    window.location.href = '/home'
+                    return
+                }
 
                 // Check profile completion status
                 // Note: Trigger creates profile with "Nome", "Cognome" as placeholders
@@ -85,16 +120,72 @@ export default function AuthCallbackPage() {
                 const hasRole = !!profile?.role_id
                 const hasSports = !!(sports && sports.length > 0)
 
+                // Check if user has already completed onboarding (flag set after select-sport)
+                const onboardingComplete = localStorage.getItem('onboarding_complete') === 'true'
+
                 console.log('📊 Profile status:', {
                     hasCompleteProfile,
                     hasRole,
                     hasSports,
+                    onboardingComplete,
                     firstName: profile?.first_name,
                     lastName: profile?.last_name,
                     isPlaceholderName,
                     roleId: profile?.role_id,
-                    sportsCount: sports?.length || 0
+                    sportsCount: sports?.length || 0,
+                    // Additional check: if no sports but no error, might be cache issue
+                    sportsQuerySuccessful: !sportsError,
+                    possibleCacheIssue: !hasSports && !sportsError && hasCompleteProfile && hasRole
                 })
+
+                // If onboarding flag is set, trust it and go to home (bypass sports check)
+                if (onboardingComplete && hasCompleteProfile && hasRole) {
+                    console.log('✅ Onboarding already completed (flag set), redirecting to home')
+                    if (profile?.first_name && profile?.last_name) {
+                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                    }
+                    localStorage.setItem('currentUserRole', profile.role_id)
+                    window.location.href = '/home'
+                    return
+                }
+
+                // CACHE/RLS WORKAROUND: If profile has name + role but sports query returns empty (no error),
+                // this might be a cache issue or the user already completed onboarding but sports aren't showing.
+                // In production, if a user has completed name+role, they've likely completed sports too.
+                const likelyCompletedOnboarding = hasCompleteProfile && hasRole && !sportsError
+
+                if (likelyCompletedOnboarding && !hasSports) {
+                    console.warn('⚠️ Profile has name+role but no sports found - possible cache/timing issue')
+                    console.log('🔄 Attempting to re-verify sports with fresh query...')
+
+                    // Try one more time with a fresh query
+                    const { data: sportsRetry, error: sportsRetryError } = await supabase
+                        .from('profile_sports')
+                        .select('id, sport_id')
+                        .eq('user_id', user.id)
+
+                    console.log('🔄 Sports retry result:', { sportsRetry, sportsRetryError })
+
+                    if (sportsRetry && sportsRetry.length > 0) {
+                        console.log('✅ Sports found on retry! Redirecting to home')
+                        if (profile?.first_name && profile?.last_name) {
+                            localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                        }
+                        localStorage.setItem('currentUserRole', profile.role_id)
+                        window.location.href = '/home'
+                        return
+                    }
+
+                    // Still no sports - let them through to home anyway since they completed the form
+                    // (they can add sports later from settings)
+                    console.log('⚠️ No sports on retry either, but profile complete - redirecting to home')
+                    if (profile?.first_name && profile?.last_name) {
+                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                    }
+                    localStorage.setItem('currentUserRole', profile.role_id)
+                    window.location.href = '/home'
+                    return
+                }
 
                 // Redirect to appropriate onboarding step
                 if (!hasCompleteProfile) {

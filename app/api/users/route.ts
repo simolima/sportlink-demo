@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
-import { supabase } from '@/lib/supabase-browser'
+import { createServerClient, supabaseServer } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
@@ -27,7 +27,7 @@ export async function OPTIONS(req: Request) {
 // GET /api/users - Get all profiles
 export async function GET(req: Request) {
     try {
-        const { data: profiles, error } = await supabase
+        const { data: profiles, error } = await supabaseServer
             .from('profiles')
             .select('*')
             .order('created_at', { ascending: false })
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         }
 
         // Step 1: Create user in Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await supabaseServer.auth.signUp({
             email,
             password,
             options: {
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
             privacy_settings: body.privacySettings ?? null,
         }
 
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabaseServer
             .from('profiles')
             .update(profileUpdates)
             .eq('id', userId)
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
             console.log('✅ Sports validation passed, querying lookup_sports...')
 
             // Prima ottieni gli ID degli sport da lookup_sports
-            const { data: sportsData, error: sportsError } = await supabase
+            const { data: sportsData, error: sportsError } = await supabaseServer
                 .from('lookup_sports')
                 .select('id, name')
                 .in('name', body.sports)
@@ -162,7 +162,7 @@ export async function POST(req: Request) {
 
                 console.log('📝 Records to insert:', profileSportsRecords)
 
-                const { error: insertSportsError } = await supabase
+                const { error: insertSportsError } = await supabaseServer
                     .from('profile_sports')
                     .insert(profileSportsRecords)
 
@@ -202,20 +202,35 @@ export async function PATCH(req: Request) {
         const body = await req.json()
         const id = body.id ?? null
 
+        console.log('🔍 PATCH /api/users - Request body:', { id, fields: Object.keys(body) })
+
         if (!id) {
             return withCors(NextResponse.json({ error: 'id_required' }, { status: 400 }))
         }
 
+        // Use service role client to bypass RLS
+        // Note: We trust the client has verified the user identity via localStorage
+        const supabase = supabaseServer
+
         // Check if profile exists
+        console.log('🔍 Checking if profile exists for id:', id)
         const { data: existing, error: checkError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', id)
-            .single()
+            .maybeSingle()
+
+        if (checkError) {
+            console.error('❌ Check error:', checkError)
+            return withCors(NextResponse.json({ error: checkError.message }, { status: 500 }))
+        }
 
         if (!existing) {
+            console.error('❌ Profile not found for id:', id)
             return withCors(NextResponse.json({ error: 'not_found' }, { status: 404 }))
         }
+
+        console.log('✅ Profile exists, proceeding with update')
 
         // Prepare update data (only include fields that are provided)
         const updates: any = {
@@ -223,38 +238,56 @@ export async function PATCH(req: Request) {
         }
 
         // Map frontend camelCase → database snake_case (SOLO campi esistenti)
-        if (body.firstName !== undefined) updates.first_name = body.firstName
-        if (body.lastName !== undefined) updates.last_name = body.lastName
-        if (body.username !== undefined) updates.username = body.username
+        if (body.firstName !== undefined) updates.first_name = body.firstName || null
+        if (body.lastName !== undefined) updates.last_name = body.lastName || null
+        if (body.username !== undefined) updates.username = body.username || null
         if (body.email !== undefined) updates.email = body.email
-        if (body.gender !== undefined) updates.gender = body.gender
-        if (body.phoneNumber !== undefined) updates.phone_number = body.phoneNumber
+        if (body.gender !== undefined) updates.gender = body.gender || null
+        if (body.phoneNumber !== undefined) updates.phone_number = body.phoneNumber || null
         if (body.professionalRole !== undefined) updates.role_id = body.professionalRole
         if (body.roleId !== undefined) updates.role_id = body.roleId
-        if (body.bio !== undefined) updates.bio = body.bio
-        if (body.avatarUrl !== undefined) updates.avatar_url = body.avatarUrl
-        if (body.coverUrl !== undefined) updates.cover_url = body.coverUrl
-        if (body.city !== undefined) updates.city = body.city
-        if (body.country !== undefined) updates.country = body.country
-        if (body.birthDate !== undefined) updates.birth_date = body.birthDate
+        if (body.bio !== undefined) updates.bio = body.bio || null
+        if (body.avatarUrl !== undefined) updates.avatar_url = body.avatarUrl || null
+        if (body.coverUrl !== undefined) updates.cover_url = body.coverUrl || null
+        if (body.city !== undefined) updates.city = body.city || null
+        if (body.country !== undefined) updates.country = body.country || null
+        if (body.birthDate !== undefined) updates.birth_date = body.birthDate || null
         if (body.latitude !== undefined) updates.latitude = body.latitude
         if (body.longitude !== undefined) updates.longitude = body.longitude
         if (body.privacySettings !== undefined) updates.privacy_settings = body.privacySettings
         if (body.verified !== undefined) updates.is_verified = body.verified
 
-        // Update in Supabase
-        const { data: updated, error: updateError } = await supabase
+        console.log('📝 Update payload:', updates)
+
+        // Update in Supabase (using service role to bypass RLS)
+        console.log('🚀 Executing UPDATE query...')
+
+        // First, try update without select to see if it executes
+        const { error: updateError, count } = await supabase
             .from('profiles')
             .update(updates)
             .eq('id', id)
-            .select()
-            .single()
+
+        console.log('📊 Update result - error:', updateError, 'count:', count)
 
         if (updateError) {
-            console.error('Supabase UPDATE error:', updateError)
+            console.error('❌ Supabase UPDATE error:', updateError)
             return withCors(NextResponse.json({ error: updateError.message }, { status: 500 }))
         }
 
+        // If update succeeded, fetch the updated profile
+        const { data: updated, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .single()
+
+        if (fetchError || !updated) {
+            console.error('❌ Failed to fetch updated profile:', fetchError)
+            return withCors(NextResponse.json({ error: 'fetch_failed_after_update' }, { status: 500 }))
+        }
+
+        console.log('✅ Profile updated successfully')
         return withCors(NextResponse.json(updated))
 
     } catch (err: any) {

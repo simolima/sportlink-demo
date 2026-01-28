@@ -181,31 +181,69 @@ export default function EditProfilePage() {
                     router.push("/home");
                     return;
                 }
-                setIsPlayer(user.professionalRole === "Player");
-                setIsFootball(Array.isArray(user.sports) && user.sports.includes("Calcio"));
-                setIsCoach(user.professionalRole === "Coach");
-                setIsAgent(user.professionalRole === "Agent");
-                setIsSportingDirector(user.professionalRole === "Sporting Director");
-                setIsPhysio(user.professionalRole === "Physio/Masseur");
-                setIsAthleticTrainer(user.professionalRole === "Athletic Trainer");
-                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(user.professionalRole));
-                const sport = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports[0] : user.sport || undefined;
+
+                // Supporta sia vecchio schema (professionalRole) che nuovo (role_id)
+                const roleId = user.role_id || user.professionalRole
+                const professionalRole = roleId === 'player' ? 'Player' :
+                    roleId === 'coach' ? 'Coach' :
+                        roleId === 'agent' ? 'Agent' :
+                            roleId === 'sporting_director' ? 'Sporting Director' :
+                                roleId === 'athletic_trainer' ? 'Athletic Trainer' :
+                                    roleId === 'nutritionist' ? 'Nutritionist' :
+                                        roleId === 'physio' ? 'Physio/Masseur' :
+                                            roleId === 'talent_scout' ? 'Talent Scout' :
+                                                user.professionalRole || 'Player'
+
+                setIsPlayer(professionalRole === "Player");
+                setIsCoach(professionalRole === "Coach");
+                setIsAgent(professionalRole === "Agent");
+                setIsSportingDirector(professionalRole === "Sporting Director");
+                setIsPhysio(professionalRole === "Physio/Masseur");
+                setIsAthleticTrainer(professionalRole === "Athletic Trainer");
+                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(professionalRole));
+
+                // Fetch sports from profile_sports table (nuovo schema Supabase)
+                const fetchSports = async () => {
+                    const { supabase: supabaseClient } = await import('@/lib/supabase-browser')
+                    const { data: sportsData } = await supabaseClient
+                        .from('profile_sports')
+                        .select('sport_id, lookup_sports(name)')
+                        .eq('user_id', userId)
+
+                    return sportsData?.map((s: any) => s.lookup_sports?.name).filter(Boolean) || []
+                }
+
+                const userSports = user.sports || await fetchSports()
+                const sport = Array.isArray(userSports) && userSports.length > 0 ? userSports[0] : user.sport || undefined;
                 setMainSport(sport);
+                setIsFootball(Array.isArray(userSports) && userSports.includes("Calcio"));
+
+                // Fetch physical stats from dedicated table
+                const fetchPhysicalStats = async () => {
+                    try {
+                        const res = await fetch(`/api/physical-stats?userId=${userId}`)
+                        if (!res.ok) return null
+                        return await res.json()
+                    } catch (err) {
+                        console.error('Error fetching physical stats:', err)
+                        return null
+                    }
+                }
+
+                const physicalStats = await fetchPhysicalStats()
 
                 setForm({
-                    firstName: user.firstName || "",
-                    lastName: user.lastName || "",
+                    firstName: user.first_name || user.firstName || "",
+                    lastName: user.last_name || user.lastName || "",
                     username: user.username || "",
                     email: user.email || "",
-                    birthDate: user.birthDate || "",
+                    birthDate: user.birth_date || user.birthDate || "",
                     currentRole: user.currentRole || "",
                     bio: user.bio || "",
                     city: user.city || "",
                     country: user.country || "",
-                    avatarUrl: user.avatarUrl || user.avatar || "",
-                    coverUrl: user.coverUrl || "",
-                    height: user.height || undefined,
-                    weight: user.weight || undefined,
+                    avatarUrl: user.avatar_url || user.avatarUrl || user.avatar || "",
+                    coverUrl: user.cover_url || user.coverUrl || "",
                     experiences: Array.isArray(user.experiences)
                         ? user.experiences.map((e: any, idx: number) => ({
                             id: `${Date.now()}-${idx}`,
@@ -245,8 +283,10 @@ export default function EditProfilePage() {
                         }))
                         : [],
                     availability: user.availability || "Disponibile",
-                    dominantFoot: user.professionalRole === "Player" && sport === "Calcio" ? (user.dominantFoot ?? undefined) : undefined,
-                    dominantHand: user.professionalRole === "Player" && (sport === "Basket" || sport === "Pallavolo") ? (user.dominantHand ?? undefined) : undefined,
+                    height: physicalStats?.height_cm || user.height || undefined,
+                    weight: physicalStats?.weight_kg || user.weight || undefined,
+                    dominantFoot: physicalStats?.dominant_foot || user.dominantFoot || undefined,
+                    dominantHand: physicalStats?.dominant_hand || user.dominantHand || undefined,
                     specificRole: user.professionalRole === "Player" ? (user.specificRole ?? undefined) : undefined,
                     secondaryRole: user.secondaryRole ?? undefined,
                     footballPrimaryPosition: user.footballPrimaryPosition ?? undefined,
@@ -962,63 +1002,61 @@ export default function EditProfilePage() {
 
         setSaving(true)
         try {
-            // Sanificazione payload
-            let payload = { ...form, id: userId };
-
-            // Pulisci campi from/to se l'utente non ha attivato il checkbox "Specifica periodo esatto"
-            payload.experiences = payload.experiences.map(exp => {
-                if (!showDatesForExp[exp.id]) {
-                    // Se il checkbox non è attivo, rimuovi from/to/isCurrentlyPlaying
-                    return {
-                        ...exp,
-                        from: undefined,
-                        to: undefined,
-                        isCurrentlyPlaying: undefined
-                    }
-                }
-                return exp
-            })
-
-            if (isPlayer) {
-                // Player: logica sport dominanza
-                if (mainSport === "Calcio") {
-                    payload.dominantHand = undefined;
-                } else if (mainSport === "Basket" || mainSport === "Pallavolo") {
-                    payload.dominantFoot = undefined;
-                } else {
-                    payload.dominantFoot = undefined;
-                    payload.dominantHand = undefined;
-                }
-            } else {
-                // Non Player: azzera campi specifici giocatore
-                payload.specificRole = undefined;
-                payload.dominantFoot = undefined;
-                payload.dominantHand = undefined;
-                payload.height = undefined;
-                payload.weight = undefined;
+            // Sanificazione payload: rimuovi campi non supportati dalla tabella profiles
+            let payload: any = {
+                id: userId,
+                firstName: form.firstName,
+                lastName: form.lastName,
+                username: form.username,
+                email: form.email,
+                birthDate: form.birthDate,
+                bio: form.bio,
+                city: form.city,
+                country: form.country,
+                avatarUrl: form.avatarUrl,
+                coverUrl: form.coverUrl,
             }
 
-            // Sanificazione campi qualifiche per ruolo
-            if (!isCoach) {
-                payload.uefaLicenses = undefined;
-                payload.coachSpecializations = undefined;
-            }
-            if (!isAgent) {
-                payload.hasFifaLicense = undefined;
-                payload.fifaLicenseNumber = undefined;
-                payload.agentNotes = undefined;
-            }
-            if (!isStaff) {
-                payload.certifications = undefined;
-            }
+            // Le experiences NON vanno nella tabella profiles (verranno gestite separatamente)
+            // I dati fisici (height, weight, dominantFoot, dominantHand) vanno in physical_stats
+            // Tutti i campi role-specific (uefaLicenses, certifications, ecc.) non sono più nella tabella profiles
 
             const res = await fetch("/api/users", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             })
-            if (!res.ok) throw new Error("Save failed")
+            if (!res.ok) {
+                const errorData = await res.text()
+                console.error('Save failed:', res.status, errorData)
+                throw new Error(`Save failed: ${res.status}`)
+            }
             const updated = await res.json()
+
+            // Save physical stats to dedicated table if user is a player
+            if (isPlayer && (form.height || form.weight || form.dominantFoot || form.dominantHand)) {
+                try {
+                    const physRes = await fetch("/api/physical-stats", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userId: userId,
+                            height_cm: form.height || null,
+                            weight_kg: form.weight || null,
+                            dominant_foot: form.dominantFoot || null,
+                            dominant_hand: form.dominantHand || null,
+                        }),
+                    })
+                    if (!physRes.ok) {
+                        const physError = await physRes.text()
+                        console.error('Physical stats save failed:', physRes.status, physError)
+                    }
+                } catch (physErr) {
+                    console.error('Error saving physical stats:', physErr)
+                    // Non blocchiamo il salvataggio principale
+                }
+            }
+
             localStorage.setItem("currentUserName", `${updated.firstName ?? ""} ${updated.lastName ?? ""}`.trim())
             localStorage.setItem("currentUserEmail", updated.email ?? "")
             if (updated.avatarUrl) localStorage.setItem("currentUserAvatar", updated.avatarUrl)

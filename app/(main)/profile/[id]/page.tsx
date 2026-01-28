@@ -43,6 +43,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                 const sportsNames = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
                 setSports(sportsNames)
 
+                // Fetch physical stats
+                const { data: physicalStats } = await supabase
+                    .from('physical_stats')
+                    .select('*')
+                    .eq('user_id', params.id)
+                    .single()
+
                 // Construct user object
                 const userData = {
                     id: profile.id,
@@ -59,6 +66,10 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     gender: profile.gender,
                     professionalRole: profile.role_id,
                     sports: sportsNames,
+                    height: physicalStats?.height_cm || null,
+                    weight: physicalStats?.weight_kg || null,
+                    dominantFoot: physicalStats?.dominant_foot || null,
+                    dominantHand: physicalStats?.dominant_hand || null,
                     experiences: [], // TODO: fetch from career_experiences table
                 }
 

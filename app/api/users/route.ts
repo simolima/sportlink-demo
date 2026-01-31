@@ -84,6 +84,11 @@ export async function POST(req: Request) {
             fifaLicenseNumber: body.fifaLicenseNumber ?? '',
             agentNotes: body.agentNotes ?? '',
             certifications: Array.isArray(body.certifications) ? body.certifications : [],
+            // --- Social Links ---
+            socialLinks: body.socialLinks ?? {},
+            // --- Self Evaluation ---
+            playerSelfEvaluation: body.playerSelfEvaluation ?? undefined,
+            coachSelfEvaluation: body.coachSelfEvaluation ?? undefined,
             verified: body.verified ?? false,
             createdAt: new Date().toISOString(),
             updatedAt: '',
@@ -143,6 +148,11 @@ export async function PATCH(req: Request) {
             fifaLicenseNumber: body.fifaLicenseNumber ?? current.fifaLicenseNumber,
             agentNotes: body.agentNotes ?? current.agentNotes,
             certifications: Array.isArray(body.certifications) ? body.certifications : current.certifications,
+            // --- Social Links ---
+            socialLinks: body.socialLinks ?? (current.socialLinks || {}),
+            // --- Self Evaluation ---
+            playerSelfEvaluation: body.playerSelfEvaluation !== undefined ? body.playerSelfEvaluation : current.playerSelfEvaluation,
+            coachSelfEvaluation: body.coachSelfEvaluation !== undefined ? body.coachSelfEvaluation : current.coachSelfEvaluation,
             updatedAt: new Date().toISOString(),
         }
         users[idx] = updated

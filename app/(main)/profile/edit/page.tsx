@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
 import Avatar from "@/components/avatar"
+import SocialLinksForm from "@/components/social-links-form"
+import SelfEvaluationForm from "@/components/self-evaluation-form"
 import { uploadService } from "@/lib/upload-service"
 
 interface Experience {
@@ -55,6 +57,16 @@ interface Certification {
     expiryDate?: string
 }
 
+interface SocialLink {
+    instagram?: string
+    tiktok?: string
+    youtube?: string
+    facebook?: string
+    twitter?: string
+    linkedin?: string
+    twitch?: string
+}
+
 interface FormState {
     firstName: string
     lastName: string
@@ -86,6 +98,12 @@ interface FormState {
     agentNotes?: string
     // Certificazioni Staff
     certifications?: Certification[]
+    // Social Links
+    socialLinks?: SocialLink
+    // Self Evaluation
+    playerSelfEvaluation?: any
+    coachSelfEvaluation?: any
+    sports?: string[]
 }
 
 const emptyExperience = (): Experience => ({
@@ -137,6 +155,10 @@ const initialForm: FormState = {
     fifaLicenseNumber: "",
     agentNotes: "",
     certifications: [],
+    socialLinks: {},
+    playerSelfEvaluation: undefined,
+    coachSelfEvaluation: undefined,
+    sports: [],
 }
 
 export default function EditProfilePage() {
@@ -265,6 +287,10 @@ export default function EditProfilePage() {
                             expiryDate: c.expiryDate || "",
                         }))
                         : [],
+                    socialLinks: user.socialLinks || {},
+                    playerSelfEvaluation: user.playerSelfEvaluation || undefined,
+                    coachSelfEvaluation: user.coachSelfEvaluation || undefined,
+                    sports: user.sports || [],
                 });
             } catch (error) {
                 console.error(error);
@@ -989,6 +1015,8 @@ export default function EditProfilePage() {
                     payload.dominantFoot = undefined;
                     payload.dominantHand = undefined;
                 }
+                // Azzera autovalutazione coach se è player
+                payload.coachSelfEvaluation = undefined;
             } else {
                 // Non Player: azzera campi specifici giocatore
                 payload.specificRole = undefined;
@@ -996,12 +1024,16 @@ export default function EditProfilePage() {
                 payload.dominantHand = undefined;
                 payload.height = undefined;
                 payload.weight = undefined;
+                // Azzera autovalutazione player se non è player
+                payload.playerSelfEvaluation = undefined;
             }
 
             // Sanificazione campi qualifiche per ruolo
             if (!isCoach) {
                 payload.uefaLicenses = undefined;
                 payload.coachSpecializations = undefined;
+                // Azzera autovalutazione coach se non è coach
+                payload.coachSelfEvaluation = undefined;
             }
             if (!isAgent) {
                 payload.hasFifaLicense = undefined;
@@ -1011,6 +1043,9 @@ export default function EditProfilePage() {
             if (!isStaff) {
                 payload.certifications = undefined;
             }
+
+            // Social links sono sempre inclusi (per tutti i ruoli)
+            // playerSelfEvaluation e coachSelfEvaluation vengono inclusi solo se pertinenti
 
             const res = await fetch("/api/users", {
                 method: "PATCH",
@@ -1117,6 +1152,34 @@ export default function EditProfilePage() {
                                     className={`${inputBase} resize-none`}
                                 />
                             </div>
+
+                            {/* Social Links Section */}
+                            <div className="border-t border-gray-200 pt-8">
+                                <SocialLinksForm
+                                    socialLinks={form.socialLinks}
+                                    onChange={(socialLinks) => updateField("socialLinks", socialLinks)}
+                                    inputClassName={inputBase}
+                                />
+                            </div>
+
+                            {/* Self Evaluation Section - Only for Players and Coaches */}
+                            {(isPlayer || isCoach) && (
+                                <div className="border-t border-gray-200 pt-8">
+                                    <SelfEvaluationForm
+                                        evaluation={form.playerSelfEvaluation || form.coachSelfEvaluation}
+                                        professionalRole={isPlayer ? "Player" : "Coach"}
+                                        sports={form.sports}
+                                        onChange={(evaluation) => {
+                                            if (isPlayer) {
+                                                updateField("playerSelfEvaluation", evaluation)
+                                            } else {
+                                                updateField("coachSelfEvaluation", evaluation)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            )}
+
                             <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Disponibilità per lavori</label>
                                 <select

@@ -3,6 +3,8 @@ import path from 'path'
 import ProfileSidebar from '@/components/profile-sidebar'
 import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
+import SocialLinks from '@/components/social-links'
+import SelfEvaluationDisplay from '@/components/self-evaluation-display'
 import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
@@ -90,6 +92,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 </p>
                             ) : (
                                 <p className="text-gray-600 italic">Nessuna bio inserita</p>
+                            )}
+
+                            {/* Social Links */}
+                            {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
+                                <div className="mt-4">
+                                    <SocialLinks socialLinks={user.socialLinks} />
+                                </div>
                             )}
 
                             {/* Sport/Skills */}
@@ -324,6 +333,31 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 />
                             </ProfileSection>
                         )}
+
+                        {/* Autovalutazione */}
+                        {(() => {
+                            const isPlayer = user.professionalRole === 'Player'
+                            const isCoach = user.professionalRole === 'Coach'
+                            const hasPlayerEval = isPlayer && user.playerSelfEvaluation
+                            const hasCoachEval = isCoach && user.coachSelfEvaluation
+
+                            if (!hasPlayerEval && !hasCoachEval) return null
+
+                            return (
+                                <ProfileSection
+                                    title="Autovalutazione"
+                                    subtitle="Competenze e abilità"
+                                >
+                                    <SelfEvaluationDisplay
+                                        user={user}
+                                        professionalRole={user.professionalRole}
+                                        sports={sports}
+                                        playerSelfEvaluation={user.playerSelfEvaluation}
+                                        coachSelfEvaluation={user.coachSelfEvaluation}
+                                    />
+                                </ProfileSection>
+                            )
+                        })()}
 
                         {/* Statistiche & Highlights - Placeholder */}
                         <ProfileSection

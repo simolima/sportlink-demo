@@ -2,6 +2,7 @@
 import { PencilSquareIcon, MapPinIcon, LanguageIcon, CheckBadgeIcon } from '@heroicons/react/24/solid'
 import Avatar from './avatar'
 import StatBox from './stat-box'
+import SocialLinks from './social-links'
 
 interface ProfileHeaderProps {
     user: any
@@ -60,6 +61,13 @@ export default function ProfileHeader({ user, followersCount, followingCount, on
                     {/* Bio */}
                     {user?.bio && (
                         <p className="text-gray-700 text-sm md:text-base mb-4">{user.bio}</p>
+                    )}
+
+                    {/* Social Links */}
+                    {user?.socialLinks && Object.values(user.socialLinks).some(link => link) && (
+                        <div className="mb-4">
+                            <SocialLinks socialLinks={user.socialLinks} />
+                        </div>
                     )}
 
                     {/* Statistiche in barra orizzontale */}

@@ -717,7 +717,7 @@
     "level": "",
     "experiences": [
       {
-        "id": "1768147765922-0",
+        "id": "1769886464688-0",
         "season": "2020/2021",
         "role": "Attaccante",
         "primaryPosition": "Attaccante",
@@ -734,7 +734,7 @@
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2026-01-11T16:09:27.629Z",
+    "updatedAt": "2026-01-31T19:08:00.994Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
@@ -745,7 +745,43 @@
     "specificRole": "Attaccante",
     "dominantFoot": "destro",
     "height": 180,
-    "weight": 75
+    "weight": 75,
+    "socialLinks": {
+      "instagram": "https://www.instagram.com/alelp.97/"
+    },
+    "playerSelfEvaluation": {
+      "universal": {
+        "velocita": 2,
+        "comunicazione": 2,
+        "concentrazione": 3,
+        "movimentoSenzaPalla": 4,
+        "intelligenzaTattica": 2,
+        "resistenza": 3
+      },
+      "football": {
+        "attaccante": {
+          "posizionamentoOffensivo": 2,
+          "efficaciaSottoporta": 1
+        },
+        "common": {
+          "tiro": 2,
+          "visioneDiGioco": 2,
+          "passaggio": 2,
+          "controlPalla": 3
+        },
+        "role": "defender",
+        "midfielder": {
+          "distribuzione": 2,
+          "coperturaDifensiva": 1,
+          "verticalizzazione": 1
+        },
+        "defender": {
+          "marcatura": 2,
+          "posizionamentoDifensivo": 1,
+          "anticipo": 3
+        }
+      }
+    }
   },
   {
     "id": "2",
@@ -790,5 +826,94 @@
     "followers": 156,
     "birthDate": "",
     "username": ""
+  },
+  {
+    "id": "example_player_001",
+    "firstName": "Marco",
+    "lastName": "Rossi",
+    "email": "marco.rossi@example.com",
+    "password": "password123",
+    "birthDate": "2000-05-15",
+    "professionalRole": "Player",
+    "sports": [
+      "Calcio"
+    ],
+    "bio": "Attaccante veloce e dinamico",
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "Milano",
+    "country": "Italia",
+    "verified": true,
+    "createdAt": "2025-12-01T10:00:00.000Z",
+    "footballPrimaryPosition": "Attaccante",
+    "dominantFoot": "destro",
+    "level": "Professional",
+    "socialLinks": {
+      "instagram": "https://instagram.com/marcorossi_football",
+      "tiktok": "https://tiktok.com/@marcorossi",
+      "youtube": "https://youtube.com/@marcorossi_channel",
+      "facebook": "https://facebook.com/marco.rossi.123"
+    },
+    "playerSelfEvaluation": {
+      "universal": {
+        "velocita": 5,
+        "resistenza": 4,
+        "comunicazione": 4,
+        "intelligenzaTattica": 4,
+        "movimentoSenzaPalla": 5,
+        "concentrazione": 3
+      },
+      "football": {
+        "common": {
+          "controlPalla": 5,
+          "passaggio": 4,
+          "tiro": 5,
+          "visioneDiGioco": 3
+        },
+        "role": "attaccante",
+        "attacker": {
+          "efficaciaSottoporta": 5,
+          "posizionamentoOffensivo": 4
+        }
+      }
+    }
+  },
+  {
+    "id": "example_coach_001",
+    "firstName": "Giovanni",
+    "lastName": "Bianchi",
+    "email": "giovanni.bianchi@example.com",
+    "password": "password123",
+    "birthDate": "1975-03-20",
+    "professionalRole": "Coach",
+    "sports": [
+      "Pallavolo"
+    ],
+    "bio": "Allenatore esperto di pallavolo femminile",
+    "avatarUrl": null,
+    "coverUrl": null,
+    "city": "Roma",
+    "country": "Italia",
+    "verified": true,
+    "createdAt": "2025-10-15T10:00:00.000Z",
+    "socialLinks": {
+      "instagram": "https://instagram.com/coach_giovanni",
+      "facebook": "https://facebook.com/giovanni.bianchi.coach"
+    },
+    "coachSelfEvaluation": {
+      "universal": {
+        "comunicazione": 5,
+        "preparazioneTattica": 5,
+        "gestioneDelGruppo": 4,
+        "capacitaMotivationale": 5,
+        "sviluppoGiocatori": 4,
+        "adattamentoStrategico": 4
+      },
+      "volleyball": {
+        "organizzazioneDifensiva": 5,
+        "rotazioni": 4,
+        "gestioneTempi": 4
+      }
+    }
   }
 ]

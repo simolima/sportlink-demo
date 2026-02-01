@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from './avatar'
+import SocialLinks from './social-links'
 import {
     UserPlusIcon,
     EnvelopeIcon,
@@ -16,6 +17,7 @@ interface ProfileSidebarProps {
     followersCount?: number
     followingCount?: number
     assistatiCount?: number
+    agentName?: string | null
     isOwn?: boolean
     onApply?: () => void
     onAddPlayer?: () => void
@@ -27,6 +29,7 @@ export default function ProfileSidebar({
     followersCount = 0,
     followingCount = 0,
     assistatiCount = 0,
+    agentName = null,
     isOwn = false,
     onApply,
     onAddPlayer,
@@ -49,21 +52,27 @@ export default function ProfileSidebar({
             const foot = user?.preferredFoot || user?.dominantFoot
             const footLabel = foot === 'destro' ? 'Destro' : foot === 'sinistro' ? 'Sinistro' : foot === 'ambidestro' ? 'Ambidestro' : undefined
             return [
-                { label: 'Età', value: user?.birthDate ? calculateAge(user.birthDate) : 'Non specificato' },
+                { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
+                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
                 { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'Non specificato' },
                 { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'Non specificato' },
-                { label: 'Piede', value: footLabel || 'Non specificato' }
+                { label: 'Piede', value: footLabel || 'Non specificato' },
+                ...(agentName ? [{ label: 'Procuratore', value: agentName }] : [])
             ]
         }
         if (isCoach) {
             const licenses = Array.isArray(user?.uefaLicenses) ? user.uefaLicenses.filter(Boolean) : []
             const licenseLabel = licenses.length > 0 ? licenses.join(', ') : 'Non specificato'
             return [
+                { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
+                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
                 { label: 'Licenza', value: licenseLabel }
             ]
         }
         if (isDS) {
             return [
+                { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
+                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
                 { label: 'Club gestito', value: clubName || 'Nessuno' }
             ]
         }
@@ -71,6 +80,8 @@ export default function ProfileSidebar({
             const hasFifa = !!user?.hasFifaLicense
             const fifaNumber = user?.fifaLicenseNumber
             const stats = [
+                { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
+                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
                 { label: 'Assistiti', value: assistatiCount || 0 },
                 { label: 'Licenza FIFA', value: hasFifa ? 'Sì' : 'No' },
             ]
@@ -168,6 +179,73 @@ export default function ProfileSidebar({
         return age
     }
 
+    const formatBirthDate = (birthDate: string) => {
+        const date = new Date(birthDate)
+        const day = String(date.getDate()).padStart(2, '0')
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const year = date.getFullYear()
+        return `${day}/${month}/${year}`
+    }
+
+    const getBirthDateAndAge = (birthDate?: string) => {
+        if (!birthDate) return 'Non specificato'
+        const age = calculateAge(birthDate)
+        const formatted = formatBirthDate(birthDate)
+        return `${formatted} (${age} anni)`
+    }
+
+    const getContractStatus = (status?: string, endDate?: string) => {
+        if (!status) return 'Non specificato'
+        if (status === 'svincolato') return 'Svincolato'
+        if (status === 'sotto contratto' && endDate) {
+            const date = new Date(endDate)
+            const day = String(date.getDate()).padStart(2, '0')
+            const month = String(date.getMonth() + 1).padStart(2, '0')
+            const year = date.getFullYear()
+            return `Sotto contratto fino al ${day}/${month}/${year}`
+        }
+        return 'Sotto contratto'
+    }
+
+    const getContractStatusColors = (status?: string, endDate?: string) => {
+        if (status === 'svincolato') {
+            // Verde - disponibile
+            return {
+                bg: 'bg-green-50',
+                border: 'border-green-200',
+                text: 'text-green-700'
+            }
+        }
+        if (status === 'sotto contratto' && endDate) {
+            const today = new Date()
+            const contractEnd = new Date(endDate)
+            const sixMonthsFromNow = new Date()
+            sixMonthsFromNow.setMonth(today.getMonth() + 6)
+
+            if (contractEnd < sixMonthsFromNow) {
+                // Arancione - scade tra meno di 6 mesi
+                return {
+                    bg: 'bg-orange-50',
+                    border: 'border-orange-200',
+                    text: 'text-orange-700'
+                }
+            } else {
+                // Rosso - contratto lungo (più di 6 mesi)
+                return {
+                    bg: 'bg-red-50',
+                    border: 'border-red-200',
+                    text: 'text-red-700'
+                }
+            }
+        }
+        // Default (rosso se sotto contratto senza data)
+        return {
+            bg: 'bg-red-50',
+            border: 'border-red-200',
+            text: 'text-red-700'
+        }
+    }
+
     const stats = getStats()
 
     return (
@@ -193,13 +271,39 @@ export default function ProfileSidebar({
                 )}
             </div>
 
-            {/* Stato disponibilità */}
-            {user?.availability && (
-                <div className="mb-6 px-4 py-2 bg-[#eaf2ff] rounded-lg border border-[#2341F0]/30 text-center">
-                    <span className="text-sm text-[#2341F0] font-semibold">
-                        {user.availability === 'Disponibile' && '✓ '}
-                        {user.availability}
-                    </span>
+            {/* Stato disponibilità o contrattuale */}
+            {(isPlayer || isCoach || isDS) ? (
+                // Per Player, Coach, DS: mostra stato contrattuale
+                user?.contractStatus && (() => {
+                    const colors = getContractStatusColors(user.contractStatus, user.contractEndDate)
+                    return (
+                        <div className={`mb-6 px-4 py-2 ${colors.bg} rounded-lg border ${colors.border} text-center`}>
+                            <span className={`text-sm ${colors.text} font-semibold`}>
+                                {getContractStatus(user.contractStatus, user.contractEndDate)}
+                            </span>
+                        </div>
+                    )
+                })()
+            ) : (
+                // Per altri ruoli: mostra disponibilità
+                user?.availability && (
+                    <div className="mb-6 px-4 py-2 bg-[#eaf2ff] rounded-lg border border-[#2341F0]/30 text-center">
+                        <span className="text-sm text-[#2341F0] font-semibold">
+                            {user.availability === 'Disponibile' && '✓ '}
+                            {user.availability}
+                        </span>
+                    </div>
+                )
+            )}
+
+            {/* Social Links Icons */}
+            {user?.socialLinks && Object.values(user.socialLinks).some(link => link?.trim()) && (
+                <div className="mb-6 flex justify-center">
+                    <SocialLinks
+                        socialLinks={user.socialLinks}
+                        className="gap-3"
+                        showLabels={false}
+                    />
                 </div>
             )}
 

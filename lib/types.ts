@@ -220,7 +220,7 @@ export type SocialLink = {
   facebook?: string;
   twitter?: string;
   linkedin?: string;
-  twitch?: string;
+  transfermarkt?: string;
 };
 
 // Abilità universali per tutti gli atleti
@@ -364,29 +364,29 @@ export type CoachBasketballAbilities = {
 
 // Self Evaluation for Players
 export type PlayerSelfEvaluation = {
-  universal?: UniversalAbilities;
   football?: {
-    common?: FootballCommonAbilities;
-    role?: 'attaccante' | 'centrocampista' | 'difensore' | 'portiere';
-    attacker?: FootballAttackerAbilities;
-    midfielder?: FootballMidfielderAbilities;
-    defender?: FootballDefenderAbilities;
-    goalkeeper?: FootballGoalkeeperAbilities;
-  };
-  volleyball?: {
-    common?: VolleyballCommonAbilities;
-    role?: 'palleggiatore' | 'schiacciatore' | 'centrale' | 'libero';
-    setter?: VolleyballSetterAbilities;
-    spiker?: VolleyballSpikerAbilities;
-    middle?: VolleyballMiddleAbilities;
-    libero?: VolleyballLiberoBilities;
+    velocita?: number;
+    tiro?: number;
+    passaggio?: number;
+    dribbling?: number;
+    difesa?: number;
+    fisico?: number;
   };
   basketball?: {
-    common?: BasketballCommonAbilities;
-    role?: 'guardia' | 'ala' | 'centro';
-    guard?: BasketballGuardAbilities;
-    wing?: BasketballWingAbilities;
-    center?: BasketballCenterAbilities;
+    velocita?: number;
+    tiro?: number;
+    passaggio?: number;
+    palleggio?: number;
+    difesa?: number;
+    atletismo?: number;
+  };
+  volleyball?: {
+    battuta?: number;
+    ricezione?: number;
+    attacco?: number;
+    muro?: number;
+    difesa?: number;
+    elevazione?: number;
   };
 };
 
@@ -406,6 +406,7 @@ export type User = {
   email: string;
   password: string;
   birthDate: string;
+  nationality?: string;
   sports: SupportedSport[];
   professionalRole: ProfessionalRole;
   bio?: string;
@@ -414,6 +415,8 @@ export type User = {
   city?: string;
   country?: string;
   availability?: AvailabilityStatus;
+  contractStatus?: 'svincolato' | 'sotto contratto';
+  contractEndDate?: string;
   level?: Level;
   dominantFoot?: 'destro' | 'sinistro' | 'ambidestro';
   secondaryRole?: string;

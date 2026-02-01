@@ -9,13 +9,14 @@ interface SocialLink {
     facebook?: string
     twitter?: string
     linkedin?: string
-    twitch?: string
+    transfermarkt?: string
 }
 
 interface SocialLinksFormProps {
     socialLinks?: SocialLink
     onChange: (socialLinks: SocialLink) => void
     inputClassName?: string
+    showTransfermarkt?: boolean
 }
 
 const SOCIAL_PLATFORMS = [
@@ -24,15 +25,24 @@ const SOCIAL_PLATFORMS = [
     { key: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/channel/...' },
     { key: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/username' },
     { key: 'twitter', label: 'Twitter/X', placeholder: 'https://twitter.com/username' },
-    { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
-    { key: 'twitch', label: 'Twitch', placeholder: 'https://twitch.tv/username' }
+    { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' }
 ] as const
+
+const TRANSFERMARKT_PLATFORM = {
+    key: 'transfermarkt',
+    label: 'Transfermarkt',
+    placeholder: 'https://www.transfermarkt.it/profilo/spielerdetails/...'
+} as const
 
 export default function SocialLinksForm({
     socialLinks = {},
     onChange,
-    inputClassName = 'w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[#2341F0] focus:ring-2 focus:ring-[#2341F0] focus:ring-opacity-40'
+    inputClassName = 'w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[#2341F0] focus:ring-2 focus:ring-[#2341F0] focus:ring-opacity-40',
+    showTransfermarkt = false
 }: SocialLinksFormProps) {
+    const platforms = showTransfermarkt
+        ? [...SOCIAL_PLATFORMS, TRANSFERMARKT_PLATFORM]
+        : SOCIAL_PLATFORMS
     const handleChange = (platform: keyof SocialLink, value: string) => {
         const updated = { ...socialLinks }
         if (value.trim()) {
@@ -59,7 +69,7 @@ export default function SocialLinksForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {SOCIAL_PLATFORMS.map(({ key, label, placeholder }) => (
+                {platforms.map(({ key, label, placeholder }) => (
                     <div key={key} className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             {label}

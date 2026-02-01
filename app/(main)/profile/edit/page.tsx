@@ -64,7 +64,7 @@ interface SocialLink {
     facebook?: string
     twitter?: string
     linkedin?: string
-    twitch?: string
+    transfermarkt?: string
 }
 
 interface FormState {
@@ -73,6 +73,7 @@ interface FormState {
     username: string
     email: string
     birthDate: string
+    nationality?: string
     currentRole: string
     bio: string
     city: string
@@ -81,6 +82,8 @@ interface FormState {
     coverUrl: string
     experiences: Experience[]
     availability: string
+    contractStatus?: 'svincolato' | 'sotto contratto'
+    contractEndDate?: string
     height?: number
     weight?: number
     dominantFoot?: 'destro' | 'sinistro' | 'ambidestro'
@@ -137,6 +140,7 @@ const initialForm: FormState = {
     username: "",
     email: "",
     birthDate: "",
+    nationality: "",
     currentRole: "",
     bio: "",
     city: "",
@@ -145,6 +149,8 @@ const initialForm: FormState = {
     coverUrl: "",
     experiences: [],
     availability: "Non disponibile",
+    contractStatus: "svincolato",
+    contractEndDate: "",
     dominantFoot: undefined,
     dominantHand: undefined,
     specificRole: undefined,
@@ -220,6 +226,7 @@ export default function EditProfilePage() {
                     username: user.username || "",
                     email: user.email || "",
                     birthDate: user.birthDate || "",
+                    nationality: user.nationality || "",
                     currentRole: user.currentRole || "",
                     bio: user.bio || "",
                     city: user.city || "",
@@ -267,6 +274,8 @@ export default function EditProfilePage() {
                         }))
                         : [],
                     availability: user.availability || "Disponibile",
+                    contractStatus: user.contractStatus || "svincolato",
+                    contractEndDate: user.contractEndDate || "",
                     dominantFoot: user.professionalRole === "Player" && sport === "Calcio" ? (user.dominantFoot ?? undefined) : undefined,
                     dominantHand: user.professionalRole === "Player" && (sport === "Basket" || sport === "Pallavolo") ? (user.dominantHand ?? undefined) : undefined,
                     specificRole: user.professionalRole === "Player" ? (user.specificRole ?? undefined) : undefined,
@@ -1143,6 +1152,16 @@ export default function EditProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <label className="text-sm text-gray-700">Nazionalità</label>
+                                <input
+                                    type="text"
+                                    value={form.nationality || ""}
+                                    onChange={(e) => updateField("nationality", e.target.value)}
+                                    placeholder="Es: Italiana, Spagnola..."
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Bio</label>
                                 <textarea
                                     value={form.bio}
@@ -1159,6 +1178,7 @@ export default function EditProfilePage() {
                                     socialLinks={form.socialLinks}
                                     onChange={(socialLinks) => updateField("socialLinks", socialLinks)}
                                     inputClassName={inputBase}
+                                    showTransfermarkt={isPlayer && form.sports?.[0] === 'Calcio'}
                                 />
                             </div>
 
@@ -1180,17 +1200,50 @@ export default function EditProfilePage() {
                                 </div>
                             )}
 
-                            <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Disponibilità per lavori</label>
-                                <select
-                                    value={form.availability}
-                                    onChange={(e) => updateField("availability", e.target.value)}
-                                    className={inputBase}
-                                >
-                                    <option value="Disponibile">Disponibile</option>
-                                    <option value="Non disponibile">Non disponibile</option>
-                                </select>
-                            </div>
+                            {/* Disponibilità per lavori - SOLO per ruoli non Player/Coach/DS */}
+                            {!isPlayer && !isCoach && !isSportingDirector && (
+                                <div className="space-y-2">
+                                    <label className="text-sm text-gray-700">Disponibilità per lavori</label>
+                                    <select
+                                        value={form.availability}
+                                        onChange={(e) => updateField("availability", e.target.value)}
+                                        className={inputBase}
+                                    >
+                                        <option value="Disponibile">Disponibile</option>
+                                        <option value="Non disponibile">Non disponibile</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Stato contrattuale - SOLO per Player, Coach, DS */}
+                            {(isPlayer || isCoach || isSportingDirector) && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-700">Stato contrattuale</label>
+                                        <select
+                                            value={form.contractStatus || "svincolato"}
+                                            onChange={(e) => updateField("contractStatus", e.target.value as 'svincolato' | 'sotto contratto')}
+                                            className={inputBase}
+                                        >
+                                            <option value="svincolato">Svincolato</option>
+                                            <option value="sotto contratto">Sotto contratto</option>
+                                        </select>
+                                    </div>
+
+                                    {form.contractStatus === "sotto contratto" && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-700">Contratto fino al</label>
+                                            <input
+                                                type="date"
+                                                value={form.contractEndDate || ""}
+                                                onChange={(e) => updateField("contractEndDate", e.target.value)}
+                                                className={inputBase}
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
                             {isPlayer && (
                                 <>
                                     <div className="space-y-2">

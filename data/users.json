@@ -13,8 +13,8 @@
     "sport": "",
     "bio": "",
     "avatar": null,
-    "avatarUrl": null,
-    "coverUrl": null,
+    "avatarUrl": "",
+    "coverUrl": "",
     "city": "",
     "country": "",
     "professionalRoleLabel": "",
@@ -27,10 +27,23 @@
     "hasFifaLicense": false,
     "fifaLicenseNumber": "",
     "agentNotes": "",
-    "certifications": [],
+    "certifications": [
+      {
+        "id": "1769969944566",
+        "name": "Laurea in Fisioterapia",
+        "issuingOrganization": "",
+        "yearObtained": "",
+        "expiryDate": ""
+      }
+    ],
     "verified": false,
     "createdAt": "2026-01-13T22:18:58.771Z",
-    "updatedAt": ""
+    "updatedAt": "2026-02-01T18:19:09.985Z",
+    "nationality": "",
+    "contractStatus": "svincolato",
+    "contractEndDate": "",
+    "username": "",
+    "socialLinks": {}
   },
   {
     "id": "1768342591710",
@@ -713,11 +726,11 @@
     "country": "",
     "professionalRoleLabel": "",
     "currentRole": "Punta centrale",
-    "availability": "Disponibile",
+    "availability": "Non disponibile",
     "level": "",
     "experiences": [
       {
-        "id": "1769886464688-0",
+        "id": "1769972993095-0",
         "season": "2020/2021",
         "role": "Attaccante",
         "primaryPosition": "Attaccante",
@@ -734,7 +747,7 @@
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2026-01-31T19:08:00.994Z",
+    "updatedAt": "2026-02-01T19:10:07.833Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
@@ -747,7 +760,14 @@
     "height": 180,
     "weight": 75,
     "socialLinks": {
-      "instagram": "https://www.instagram.com/alelp.97/"
+      "instagram": "https://www.instagram.com/alelp.97/",
+      "tiktok": "https://www.tiktok.com/login?redirect_url=https%3A%2F%2Fwww.tiktok.com%2Fit-IT%2F&lang=en&enter_method=mandatory",
+      "youtube": "https://www.youtube.com/",
+      "facebook": "www.facebook.com",
+      "twitter": "www.x.com",
+      "linkedin": "www.linkedin.com",
+      "twitch": "www.twitch.com",
+      "transfermarkt": "https://www.transfermarkt.it/"
     },
     "playerSelfEvaluation": {
       "universal": {
@@ -779,9 +799,18 @@
           "marcatura": 2,
           "posizionamentoDifensivo": 1,
           "anticipo": 3
-        }
+        },
+        "velocita": 64,
+        "tiro": 87,
+        "passaggio": 80,
+        "dribbling": 75,
+        "difesa": 33,
+        "fisico": 99
       }
-    }
+    },
+    "nationality": "Italiana - Svizzera",
+    "contractStatus": "sotto contratto",
+    "contractEndDate": "2026-09-30"
   },
   {
     "id": "2",

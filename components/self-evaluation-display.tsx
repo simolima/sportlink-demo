@@ -8,21 +8,26 @@ interface AbilityBarProps {
     max?: number
 }
 
-const AbilityBar = ({ label, value, max = 5 }: AbilityBarProps) => {
+interface StatItem {
+    label: string
+    value: number
+}
+
+const AbilityBar = ({ label, value, max = 99 }: AbilityBarProps) => {
     const percentage = (value / max) * 100
+    const starCount = Math.round((value / max) * 5)
 
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium text-gray-700">{label}</label>
                 <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold text-gray-900">{value}/5</span>
+                    <span className="text-sm font-semibold text-gray-900">{value}/99</span>
                     <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <StarIcon
                                 key={i}
-                                className={`w-4 h-4 ${i < value ? 'text-yellow-400' : 'text-gray-300'
-                                    }`}
+                                className={`w-4 h-4 ${i < starCount ? 'text-yellow-400' : 'text-gray-300'}`}
                             />
                         ))}
                     </div>
@@ -35,6 +40,123 @@ const AbilityBar = ({ label, value, max = 5 }: AbilityBarProps) => {
                 />
             </div>
         </div>
+    )
+}
+
+const StarRating = ({ value, max = 99 }: { value: number; max?: number }) => {
+    const starCount = Math.round((value / max) * 5)
+    return (
+        <div className="flex gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <StarIcon
+                    key={i}
+                    className={`w-4 h-4 ${i < starCount ? 'text-yellow-400' : 'text-gray-300'}`}
+                />
+            ))}
+        </div>
+    )
+}
+
+const RadarChart = ({ stats, max = 99 }: { stats: StatItem[]; max?: number }) => {
+    const size = 220
+    const center = size / 2
+    const radius = 78
+    const levels = 4
+
+    const toPoint = (index: number, value: number) => {
+        const angle = (Math.PI * 2 * index) / stats.length - Math.PI / 2
+        const r = (value / max) * radius
+        return {
+            x: center + Math.cos(angle) * r,
+            y: center + Math.sin(angle) * r
+        }
+    }
+
+    const polygonPoints = stats
+        .map((s, i) => {
+            const p = toPoint(i, s.value)
+            return `${p.x},${p.y}`
+        })
+        .join(' ')
+
+    return (
+        <svg width={size} height={size} className="block">
+            {/* Grid */}
+            {Array.from({ length: levels }).map((_, level) => {
+                const r = radius * ((level + 1) / levels)
+                const points = stats
+                    .map((_, i) => {
+                        const angle = (Math.PI * 2 * i) / stats.length - Math.PI / 2
+                        const x = center + Math.cos(angle) * r
+                        const y = center + Math.sin(angle) * r
+                        return `${x},${y}`
+                    })
+                    .join(' ')
+                return (
+                    <polygon
+                        key={level}
+                        points={points}
+                        fill="none"
+                        stroke="#E5E7EB"
+                        strokeWidth="1"
+                    />
+                )
+            })}
+
+            {/* Axes */}
+            {stats.map((_, i) => {
+                const angle = (Math.PI * 2 * i) / stats.length - Math.PI / 2
+                const x = center + Math.cos(angle) * radius
+                const y = center + Math.sin(angle) * radius
+                return (
+                    <line
+                        key={i}
+                        x1={center}
+                        y1={center}
+                        x2={x}
+                        y2={y}
+                        stroke="#E5E7EB"
+                        strokeWidth="1"
+                    />
+                )
+            })}
+
+            {/* Data polygon */}
+            <polygon
+                points={polygonPoints}
+                fill="rgba(34, 197, 94, 0.18)"
+                stroke="#22C55E"
+                strokeWidth="2"
+            />
+
+            {/* Points */}
+            {stats.map((s, i) => {
+                const p = toPoint(i, s.value)
+                return (
+                    <circle key={s.label} cx={p.x} cy={p.y} r="3" fill="#22C55E" />
+                )
+            })}
+
+            {/* Labels */}
+            {stats.map((s, i) => {
+                const angle = (Math.PI * 2 * i) / stats.length - Math.PI / 2
+                const x = center + Math.cos(angle) * (radius + 18)
+                const y = center + Math.sin(angle) * (radius + 18)
+                const anchor = Math.abs(Math.cos(angle)) < 0.2 ? 'middle' : Math.cos(angle) > 0 ? 'start' : 'end'
+                return (
+                    <text
+                        key={`${s.label}-label`}
+                        x={x}
+                        y={y}
+                        textAnchor={anchor}
+                        alignmentBaseline="middle"
+                        className="fill-gray-500 text-[10px]"
+                    >
+                        {s.label}
+                    </text>
+                )
+            })}
+        </svg>
     )
 }
 
@@ -69,273 +191,98 @@ export default function SelfEvaluationDisplay({
 
     const mainSport = sports?.[0] || null
 
+    const getPlayerStats = (): StatItem[] => {
+        if (!isPlayer) return []
+        if (mainSport === 'Calcio') {
+            return [
+                { label: 'Velocità', value: evaluation.football?.velocita ?? 0 },
+                { label: 'Tiro', value: evaluation.football?.tiro ?? 0 },
+                { label: 'Passaggio', value: evaluation.football?.passaggio ?? 0 },
+                { label: 'Dribbling', value: evaluation.football?.dribbling ?? 0 },
+                { label: 'Difesa', value: evaluation.football?.difesa ?? 0 },
+                { label: 'Fisico', value: evaluation.football?.fisico ?? 0 }
+            ]
+        }
+        if (mainSport === 'Basket') {
+            return [
+                { label: 'Velocità', value: evaluation.basketball?.velocita ?? 0 },
+                { label: 'Tiro', value: evaluation.basketball?.tiro ?? 0 },
+                { label: 'Passaggio', value: evaluation.basketball?.passaggio ?? 0 },
+                { label: 'Palleggio', value: evaluation.basketball?.palleggio ?? 0 },
+                { label: 'Difesa', value: evaluation.basketball?.difesa ?? 0 },
+                { label: 'Atletismo', value: evaluation.basketball?.atletismo ?? 0 }
+            ]
+        }
+        if (mainSport === 'Pallavolo') {
+            return [
+                { label: 'Battuta', value: evaluation.volleyball?.battuta ?? 0 },
+                { label: 'Ricezione', value: evaluation.volleyball?.ricezione ?? 0 },
+                { label: 'Attacco', value: evaluation.volleyball?.attacco ?? 0 },
+                { label: 'Muro', value: evaluation.volleyball?.muro ?? 0 },
+                { label: 'Difesa', value: evaluation.volleyball?.difesa ?? 0 },
+                { label: 'Elevazione', value: evaluation.volleyball?.elevazione ?? 0 }
+            ]
+        }
+        return []
+    }
+
+    const playerStats = getPlayerStats()
+    const radarStats: StatItem[] = playerStats.map((stat) => ({
+        label: stat.label,
+        value: stat.value
+    }))
+
+    if (mainSport === 'Calcio') {
+        radarStats.forEach((stat) => {
+            if (stat.label === 'Velocità') stat.label = 'Vel'
+            if (stat.label === 'Passaggio') stat.label = 'Pass'
+            if (stat.label === 'Dribbling') stat.label = 'Drib'
+            if (stat.label === 'Difesa') stat.label = 'Dif'
+            if (stat.label === 'Fisico') stat.label = 'Fis'
+        })
+    }
+    if (mainSport === 'Basket') {
+        radarStats.forEach((stat) => {
+            if (stat.label === 'Velocità') stat.label = 'Vel'
+            if (stat.label === 'Passaggio') stat.label = 'Pass'
+            if (stat.label === 'Palleggio') stat.label = 'Pal'
+            if (stat.label === 'Difesa') stat.label = 'Dif'
+            if (stat.label === 'Atletismo') stat.label = 'Atl'
+        })
+    }
+    if (mainSport === 'Pallavolo') {
+        radarStats.forEach((stat) => {
+            if (stat.label === 'Battuta') stat.label = 'Batt'
+            if (stat.label === 'Ricezione') stat.label = 'Ric'
+            if (stat.label === 'Attacco') stat.label = 'Att'
+            if (stat.label === 'Difesa') stat.label = 'Dif'
+            if (stat.label === 'Elevazione') stat.label = 'Elev'
+        })
+    }
+
     return (
         <div className={`space-y-8 ${className}`}>
-            {/* UNIVERSAL ABILITIES */}
-            {evaluation.universal && Object.keys(evaluation.universal).length > 0 && (
+            {/* PLAYER ABILITIES - MINIMAL + RADAR */}
+            {isPlayer && playerStats.length > 0 && (
                 <section className="space-y-4">
                     <div className="border-b-2 border-gray-200 pb-2">
-                        <h3 className="text-lg font-bold text-gray-900">Abilità Universali</h3>
+                        <h3 className="text-lg font-bold text-gray-900">Abilità {mainSport}</h3>
                     </div>
-                    <div className="space-y-3">
-                        {evaluation.universal.velocita !== undefined && (
-                            <AbilityBar label="Velocità" value={evaluation.universal.velocita} />
-                        )}
-                        {evaluation.universal.resistenza !== undefined && (
-                            <AbilityBar label="Resistenza" value={evaluation.universal.resistenza} />
-                        )}
-                        {evaluation.universal.comunicazione !== undefined && (
-                            <AbilityBar label="Comunicazione" value={evaluation.universal.comunicazione} />
-                        )}
-                        {evaluation.universal.intelligenzaTattica !== undefined && (
-                            <AbilityBar label="Intelligenza Tattica" value={evaluation.universal.intelligenzaTattica} />
-                        )}
-                        {evaluation.universal.movimentoSenzaPalla !== undefined && (
-                            <AbilityBar label="Movimento Senza Palla" value={evaluation.universal.movimentoSenzaPalla} />
-                        )}
-                        {evaluation.universal.concentrazione !== undefined && (
-                            <AbilityBar label="Concentrazione" value={evaluation.universal.concentrazione} />
-                        )}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            {playerStats.map((stat) => (
+                                <div key={stat.label} className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 font-medium">{stat.label}</span>
+                                    <StarRating value={stat.value} />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex items-center justify-center">
+                            <div className="rounded-xl bg-white border border-gray-200 p-4 shadow-sm">
+                                <RadarChart stats={radarStats} max={99} />
+                            </div>
+                        </div>
                     </div>
-                </section>
-            )}
-
-            {/* FOOTBALL ABILITIES */}
-            {isPlayer && mainSport === 'Calcio' && evaluation.football && (
-                <section className="space-y-4">
-                    <div className="border-b-2 border-gray-200 pb-2">
-                        <h3 className="text-lg font-bold text-gray-900">Abilità Calcio</h3>
-                    </div>
-
-                    {/* Common */}
-                    {evaluation.football.common && Object.keys(evaluation.football.common).length > 0 && (
-                        <div className="space-y-3 pl-4 border-l-4 border-blue-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Comuni</h4>
-                            {evaluation.football.common.controlPalla !== undefined && (
-                                <AbilityBar label="Controllo Palla" value={evaluation.football.common.controlPalla} />
-                            )}
-                            {evaluation.football.common.passaggio !== undefined && (
-                                <AbilityBar label="Passaggio" value={evaluation.football.common.passaggio} />
-                            )}
-                            {evaluation.football.common.tiro !== undefined && (
-                                <AbilityBar label="Tiro" value={evaluation.football.common.tiro} />
-                            )}
-                            {evaluation.football.common.visioneDiGioco !== undefined && (
-                                <AbilityBar label="Visione di Gioco" value={evaluation.football.common.visioneDiGioco} />
-                            )}
-                        </div>
-                    )}
-
-                    {/* Role-Specific */}
-                    {evaluation.football.role === 'attacker' && evaluation.football.attacker && (
-                        <div className="space-y-3 pl-4 border-l-4 border-red-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Attaccante</h4>
-                            {evaluation.football.attacker.efficaciaSottoporta !== undefined && (
-                                <AbilityBar label="Efficacia Sottoporta" value={evaluation.football.attacker.efficaciaSottoporta} />
-                            )}
-                            {evaluation.football.attacker.posizionamentoOffensivo !== undefined && (
-                                <AbilityBar label="Posizionamento Offensivo" value={evaluation.football.attacker.posizionamentoOffensivo} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.football.role === 'midfielder' && evaluation.football.midfielder && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Centrocampista</h4>
-                            {evaluation.football.midfielder.distribuzione !== undefined && (
-                                <AbilityBar label="Distribuzione" value={evaluation.football.midfielder.distribuzione} />
-                            )}
-                            {evaluation.football.midfielder.coperturaDifensiva !== undefined && (
-                                <AbilityBar label="Copertura Difensiva" value={evaluation.football.midfielder.coperturaDifensiva} />
-                            )}
-                            {evaluation.football.midfielder.verticalizzazione !== undefined && (
-                                <AbilityBar label="Verticalizzazione" value={evaluation.football.midfielder.verticalizzazione} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.football.role === 'defender' && evaluation.football.defender && (
-                        <div className="space-y-3 pl-4 border-l-4 border-purple-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Difensore</h4>
-                            {evaluation.football.defender.marcatura !== undefined && (
-                                <AbilityBar label="Marcatura" value={evaluation.football.defender.marcatura} />
-                            )}
-                            {evaluation.football.defender.posizionamentoDifensivo !== undefined && (
-                                <AbilityBar label="Posizionamento Difensivo" value={evaluation.football.defender.posizionamentoDifensivo} />
-                            )}
-                            {evaluation.football.defender.anticipo !== undefined && (
-                                <AbilityBar label="Anticipo" value={evaluation.football.defender.anticipo} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.football.role === 'goalkeeper' && evaluation.football.goalkeeper && (
-                        <div className="space-y-3 pl-4 border-l-4 border-yellow-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Portiere</h4>
-                            {evaluation.football.goalkeeper.reattivita !== undefined && (
-                                <AbilityBar label="Reattività" value={evaluation.football.goalkeeper.reattivita} />
-                            )}
-                            {evaluation.football.goalkeeper.posizionamento !== undefined && (
-                                <AbilityBar label="Posizionamento" value={evaluation.football.goalkeeper.posizionamento} />
-                            )}
-                            {evaluation.football.goalkeeper.giocoConPiedi !== undefined && (
-                                <AbilityBar label="Gioco coi Piedi" value={evaluation.football.goalkeeper.giocoConPiedi} />
-                            )}
-                            {evaluation.football.goalkeeper.distribuzione !== undefined && (
-                                <AbilityBar label="Distribuzione" value={evaluation.football.goalkeeper.distribuzione} />
-                            )}
-                            {evaluation.football.goalkeeper.usciteAeree !== undefined && (
-                                <AbilityBar label="Uscite Aeree" value={evaluation.football.goalkeeper.usciteAeree} />
-                            )}
-                            {evaluation.football.goalkeeper.presaSicura !== undefined && (
-                                <AbilityBar label="Presa Sicura" value={evaluation.football.goalkeeper.presaSicura} />
-                            )}
-                        </div>
-                    )}
-                </section>
-            )}
-
-            {/* VOLLEYBALL ABILITIES */}
-            {isPlayer && mainSport === 'Pallavolo' && evaluation.volleyball && (
-                <section className="space-y-4">
-                    <div className="border-b-2 border-gray-200 pb-2">
-                        <h3 className="text-lg font-bold text-gray-900">Abilità Pallavolo</h3>
-                    </div>
-
-                    {evaluation.volleyball.common && Object.keys(evaluation.volleyball.common).length > 0 && (
-                        <div className="space-y-3 pl-4 border-l-4 border-blue-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Comuni</h4>
-                            {evaluation.volleyball.common.ricezione !== undefined && (
-                                <AbilityBar label="Ricezione" value={evaluation.volleyball.common.ricezione} />
-                            )}
-                            {evaluation.volleyball.common.posizionamento !== undefined && (
-                                <AbilityBar label="Posizionamento" value={evaluation.volleyball.common.posizionamento} />
-                            )}
-                            {evaluation.volleyball.common.salto !== undefined && (
-                                <AbilityBar label="Salto" value={evaluation.volleyball.common.salto} />
-                            )}
-                            {evaluation.volleyball.common.reattivita !== undefined && (
-                                <AbilityBar label="Reattività" value={evaluation.volleyball.common.reattivita} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.volleyball.role === 'setter' && evaluation.volleyball.setter && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Palleggiatore</h4>
-                            {evaluation.volleyball.setter.distribuzione !== undefined && (
-                                <AbilityBar label="Distribuzione" value={evaluation.volleyball.setter.distribuzione} />
-                            )}
-                            {evaluation.volleyball.setter.letturaDelGioco !== undefined && (
-                                <AbilityBar label="Lettura del Gioco" value={evaluation.volleyball.setter.letturaDelGioco} />
-                            )}
-                            {evaluation.volleyball.setter.rapiditaEsecutiva !== undefined && (
-                                <AbilityBar label="Rapidità Esecutiva" value={evaluation.volleyball.setter.rapiditaEsecutiva} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.volleyball.role === 'spiker' && evaluation.volleyball.spiker && (
-                        <div className="space-y-3 pl-4 border-l-4 border-red-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Schiacciatore</h4>
-                            {evaluation.volleyball.spiker.potenzaAttacco !== undefined && (
-                                <AbilityBar label="Potenza d'Attacco" value={evaluation.volleyball.spiker.potenzaAttacco} />
-                            )}
-                            {evaluation.volleyball.spiker.timingSalto !== undefined && (
-                                <AbilityBar label="Timing Salto" value={evaluation.volleyball.spiker.timingSalto} />
-                            )}
-                            {evaluation.volleyball.spiker.fiutoAttacco !== undefined && (
-                                <AbilityBar label="Fiuto d'Attacco" value={evaluation.volleyball.spiker.fiutoAttacco} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.volleyball.role === 'middle' && evaluation.volleyball.middle && (
-                        <div className="space-y-3 pl-4 border-l-4 border-purple-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Centrale</h4>
-                            {evaluation.volleyball.middle.muro !== undefined && (
-                                <AbilityBar label="Muro" value={evaluation.volleyball.middle.muro} />
-                            )}
-                            {evaluation.volleyball.middle.attaccoDaPost3 !== undefined && (
-                                <AbilityBar label="Attacco da Posto 3" value={evaluation.volleyball.middle.attaccoDaPost3} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.volleyball.role === 'libero' && evaluation.volleyball.libero && (
-                        <div className="space-y-3 pl-4 border-l-4 border-yellow-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Libero</h4>
-                            {evaluation.volleyball.libero.ricezioneSpecializzata !== undefined && (
-                                <AbilityBar label="Ricezione Specializzata" value={evaluation.volleyball.libero.ricezioneSpecializzata} />
-                            )}
-                            {evaluation.volleyball.libero.difesaBassa !== undefined && (
-                                <AbilityBar label="Difesa Bassa" value={evaluation.volleyball.libero.difesaBassa} />
-                            )}
-                        </div>
-                    )}
-                </section>
-            )}
-
-            {/* BASKETBALL ABILITIES */}
-            {isPlayer && mainSport === 'Basket' && evaluation.basketball && (
-                <section className="space-y-4">
-                    <div className="border-b-2 border-gray-200 pb-2">
-                        <h3 className="text-lg font-bold text-gray-900">Abilità Basketball</h3>
-                    </div>
-
-                    {evaluation.basketball.common && Object.keys(evaluation.basketball.common).length > 0 && (
-                        <div className="space-y-3 pl-4 border-l-4 border-blue-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Comuni</h4>
-                            {evaluation.basketball.common.palleggio !== undefined && (
-                                <AbilityBar label="Palleggio" value={evaluation.basketball.common.palleggio} />
-                            )}
-                            {evaluation.basketball.common.tiro !== undefined && (
-                                <AbilityBar label="Tiro" value={evaluation.basketball.common.tiro} />
-                            )}
-                            {evaluation.basketball.common.letturaDifensiva !== undefined && (
-                                <AbilityBar label="Lettura Difensiva" value={evaluation.basketball.common.letturaDifensiva} />
-                            )}
-                            {evaluation.basketball.common.movimentoOffensivo !== undefined && (
-                                <AbilityBar label="Movimento Offensivo" value={evaluation.basketball.common.movimentoOffensivo} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.basketball.role === 'guard' && evaluation.basketball.guard && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Guardia</h4>
-                            {evaluation.basketball.guard.visioneDiGioco !== undefined && (
-                                <AbilityBar label="Visione di Gioco" value={evaluation.basketball.guard.visioneDiGioco} />
-                            )}
-                            {evaluation.basketball.guard.gestionePallone !== undefined && (
-                                <AbilityBar label="Gestione Pallone" value={evaluation.basketball.guard.gestionePallone} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.basketball.role === 'wing' && evaluation.basketball.wing && (
-                        <div className="space-y-3 pl-4 border-l-4 border-red-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Ala</h4>
-                            {evaluation.basketball.wing.versatilita !== undefined && (
-                                <AbilityBar label="Versatilità" value={evaluation.basketball.wing.versatilita} />
-                            )}
-                            {evaluation.basketball.wing.atletismo !== undefined && (
-                                <AbilityBar label="Atletismo" value={evaluation.basketball.wing.atletismo} />
-                            )}
-                        </div>
-                    )}
-
-                    {evaluation.basketball.role === 'center' && evaluation.basketball.center && (
-                        <div className="space-y-3 pl-4 border-l-4 border-purple-400">
-                            <h4 className="font-semibold text-gray-800">Abilità Centro</h4>
-                            {evaluation.basketball.center.dominioArea !== undefined && (
-                                <AbilityBar label="Dominio Area" value={evaluation.basketball.center.dominioArea} />
-                            )}
-                            {evaluation.basketball.center.rimbalzo !== undefined && (
-                                <AbilityBar label="Rimbalzo" value={evaluation.basketball.center.rimbalzo} />
-                            )}
-                        </div>
-                    )}
                 </section>
             )}
 

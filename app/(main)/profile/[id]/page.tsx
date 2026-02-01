@@ -3,7 +3,6 @@ import path from 'path'
 import ProfileSidebar from '@/components/profile-sidebar'
 import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
-import SocialLinks from '@/components/social-links'
 import SelfEvaluationDisplay from '@/components/self-evaluation-display'
 import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
 
@@ -38,6 +37,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
     // Conteggio assistiti per agenti (affiliazioni accettate dove agentId = user.id)
     const assistatiCount = affiliations.filter((a: any) => String(a.agentId) === String(id) && a.status === 'accepted').length
+
+    // Agente affiliato (per player)
+    const playerAffiliation = affiliations.find(
+        (a: any) => String(a.playerId) === String(id) && a.status === 'accepted'
+    )
+    const agentUser = playerAffiliation
+        ? users.find((u: any) => String(u.id) === String(playerAffiliation.agentId))
+        : null
+    const agentName = agentUser ? `${agentUser.firstName} ${agentUser.lastName}`.trim() : null
 
     // Determina il club da mostrare
     let userClub = user.currentClub || null
@@ -75,6 +83,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             followersCount={followersCount}
                             followingCount={followingCount}
                             assistatiCount={assistatiCount}
+                            agentName={agentName}
                             isOwn={false}
                         />
                     </div>
@@ -92,13 +101,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 </p>
                             ) : (
                                 <p className="text-gray-600 italic">Nessuna bio inserita</p>
-                            )}
-
-                            {/* Social Links */}
-                            {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
-                                <div className="mt-4">
-                                    <SocialLinks socialLinks={user.socialLinks} />
-                                </div>
                             )}
 
                             {/* Sport/Skills */}

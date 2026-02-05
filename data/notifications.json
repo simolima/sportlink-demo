@@ -486,5 +486,23 @@
     },
     "read": false,
     "createdAt": "2025-12-30T15:04:01.336Z"
+  },
+  {
+    "id": 1770312874299,
+    "userId": "1768342738771",
+    "type": "profile_verified",
+    "message": "Mario Rossi ha verificato il tuo profilo",
+    "metadata": {},
+    "read": true,
+    "createdAt": "2026-02-05T17:34:34.299Z"
+  },
+  {
+    "id": 1770312878091,
+    "userId": "1768342738771",
+    "type": "added_to_favorites",
+    "message": "Mario Rossi ti ha aggiunto ai preferiti",
+    "metadata": {},
+    "read": true,
+    "createdAt": "2026-02-05T17:34:38.091Z"
   }
 ]

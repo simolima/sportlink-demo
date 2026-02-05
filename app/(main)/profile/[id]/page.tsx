@@ -7,7 +7,8 @@ import SelfEvaluationDisplay from '@/components/self-evaluation-display'
 import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
 
 const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-const FOLLOWS_PATH = path.join(process.cwd(), 'data', 'follows.json')
+const VERIFICATIONS_PATH = path.join(process.cwd(), 'data', 'verifications.json')
+const FAVORITES_PATH = path.join(process.cwd(), 'data', 'favorites.json')
 const CLUBS_PATH = path.join(process.cwd(), 'data', 'clubs.json')
 const CLUB_MEMBERSHIPS_PATH = path.join(process.cwd(), 'data', 'club-memberships.json')
 const AFFILIATIONS_PATH = path.join(process.cwd(), 'data', 'affiliations.json')
@@ -20,7 +21,8 @@ function readJson(p: string) {
 export default function ProfilePage({ params }: { params: { id: string } }) {
     const id = params.id
     const users = readJson(USERS_PATH)
-    const follows = readJson(FOLLOWS_PATH)
+    const verifications = readJson(VERIFICATIONS_PATH)
+    const favorites = readJson(FAVORITES_PATH)
     const clubs = readJson(CLUBS_PATH)
     const memberships = readJson(CLUB_MEMBERSHIPS_PATH)
     const affiliations = readJson(AFFILIATIONS_PATH)
@@ -32,8 +34,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         </div>
     )
 
-    const followersCount = follows.filter((f: any) => String(f.followingId) === String(id)).length
-    const followingCount = follows.filter((f: any) => String(f.followerId) === String(id)).length
+    const verificationsCount = verifications.filter((v: any) => String(v.verifiedId) === String(id)).length
+    const favoritesCount = favorites.filter((f: any) => String(f.favoriteId) === String(id)).length
 
     // Conteggio assistiti per agenti (affiliazioni accettate dove agentId = user.id)
     const assistatiCount = affiliations.filter((a: any) => String(a.agentId) === String(id) && a.status === 'accepted').length
@@ -46,6 +48,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         ? users.find((u: any) => String(u.id) === String(playerAffiliation.agentId))
         : null
     const agentName = agentUser ? `${agentUser.firstName} ${agentUser.lastName}`.trim() : null
+    const agentId = agentUser?.id ?? null
 
     // Determina il club da mostrare
     let userClub = user.currentClub || null
@@ -80,10 +83,11 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         <ProfileSidebar
                             user={user}
                             clubName={userClub}
-                            followersCount={followersCount}
-                            followingCount={followingCount}
+                            verificationsCount={verificationsCount}
+                            favoritesCount={favoritesCount}
                             assistatiCount={assistatiCount}
                             agentName={agentName}
+                            agentId={agentId}
                             isOwn={false}
                         />
                     </div>

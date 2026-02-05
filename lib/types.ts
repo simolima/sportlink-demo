@@ -152,7 +152,9 @@ export const NOTIFICATION_TYPES = [
   'new_application', // Notifica per Sporting Director quando riceve una candidatura a un annuncio
   'candidacy_accepted', // Notifica per candidato quando la sua candidatura viene accettata
   'candidacy_rejected', // Notifica per candidato quando la sua candidatura viene rifiutata
-  'message_received' // Notifica quando ricevi un nuovo messaggio in chat
+  'message_received', // Notifica quando ricevi un nuovo messaggio in chat
+  'profile_verified', // Notifica quando qualcuno verifica il tuo profilo
+  'added_to_favorites' // Notifica quando qualcuno ti aggiunge ai preferiti
 ] as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[number];

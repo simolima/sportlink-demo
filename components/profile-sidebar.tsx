@@ -8,8 +8,19 @@ import {
     EnvelopeIcon,
     UserMinusIcon,
     CheckIcon,
-    PlusCircleIcon
+    PlusCircleIcon,
+    TrophyIcon
 } from '@heroicons/react/24/outline'
+
+/* ─── Sport → emoji mapping ─── */
+const sportEmoji: Record<string, string> = {
+    calcio: '⚽', basket: '🏀', pallavolo: '🏐', tennis: '🎾',
+    nuoto: '🏊', atletica: '🏃', rugby: '🏉', ciclismo: '🚴',
+}
+function getSportIcon(sport?: string) {
+    if (!sport) return '🏅'
+    return sportEmoji[sport.toLowerCase()] || '🏅'
+}
 
 interface ProfileSidebarProps {
     user: any
@@ -307,21 +318,23 @@ export default function ProfileSidebar({
     const stats = getStats()
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6 border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-lg p-5 sticky top-6 border border-gray-200">
             {/* Avatar e Nome */}
-            <div className="flex flex-col items-center text-center mb-6">
+            <div className="flex flex-col items-center text-center mb-5">
                 <Avatar
                     src={user?.avatarUrl}
                     alt={`${user?.firstName} ${user?.lastName}`}
                     fallbackText={user?.firstName?.[0] || 'U'}
-                    className="w-24 h-24 mb-4 ring-4 ring-[#2341F0]/20"
+                    className="w-20 h-20 mb-3 ring-4 ring-green-500/20"
                 />
-                <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide mb-1">
+                <h1 className="text-xl font-bold text-gray-900 uppercase tracking-wide mb-0.5">
                     {user?.firstName} {user?.lastName}
                 </h1>
-                <p className="text-[#2341F0] font-semibold text-lg mb-2">
-                    {user?.currentRole || role}
-                </p>
+                {!isPlayer && (
+                    <p className="text-green-700 font-semibold text-lg mb-2">
+                        {user?.currentRole || role}
+                    </p>
+                )}
                 {clubName && (
                     <p className="text-gray-600 text-sm">
                         {clubName}
@@ -329,7 +342,81 @@ export default function ProfileSidebar({
                 )}
             </div>
 
-            {/* Stato disponibilità o contrattuale */}
+            {/* ── PLAYER: Sport + Categoria + Stats compact ── */}
+            {isPlayer && (() => {
+                const mainSport = Array.isArray(user?.sports) && user.sports.length > 0 ? user.sports[0] : user?.sport || ''
+                const latestExp = Array.isArray(user?.experiences) && user.experiences.length > 0 ? user.experiences[0] : null
+                const category = latestExp?.category || ''
+                const categoryTier = latestExp?.categoryTier || ''
+                const position = user?.footballPrimaryPosition || latestExp?.primaryPosition || user?.currentRole || ''
+                const posDetail = user?.footballSecondaryPosition || latestExp?.positionDetail || ''
+
+                const exps = Array.isArray(user?.experiences) ? user.experiences : []
+                const mainSportNorm = mainSport.toLowerCase()
+                const isFootball = mainSportNorm === 'calcio'
+                const isBasket = mainSportNorm === 'basket'
+                const isVolley = mainSportNorm === 'pallavolo'
+                const totals = exps.reduce((acc: any, e: any) => {
+                    acc.appearances += Number(e.appearances) || 0
+                    acc.goals += Number(e.goals) || 0
+                    acc.assists += Number(e.assists) || 0
+                    acc.pointsPerGame += Number(e.pointsPerGame) || 0
+                    acc.rebounds += Number(e.rebounds) || 0
+                    acc.volleyAces += Number(e.volleyAces) || 0
+                    acc.volleyBlocks += Number(e.volleyBlocks) || 0
+                    return acc
+                }, { appearances: 0, goals: 0, assists: 0, pointsPerGame: 0, rebounds: 0, volleyAces: 0, volleyBlocks: 0 })
+
+                type SD = { label: string; value: number }
+                const careerStats: SD[] = [{ label: 'Pres.', value: totals.appearances }]
+                if (isBasket) { careerStats.push({ label: 'PPG', value: totals.pointsPerGame }, { label: 'Rimb.', value: totals.rebounds }) }
+                else if (isVolley) { careerStats.push({ label: 'Ace', value: totals.volleyAces }, { label: 'Muri', value: totals.volleyBlocks }) }
+                else { careerStats.push({ label: 'Gol', value: totals.goals }, { label: 'Assist', value: totals.assists }) }
+                const hasStats = careerStats.some(s => s.value > 0)
+
+                return (
+                    <div className="mb-5 rounded-xl bg-gradient-to-br from-green-600 to-emerald-500 px-3 py-3 text-white">
+                        {/* Row 1: Sport + badges */}
+                        <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-lg">{getSportIcon(mainSport)}</span>
+                                <span className="font-bold text-sm uppercase tracking-wide">{mainSport || 'Sport'}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                {category && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/30">
+                                        {category}
+                                    </span>
+                                )}
+                                {categoryTier && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white text-green-700">
+                                        {categoryTier}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        {/* Row 2: Position */}
+                        {position && (
+                            <p className="text-xs font-semibold text-center text-white/85 mb-2">
+                                {position}{posDetail && posDetail !== position ? ` – ${posDetail}` : ''}
+                            </p>
+                        )}
+                        {/* Row 3: Inline stats */}
+                        {hasStats && (
+                            <div className="grid grid-cols-3 gap-1.5">
+                                {careerStats.map((s, i) => (
+                                    <div key={i} className="bg-white/15 rounded-md py-1 text-center">
+                                        <div className="text-base font-extrabold leading-tight">{s.value}</div>
+                                        <div className="text-[8px] font-semibold uppercase tracking-wider opacity-75">{s.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            })()}
+
+            {/* Stato contrattuale / disponibilità */}
             {(isPlayer || isCoach || isDS) ? (
                 // Per Player, Coach, DS: mostra stato contrattuale
                 user?.contractStatus && (() => {
@@ -345,8 +432,8 @@ export default function ProfileSidebar({
             ) : (
                 // Per altri ruoli: mostra disponibilità
                 user?.availability && (
-                    <div className="mb-6 px-4 py-2 bg-[#eaf2ff] rounded-lg border border-[#2341F0]/30 text-center">
-                        <span className="text-sm text-[#2341F0] font-semibold">
+                    <div className="mb-6 px-4 py-2 bg-green-50 rounded-lg border border-green-200 text-center">
+                        <span className="text-sm text-green-700 font-semibold">
                             {user.availability === 'Disponibile' && '✓ '}
                             {user.availability}
                         </span>
@@ -365,25 +452,25 @@ export default function ProfileSidebar({
                 </div>
             )}
 
-            {/* Statistiche */}
+            {/* Informazioni */}
             {stats.length > 0 && (
-                <div className="mb-6 space-y-3">
-                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                <div className="mb-5 space-y-1.5">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                         Informazioni
                     </h3>
                     {stats.map((stat, idx) => (
-                        <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                            <span className="text-gray-600 text-sm font-medium">{stat.label}</span>
+                        <div key={idx} className="flex justify-between items-center px-2 py-1.5 bg-gray-50 rounded-md">
+                            <span className="text-gray-500 text-xs">{stat.label}</span>
                             {stat.link ? (
                                 <button
                                     type="button"
                                     onClick={() => router.push(stat.link!)}
-                                    className="text-[#2341F0] font-bold text-lg hover:underline"
+                                    className="text-green-700 font-semibold text-sm hover:underline"
                                 >
                                     {stat.value}
                                 </button>
                             ) : (
-                                <span className="text-gray-900 font-bold text-lg">{stat.value}</span>
+                                <span className="text-gray-900 font-semibold text-sm">{stat.value}</span>
                             )}
                         </div>
                     ))}
@@ -391,37 +478,37 @@ export default function ProfileSidebar({
             )}
 
             {/* Verifications/Favorites */}
-            <div className="mb-6 grid grid-cols-2 gap-3">
-                <div className="bg-[#eaf2ff] rounded-lg p-3 text-center border border-[#2341F0]/30">
-                    <div className="text-2xl font-bold text-[#2341F0]">{verificationsCount}</div>
-                    <div className="text-xs text-[#2341F0] uppercase">Verificati</div>
+            <div className="mb-5 grid grid-cols-2 gap-2">
+                <div className="bg-green-50 rounded-lg p-2 text-center border border-green-200">
+                    <div className="text-lg font-bold text-green-700">{verificationsCount}</div>
+                    <div className="text-[10px] text-green-700 uppercase">Verificati</div>
                 </div>
-                <div className="bg-[#eaf2ff] rounded-lg p-3 text-center border border-[#2341F0]/30">
-                    <div className="text-2xl font-bold text-[#2341F0]">{favoritesCount}</div>
-                    <div className="text-xs text-[#2341F0] uppercase">Preferiti</div>
+                <div className="bg-green-50 rounded-lg p-2 text-center border border-green-200">
+                    <div className="text-lg font-bold text-green-700">{favoritesCount}</div>
+                    <div className="text-[10px] text-green-700 uppercase">Preferiti</div>
                 </div>
             </div>
 
             {/* Azioni */}
             {!isSelf && (
-                <div className="space-y-3">
+                <div className="space-y-2">
                     {/* Verifica profilo */}
                     {isVerified ? (
                         <button
                             onClick={handleUnverify}
                             disabled={verifyLoading}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition border border-green-300 disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-200 transition border border-green-300 disabled:opacity-50"
                         >
-                            <CheckIcon className="w-5 h-5" />
+                            <CheckIcon className="w-4 h-4" />
                             {verifyLoading ? 'Caricamento...' : 'Verificato'}
                         </button>
                     ) : (
                         <button
                             onClick={handleVerify}
                             disabled={verifyLoading}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-lg disabled:opacity-50"
                         >
-                            <CheckIcon className="w-5 h-5" />
+                            <CheckIcon className="w-4 h-4" />
                             {verifyLoading ? 'Caricamento...' : 'Verifica profilo'}
                         </button>
                     )}
@@ -431,18 +518,18 @@ export default function ProfileSidebar({
                         <button
                             onClick={handleRemoveFavorite}
                             disabled={favoriteLoading}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition border border-yellow-300 disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-semibold hover:bg-yellow-200 transition border border-yellow-300 disabled:opacity-50"
                         >
-                            <PlusCircleIcon className="w-5 h-5" />
+                            <PlusCircleIcon className="w-4 h-4" />
                             {favoriteLoading ? 'Caricamento...' : 'Nei preferiti'}
                         </button>
                     ) : (
                         <button
                             onClick={handleAddFavorite}
                             disabled={favoriteLoading}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition border border-gray-300 disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-200 transition border border-gray-300 disabled:opacity-50"
                         >
-                            <PlusCircleIcon className="w-5 h-5" />
+                            <PlusCircleIcon className="w-4 h-4" />
                             {favoriteLoading ? 'Caricamento...' : 'Aggiungi ai preferiti'}
                         </button>
                     )}
@@ -450,9 +537,9 @@ export default function ProfileSidebar({
                     {/* Contatta */}
                     <button
                         onClick={handleMessage}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition border border-gray-300"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-200 transition border border-gray-300"
                     >
-                        <EnvelopeIcon className="w-5 h-5" />
+                        <EnvelopeIcon className="w-4 h-4" />
                         Contatta
                     </button>
 
@@ -460,7 +547,7 @@ export default function ProfileSidebar({
                     {isPlayer && onApply && (
                         <button
                             onClick={onApply}
-                            className="w-full px-4 py-3 bg-gray-100 text-[#2341F0] rounded-lg font-semibold hover:bg-gray-200 transition border border-[#2341F0]/50"
+                            className="w-full px-4 py-3 bg-gray-100 text-green-700 rounded-lg font-semibold hover:bg-gray-200 transition border border-green-300"
                         >
                             Candidati
                         </button>
@@ -468,7 +555,7 @@ export default function ProfileSidebar({
                     {isAgent && onAddPlayer && (
                         <button
                             onClick={onAddPlayer}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-[#2341F0] rounded-lg font-semibold hover:bg-gray-200 transition border border-[#2341F0]/50"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-green-700 rounded-lg font-semibold hover:bg-gray-200 transition border border-green-300"
                         >
                             <PlusCircleIcon className="w-5 h-5" />
                             Aggiungi assistito
@@ -481,7 +568,7 @@ export default function ProfileSidebar({
             {isSelf && (
                 <a
                     href="/profile/edit"
-                    className="w-full block text-center px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg"
+                    className="w-full block text-center px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
                 >
                     Modifica profilo
                 </a>

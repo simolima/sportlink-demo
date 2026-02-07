@@ -730,7 +730,7 @@
     "level": "",
     "experiences": [
       {
-        "id": "1769972993095-0",
+        "id": "1770489459599-0",
         "season": "2020/2021",
         "role": "Attaccante",
         "primaryPosition": "Attaccante",
@@ -743,11 +743,34 @@
         "summary": "",
         "goals": 12,
         "appearances": 20
+      },
+      {
+        "id": "1770489459599-1",
+        "season": "2022/2023",
+        "role": "Centrocampista",
+        "primaryPosition": "Centrocampista",
+        "positionDetail": "Mezzala",
+        "team": "firenze",
+        "country": "Germania",
+        "category": "Divisioni Locali",
+        "categoryTier": "Dilettanti",
+        "competitionType": "female",
+        "summary": "",
+        "goals": 5,
+        "cleanSheets": 0,
+        "appearances": 3,
+        "assists": 5,
+        "minutesPlayed": 4,
+        "penalties": 1,
+        "yellowCards": 4,
+        "redCards": 4,
+        "substitutionsIn": 3,
+        "substitutionsOut": 3
       }
     ],
     "verified": false,
     "createdAt": "2025-12-07T10:33:34.007Z",
-    "updatedAt": "2026-02-01T19:10:07.833Z",
+    "updatedAt": "2026-02-07T18:37:46.059Z",
     "annunciAttivi": 4,
     "candidatureRicevute": 10,
     "followers": 65,
@@ -762,7 +785,6 @@
     "socialLinks": {
       "instagram": "https://www.instagram.com/alelp.97/",
       "tiktok": "https://www.tiktok.com/login?redirect_url=https%3A%2F%2Fwww.tiktok.com%2Fit-IT%2F&lang=en&enter_method=mandatory",
-      "youtube": "https://www.youtube.com/",
       "facebook": "www.facebook.com",
       "twitter": "www.x.com",
       "linkedin": "www.linkedin.com",

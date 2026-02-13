@@ -1,35 +1,10 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { withCors } from '@/lib/cors'
 import { createNotification } from '@/lib/notifications-repository'
 import { dispatchToUser } from '@/lib/notification-dispatcher'
-
-const DATA_PATH = path.join(process.cwd(), 'data', 'favorites.json')
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
-
-function ensureFile() {
-    if (!fs.existsSync(DATA_PATH)) {
-        fs.writeFileSync(DATA_PATH, JSON.stringify([]))
-    }
-}
-
-function readData() {
-    ensureFile()
-    return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8') || '[]')
-}
-
-function writeData(data: any) {
-    ensureFile()
-    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2))
-}
-
-function readUsers() {
-    if (!fs.existsSync(USERS_PATH)) return []
-    return JSON.parse(fs.readFileSync(USERS_PATH, 'utf8') || '[]')
-}
+import { supabaseServer } from '@/lib/supabase-server'
 
 // GET: Ottieni tutti i preferiti (opzionalmente filtrati)
 export async function GET(req: Request) {
@@ -38,19 +13,24 @@ export async function GET(req: Request) {
         const userId = searchParams.get('userId') // Chi ha aggiunto ai preferiti
         const favoriteId = searchParams.get('favoriteId') // Chi è stato aggiunto ai preferiti
 
-        const data = readData()
-
-        let filtered = data
+        let query = supabaseServer.from('favorites').select('*')
 
         if (userId) {
-            filtered = filtered.filter((f: any) => String(f.userId) === String(userId))
+            query = query.eq('user_id', userId)
         }
 
         if (favoriteId) {
-            filtered = filtered.filter((f: any) => String(f.favoriteId) === String(favoriteId))
+            query = query.eq('favorite_id', favoriteId)
         }
 
-        return withCors(NextResponse.json(filtered))
+        const { data, error } = await query
+
+        if (error) {
+            console.error('Error fetching favorites:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
+
+        return withCors(NextResponse.json(data))
     } catch (error) {
         console.error('Error fetching favorites:', error)
         return withCors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))
@@ -70,50 +50,66 @@ export async function POST(req: Request) {
             return withCors(NextResponse.json({ error: 'Cannot favorite yourself' }, { status: 400 }))
         }
 
-        const data = readData()
-        const users = readUsers()
-
         // Controlla se il preferito esiste già
-        const exists = data.find(
-            (f: any) => String(f.userId) === String(userId) && String(f.favoriteId) === String(favoriteId)
-        )
+        const { data: existing } = await supabaseServer
+            .from('favorites')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('favorite_id', favoriteId)
+            .single()
 
-        if (exists) {
+        if (existing) {
             return withCors(NextResponse.json({ error: 'Already in favorites' }, { status: 400 }))
         }
 
-        const user = users.find((u: any) => String(u.id) === String(userId))
+        // Verifica che gli utenti esistano
+        const { data: user } = await supabaseServer
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .eq('id', userId)
+            .single()
+
         if (!user) {
             return withCors(NextResponse.json({ error: 'User not found' }, { status: 404 }))
         }
 
-        const favorite = users.find((u: any) => String(u.id) === String(favoriteId))
+        const { data: favorite } = await supabaseServer
+            .from('profiles')
+            .select('id')
+            .eq('id', favoriteId)
+            .single()
+
         if (!favorite) {
             return withCors(NextResponse.json({ error: 'Favorite user not found' }, { status: 404 }))
         }
 
-        const favoriteEntry = {
-            id: Date.now(),
-            userId: Number(userId),
-            favoriteId: Number(favoriteId),
-            createdAt: new Date().toISOString()
-        }
+        // Crea il preferito
+        const { data: favoriteEntry, error } = await supabaseServer
+            .from('favorites')
+            .insert({
+                user_id: userId,
+                favorite_id: favoriteId
+            })
+            .select()
+            .single()
 
-        data.push(favoriteEntry)
-        writeData(data)
+        if (error) {
+            console.error('Error creating favorite:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
 
         // Crea notifica per l'utente aggiunto ai preferiti
         const notification = await createNotification({
-            userId: Number(favoriteId),
+            userId: favoriteId,
             type: 'added_to_favorites',
-            relatedUserId: Number(userId),
-            message: `${user.firstName} ${user.lastName} ti ha aggiunto ai preferiti`,
-            read: false
+            title: 'Aggiunto ai Preferiti',
+            message: `${user.first_name} ${user.last_name} ti ha aggiunto ai preferiti`,
+            metadata: { userId: userId }
         })
 
         // Invia notifica in real-time
         if (notification) {
-            dispatchToUser(Number(favoriteId), notification)
+            dispatchToUser(favoriteId, notification)
         }
 
         return withCors(NextResponse.json(favoriteEntry, { status: 201 }))
@@ -134,16 +130,17 @@ export async function DELETE(req: Request) {
             return withCors(NextResponse.json({ error: 'Missing required parameters' }, { status: 400 }))
         }
 
-        const data = readData()
-        const filtered = data.filter(
-            (f: any) => !(String(f.userId) === String(userId) && String(f.favoriteId) === String(favoriteId))
-        )
+        // Rimuovi il preferito
+        const { error } = await supabaseServer
+            .from('favorites')
+            .delete()
+            .eq('user_id', userId)
+            .eq('favorite_id', favoriteId)
 
-        if (filtered.length === data.length) {
-            return withCors(NextResponse.json({ error: 'Favorite not found' }, { status: 404 }))
+        if (error) {
+            console.error('Error deleting favorite:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
-
-        writeData(filtered)
 
         return withCors(NextResponse.json({ success: true }))
     } catch (error) {

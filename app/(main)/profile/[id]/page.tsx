@@ -102,33 +102,21 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
                 setAssistatiCount(assistatiC || 0)
 
-                // Fetch verifications count (TODO: migrate to Supabase table)
-                try {
-                    const verificationsRes = await fetch('/api/verifications')
-                    if (verificationsRes.ok) {
-                        const allVerifications = await verificationsRes.json()
-                        const userVerifications = allVerifications.filter((v: any) =>
-                            String(v.verifiedId) === String(params.id)
-                        )
-                        setVerificationsCount(userVerifications.length)
-                    }
-                } catch (e) {
-                    console.error('Error fetching verifications:', e)
-                }
+                // Fetch verifications count
+                const { count: verificationsC } = await supabase
+                    .from('verifications')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('verified_id', params.id)
 
-                // Fetch favorites count (TODO: migrate to Supabase table)
-                try {
-                    const favoritesRes = await fetch('/api/favorites')
-                    if (favoritesRes.ok) {
-                        const allFavorites = await favoritesRes.json()
-                        const userFavorites = allFavorites.filter((f: any) =>
-                            String(f.favoriteId) === String(params.id)
-                        )
-                        setFavoritesCount(userFavorites.length)
-                    }
-                } catch (e) {
-                    console.error('Error fetching favorites:', e)
-                }
+                setVerificationsCount(verificationsC || 0)
+
+                // Fetch favorites count
+                const { count: favoritesC } = await supabase
+                    .from('favorites')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('favorite_id', params.id)
+
+                setFavoritesCount(favoritesC || 0)
 
                 // Fetch club info (TODO: implement club membership query)
                 // For now, leaving as null

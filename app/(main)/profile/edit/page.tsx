@@ -1755,6 +1755,41 @@ export default function EditProfilePage() {
                         </section>
                     )}
 
+                    {/* Social Links Section */}
+                    <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <SocialLinksForm
+                            socialLinks={form.socialLinks}
+                            onChange={(updated) => setForm(prev => ({ ...prev, socialLinks: updated }))}
+                            inputClassName={inputBase}
+                            showTransfermarkt={isPlayer}
+                        />
+                    </section>
+
+                    {/* Player Self Evaluation Section */}
+                    {isPlayer && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <SelfEvaluationForm
+                                evaluation={form.playerSelfEvaluation}
+                                professionalRole="Player"
+                                sports={mainSport ? [mainSport] : []}
+                                onChange={(updated) => setForm(prev => ({ ...prev, playerSelfEvaluation: updated }))}
+                            />
+                        </section>
+                    )}
+
+                    {/* Coach Self Evaluation Section */}
+                    {isCoach && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <SelfEvaluationForm
+                                evaluation={form.coachSelfEvaluation}
+                                professionalRole="Coach"
+                                sports={mainSport ? [mainSport] : []}
+                                onChange={(updated) => setForm(prev => ({ ...prev, coachSelfEvaluation: updated }))}
+                            />
+                        </section>
+                    )}
+
+                    {/* Esperienze Section */}
                     <section className="rounded-2xl border border-gray-200 bg-white p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -2634,40 +2669,6 @@ export default function EditProfilePage() {
                             ))}
                         </div>
                     </section>
-
-                    {/* Social Links Section */}
-                    <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
-                        <SocialLinksForm
-                            socialLinks={form.socialLinks}
-                            onChange={(updated) => setForm(prev => ({ ...prev, socialLinks: updated }))}
-                            inputClassName={inputBase}
-                            showTransfermarkt={isPlayer}
-                        />
-                    </section>
-
-                    {/* Player Self Evaluation Section */}
-                    {isPlayer && (
-                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
-                            <SelfEvaluationForm
-                                evaluation={form.playerSelfEvaluation}
-                                professionalRole="Player"
-                                sports={mainSport ? [mainSport] : []}
-                                onChange={(updated) => setForm(prev => ({ ...prev, playerSelfEvaluation: updated }))}
-                            />
-                        </section>
-                    )}
-
-                    {/* Coach Self Evaluation Section */}
-                    {isCoach && (
-                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
-                            <SelfEvaluationForm
-                                evaluation={form.coachSelfEvaluation}
-                                professionalRole="Coach"
-                                sports={mainSport ? [mainSport] : []}
-                                onChange={(updated) => setForm(prev => ({ ...prev, coachSelfEvaluation: updated }))}
-                            />
-                        </section>
-                    )}
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                         <button

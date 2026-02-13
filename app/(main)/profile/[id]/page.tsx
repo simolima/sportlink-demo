@@ -80,6 +80,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     experiences: [], // TODO: fetch from career_experiences table
                 }
 
+                console.log('🔍 Profile Data Loaded:', {
+                    socialLinks: userData.socialLinks,
+                    playerSelfEvaluation: userData.playerSelfEvaluation,
+                    coachSelfEvaluation: userData.coachSelfEvaluation,
+                    hasSocialLinks: userData.socialLinks && Object.values(userData.socialLinks).some((link: any) => link?.trim && link.trim()),
+                    hasPlayerEval: !!userData.playerSelfEvaluation,
+                    hasCoachEval: !!userData.coachSelfEvaluation
+                })
+
                 setUser(userData)
 
                 // Fetch followers/following counts

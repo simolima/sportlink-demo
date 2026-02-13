@@ -16,6 +16,8 @@ interface ProfileSidebarProps {
     clubName?: string | null
     verificationsCount?: number
     favoritesCount?: number
+    followersCount?: number
+    followingCount?: number
     assistatiCount?: number
     agentName?: string | null
     agentId?: string | number | null
@@ -29,6 +31,8 @@ export default function ProfileSidebar({
     clubName,
     verificationsCount = 0,
     favoritesCount = 0,
+    followersCount = 0,
+    followingCount = 0,
     assistatiCount = 0,
     agentName = null,
     agentId = null,

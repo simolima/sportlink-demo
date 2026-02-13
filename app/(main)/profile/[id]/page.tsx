@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import ProfileSidebar from '@/components/profile-sidebar'
 import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
+import SelfEvaluationDisplay from '@/components/self-evaluation-display'
+import SocialLinks from '@/components/social-links'
 import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase-browser'
 
@@ -15,6 +17,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     const [followersCount, setFollowersCount] = useState(0)
     const [followingCount, setFollowingCount] = useState(0)
     const [assistatiCount, setAssistatiCount] = useState(0)
+    const [verificationsCount, setVerificationsCount] = useState(0)
+    const [favoritesCount, setFavoritesCount] = useState(0)
     const [userClub, setUserClub] = useState<string | null>(null)
     const [sports, setSports] = useState<string[]>([])
 
@@ -98,6 +102,34 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
                 setAssistatiCount(assistatiC || 0)
 
+                // Fetch verifications count (TODO: migrate to Supabase table)
+                try {
+                    const verificationsRes = await fetch('/api/verifications')
+                    if (verificationsRes.ok) {
+                        const allVerifications = await verificationsRes.json()
+                        const userVerifications = allVerifications.filter((v: any) =>
+                            String(v.verifiedId) === String(params.id)
+                        )
+                        setVerificationsCount(userVerifications.length)
+                    }
+                } catch (e) {
+                    console.error('Error fetching verifications:', e)
+                }
+
+                // Fetch favorites count (TODO: migrate to Supabase table)
+                try {
+                    const favoritesRes = await fetch('/api/favorites')
+                    if (favoritesRes.ok) {
+                        const allFavorites = await favoritesRes.json()
+                        const userFavorites = allFavorites.filter((f: any) =>
+                            String(f.favoriteId) === String(params.id)
+                        )
+                        setFavoritesCount(userFavorites.length)
+                    }
+                } catch (e) {
+                    console.error('Error fetching favorites:', e)
+                }
+
                 // Fetch club info (TODO: implement club membership query)
                 // For now, leaving as null
 
@@ -140,6 +172,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         <ProfileSidebar
                             user={user}
                             clubName={userClub}
+                            verificationsCount={verificationsCount}
+                            favoritesCount={favoritesCount}
                             followersCount={followersCount}
                             followingCount={followingCount}
                             assistatiCount={assistatiCount}
@@ -391,6 +425,32 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 <ProfileRepresentationWrapper
                                     profileUserId={Number(params.id)}
                                     profileUserRole={user.professionalRole}
+                                />
+                            </ProfileSection>
+                        )}
+
+                        {/* Social Links */}
+                        {user?.socialLinks && Object.values(user.socialLinks).some((link: any) => link?.trim && link.trim()) && (
+                            <ProfileSection
+                                title="Link Sociali"
+                                subtitle="Profili e collegamenti esterni"
+                            >
+                                <SocialLinks socialLinks={user.socialLinks} showLabels={true} />
+                            </ProfileSection>
+                        )}
+
+                        {/* Self Evaluation */}
+                        {(user?.playerSelfEvaluation || user?.coachSelfEvaluation) && (
+                            <ProfileSection
+                                title="Autovalutazione"
+                                subtitle="Valutazione delle competenze"
+                            >
+                                <SelfEvaluationDisplay
+                                    user={user}
+                                    playerSelfEvaluation={user.playerSelfEvaluation}
+                                    coachSelfEvaluation={user.coachSelfEvaluation}
+                                    professionalRole={user.professionalRole}
+                                    sports={sports}
                                 />
                             </ProfileSection>
                         )}

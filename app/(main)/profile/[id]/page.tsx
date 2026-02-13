@@ -74,6 +74,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     weight: physicalStats?.weight_kg || null,
                     dominantFoot: physicalStats?.dominant_foot || null,
                     dominantHand: physicalStats?.dominant_hand || null,
+                    socialLinks: profile.social_links || {},
+                    playerSelfEvaluation: profile.player_self_evaluation || null,
+                    coachSelfEvaluation: profile.coach_self_evaluation || null,
                     experiences: [], // TODO: fetch from career_experiences table
                 }
 

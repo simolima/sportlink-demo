@@ -6,6 +6,7 @@ import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon } from "@heroico
 import Avatar from "@/components/avatar"
 import SocialLinksForm from "@/components/social-links-form"
 import SelfEvaluationForm from "@/components/self-evaluation-form"
+import OrganizationAutocomplete from "@/components/organization-autocomplete"
 import { uploadService } from "@/lib/upload-service"
 
 interface Experience {
@@ -1913,11 +1914,21 @@ export default function EditProfilePage() {
                                                         ))}
                                                     </select>
 
-                                                    {/* Team/Club */}
-                                                    <input
+                                                    {/* Team/Club - Autocomplete */}
+                                                    <OrganizationAutocomplete
                                                         value={exp.team}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
-                                                        placeholder="Organizzazione/Club"
+                                                        onChange={(value, org) => {
+                                                            handleExperienceChange(exp.id, "team", value)
+                                                            // Auto-fill country, city, sport if organization is selected
+                                                            if (org) {
+                                                                handleExperienceChange(exp.id, "country", org.country)
+                                                                if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                                handleExperienceChange(exp.id, "sport", org.sport)
+                                                            }
+                                                        }}
+                                                        sport={mainSport}
+                                                        country={exp.country || undefined}
+                                                        placeholder="Cerca organizzazione/club..."
                                                         className={inputBase}
                                                     />
 
@@ -2121,10 +2132,20 @@ export default function EditProfilePage() {
                                                 />
                                             )}
                                             {!isCoach && (
-                                                <input
+                                                <OrganizationAutocomplete
                                                     value={exp.team}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
-                                                    placeholder="Organizzazione/Club"
+                                                    onChange={(value, org) => {
+                                                        handleExperienceChange(exp.id, "team", value)
+                                                        // Auto-fill country, city, sport if organization is selected
+                                                        if (org) {
+                                                            handleExperienceChange(exp.id, "country", org.country)
+                                                            if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                            handleExperienceChange(exp.id, "sport", org.sport)
+                                                        }
+                                                    }}
+                                                    sport={mainSport}
+                                                    country={exp.country || undefined}
+                                                    placeholder="Cerca organizzazione/club..."
                                                     className={inputBase}
                                                 />
                                             )}

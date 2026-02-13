@@ -181,6 +181,15 @@ export default function SelfEvaluationDisplay({
     const isCoach = professionalRole === 'Coach'
     const evaluation = isPlayer ? playerSelfEvaluation : coachSelfEvaluation
 
+    console.log('🎯 SelfEvaluationDisplay received:', {
+        professionalRole,
+        isPlayer,
+        isCoach,
+        evaluation,
+        evaluationType: typeof evaluation,
+        evaluationKeys: evaluation ? Object.keys(evaluation) : null
+    })
+
     if (!evaluation) {
         return (
             <div className={`p-6 text-center text-gray-500 ${className}`}>

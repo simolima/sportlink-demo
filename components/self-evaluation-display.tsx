@@ -177,8 +177,8 @@ export default function SelfEvaluationDisplay({
     sports = [],
     className = ''
 }: SelfEvaluationDisplayProps) {
-    const isPlayer = professionalRole === 'Player'
-    const isCoach = professionalRole === 'Coach'
+    const isPlayer = professionalRole?.toLowerCase() === 'player'
+    const isCoach = professionalRole?.toLowerCase() === 'coach'
     const evaluation = isPlayer ? playerSelfEvaluation : coachSelfEvaluation
 
     console.log('🎯 SelfEvaluationDisplay received:', {

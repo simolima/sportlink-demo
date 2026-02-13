@@ -16,6 +16,8 @@ interface Experience {
     positionDetail?: string
     team: string
     country: string
+    city?: string
+    sport?: string // Sport dell'organizzazione
     category: string
     categoryTier?: string
     competitionType?: string // 'male' | 'female' | 'open' | 'mixed'
@@ -256,7 +258,60 @@ export default function EditProfilePage() {
                     }
                 }
 
+                // Fetch career experiences from dedicated table
+                const fetchCareerExperiences = async () => {
+                    try {
+                        const res = await fetch(`/api/career-experiences?userId=${userId}`)
+                        if (!res.ok) return []
+                        const data = await res.json()
+                        // Map DB fields to form fields
+                        return data.map((exp: any) => ({
+                            id: exp.id, // UUID from database
+                            season: exp.season || '',
+                            role: exp.role || 'Player',
+                            primaryPosition: exp.position?.name || '',
+                            positionDetail: exp.role_detail || '',
+                            team: exp.organization?.name || '',
+                            country: exp.organization?.country || '',
+                            city: exp.organization?.city || '',
+                            sport: exp.organization?.sport || 'Calcio',
+                            category: exp.category || '',
+                            competitionType: exp.competition_type || 'male',
+                            from: exp.start_date || '',
+                            to: exp.end_date || '',
+                            isCurrentlyPlaying: exp.is_current || false,
+                            summary: '', // Not stored in DB yet
+                            // Player stats
+                            goals: exp.goals || undefined,
+                            assists: exp.assists || undefined,
+                            cleanSheets: exp.clean_sheets || undefined,
+                            appearances: exp.appearances || undefined,
+                            minutesPlayed: exp.minutes_played || undefined,
+                            penalties: exp.penalties || undefined,
+                            yellowCards: exp.yellow_cards || undefined,
+                            redCards: exp.red_cards || undefined,
+                            substitutionsIn: exp.substitutions_in || undefined,
+                            substitutionsOut: exp.substitutions_out || undefined,
+                            pointsPerGame: exp.points_per_game || undefined,
+                            rebounds: exp.rebounds || undefined,
+                            volleyAces: exp.aces || undefined,
+                            volleyBlocks: exp.blocks || undefined,
+                            volleyDigs: exp.digs || undefined,
+                            // Coach stats
+                            matchesCoached: exp.matches_coached || undefined,
+                            wins: exp.wins || undefined,
+                            draws: exp.draws || undefined,
+                            losses: exp.losses || undefined,
+                            trophies: exp.trophies || undefined,
+                        }))
+                    } catch (err) {
+                        console.error('Error fetching career experiences:', err)
+                        return []
+                    }
+                }
+
                 const physicalStats = await fetchPhysicalStats()
+                const careerExperiences = await fetchCareerExperiences()
 
                 setForm({
                     firstName: user.first_name || user.firstName || "",
@@ -270,43 +325,8 @@ export default function EditProfilePage() {
                     country: user.country || "",
                     avatarUrl: user.avatar_url || user.avatarUrl || user.avatar || "",
                     coverUrl: user.cover_url || user.coverUrl || "",
-                    experiences: Array.isArray(user.experiences)
-                        ? user.experiences.map((e: any, idx: number) => ({
-                            id: `${Date.now()}-${idx}`,
-                            season: e.season || "", // Nuovo campo
-                            role: e.role || e.title || "",
-                            primaryPosition: e.primaryPosition || "",
-                            positionDetail: e.positionDetail || "",
-                            team: e.team || e.company || "",
-                            country: e.country || "",
-                            category: e.category || "",
-                            categoryTier: e.categoryTier || "",
-                            competitionType: e.competitionType || "",
-                            from: e.from || "",
-                            to: e.to || "",
-                            isCurrentlyPlaying: e.isCurrentlyPlaying || false,
-                            summary: e.summary || e.description || "",
-                            goals: typeof e.goals === 'number' ? e.goals : undefined,
-                            cleanSheets: typeof e.cleanSheets === 'number' ? e.cleanSheets : undefined,
-                            appearances: typeof e.appearances === 'number' ? e.appearances : undefined,
-                            pointsPerGame: typeof e.pointsPerGame === 'number' ? e.pointsPerGame : undefined,
-                            assists: typeof e.assists === 'number' ? e.assists : undefined,
-                            rebounds: typeof e.rebounds === 'number' ? e.rebounds : undefined,
-                            volleyAces: typeof e.volleyAces === 'number' ? e.volleyAces : undefined,
-                            volleyBlocks: typeof e.volleyBlocks === 'number' ? e.volleyBlocks : undefined,
-                            volleyDigs: typeof e.volleyDigs === 'number' ? e.volleyDigs : undefined,
-                            minutesPlayed: typeof e.minutesPlayed === 'number' ? e.minutesPlayed : undefined,
-                            penalties: typeof e.penalties === 'number' ? e.penalties : undefined,
-                            yellowCards: typeof e.yellowCards === 'number' ? e.yellowCards : undefined,
-                            redCards: typeof e.redCards === 'number' ? e.redCards : undefined,
-                            substitutionsIn: typeof e.substitutionsIn === 'number' ? e.substitutionsIn : undefined,
-                            substitutionsOut: typeof e.substitutionsOut === 'number' ? e.substitutionsOut : undefined,
-                            matchesCoached: typeof e.matchesCoached === 'number' ? e.matchesCoached : undefined,
-                            wins: typeof e.wins === 'number' ? e.wins : undefined,
-                            draws: typeof e.draws === 'number' ? e.draws : undefined,
-                            losses: typeof e.losses === 'number' ? e.losses : undefined,
-                            trophies: typeof e.trophies === 'number' ? e.trophies : undefined,
-                        }))
+                    experiences: careerExperiences.length > 0
+                        ? careerExperiences
                         : [],
                     availability: user.availability || "Disponibile",
                     height: physicalStats?.height_cm || user.height || undefined,
@@ -1093,6 +1113,30 @@ export default function EditProfilePage() {
                     }
                 } catch (physErr) {
                     console.error('Error saving physical stats:', physErr)
+                    // Non blocchiamo il salvataggio principale
+                }
+            }
+
+            // Save career experiences
+            if (form.experiences && form.experiences.length > 0) {
+                try {
+                    const expRes = await fetch("/api/career-experiences", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userId: userId,
+                            experiences: form.experiences,
+                        }),
+                    })
+                    if (!expRes.ok) {
+                        const expError = await expRes.text()
+                        console.error('Career experiences save failed:', expRes.status, expError)
+                    } else {
+                        const expResult = await expRes.json()
+                        console.log(`✅ Saved ${expResult.count} experiences`)
+                    }
+                } catch (expErr) {
+                    console.error('Error saving career experiences:', expErr)
                     // Non blocchiamo il salvataggio principale
                 }
             }

@@ -68,7 +68,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     country: profile.country,
                     birthDate: profile.birth_date,
                     gender: profile.gender,
-                    professionalRole: profile.role_id,
+                    professionalRole: profile.role_id ?
+                        profile.role_id.charAt(0).toUpperCase() + profile.role_id.slice(1) :
+                        null,
                     sports: sportsNames,
                     height: physicalStats?.height_cm || null,
                     weight: physicalStats?.weight_kg || null,

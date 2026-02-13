@@ -104,9 +104,9 @@ export async function POST(req: NextRequest) {
 
             if (!existingOrg) {
                 // Organizzazione non trovata - skip e riporta errore
-                errors.push({ 
-                    experience: exp, 
-                    error: `Organization not found: ${orgName} (${orgCountry}, ${orgSport})` 
+                errors.push({
+                    experience: exp,
+                    error: `Organization not found: ${orgName} (${orgCountry}, ${orgSport})`
                 })
                 console.warn(`Organization not found in database: ${orgName} (${orgCountry}, ${orgSport})`)
                 continue
@@ -190,12 +190,31 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // Se ci sono errori e nessuna esperienza salvata, considera fallimento
+        const hasErrors = errors.length > 0
+        const allFailed = savedExperiences.length === 0 && experiences.length > 0
+
+        if (allFailed && hasErrors) {
+            return withCors(
+                NextResponse.json({
+                    success: false,
+                    error: 'Nessuna esperienza salvata. Verifica che le organizzazioni esistano nel database.',
+                    count: 0,
+                    experiences: [],
+                    errors: errors
+                }, { status: 400 })
+            )
+        }
+
         return withCors(
             NextResponse.json({
                 success: true,
                 count: savedExperiences.length,
                 experiences: savedExperiences,
-                errors: errors.length > 0 ? errors : undefined
+                errors: hasErrors ? errors : undefined,
+                message: hasErrors
+                    ? `${savedExperiences.length} esperienze salvate, ${errors.length} ignorate (organizzazioni non trovate)`
+                    : undefined
             })
         )
     } catch (err: any) {

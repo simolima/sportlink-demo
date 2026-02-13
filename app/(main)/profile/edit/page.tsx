@@ -1128,16 +1128,36 @@ export default function EditProfilePage() {
                             experiences: form.experiences,
                         }),
                     })
+
+                    const expResult = await expRes.json()
+
                     if (!expRes.ok) {
-                        const expError = await expRes.text()
-                        console.error('Career experiences save failed:', expRes.status, expError)
+                        console.error('Career experiences save failed:', expRes.status, expResult)
+                        alert(
+                            `⚠️ Errore nel salvataggio esperienze:\n\n${expResult.error || 'Errore sconosciuto'}\n\n` +
+                            `Verifica che le organizzazioni/club esistano nel database.`
+                        )
                     } else {
-                        const expResult = await expRes.json()
                         console.log(`✅ Saved ${expResult.count} experiences`)
+
+                        // Mostra warning se alcune esperienze non sono state salvate
+                        if (expResult.errors && expResult.errors.length > 0) {
+                            const failedOrgs = expResult.errors.map((e: any) =>
+                                `- ${e.experience?.team || 'Unknown'} (${e.experience?.country || '?'})`
+                            ).join('\n')
+
+                            alert(
+                                `⚠️ Attenzione:\n\n` +
+                                `${expResult.count} esperienze salvate correttamente.\n\n` +
+                                `${expResult.errors.length} esperienze NON salvate (organizzazioni non trovate):\n\n` +
+                                `${failedOrgs}\n\n` +
+                                `Contatta l'amministratore per aggiungere queste organizzazioni al database.`
+                            )
+                        }
                     }
                 } catch (expErr) {
                     console.error('Error saving career experiences:', expErr)
-                    // Non blocchiamo il salvataggio principale
+                    alert('Errore inatteso nel salvataggio esperienze. Riprova.')
                 }
             }
 

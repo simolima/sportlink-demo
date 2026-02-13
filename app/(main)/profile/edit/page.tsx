@@ -86,6 +86,28 @@ interface FormState {
     agentNotes?: string
     // Certificazioni Staff
     certifications?: Certification[]
+    // Social Links (JSONB)
+    socialLinks?: {
+        instagram?: string
+        facebook?: string
+        linkedin?: string
+        twitter?: string
+        website?: string
+        youtube?: string
+    }
+    // Self Evaluation (JSONB)
+    playerSelfEvaluation?: {
+        technical?: number
+        tactical?: number
+        physical?: number
+        mental?: number
+    }
+    coachSelfEvaluation?: {
+        leadership?: number
+        communication?: number
+        tactical?: number
+        playerDevelopment?: number
+    }
 }
 
 const emptyExperience = (): Experience => ({
@@ -137,6 +159,26 @@ const initialForm: FormState = {
     fifaLicenseNumber: "",
     agentNotes: "",
     certifications: [],
+    socialLinks: {
+        instagram: "",
+        facebook: "",
+        linkedin: "",
+        twitter: "",
+        website: "",
+        youtube: ""
+    },
+    playerSelfEvaluation: {
+        technical: 0,
+        tactical: 0,
+        physical: 0,
+        mental: 0
+    },
+    coachSelfEvaluation: {
+        leadership: 0,
+        communication: 0,
+        tactical: 0,
+        playerDevelopment: 0
+    }
 }
 
 export default function EditProfilePage() {
@@ -305,6 +347,26 @@ export default function EditProfilePage() {
                             expiryDate: c.expiryDate || "",
                         }))
                         : [],
+                    socialLinks: {
+                        instagram: user.social_links?.instagram || user.socialLinks?.instagram || "",
+                        facebook: user.social_links?.facebook || user.socialLinks?.facebook || "",
+                        linkedin: user.social_links?.linkedin || user.socialLinks?.linkedin || "",
+                        twitter: user.social_links?.twitter || user.socialLinks?.twitter || "",
+                        website: user.social_links?.website || user.socialLinks?.website || "",
+                        youtube: user.social_links?.youtube || user.socialLinks?.youtube || ""
+                    },
+                    playerSelfEvaluation: user.player_self_evaluation || user.playerSelfEvaluation || {
+                        technical: 0,
+                        tactical: 0,
+                        physical: 0,
+                        mental: 0
+                    },
+                    coachSelfEvaluation: user.coach_self_evaluation || user.coachSelfEvaluation || {
+                        leadership: 0,
+                        communication: 0,
+                        tactical: 0,
+                        playerDevelopment: 0
+                    }
                 });
             } catch (error) {
                 console.error(error);
@@ -1015,6 +1077,9 @@ export default function EditProfilePage() {
                 country: form.country,
                 avatarUrl: form.avatarUrl,
                 coverUrl: form.coverUrl,
+                socialLinks: form.socialLinks,
+                playerSelfEvaluation: isPlayer ? form.playerSelfEvaluation : undefined,
+                coachSelfEvaluation: isCoach ? form.coachSelfEvaluation : undefined,
             }
 
             // Le experiences NON vanno nella tabella profiles (verranno gestite separatamente)
@@ -2594,6 +2659,300 @@ export default function EditProfilePage() {
                             ))}
                         </div>
                     </section>
+
+                    {/* Social Links Section */}
+                    <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900">Link Sociali</h2>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Aggiungi i tuoi profili social e collegamenti esterni
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Instagram</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://instagram.com/username"
+                                    value={form.socialLinks?.instagram || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, instagram: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Facebook</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://facebook.com/username"
+                                    value={form.socialLinks?.facebook || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, facebook: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">LinkedIn</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://linkedin.com/in/username"
+                                    value={form.socialLinks?.linkedin || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, linkedin: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Twitter/X</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://twitter.com/username"
+                                    value={form.socialLinks?.twitter || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, twitter: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Sito Web</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://tuosito.com"
+                                    value={form.socialLinks?.website || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, website: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">YouTube</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://youtube.com/@username"
+                                    value={form.socialLinks?.youtube || ""}
+                                    onChange={(e) => setForm(prev => ({
+                                        ...prev,
+                                        socialLinks: { ...prev.socialLinks, youtube: e.target.value }
+                                    }))}
+                                    className={inputBase}
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Player Self Evaluation Section */}
+                    {isPlayer && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900">Autovalutazione (Giocatore)</h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Valuta le tue competenze da 1 (base) a 10 (eccellente)
+                                </p>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Tecnica</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.playerSelfEvaluation?.technical || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.playerSelfEvaluation?.technical || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            playerSelfEvaluation: {
+                                                ...prev.playerSelfEvaluation,
+                                                technical: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Tattica</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.playerSelfEvaluation?.tactical || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.playerSelfEvaluation?.tactical || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            playerSelfEvaluation: {
+                                                ...prev.playerSelfEvaluation,
+                                                tactical: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Fisica</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.playerSelfEvaluation?.physical || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.playerSelfEvaluation?.physical || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            playerSelfEvaluation: {
+                                                ...prev.playerSelfEvaluation,
+                                                physical: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Mentale</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.playerSelfEvaluation?.mental || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.playerSelfEvaluation?.mental || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            playerSelfEvaluation: {
+                                                ...prev.playerSelfEvaluation,
+                                                mental: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Coach Self Evaluation Section */}
+                    {isCoach && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900">Autovalutazione (Allenatore)</h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Valuta le tue competenze da 1 (base) a 10 (eccellente)
+                                </p>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Leadership</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.coachSelfEvaluation?.leadership || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.coachSelfEvaluation?.leadership || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            coachSelfEvaluation: {
+                                                ...prev.coachSelfEvaluation,
+                                                leadership: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Comunicazione</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.coachSelfEvaluation?.communication || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.coachSelfEvaluation?.communication || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            coachSelfEvaluation: {
+                                                ...prev.coachSelfEvaluation,
+                                                communication: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Tattica</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.coachSelfEvaluation?.tactical || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.coachSelfEvaluation?.tactical || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            coachSelfEvaluation: {
+                                                ...prev.coachSelfEvaluation,
+                                                tactical: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-gray-700">Sviluppo Giocatori</label>
+                                        <span className="text-lg font-bold text-[#2341F0]">
+                                            {form.coachSelfEvaluation?.playerDevelopment || 0}/10
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        value={form.coachSelfEvaluation?.playerDevelopment || 0}
+                                        onChange={(e) => setForm(prev => ({
+                                            ...prev,
+                                            coachSelfEvaluation: {
+                                                ...prev.coachSelfEvaluation,
+                                                playerDevelopment: Number(e.target.value)
+                                            }
+                                        }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2341F0]"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                    )}
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                         <button

@@ -256,6 +256,11 @@ export async function PATCH(req: Request) {
         if (body.longitude !== undefined) updates.longitude = body.longitude
         if (body.privacySettings !== undefined) updates.privacy_settings = body.privacySettings
         if (body.verified !== undefined) updates.is_verified = body.verified
+        
+        // JSONB fields (nuove colonne aggiunte con migration)
+        if (body.socialLinks !== undefined) updates.social_links = body.socialLinks
+        if (body.playerSelfEvaluation !== undefined) updates.player_self_evaluation = body.playerSelfEvaluation
+        if (body.coachSelfEvaluation !== undefined) updates.coach_self_evaluation = body.coachSelfEvaluation
 
         console.log('📝 Update payload:', updates)
 

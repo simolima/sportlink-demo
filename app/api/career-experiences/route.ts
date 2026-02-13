@@ -75,25 +75,26 @@ export async function POST(req: NextRequest) {
         }
 
         // Per ogni esperienza, dobbiamo:
-        // 1. Trovare o creare l'organization
+        // 1. Trovare l'organization (SOLO LETTURA - no auto-creazione)
         // 2. Salvare l'esperienza
 
         const savedExperiences = []
+        const errors = []
 
         for (const exp of experiences) {
-            // 1. Trova o crea l'organizzazione
+            // 1. Trova l'organizzazione (deve esistere nel DB)
             const orgName = exp.team?.trim()
             const orgCountry = exp.country?.trim() || 'Italia'
-            const orgCity = exp.city?.trim() || ''
-            const orgSport = exp.sport?.trim() || 'Calcio' // Default Calcio
+            const orgSport = exp.sport?.trim() || 'Calcio'
 
             if (!orgName) {
+                errors.push({ experience: exp, error: 'Missing team name' })
                 console.warn('Skipping experience without team name:', exp)
                 continue
             }
 
-            // Cerca se l'organizzazione esiste già
-            let { data: existingOrg } = await supabase
+            // Cerca l'organizzazione nel database
+            const { data: existingOrg } = await supabase
                 .from('sports_organizations')
                 .select('id')
                 .eq('name', orgName)
@@ -101,28 +102,17 @@ export async function POST(req: NextRequest) {
                 .eq('sport', orgSport)
                 .maybeSingle()
 
-            let organizationId = existingOrg?.id
-
-            // Se non esiste, creala
-            if (!organizationId) {
-                const { data: newOrg, error: orgError } = await supabase
-                    .from('sports_organizations')
-                    .insert({
-                        name: orgName,
-                        country: orgCountry,
-                        city: orgCity,
-                        sport: orgSport,
-                    })
-                    .select('id')
-                    .single()
-
-                if (orgError) {
-                    console.error('Error creating organization:', orgError)
-                    continue
-                }
-
-                organizationId = newOrg.id
+            if (!existingOrg) {
+                // Organizzazione non trovata - skip e riporta errore
+                errors.push({ 
+                    experience: exp, 
+                    error: `Organization not found: ${orgName} (${orgCountry}, ${orgSport})` 
+                })
+                console.warn(`Organization not found in database: ${orgName} (${orgCountry}, ${orgSport})`)
+                continue
             }
+
+            const organizationId = existingOrg.id
 
             // 2. Prepara i dati dell'esperienza mappando i campi del form ai campi DB
             const expData: any = {
@@ -204,7 +194,8 @@ export async function POST(req: NextRequest) {
             NextResponse.json({
                 success: true,
                 count: savedExperiences.length,
-                experiences: savedExperiences
+                experiences: savedExperiences,
+                errors: errors.length > 0 ? errors : undefined
             })
         )
     } catch (err: any) {

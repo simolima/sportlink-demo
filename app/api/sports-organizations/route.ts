@@ -45,6 +45,9 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/sports-organizations
+// ⚠️ DISABLED: Only admins should create organizations via database
+// Uncomment and add auth check if needed for admin panel
+/*
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
@@ -79,6 +82,7 @@ export async function POST(request: NextRequest) {
         return withCors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))
     }
 }
+*/
 
 // OPTIONS handler per CORS preflight
 export async function OPTIONS(request: NextRequest) {

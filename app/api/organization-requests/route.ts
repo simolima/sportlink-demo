@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+function getSupabase() {
+    if (!supabaseUrl || !supabaseAnonKey) return null
+    return createClient(supabaseUrl, supabaseAnonKey)
+}
 
 // GET /api/organization-requests?status=pending&userId=xxx
 export async function GET(request: Request) {
     try {
+        const supabase = getSupabase()
+        if (!supabase) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })
+        }
         const { searchParams } = new URL(request.url)
         const status = searchParams.get('status')
         const userId = searchParams.get('userId')
@@ -47,6 +54,10 @@ export async function GET(request: Request) {
 // POST /api/organization-requests (richiesta da utente)
 export async function POST(request: Request) {
     try {
+        const supabase = getSupabase()
+        if (!supabase) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })
+        }
         const body = await request.json()
         const { requested_name, requested_country, requested_city, requested_sport, additional_info, requested_by } = body
 

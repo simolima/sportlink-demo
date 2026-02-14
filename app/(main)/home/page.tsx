@@ -132,7 +132,7 @@ export default function HomePage() {
                 console.log('✅ Fetched complete profile from DB:', { role: profile.role_id, sports })
                 localStorage.setItem('currentUserRole', profile.role_id)
                 localStorage.setItem('onboarding_complete', 'true') // Set flag to prevent redirect loops
-                
+
                 if (sports.length > 0) {
                     localStorage.setItem('currentUserSports', JSON.stringify(sports))
                     localStorage.setItem('currentUserSport', sports[0] || '')

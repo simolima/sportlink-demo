@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { SUPPORTED_SPORTS, isMultiSportRole } from '@/utils/roleHelpers'
-import { ROLE_TRANSLATIONS, ProfessionalRole } from '@/lib/types'
+import { SUPPORTED_SPORTS, isMultiSportRole, mapRoleToDatabase } from '@/utils/roleHelpers'
+import { ProfessionalRole } from '@/lib/types'
 import OnboardingHeader from '@/components/onboarding/OnboardingHeader'
 import { createUser } from '@/lib/services/auth-service'
 import { setCurrentUserSession, clearSignupDraft } from '@/lib/services/session'
@@ -19,7 +19,8 @@ export default function SelectSportPage() {
     useEffect(() => {
         if (typeof window === 'undefined' || checked) return;
         setChecked(true)
-        // Controlla che i dati di registrazione siano presenti
+
+        // Get data from localStorage
         const firstName = localStorage.getItem('signup_firstName')
         const lastName = localStorage.getItem('signup_lastName')
         const email = localStorage.getItem('signup_email')
@@ -28,7 +29,31 @@ export default function SelectSportPage() {
         const currentUserRole = localStorage.getItem('currentUserRole') as ProfessionalRole | null
         const currentUserId = localStorage.getItem('currentUserId')
 
+        console.log('🔍 Select Sport - Checking data:', {
+            hasSignupData: !!(firstName && lastName && email && password && birthDate),
+            hasOAuthData: !!currentUserId,
+            currentUserRole
+        })
+
+        // Check if this is OAuth flow (has userId but no signup data)
+        const isOAuthFlow = currentUserId && (!firstName || !email || !password)
+
+        if (isOAuthFlow) {
+            console.log('🔐 OAuth flow detected in select-sport')
+            // OAuth flow - only need role and userId
+            if (!currentUserRole) {
+                console.log('❌ No role, redirecting to profile-setup')
+                router.replace('/profile-setup?oauth=true')
+                return
+            }
+            // Has role, can proceed with sport selection
+            setRole(currentUserRole)
+            return
+        }
+
+        // Regular signup flow - check all required fields
         if (!firstName || !lastName || !email || !password || !birthDate || !currentUserRole) {
+            console.log('❌ Missing signup data, cleaning up and redirecting')
             localStorage.removeItem('signup_firstName')
             localStorage.removeItem('signup_lastName')
             localStorage.removeItem('signup_email')
@@ -42,6 +67,7 @@ export default function SelectSportPage() {
             }
             return
         }
+
         setRole(currentUserRole)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [checked])
@@ -70,14 +96,136 @@ export default function SelectSportPage() {
         try {
             // Salva gli sport in localStorage
             localStorage.setItem('currentUserSports', JSON.stringify(selectedSports))
-            // Recupera tutti i dati dal localStorage
+
+            const currentUserId = localStorage.getItem('currentUserId')
+            const professionalRole = role as ProfessionalRole
+            const sports = selectedSports
+
+            // Check if this is OAuth flow (user already authenticated)
+            if (currentUserId) {
+                // OAuth flow - update existing profile
+                console.log('🔄 Updating OAuth user profile...')
+
+                const { supabase } = await import('@/lib/supabase-browser')
+
+                // Get OAuth user data from localStorage
+                const firstName = localStorage.getItem('oauth_firstName') || ''
+                const lastName = localStorage.getItem('oauth_lastName') || ''
+                const birthDate = localStorage.getItem('oauth_birthDate') || ''
+                const email = localStorage.getItem('currentUserEmail') || ''
+                const avatarUrl = localStorage.getItem('oauth_avatarUrl') || ''
+
+                console.log('📝 OAuth user data:', { firstName, lastName, birthDate, email, avatarUrl })
+
+                // Validate required fields
+                if (!firstName || !lastName) {
+                    console.error('❌ Missing name data for OAuth user')
+                    setError('Nome e cognome mancanti. Torna indietro e completa il profilo.')
+                    setIsLoading(false)
+                    return
+                }
+
+                // Update profile with complete data
+                const profileUpdate: any = {
+                    role_id: mapRoleToDatabase(professionalRole),
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                }
+
+                // Add birth_date if provided
+                if (birthDate) {
+                    profileUpdate.birth_date = birthDate
+                }
+
+                if (avatarUrl) {
+                    profileUpdate.avatar_url = avatarUrl
+                }
+
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update(profileUpdate)
+                    .eq('id', currentUserId)
+
+                if (profileError) {
+                    console.error('❌ Profile update error:', profileError)
+                    throw new Error('Errore aggiornamento profilo')
+                }
+
+                console.log('✅ Profile updated successfully')
+
+                // Insert sports in profile_sports
+                console.log('🏀 Fetching sports from lookup_sports...', sports)
+
+                const { data: sportsData, error: sportsError } = await supabase
+                    .from('lookup_sports')
+                    .select('id, name')
+                    .in('name', sports)
+
+                console.log('🏀 Sports data result:', { sportsData, sportsError })
+
+                if (sportsError) {
+                    console.error('❌ Error fetching sports:', sportsError)
+                    throw new Error('Errore nel recupero degli sport')
+                }
+
+                if (!sportsData || sportsData.length === 0) {
+                    console.error('❌ No sports found in database for:', sports)
+                    throw new Error('Sport non trovati nel database')
+                }
+
+                console.log('🏀 Deleting existing profile_sports entries...')
+
+                // Delete existing sports first (in case user is re-doing onboarding)
+                const { error: deleteError } = await supabase
+                    .from('profile_sports')
+                    .delete()
+                    .eq('user_id', currentUserId)
+
+                if (deleteError) {
+                    console.warn('⚠️ Error deleting old sports:', deleteError)
+                }
+
+                console.log('🏀 Inserting new profile_sports entries...')
+
+                const profileSportsRecords = sportsData.map((sport, index) => ({
+                    user_id: currentUserId,
+                    sport_id: sport.id,
+                    is_main_sport: index === 0,
+                }))
+
+                console.log('🏀 Records to insert:', profileSportsRecords)
+
+                const { data: insertedSports, error: insertSportsError } = await supabase
+                    .from('profile_sports')
+                    .insert(profileSportsRecords)
+                    .select()
+
+                if (insertSportsError) {
+                    console.error('❌ Profile sports insert error:', insertSportsError)
+                    throw new Error('Errore nel salvataggio degli sport')
+                }
+
+                console.log('✅ Profile sports inserted successfully:', insertedSports)
+
+                // Update localStorage
+                localStorage.setItem('currentUserRole', professionalRole)
+                localStorage.setItem('currentUserSports', JSON.stringify(sports))
+
+                // Set flag that onboarding is complete
+                localStorage.setItem('onboarding_complete', 'true')
+
+                // Vai alla home
+                window.location.replace('/home')
+                return
+            }
+
+            // Regular signup flow - create new user
             const firstName = localStorage.getItem('signup_firstName') || ''
             const lastName = localStorage.getItem('signup_lastName') || ''
             const email = localStorage.getItem('signup_email') || ''
             const password = localStorage.getItem('signup_password') || ''
             const birthDate = localStorage.getItem('signup_birthDate') || ''
-            const professionalRole = role
-            const sports = selectedSports
 
             // Crea l'utente via service
             const newUser = await createUser({
@@ -103,8 +251,14 @@ export default function SelectSportPage() {
             clearSignupDraft()
             // Vai alla home
             window.location.replace('/home')
-        } catch (err) {
-            setError('Errore nella creazione del profilo. Riprova.')
+        } catch (err: any) {
+            console.error('Signup error:', err)
+            // Mostra messaggio errore più specifico
+            if (err.message?.includes('email')) {
+                setError('Email non valida o già in uso. Prova con un\'altra email.')
+            } else {
+                setError('Errore nella creazione del profilo. Riprova.')
+            }
             setIsLoading(false)
         }
     }

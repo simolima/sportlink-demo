@@ -8,14 +8,14 @@ import OnboardingHeader from '@/components/onboarding/OnboardingHeader'
 
 // Descrizioni brevi per ogni ruolo
 const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
-    'Player': 'Candidati e connettiti con i club',
-    'Coach': 'Cerca opportunità e networking',
-    'Agent': 'Gestisci e rappresenti atleti',
-    'Sporting Director': 'Coordina strategie sportive',
-    'Athletic Trainer': 'Prepara atleti al massimo livello',
-    'Nutritionist': 'Ottimizza le performance alimentari',
-    'Physio/Masseur': 'Cura e recupero degli atleti',
-    'Talent Scout': 'Scopri e valuta nuovi talenti',
+    'player': 'Candidati e connettiti con i club',
+    'coach': 'Cerca opportunità e networking',
+    'agent': 'Gestisci e rappresenti atleti',
+    'sporting_director': 'Coordina strategie sportive',
+    'athletic_trainer': 'Prepara atleti al massimo livello',
+    'nutritionist': 'Ottimizza le performance alimentari',
+    'physio': 'Cura e recupero degli atleti',
+    'talent_scout': 'Scopri e valuta nuovi talenti',
 }
 
 export default function Page() {

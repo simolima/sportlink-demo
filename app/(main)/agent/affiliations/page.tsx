@@ -47,8 +47,8 @@ export default function AgentAffiliationsPage() {
                     return
                 }
 
-                // Blocca immediatamente se non è un agente (use lowercase 'agent' from DB)
-                if (user.professionalRole !== 'agent') {
+                // Blocca immediatamente se non è un agente (use role_id from DB, not professionalRole)
+                if (user.role_id !== 'agent') {
                     showToast('error', 'Accesso negato', 'Solo gli agenti possono accedere a questa pagina')
                     setLoading(false)
                     router.push('/home')
@@ -82,8 +82,8 @@ export default function AgentAffiliationsPage() {
         try {
             const res = await fetch('/api/users')
             const users = await res.json()
-            // Filter only players (use lowercase 'player' from DB)
-            const playersList = users.filter((u: any) => u.professionalRole === 'player')
+            // Filter only players (use role_id from DB, not professionalRole)
+            const playersList = users.filter((u: any) => u.role_id === 'player')
             setPlayers(playersList)
             setFilteredPlayers(playersList)
         } catch (error) {
@@ -185,7 +185,7 @@ export default function AgentAffiliationsPage() {
     }
 
     // Se l'utente non è agente, non mostrare nulla (prevenzione flash contenuti)
-    if (currentUser && currentUser.professionalRole !== 'Agent') {
+    if (currentUser && currentUser.role_id !== 'agent') {
         return null
     }
 

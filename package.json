@@ -8,16 +8,11 @@
     "dev:mobile": "cd mobile && pnpm start",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
-    "generate": "prisma generate",
-    "postinstall": "prisma generate"
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.0.18",
-    "@prisma/client": "^5.19.0",
     "@supabase/supabase-js": "^2.45.0",
     "@tanstack/react-query": "^5.56.2",
     "clsx": "^2.1.1",
@@ -41,7 +36,6 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.5",
     "postcss": "^8.4.38",
-    "prisma": "^5.19.0",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4"

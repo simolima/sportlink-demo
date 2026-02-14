@@ -58,8 +58,8 @@ export default function SelfEvaluationForm({
         evaluation.basketball?.role || 'guard'
     )
 
-    const isPlayer = professionalRole === 'Player'
-    const isCoach = professionalRole === 'Coach'
+    const isPlayer = professionalRole === 'player' || professionalRole === 'Player'
+    const isCoach = professionalRole === 'coach' || professionalRole === 'Coach'
     const mainSport = sports?.[0] || null
 
     const updateUniversal = (field: string, value: number | undefined) => {

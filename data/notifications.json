@@ -504,5 +504,17 @@
     "metadata": {},
     "read": true,
     "createdAt": "2026-02-05T17:34:38.091Z"
+  },
+  {
+    "id": 1771082790452,
+    "userId": "b3e8e2fe-bcd1-47be-9461-84f6729c9a55",
+    "type": "profile_verified",
+    "title": "Profilo Verificato",
+    "message": "Mario Rossi ha verificato il tuo profilo",
+    "metadata": {
+      "verifierId": "20a89e25-b28c-46d4-b4d0-0e067661156a"
+    },
+    "read": false,
+    "createdAt": "2026-02-14T15:26:30.452Z"
   }
 ]

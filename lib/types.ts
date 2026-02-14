@@ -408,14 +408,13 @@ export type User = {
   email: string;
   password: string;
   birthDate: string;
-  nationality?: string;
   sports: SupportedSport[];
   professionalRole: ProfessionalRole;
   bio?: string;
   avatarUrl?: string;
   coverUrl?: string;
   city?: string;
-  country?: string;
+  country?: string; // Nazionalità/Paese dell'utente
   availability?: AvailabilityStatus;
   contractStatus?: 'svincolato' | 'sotto contratto';
   contractEndDate?: string;

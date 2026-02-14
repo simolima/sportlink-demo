@@ -223,13 +223,14 @@ export default function EditProfilePage() {
                                             roleId === 'talent_scout' ? 'Talent Scout' :
                                                 user.professionalRole || 'Player'
 
-                setIsPlayer(professionalRole === "Player");
-                setIsCoach(professionalRole === "Coach");
-                setIsAgent(professionalRole === "Agent");
-                setIsSportingDirector(professionalRole === "Sporting Director");
-                setIsPhysio(professionalRole === "Physio/Masseur");
-                setIsAthleticTrainer(professionalRole === "Athletic Trainer");
-                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(professionalRole));
+                // Use roleId (lowercase from DB) for comparisons instead of professionalRole
+                setIsPlayer(roleId === "player");
+                setIsCoach(roleId === "coach");
+                setIsAgent(roleId === "agent");
+                setIsSportingDirector(roleId === "sporting_director");
+                setIsPhysio(roleId === "physio");
+                setIsAthleticTrainer(roleId === "athletic_trainer");
+                setIsStaff(["athletic_trainer", "nutritionist", "physio", "talent_scout"].includes(roleId));
 
                 // Fetch sports from profile_sports table (nuovo schema Supabase)
                 const fetchSports = async () => {
@@ -334,7 +335,7 @@ export default function EditProfilePage() {
                     weight: physicalStats?.weight_kg || user.weight || undefined,
                     dominantFoot: physicalStats?.dominant_foot || user.dominantFoot || undefined,
                     dominantHand: physicalStats?.dominant_hand || user.dominantHand || undefined,
-                    specificRole: user.professionalRole === "Player" ? (user.specificRole ?? undefined) : undefined,
+                    specificRole: roleId === "player" ? (user.specificRole ?? undefined) : undefined,
                     secondaryRole: user.secondaryRole ?? undefined,
                     footballPrimaryPosition: user.footballPrimaryPosition ?? undefined,
                     footballSecondaryPosition: user.footballSecondaryPosition ?? undefined,
@@ -1265,6 +1266,35 @@ export default function EditProfilePage() {
                                     placeholder="Racconta la tua storia, specializzazioni, risultati..."
                                     className={`${inputBase} resize-none`}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-700">Nazionalità</label>
+                                <select
+                                    value={form.country || ""}
+                                    onChange={(e) => updateField("country", e.target.value)}
+                                    className={inputBase}
+                                >
+                                    <option value="">Seleziona nazionalità</option>
+                                    <option value="Italia">🇮🇹 Italia</option>
+                                    <option value="Spagna">🇪🇸 Spagna</option>
+                                    <option value="Francia">🇫🇷 Francia</option>
+                                    <option value="Germania">🇩🇪 Germania</option>
+                                    <option value="Inghilterra">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inghilterra</option>
+                                    <option value="Portogallo">🇵🇹 Portogallo</option>
+                                    <option value="Olanda">🇳🇱 Olanda</option>
+                                    <option value="Belgio">🇧🇪 Belgio</option>
+                                    <option value="Argentina">🇦🇷 Argentina</option>
+                                    <option value="Brasile">🇧🇷 Brasile</option>
+                                    <option value="Uruguay">🇺🇾 Uruguay</option>
+                                    <option value="Colombia">🇨🇴 Colombia</option>
+                                    <option value="Stati Uniti">🇺🇸 Stati Uniti</option>
+                                    <option value="Messico">🇲🇽 Messico</option>
+                                    <option value="Croazia">🇭🇷 Croazia</option>
+                                    <option value="Serbia">🇷🇸 Serbia</option>
+                                    <option value="Grecia">🇬🇷 Grecia</option>
+                                    <option value="Turchia">🇹🇷 Turchia</option>
+                                    <option value="Altro">🌍 Altro</option>
+                                </select>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Disponibilità per lavori</label>

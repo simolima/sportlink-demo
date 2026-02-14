@@ -38,8 +38,8 @@ export default function PlayerAffiliationsPage() {
           return
         }
 
-        // Check if user is a player
-        if (user.professionalRole !== 'Player') {
+        // Check if user is a player (use role_id from DB, not professionalRole)
+        if (user.role_id !== 'player') {
           showToast('error', 'Accesso negato', 'Solo i giocatori possono accedere a questa pagina')
           setLoading(false)
           router.push('/home')
@@ -167,7 +167,7 @@ export default function PlayerAffiliationsPage() {
   }
 
   // Se l'utente non è Player, non mostrare contenuto (evita flash in attesa redirect)
-  if (currentUser && currentUser.professionalRole !== 'Player') {
+  if (currentUser && currentUser.role_id !== 'player') {
     return null
   }
 

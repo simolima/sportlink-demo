@@ -60,20 +60,35 @@ export default function HomePage() {
             hasSports: !!sportsJson
         })
 
-        // If missing role or sports, try to load from DB before redirecting
-        if ((!role || !sportsJson) && !onboardingComplete) {
-            console.log('⚠️ Missing data in localStorage, attempting to fetch from DB...')
+        // CRITICAL: If onboarding is marked complete OR we have a role, trust it
+        // Don't force redirect to onboarding for existing users
+        if (onboardingComplete || role) {
+            console.log('✅ User has completed onboarding or has role, allowing access to home')
+            setUserId(id)
+            setUserRole(role)
+            setUserName(name)
+            checkClubAdmin(id)
+            return
+        }
+
+        // Only for truly new users without any data: try to fetch from DB
+        if (!role && !sportsJson) {
+            console.log('⚠️ New user detected, attempting to fetch from DB...')
             fetchUserDataFromDB(id).then(success => {
                 if (!success) {
                     // Only redirect if DB fetch also fails
                     console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
                     if (!name || name === 'User OAuth') {
                         window.location.href = '/complete-profile'
-                    } else if (!role) {
-                        window.location.href = '/profile-setup?oauth=true'
                     } else {
-                        window.location.href = '/select-sport'
+                        window.location.href = '/profile-setup?oauth=true'
                     }
+                } else {
+                    // Success - data loaded from DB
+                    setUserId(id)
+                    setUserRole(localStorage.getItem('currentUserRole') || '')
+                    setUserName(localStorage.getItem('currentUserName') || name)
+                    checkClubAdmin(id)
                 }
             })
             return
@@ -111,13 +126,17 @@ export default function HomePage() {
 
             const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
 
-            if (profile.role_id && sports.length > 0) {
+            // CRITICAL: Profile is complete if it has role_id + real name, sports are optional
+            if (profile.role_id && profile.first_name && profile.last_name) {
                 // Update localStorage with fetched data
-                console.log('✅ Fetched data from DB, updating localStorage:', { role: profile.role_id, sports })
+                console.log('✅ Fetched complete profile from DB:', { role: profile.role_id, sports })
                 localStorage.setItem('currentUserRole', profile.role_id)
-                localStorage.setItem('currentUserSports', JSON.stringify(sports))
-                localStorage.setItem('currentUserSport', sports[0] || '')
                 localStorage.setItem('onboarding_complete', 'true') // Set flag to prevent redirect loops
+                
+                if (sports.length > 0) {
+                    localStorage.setItem('currentUserSports', JSON.stringify(sports))
+                    localStorage.setItem('currentUserSport', sports[0] || '')
+                }
 
                 if (profile.first_name && profile.last_name) {
                     localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)

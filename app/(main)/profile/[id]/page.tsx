@@ -425,7 +425,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 subtitle="Agenti e affiliazioni"
                             >
                                 <ProfileRepresentationWrapper
-                                    profileUserId={Number(params.id)}
+                                    profileUserId={params.id}
                                     profileUserRole={user.professionalRole}
                                 />
                             </ProfileSection>

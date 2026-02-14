@@ -22,7 +22,7 @@ interface Affiliation {
 }
 
 interface PlayerRepresentationProps {
-    playerId: number
+    playerId: string | number
     isOwnProfile: boolean
 }
 

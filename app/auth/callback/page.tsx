@@ -139,58 +139,20 @@ export default function AuthCallbackPage() {
                     possibleCacheIssue: !hasSports && !sportsError && hasCompleteProfile && hasRole
                 })
 
-                // If onboarding flag is set, trust it and go to home (bypass sports check)
-                if (onboardingComplete && hasCompleteProfile && hasRole) {
-                    console.log('✅ Onboarding already completed (flag set), redirecting to home')
+                // CRITICAL FIX: If profile has real name + role, consider it complete regardless of sports/flag
+                // This prevents infinite redirect loops for existing users
+                if (hasCompleteProfile && hasRole) {
+                    console.log('✅ Profile has name + role, considering complete and redirecting to home')
                     if (profile?.first_name && profile?.last_name) {
                         localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
                     }
                     localStorage.setItem('currentUserRole', profile.role_id)
+                    localStorage.setItem('onboarding_complete', 'true') // Always set flag
                     window.location.href = '/home'
                     return
                 }
 
-                // CACHE/RLS WORKAROUND: If profile has name + role but sports query returns empty (no error),
-                // this might be a cache issue or the user already completed onboarding but sports aren't showing.
-                // In production, if a user has completed name+role, they've likely completed sports too.
-                const likelyCompletedOnboarding = hasCompleteProfile && hasRole && !sportsError
-
-                if (likelyCompletedOnboarding && !hasSports) {
-                    console.warn('⚠️ Profile has name+role but no sports found - possible cache/timing issue')
-                    console.log('🔄 Attempting to re-verify sports with fresh query...')
-
-                    // Try one more time with a fresh query
-                    const { data: sportsRetry, error: sportsRetryError } = await supabase
-                        .from('profile_sports')
-                        .select('id, sport_id')
-                        .eq('user_id', user.id)
-
-                    console.log('🔄 Sports retry result:', { sportsRetry, sportsRetryError })
-
-                    if (sportsRetry && sportsRetry.length > 0) {
-                        console.log('✅ Sports found on retry! Redirecting to home')
-                        if (profile?.first_name && profile?.last_name) {
-                            localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
-                        }
-                        localStorage.setItem('currentUserRole', profile.role_id)
-                        localStorage.setItem('onboarding_complete', 'true') // Set flag
-                        window.location.href = '/home'
-                        return
-                    }
-
-                    // Still no sports - let them through to home anyway since they completed the form
-                    // (they can add sports later from settings)
-                    console.log('⚠️ No sports on retry either, but profile complete - redirecting to home')
-                    if (profile?.first_name && profile?.last_name) {
-                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
-                    }
-                    localStorage.setItem('currentUserRole', profile.role_id)
-                    localStorage.setItem('onboarding_complete', 'true') // Set flag even without sports
-                    window.location.href = '/home'
-                    return
-                }
-
-                // Redirect to appropriate onboarding step
+                // If we reach here, profile is incomplete - redirect to appropriate onboarding step
                 if (!hasCompleteProfile) {
                     console.log('⚠️ Name missing, redirecting to complete-profile...')
                     window.location.href = '/complete-profile'
@@ -203,22 +165,9 @@ export default function AuthCallbackPage() {
                     return
                 }
 
-                if (!hasSports) {
-                    console.log('⚠️ Sports missing, redirecting to select-sport...')
-                    window.location.href = '/select-sport'
-                    return
-                }
-
-                console.log('✅ Profile complete, redirecting to home')
-
-                // Save complete user info
-                if (profile?.first_name && profile?.last_name) {
-                    localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
-                }
-                localStorage.setItem('currentUserRole', profile.role_id)
-                localStorage.setItem('onboarding_complete', 'true') // Set flag
-
-                window.location.href = '/home'
+                // Sports are optional - if we have name + role but reached here, redirect to select-sport
+                console.log('⚠️ Sports missing, redirecting to select-sport...')
+                window.location.href = '/select-sport'
 
             } catch (err) {
                 console.error('❌ Callback error:', err)

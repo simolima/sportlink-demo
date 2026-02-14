@@ -47,6 +47,9 @@ export default function ProfileSidebar({
     const [verifyLoading, setVerifyLoading] = useState(false)
     const [favoriteLoading, setFavoriteLoading] = useState(false)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+    const [requestingAffiliation, setRequestingAffiliation] = useState(false)
+    const [affiliationStatus, setAffiliationStatus] = useState<'none' | 'pending' | 'accepted'>('none')
 
     const role = user?.professionalRole || 'Professionista'
     const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
@@ -67,7 +70,7 @@ export default function ProfileSidebar({
             const footLabel = foot === 'destro' ? 'Destro' : foot === 'sinistro' ? 'Sinistro' : foot === 'ambidestro' ? 'Ambidestro' : undefined
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
+                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
                 { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'Non specificato' },
                 { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'Non specificato' },
                 { label: 'Piede', value: footLabel || 'Non specificato' },
@@ -79,14 +82,14 @@ export default function ProfileSidebar({
             const licenseLabel = licenses.length > 0 ? licenses.join(', ') : 'Non specificato'
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
+                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
                 { label: 'Licenza', value: licenseLabel }
             ] as StatItem[]
         }
         if (isDS) {
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
+                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
                 { label: 'Club gestito', value: clubName || 'Nessuno' }
             ] as StatItem[]
         }
@@ -95,7 +98,7 @@ export default function ProfileSidebar({
             const fifaNumber = user?.fifaLicenseNumber
             const stats = [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.nationality || 'Non specificato' },
+                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
                 { label: 'Assistiti', value: assistatiCount || 0 },
                 { label: 'Licenza FIFA', value: hasFifa ? 'Sì' : 'No' },
             ]
@@ -111,7 +114,9 @@ export default function ProfileSidebar({
         const checkUserStatus = async () => {
             if (typeof window === 'undefined') return
             const storedUserId = localStorage.getItem('currentUserId')
+            const storedUserRole = localStorage.getItem('currentUserRole')
             setCurrentUserId(storedUserId)
+            setCurrentUserRole(storedUserRole)
 
             if (!storedUserId || !user?.id) return
 
@@ -121,11 +126,27 @@ export default function ProfileSidebar({
                 return
             }
 
+            // Check affiliation status if current user is an agent and viewing a player
+            if (storedUserRole === 'agent' && isPlayer) {
+                try {
+                    const resAff = await fetch(`/api/affiliations?agentId=${storedUserId}&playerId=${user.id}`)
+                    if (resAff.ok) {
+                        const data = await resAff.json()
+                        if (data && data.length > 0) {
+                            const affiliation = data[0]
+                            setAffiliationStatus(affiliation.status)
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching affiliation status', e)
+                }
+            }
+
             // Check se ha già verificato questo utente
             try {
                 const resVerify = await fetch(`/api/verifications?verifierId=${storedUserId}`)
                 if (resVerify.ok) {
-                    const data = await res.json()
+                    const data = await resVerify.json()
                     const exists = (data || []).find((v: any) => String(v.verifiedId) === String(user.id))
                     setIsVerified(Boolean(exists))
                 }
@@ -228,6 +249,36 @@ export default function ProfileSidebar({
     const handleMessage = () => {
         if (!user?.id) return
         router.push(`/messages/${user.id}`)
+    }
+
+    // Funzione per richiedere affiliazione (Agent -> Player)
+    const handleRequestAffiliation = async () => {
+        if (requestingAffiliation || !currentUserId || !user?.id) return
+        setRequestingAffiliation(true)
+        try {
+            const res = await fetch('/api/affiliations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    agentId: currentUserId,
+                    playerId: user.id,
+                    notes: 'Richiesta di affiliazione dal profilo'
+                })
+            })
+            if (res.ok) {
+                setAffiliationStatus('pending')
+                // Optional: show success toast
+                alert('Richiesta di affiliazione inviata con successo!')
+            } else {
+                const error = await res.json()
+                alert(error.error || 'Errore durante l\'invio della richiesta')
+            }
+        } catch (e) {
+            console.error('Error requesting affiliation', e)
+            alert('Errore durante l\'invio della richiesta')
+        } finally {
+            setRequestingAffiliation(false)
+        }
     }
 
     const calculateAge = (birthDate: string) => {
@@ -359,7 +410,7 @@ export default function ProfileSidebar({
             )}
 
             {/* Social Links Icons */}
-            {user?.socialLinks && Object.values(user.socialLinks).some(link => link?.trim()) && (
+            {user?.socialLinks && Object.values(user.socialLinks).some(link => typeof link === 'string' && link.trim()) && (
                 <div className="mb-6 flex justify-center">
                     <SocialLinks
                         socialLinks={user.socialLinks}
@@ -477,6 +528,40 @@ export default function ProfileSidebar({
                             <PlusCircleIcon className="w-5 h-5" />
                             Aggiungi assistito
                         </button>
+                    )}
+
+                    {/* Richiesta affiliazione: Agent guarda Player */}
+                    {currentUserRole === 'agent' && isPlayer && (
+                        <>
+                            {affiliationStatus === 'none' && (
+                                <button
+                                    onClick={handleRequestAffiliation}
+                                    disabled={requestingAffiliation}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg disabled:opacity-50"
+                                >
+                                    <UserPlusIcon className="w-5 h-5" />
+                                    {requestingAffiliation ? 'Invio in corso...' : 'Richiedi Affiliazione'}
+                                </button>
+                            )}
+                            {affiliationStatus === 'pending' && (
+                                <div className="w-full px-4 py-3 bg-yellow-100 text-yellow-700 rounded-lg font-semibold border border-yellow-300 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Richiesta in attesa
+                                    </div>
+                                </div>
+                            )}
+                            {affiliationStatus === 'accepted' && (
+                                <div className="w-full px-4 py-3 bg-green-100 text-green-700 rounded-lg font-semibold border border-green-300 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <CheckIcon className="w-5 h-5" />
+                                        Affiliato
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

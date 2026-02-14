@@ -86,16 +86,29 @@ export default function SelectSportPage() {
 
         setIsLoading(true)
         setError(null)
+
+        if (!role) {
+            setError('Ruolo professionale mancante. Torna indietro e riprova.')
+            setIsLoading(false)
+            return
+        }
+
         try {
             // Salva gli sport in localStorage
             localStorage.setItem('currentUserSports', JSON.stringify(selectedSports))
 
+            const signupFirstName = localStorage.getItem('signup_firstName')
+            const signupEmail = localStorage.getItem('signup_email')
+            const signupPassword = localStorage.getItem('signup_password')
             const currentUserId = localStorage.getItem('currentUserId')
             const professionalRole = role as ProfessionalRole
             const sports = selectedSports
 
+            // Detect true OAuth flow (avoid stale currentUserId from old sessions)
+            const isOAuthFlow = !!(currentUserId && (!signupFirstName || !signupEmail || !signupPassword))
+
             // Check if this is OAuth flow (user already authenticated)
-            if (currentUserId) {
+            if (isOAuthFlow) {
                 // OAuth flow - update existing profile
                 console.log('🔄 Updating OAuth user profile...')
 
@@ -166,8 +179,7 @@ export default function SelectSportPage() {
                 }
 
                 if (!sportsData || sportsData.length === 0) {
-                    console.error('❌ No sports found in database for:', sports)
-                    throw new Error('Sport non trovati nel database')
+                    console.warn('⚠️ No sports found in database for:', sports)
                 }
 
                 console.log('🏀 Deleting existing profile_sports entries...')
@@ -184,25 +196,26 @@ export default function SelectSportPage() {
 
                 console.log('🏀 Inserting new profile_sports entries...')
 
-                const profileSportsRecords = sportsData.map((sport: any, index: number) => ({
-                    user_id: currentUserId,
-                    sport_id: sport.id,
-                    is_main_sport: index === 0,
-                }))
+                if (sportsData && sportsData.length > 0) {
+                    const profileSportsRecords = sportsData.map((sport: any, index: number) => ({
+                        user_id: currentUserId,
+                        sport_id: sport.id,
+                        is_main_sport: index === 0,
+                    }))
 
-                console.log('🏀 Records to insert:', profileSportsRecords)
+                    console.log('🏀 Records to insert:', profileSportsRecords)
 
-                const { data: insertedSports, error: insertSportsError } = await supabase
-                    .from('profile_sports')
-                    .insert(profileSportsRecords)
-                    .select()
+                    const { data: insertedSports, error: insertSportsError } = await supabase
+                        .from('profile_sports')
+                        .insert(profileSportsRecords)
+                        .select()
 
-                if (insertSportsError) {
-                    console.error('❌ Profile sports insert error:', insertSportsError)
-                    throw new Error('Errore nel salvataggio degli sport')
+                    if (insertSportsError) {
+                        console.error('❌ Profile sports insert error:', insertSportsError)
+                    } else {
+                        console.log('✅ Profile sports inserted successfully:', insertedSports)
+                    }
                 }
-
-                console.log('✅ Profile sports inserted successfully:', insertedSports)
 
                 // Update localStorage
                 localStorage.setItem('currentUserRole', professionalRole)

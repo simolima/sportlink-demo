@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+function getSupabase() {
+    if (!supabaseUrl || !supabaseAnonKey) return null
+    return createClient(supabaseUrl, supabaseAnonKey)
+}
 
 // PATCH /api/organization-requests/[id]/approve
 export async function PATCH(
@@ -12,6 +15,10 @@ export async function PATCH(
     { params }: { params: { id: string } }
 ) {
     try {
+        const supabase = getSupabase()
+        if (!supabase) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })
+        }
         const { id } = params
         const body = await request.json()
         const { reviewed_by } = body

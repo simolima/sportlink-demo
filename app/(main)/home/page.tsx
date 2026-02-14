@@ -13,20 +13,20 @@ import {
 } from '@/components/dashboard-widgets'
 import ClubJoinRequestsWidget from '@/components/dashboard-widgets/club-join-requests-widget'
 
-// Ruoli che vedono la dashboard Player
-const PLAYER_ROLES = ['Player']
+// Ruoli che vedono la dashboard Player (valori dal DB: lowercase con underscore)
+const PLAYER_ROLES = ['player']
 
 // Ruoli che vedono la dashboard Coach
-const COACH_ROLES = ['Coach']
+const COACH_ROLES = ['coach']
 
 // Ruoli che vedono la dashboard Agent
-const AGENT_ROLES = ['Agent']
+const AGENT_ROLES = ['agent']
 
 // Ruoli che vedono la dashboard Sporting Director / Club Admin
-const DS_ROLES = ['Sporting Director']
+const DS_ROLES = ['sporting_director']
 
 // Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout)
-const STAFF_ROLES = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur', 'Talent Scout']
+const STAFF_ROLES = ['athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
 
 export default function HomePage() {
     const router = useRouter()

@@ -419,7 +419,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         </ProfileSection>
 
                         {/* Relazioni (Rappresentazioni per Players) */}
-                        {user.professionalRole === 'Player' && (
+                        {user.professionalRole?.toLowerCase() === 'player' && (
                             <ProfileSection
                                 title="Relazioni"
                                 subtitle="Agenti e affiliazioni"

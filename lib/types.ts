@@ -12,16 +12,16 @@ export const SUPPORTED_SPORTS = [
 export type SupportedSport = typeof SUPPORTED_SPORTS[number];
 
 
-// Ruoli professionali principali (solo quelli consentiti)
+// Ruoli professionali principali (valori dal database: lowercase con underscore)
 export const PROFESSIONAL_ROLES = [
-  'Player',
-  'Coach',
-  'Agent',
-  'Sporting Director',
-  'Athletic Trainer',
-  'Nutritionist',
-  'Physio/Masseur',
-  'Talent Scout'
+  'player',
+  'coach',
+  'agent',
+  'sporting_director',
+  'athletic_trainer',
+  'nutritionist',
+  'physio',
+  'talent_scout'
 ] as const;
 
 export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
@@ -29,14 +29,14 @@ export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
 
 // Ruoli professionali tradotti (per UI)
 export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
-  'Player': 'Giocatore',
-  'Coach': 'Allenatore',
-  'Agent': 'Agente',
-  'Sporting Director': 'Direttore Sportivo',
-  'Athletic Trainer': 'Preparatore Atletico',
-  'Nutritionist': 'Nutrizionista',
-  'Physio/Masseur': 'Fisioterapista/Massaggiatore',
-  'Talent Scout': 'Talent Scout'
+  'player': 'Giocatore',
+  'coach': 'Allenatore',
+  'agent': 'Agente',
+  'sporting_director': 'Direttore Sportivo',
+  'athletic_trainer': 'Preparatore Atletico',
+  'nutritionist': 'Nutrizionista',
+  'physio': 'Fisioterapista/Massaggiatore',
+  'talent_scout': 'Talent Scout'
 };
 
 // Tipi di opportunità

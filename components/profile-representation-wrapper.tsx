@@ -23,10 +23,10 @@ export default function ProfileRepresentationWrapper({
         }
     }, [])
 
-    // Non mostrare nulla se non è un Player
-    const role = String(profileUserRole || '').trim()
-    if (role !== 'Player') {
-        console.log('ProfileRepresentationWrapper: Non è un Player, role:', role)
+    // Non mostrare nulla se non è un Player (case-insensitive)
+    const role = String(profileUserRole || '').trim().toLowerCase()
+    if (role !== 'player') {
+        console.log('ProfileRepresentationWrapper: Non è un Player, role:', profileUserRole)
         return null
     }
 

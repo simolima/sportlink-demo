@@ -3,6 +3,17 @@ import { supabase } from '@/lib/supabase-browser'
 
 export async function GET() {
     try {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            return NextResponse.json({
+                status: '⚠️ Supabase non configurato',
+                error: 'NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY mancanti',
+                env_check: {
+                    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                }
+            }, { status: 500 })
+        }
+
         // Test 1: Verifica connessione
         const { data: connection, error: connError } = await supabase
             .from('profiles')

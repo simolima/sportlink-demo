@@ -262,9 +262,10 @@ export default function SelectSportPage() {
             window.location.replace('/home')
         } catch (err: any) {
             console.error('Signup error:', err)
-            // Mostra messaggio errore più specifico
-            if (err.message.includes('email')) {
-                setError('Email non valida o già in uso. Prova con un\'altra email.')
+            // Mostra messaggio restituito dall'API quando disponibile
+            const message = (err?.message || '').toString()
+            if (message) {
+                setError(message)
             } else {
                 setError('Errore nella creazione del profilo. Riprova.')
             }

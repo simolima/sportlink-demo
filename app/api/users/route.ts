@@ -4,6 +4,12 @@ import { createServerClient, supabaseServer } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
+function ensureSupabaseEnv() {
+    const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasAnon = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    return { ok: hasUrl && hasAnon, hasUrl, hasAnon }
+}
+
 // Helper: Mappa i ruoli frontend (es: "Player") ai ruoli database (es: "player")
 function mapRoleToDatabase(frontendRole: string): string {
     const roleMap: Record<string, string> = {
@@ -27,6 +33,15 @@ export async function OPTIONS(req: Request) {
 // GET /api/users - Get all profiles
 export async function GET(req: Request) {
     try {
+        const env = ensureSupabaseEnv()
+        if (!env.ok) {
+            return withCors(NextResponse.json({
+                error: 'supabase_not_configured',
+                message: 'Supabase non configurato sul server',
+                env: env
+            }, { status: 500 }))
+        }
+
         const { data: profiles, error } = await supabaseServer
             .from('profiles')
             .select('*')
@@ -47,6 +62,15 @@ export async function GET(req: Request) {
 // POST /api/users - Create new profile (signup)
 export async function POST(req: Request) {
     try {
+        const env = ensureSupabaseEnv()
+        if (!env.ok) {
+            return withCors(NextResponse.json({
+                error: 'supabase_not_configured',
+                message: 'Supabase non configurato sul server',
+                env: env
+            }, { status: 500 }))
+        }
+
         const body = await req.json()
 
         // Validation: require email and password
@@ -199,6 +223,15 @@ export async function POST(req: Request) {
 // PATCH /api/users - Update existing profile
 export async function PATCH(req: Request) {
     try {
+        const env = ensureSupabaseEnv()
+        if (!env.ok) {
+            return withCors(NextResponse.json({
+                error: 'supabase_not_configured',
+                message: 'Supabase non configurato sul server',
+                env: env
+            }, { status: 500 }))
+        }
+
         const body = await req.json()
         const id = body.id ?? null
 

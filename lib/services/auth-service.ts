@@ -26,9 +26,13 @@ export async function createUser(payload: CreateUserPayload): Promise<CreatedUse
     })
 
     if (!res.ok) {
-        const errorData = await res.json()
+        const errorData = await res.json().catch(() => ({} as any))
         console.error('❌ API error:', errorData)
-        throw new Error('Errore nella creazione del profilo')
+        throw new Error(
+            errorData?.message ||
+            errorData?.error ||
+            'Errore nella creazione del profilo'
+        )
     }
 
     const newUser = await res.json()

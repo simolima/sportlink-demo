@@ -18,5 +18,15 @@
     "notes": "",
     "respondedAt": "2025-12-15T11:32:27.971Z",
     "affiliatedAt": "2025-12-15T11:32:27.971Z"
+  },
+  {
+    "id": 1771087049468,
+    "agentId": "aff35bae-5c77-4f65-accc-f2b214ddcb02",
+    "playerId": "b3e8e2fe-bcd1-47be-9461-84f6729c9a55",
+    "status": "accepted",
+    "requestedAt": "2026-02-14T16:37:29.468Z",
+    "notes": "Richiesta di affiliazione dal profilo",
+    "respondedAt": "2026-02-14T16:39:47.542Z",
+    "affiliatedAt": "2026-02-14T16:39:47.542Z"
   }
 ]

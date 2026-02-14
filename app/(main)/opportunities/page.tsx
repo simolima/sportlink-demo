@@ -160,8 +160,8 @@ export default function OpportunitiesPage() {
       return
     }
 
-    if (userRole === 'Agent') {
-      if (requiredRole !== 'Player') {
+    if (userRole === 'agent') {
+      if (requiredRole !== 'player') {
         showToast(
           'error',
           'Annuncio non compatibile',
@@ -472,7 +472,7 @@ export default function OpportunitiesPage() {
                   const userRole = currentUser?.professionalRole
                   const requiredRole = announcement.roleRequired
                   const canApply =
-                    userRole === 'Agent' ? requiredRole === 'Player' : userRole === requiredRole
+                    userRole === 'agent' ? requiredRole === 'player' : userRole === requiredRole
                   const isCompatible = canApply
 
                   const existingApplication = userApplications.find((app: any) => {
@@ -500,7 +500,7 @@ export default function OpportunitiesPage() {
                             </p>
                           </div>
                         )}
-                        {userRole === 'Agent' && requiredRole === 'Player' && (
+                        {userRole === 'agent' && requiredRole === 'player' && (
                           <div className="mb-3 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg">
                             <p className="text-xs text-primary font-medium">
                               ✓ Puoi candidare i tuoi assistiti

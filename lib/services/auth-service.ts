@@ -16,6 +16,9 @@ export type { CreateUserPayload, CreatedUser }
  * @throws Error se la creazione fallisce
  */
 export async function createUser(payload: CreateUserPayload): Promise<CreatedUser> {
+    console.log('🚀 Creating user with payload:', payload)
+    console.log('📋 Sports being sent:', payload.sports)
+
     const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -23,9 +26,12 @@ export async function createUser(payload: CreateUserPayload): Promise<CreatedUse
     })
 
     if (!res.ok) {
+        const errorData = await res.json()
+        console.error('❌ API error:', errorData)
         throw new Error('Errore nella creazione del profilo')
     }
 
     const newUser = await res.json()
+    console.log('✅ User created:', newUser)
     return newUser
 }

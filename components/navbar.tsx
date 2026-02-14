@@ -92,13 +92,13 @@ export default function Navbar() {
                                 <BriefcaseIcon className="w-5 h-5" />
                                 <span className="mt-1">Opportunità</span>
                             </Link>
-                            {user.professionalRole === 'Agent' && (
+                            {user.professionalRole === 'agent' && (
                                 <Link href="/agent/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                     <UserGroupIcon className="w-5 h-5" />
                                     <span className="mt-1">Affiliazioni</span>
                                 </Link>
                             )}
-                            {user.professionalRole === 'Player' && (
+                            {user.professionalRole === 'player' && (
                                 <Link href="/player/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                     <UserCircleIcon className="w-5 h-5" />
                                     <span className="mt-1">Rappresentanza</span>

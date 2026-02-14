@@ -13,20 +13,20 @@ import {
 } from '@/components/dashboard-widgets'
 import ClubJoinRequestsWidget from '@/components/dashboard-widgets/club-join-requests-widget'
 
-// Ruoli che vedono la dashboard Player
-const PLAYER_ROLES = ['Player']
+// Ruoli che vedono la dashboard Player (valori dal DB: lowercase con underscore)
+const PLAYER_ROLES = ['player']
 
 // Ruoli che vedono la dashboard Coach
-const COACH_ROLES = ['Coach']
+const COACH_ROLES = ['coach']
 
 // Ruoli che vedono la dashboard Agent
-const AGENT_ROLES = ['Agent']
+const AGENT_ROLES = ['agent']
 
 // Ruoli che vedono la dashboard Sporting Director / Club Admin
-const DS_ROLES = ['Sporting Director']
+const DS_ROLES = ['sporting_director']
 
 // Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout)
-const STAFF_ROLES = ['Athletic Trainer', 'Nutritionist', 'Physio/Masseur', 'Talent Scout']
+const STAFF_ROLES = ['athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
 
 export default function HomePage() {
     const router = useRouter()
@@ -47,6 +47,52 @@ export default function HomePage() {
 
         const role = localStorage.getItem('currentUserRole') || ''
         const name = localStorage.getItem('currentUserName') || ''
+        const sportsJson = localStorage.getItem('currentUserSports')
+        const onboardingComplete = localStorage.getItem('onboarding_complete') === 'true'
+
+        // Debug: log localStorage values
+        console.log('🔍 Home page localStorage check:', {
+            role,
+            name,
+            sportsJson,
+            onboardingComplete,
+            hasRole: !!role,
+            hasSports: !!sportsJson
+        })
+
+        // CRITICAL: If onboarding is marked complete OR we have a role, trust it
+        // Don't force redirect to onboarding for existing users
+        if (onboardingComplete || role) {
+            console.log('✅ User has completed onboarding or has role, allowing access to home')
+            setUserId(id)
+            setUserRole(role)
+            setUserName(name)
+            checkClubAdmin(id)
+            return
+        }
+
+        // Only for truly new users without any data: try to fetch from DB
+        if (!role && !sportsJson) {
+            console.log('⚠️ New user detected, attempting to fetch from DB...')
+            fetchUserDataFromDB(id).then(success => {
+                if (!success) {
+                    // Only redirect if DB fetch also fails
+                    console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
+                    if (!name || name === 'User OAuth') {
+                        window.location.href = '/complete-profile'
+                    } else {
+                        window.location.href = '/profile-setup?oauth=true'
+                    }
+                } else {
+                    // Success - data loaded from DB
+                    setUserId(id)
+                    setUserRole(localStorage.getItem('currentUserRole') || '')
+                    setUserName(localStorage.getItem('currentUserName') || name)
+                    checkClubAdmin(id)
+                }
+            })
+            return
+        }
 
         setUserId(id)
         setUserRole(role)
@@ -55,6 +101,58 @@ export default function HomePage() {
         // Verifica club admin e popola selector
         checkClubAdmin(id)
     }, [router])
+
+    const fetchUserDataFromDB = async (userId: string): Promise<boolean> => {
+        try {
+            const { supabase } = await import('@/lib/supabase-browser')
+
+            // Fetch profile
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('role_id, first_name, last_name')
+                .eq('id', userId)
+                .single()
+
+            if (profileError || !profile) {
+                console.error('Failed to fetch profile from DB:', profileError)
+                return false
+            }
+
+            // Fetch sports
+            const { data: userSports, error: sportsError } = await supabase
+                .from('profile_sports')
+                .select('sport_id, lookup_sports(name)')
+                .eq('user_id', userId)
+
+            const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
+
+            // CRITICAL: Profile is complete if it has role_id + real name, sports are optional
+            if (profile.role_id && profile.first_name && profile.last_name) {
+                // Update localStorage with fetched data
+                console.log('✅ Fetched complete profile from DB:', { role: profile.role_id, sports })
+                localStorage.setItem('currentUserRole', profile.role_id)
+                localStorage.setItem('onboarding_complete', 'true') // Set flag to prevent redirect loops
+
+                if (sports.length > 0) {
+                    localStorage.setItem('currentUserSports', JSON.stringify(sports))
+                    localStorage.setItem('currentUserSport', sports[0] || '')
+                }
+
+                if (profile.first_name && profile.last_name) {
+                    localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                }
+
+                // Reload page to apply changes
+                window.location.reload()
+                return true
+            }
+
+            return false
+        } catch (error) {
+            console.error('Error fetching user data from DB:', error)
+            return false
+        }
+    }
 
     const checkClubAdmin = async (id: string) => {
         try {

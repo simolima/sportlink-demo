@@ -3,8 +3,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { CalendarDaysIcon, EnvelopeIcon, MapPinIcon, PencilSquareIcon, UserIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
 import ProfileTabs from './profile-tabs'
+import SelfEvaluationDisplay from './self-evaluation-display'
 
-type TabType = 'informazioni'
+type TabType = 'informazioni' | 'autovalutazione'
 
 interface InfoItem {
     label: string
@@ -454,13 +455,32 @@ interface ProfileContentProps {
 export default function ProfileContent({ user, clubName, followersCount, followingCount }: ProfileContentProps) {
     const [activeTab, setActiveTab] = useState<TabType>('informazioni')
 
+    // Determina se mostrare la tab autovalutazione
+    const showAutovalutazione = !!(
+        (user?.playerSelfEvaluation && Object.keys(user.playerSelfEvaluation).length > 0) ||
+        (user?.coachSelfEvaluation && Object.keys(user.coachSelfEvaluation).length > 0)
+    )
+
     return (
         <div className="space-y-0">
-            <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            <ProfileTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                showAutovalutazione={showAutovalutazione}
+            />
 
             <div className="py-6">
                 {activeTab === 'informazioni' && (
                     <InformazioniTab user={user} clubName={clubName} followersCount={followersCount} />
+                )}
+                {activeTab === 'autovalutazione' && (
+                    <div className="px-6">
+                        <SelfEvaluationDisplay
+                            evaluation={user?.playerSelfEvaluation || user?.coachSelfEvaluation}
+                            professionalRole={user?.professionalRole}
+                            sports={user?.sports}
+                        />
+                    </div>
                 )}
             </div>
         </div>

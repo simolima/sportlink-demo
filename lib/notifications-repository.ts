@@ -40,7 +40,9 @@ export const TYPE_TO_CATEGORY: Record<string, string> = {
     'club_join_rejected': 'club',
     'new_opportunity': 'opportunities',
     'permission_granted': 'permissions',
-    'permission_revoked': 'permissions'
+    'permission_revoked': 'permissions',
+    'profile_verified': 'profile',
+    'added_to_favorites': 'profile'
 }
 
 // Preferenze di default
@@ -51,7 +53,8 @@ export const DEFAULT_PREFERENCES: Record<string, boolean> = {
     affiliations: true,
     club: true,
     opportunities: true,
-    permissions: true
+    permissions: true,
+    profile: true
 }
 
 // ============================================================================

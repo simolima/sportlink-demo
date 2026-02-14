@@ -185,6 +185,7 @@ create table public.profile_sports (
   sport_id bigint references public.lookup_sports(id) on delete cascade not null,
   
   -- Livello e Ruolo Primario per questo sport
+  -- NULLABLE: Solo Player/Coach hanno questi dati compilati
   level_id bigint references public.lookup_levels(id),
   primary_position_id bigint references public.lookup_positions(id),
   
@@ -622,6 +623,39 @@ create policy "Users can manage own physical stats"
   on public.physical_stats for all
   using (auth.uid() = user_id);
 
+-- Profile Sports Policies
+create policy "Profile sports viewable by everyone"
+  on public.profile_sports for select
+  using (deleted_at is null);
+
+create policy "Users can insert own profile sports"
+  on public.profile_sports for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own profile sports"
+  on public.profile_sports for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own profile sports"
+  on public.profile_sports for delete
+  using (auth.uid() = user_id);
+
+-- Profile Secondary Positions Policies
+create policy "Profile secondary positions viewable by everyone"
+  on public.profile_secondary_positions for select
+  using (deleted_at is null);
+
+create policy "Users can manage own profile secondary positions"
+  on public.profile_secondary_positions for all
+  using (
+    exists (
+      select 1 from public.profile_sports
+      where profile_sports.id = profile_secondary_positions.profile_sport_id
+      and profile_sports.user_id = auth.uid()
+    )
+  );
+
 -- Messages Policies
 create policy "Users can see their own messages"
   on public.messages for select
@@ -849,11 +883,14 @@ comment on table public.profiles is 'Profili utenti con sincronizzazione email/p
 comment on table public.opportunities is 'Annunci di lavoro pubblicati dai club';
 comment on table public.applications is 'Candidature degli utenti agli annunci';
 comment on table public.affiliations is 'Relazioni agente-giocatore';
-comment on table public.club_memberships is 'Esperienze professionali (club memberships) con modello stagionale. Include statistiche giocatori e allenatori.';
-comment on column public.club_memberships.season is 'Stagione sportiva nel formato "YYYY/YYYY" es: "2025/2026"';
-comment on column public.club_memberships.competition_type is 'Tipologia competizione: male (maschile), female (femminile), open, mixed';
-comment on column public.club_memberships.category is 'Categoria competizione es: "Serie A", "Serie B", "Primavera 1"';
-comment on column public.club_memberships.career_start_date is 'Data inizio opzionale per trasferimenti/prestiti mid-season';
-comment on column public.club_memberships.left_at is 'Data fine opzionale per trasferimenti/prestiti mid-season';
-comment on column public.club_memberships.is_currently_playing is 'Flag true se esperienza ancora in corso';
-comment on column public.club_memberships.matches_coached is 'Numero partite allenate (solo coach). Deve essere = wins + draws + losses';
+comment on table public.sports_organizations is 'Database condiviso di tutte le società sportive (registrate e non)';
+comment on table public.organization_requests is 'Richieste utenti per inserire società non presenti nel database';
+comment on table public.club_memberships is 'Roster attuale dei club registrati (admin, staff, giocatori correnti)';
+comment on table public.career_experiences is 'Storia completa della carriera con modello stagionale. Include statistiche giocatori e allenatori.';
+comment on column public.career_experiences.season is 'Stagione sportiva nel formato "YYYY/YYYY" es: "2025/2026"';
+comment on column public.career_experiences.competition_type is 'Tipologia competizione: male (maschile), female (femminile), open, mixed';
+comment on column public.career_experiences.category is 'Categoria competizione es: "Serie A", "Serie B", "Primavera 1"';
+comment on column public.career_experiences.start_date is 'Data inizio opzionale per trasferimenti/prestiti mid-season';
+comment on column public.career_experiences.end_date is 'Data fine opzionale per trasferimenti/prestiti mid-season';
+comment on column public.career_experiences.is_current is 'Flag true se esperienza ancora in corso';
+comment on column public.career_experiences.matches_coached is 'Numero partite allenate (solo coach). Deve essere = wins + draws + losses';

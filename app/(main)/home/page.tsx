@@ -50,18 +50,32 @@ export default function HomePage() {
         const sportsJson = localStorage.getItem('currentUserSports')
         const onboardingComplete = localStorage.getItem('onboarding_complete') === 'true'
 
-        // Check if profile is complete
-        // Skip redirect if onboarding was already completed (avoids loop with OAuth callback)
+        // Debug: log localStorage values
+        console.log('🔍 Home page localStorage check:', {
+            role,
+            name,
+            sportsJson,
+            onboardingComplete,
+            hasRole: !!role,
+            hasSports: !!sportsJson
+        })
+
+        // If missing role or sports, try to load from DB before redirecting
         if ((!role || !sportsJson) && !onboardingComplete) {
-            console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
-            // Redirect to appropriate onboarding step
-            if (!name || name === 'User OAuth') {
-                window.location.href = '/complete-profile'
-            } else if (!role) {
-                window.location.href = '/profile-setup?oauth=true'
-            } else {
-                window.location.href = '/select-sport'
-            }
+            console.log('⚠️ Missing data in localStorage, attempting to fetch from DB...')
+            fetchUserDataFromDB(id).then(success => {
+                if (!success) {
+                    // Only redirect if DB fetch also fails
+                    console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
+                    if (!name || name === 'User OAuth') {
+                        window.location.href = '/complete-profile'
+                    } else if (!role) {
+                        window.location.href = '/profile-setup?oauth=true'
+                    } else {
+                        window.location.href = '/select-sport'
+                    }
+                }
+            })
             return
         }
 
@@ -72,6 +86,53 @@ export default function HomePage() {
         // Verifica club admin e popola selector
         checkClubAdmin(id)
     }, [router])
+
+    const fetchUserDataFromDB = async (userId: string): Promise<boolean> => {
+        try {
+            const { supabase } = await import('@/lib/supabase-browser')
+            
+            // Fetch profile
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('role_id, first_name, last_name')
+                .eq('id', userId)
+                .single()
+
+            if (profileError || !profile) {
+                console.error('Failed to fetch profile from DB:', profileError)
+                return false
+            }
+
+            // Fetch sports
+            const { data: userSports, error: sportsError } = await supabase
+                .from('profile_sports')
+                .select('sport_id, lookup_sports(name)')
+                .eq('user_id', userId)
+
+            const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
+
+            if (profile.role_id && sports.length > 0) {
+                // Update localStorage with fetched data
+                console.log('✅ Fetched data from DB, updating localStorage:', { role: profile.role_id, sports })
+                localStorage.setItem('currentUserRole', profile.role_id)
+                localStorage.setItem('currentUserSports', JSON.stringify(sports))
+                localStorage.setItem('currentUserSport', sports[0] || '')
+                
+                if (profile.first_name && profile.last_name) {
+                    localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                }
+
+                // Reload page to apply changes
+                window.location.reload()
+                return true
+            }
+
+            return false
+        } catch (error) {
+            console.error('Error fetching user data from DB:', error)
+            return false
+        }
+    }
 
     const checkClubAdmin = async (id: string) => {
         try {

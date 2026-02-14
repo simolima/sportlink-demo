@@ -48,7 +48,7 @@ export default function AthletesWidget({
                                     {athlete.firstName} {athlete.lastName}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                    {athlete.sport} • {athlete.professionalRole}
+                                    {athlete.sports?.[0] || 'Sport non specificato'} • {athlete.professionalRole}
                                 </p>
                             </div>
                             <div className="text-right text-xs text-gray-500">

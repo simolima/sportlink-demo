@@ -34,9 +34,7 @@ export async function GET(request: Request) {
 
     const notifications = getUserNotifications({
         userId,
-        unreadOnly,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        unreadOnly
     })
 
     return NextResponse.json(notifications)
@@ -74,6 +72,14 @@ export async function POST(request: Request) {
         metadata
     })
 
+    if (!newNotification) {
+        return NextResponse.json({
+            skipped: true,
+            reason: 'notification_disabled_by_user',
+            message: 'User has disabled notifications for this category'
+        }, { status: 200 })
+    }
+
     // Dispatch real-time via SSE
     dispatchToUser(userId, newNotification)
     dispatchUnreadCount(userId, getUnreadCount(userId))
@@ -86,7 +92,7 @@ export async function POST(request: Request) {
 // ============================================================================
 export async function PUT(request: Request) {
     const body = await request.json()
-    const { id, read, markAllAsRead: markAll, userId } = body
+    const { id, markAllAsRead: markAll, userId } = body
 
     // Segna tutte come lette
     if (markAll && userId) {
@@ -103,7 +109,7 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'id required' }, { status: 400 })
     }
 
-    const notification = markAsRead(id, read)
+    const notification = markAsRead(id)
 
     if (!notification) {
         return NextResponse.json({ error: 'Notification not found' }, { status: 404 })

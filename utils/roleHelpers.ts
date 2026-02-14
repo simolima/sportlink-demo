@@ -6,10 +6,10 @@ export { PROFESSIONAL_ROLES, SUPPORTED_SPORTS, ROLE_TRANSLATIONS }
 
 export function isMultiSportRole(role: ProfessionalRole): boolean {
     return (
-        role === 'Agent' ||
-        role === 'Athletic Trainer' ||
-        role === 'Nutritionist' ||
-        role === 'Physio/Masseur'
+        role === 'agent' ||
+        role === 'athletic_trainer' ||
+        role === 'nutritionist' ||
+        role === 'physio'
     )
 }
 

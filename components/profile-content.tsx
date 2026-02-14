@@ -476,7 +476,9 @@ export default function ProfileContent({ user, clubName, followersCount, followi
                 {activeTab === 'autovalutazione' && (
                     <div className="px-6">
                         <SelfEvaluationDisplay
-                            evaluation={user?.playerSelfEvaluation || user?.coachSelfEvaluation}
+                            user={user}
+                            playerSelfEvaluation={user?.playerSelfEvaluation}
+                            coachSelfEvaluation={user?.coachSelfEvaluation}
                             professionalRole={user?.professionalRole}
                             sports={user?.sports}
                         />

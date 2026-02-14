@@ -13,7 +13,7 @@ const rolesByProfession: Record<string, string[]> = {
     'Pallavolo': ['Palleggiatore', 'Schiacciatore', 'Centrale', 'Opposto', 'Libero'],
 }
 
-const dominanceOptions = {
+const dominanceOptions: Record<string, Array<{ value: string; label: string }>> = {
     'Calcio': [
         { value: 'destro', label: 'Piede destro' },
         { value: 'sinistro', label: 'Piede sinistro' },
@@ -31,7 +31,7 @@ const dominanceOptions = {
     ],
 }
 
-const categoryOptions = {
+const categoryOptions: Record<string, string[]> = {
     'Calcio': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
     'Basket': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
     'Pallavolo': ['Professionisti', 'Dilettanti', 'Amatori', 'Settore giovanile professionistico', 'Settore giovanile dilettantistico'],
@@ -385,10 +385,10 @@ export default function PeoplePage() {
                                                         )}
                                                         {user.availability && (
                                                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.availability === 'Disponibile'
-                                                                    ? 'bg-green-50 text-green-700'
-                                                                    : user.availability === 'Valuta proposte'
-                                                                        ? 'bg-amber-50 text-amber-700'
-                                                                        : 'bg-gray-100 text-gray-600'
+                                                                ? 'bg-green-50 text-green-700'
+                                                                : user.availability === 'Valuta proposte'
+                                                                    ? 'bg-amber-50 text-amber-700'
+                                                                    : 'bg-gray-100 text-gray-600'
                                                                 }`}>
                                                                 {user.availability}
                                                             </span>

@@ -39,9 +39,17 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         try {
             const res = await fetch(`/api/affiliations?playerId=${playerId}`)
             const data = await res.json()
-            setAffiliations(data)
+
+            // Ensure data is an array
+            if (Array.isArray(data)) {
+                setAffiliations(data)
+            } else {
+                console.error('Unexpected response format:', data)
+                setAffiliations([])
+            }
         } catch (error) {
             console.error('Error fetching affiliations:', error)
+            setAffiliations([])
         } finally {
             setLoading(false)
         }

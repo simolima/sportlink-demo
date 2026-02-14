@@ -61,9 +61,22 @@ export default function PlayerAffiliationsPage() {
     try {
       const res = await fetch(`/api/affiliations?playerId=${playerId}`)
       const data = await res.json()
-      setAffiliations(data)
+
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setAffiliations(data)
+      } else if (data.error) {
+        console.error('API error:', data.error)
+        showToast('error', 'Errore', data.error)
+        setAffiliations([])
+      } else {
+        console.error('Unexpected response format:', data)
+        setAffiliations([])
+      }
     } catch (error) {
+      console.error('Fetch error:', error)
       showToast('error', 'Errore', 'Impossibile caricare le affiliazioni')
+      setAffiliations([])
     } finally {
       setLoading(false)
     }

@@ -106,6 +106,7 @@ export default function AuthCallbackPage() {
                     if (profile?.role_id) {
                         localStorage.setItem('currentUserRole', profile.role_id)
                     }
+                    localStorage.setItem('onboarding_complete', 'true') // Set flag
 
                     window.location.href = '/home'
                     return
@@ -172,6 +173,7 @@ export default function AuthCallbackPage() {
                             localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
                         }
                         localStorage.setItem('currentUserRole', profile.role_id)
+                        localStorage.setItem('onboarding_complete', 'true') // Set flag
                         window.location.href = '/home'
                         return
                     }
@@ -183,6 +185,7 @@ export default function AuthCallbackPage() {
                         localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
                     }
                     localStorage.setItem('currentUserRole', profile.role_id)
+                    localStorage.setItem('onboarding_complete', 'true') // Set flag even without sports
                     window.location.href = '/home'
                     return
                 }
@@ -213,6 +216,7 @@ export default function AuthCallbackPage() {
                     localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
                 }
                 localStorage.setItem('currentUserRole', profile.role_id)
+                localStorage.setItem('onboarding_complete', 'true') // Set flag
 
                 window.location.href = '/home'
 

@@ -90,7 +90,7 @@ export default function HomePage() {
     const fetchUserDataFromDB = async (userId: string): Promise<boolean> => {
         try {
             const { supabase } = await import('@/lib/supabase-browser')
-            
+
             // Fetch profile
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
@@ -117,7 +117,8 @@ export default function HomePage() {
                 localStorage.setItem('currentUserRole', profile.role_id)
                 localStorage.setItem('currentUserSports', JSON.stringify(sports))
                 localStorage.setItem('currentUserSport', sports[0] || '')
-                
+                localStorage.setItem('onboarding_complete', 'true') // Set flag to prevent redirect loops
+
                 if (profile.first_name && profile.last_name) {
                     localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
                 }

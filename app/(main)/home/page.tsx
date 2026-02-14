@@ -48,9 +48,11 @@ export default function HomePage() {
         const role = localStorage.getItem('currentUserRole') || ''
         const name = localStorage.getItem('currentUserName') || ''
         const sportsJson = localStorage.getItem('currentUserSports')
+        const onboardingComplete = localStorage.getItem('onboarding_complete') === 'true'
 
         // Check if profile is complete
-        if (!role || !sportsJson) {
+        // Skip redirect if onboarding was already completed (avoids loop with OAuth callback)
+        if ((!role || !sportsJson) && !onboardingComplete) {
             console.log('⚠️ Incomplete profile detected, redirecting to onboarding...')
             // Redirect to appropriate onboarding step
             if (!name || name === 'User OAuth') {

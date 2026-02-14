@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 firstName: name?.split(' ')[0] ?? '',
                 lastName: name?.split(' ')[1] ?? '',
                 sports: sports,
-                professionalRole: (professionalRole as any) || 'Player',
+                professionalRole: (professionalRole as any) || '', // Don't use fallback 'Player'
                 verified: false,
                 password: '',
                 birthDate: '',

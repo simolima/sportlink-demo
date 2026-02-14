@@ -184,7 +184,7 @@ export default function SelectSportPage() {
 
                 console.log('🏀 Inserting new profile_sports entries...')
 
-                const profileSportsRecords = sportsData.map((sport, index) => ({
+                const profileSportsRecords = sportsData.map((sport: any, index: number) => ({
                     user_id: currentUserId,
                     sport_id: sport.id,
                     is_main_sport: index === 0,

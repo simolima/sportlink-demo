@@ -27,8 +27,8 @@ export default function LoginPage() {
             }
 
             router.push('/home')
-        } catch (err) {
-            setError('Errore durante l\'accesso. Riprova.')
+        } catch (err: any) {
+            setError(err?.message || 'Errore durante l\'accesso. Riprova.')
             setLoading(false)
         }
     }

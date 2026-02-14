@@ -83,6 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (authError || !authData.user) {
                 console.error('❌ Supabase login error:', authError)
+
+                // Surface configuration errors clearly (instead of generic invalid credentials)
+                if (authError?.message?.toLowerCase().includes('invalid api key')) {
+                    throw new Error('Configurazione Supabase non valida (chiave API errata).')
+                }
+
                 return false
             }
 
@@ -135,6 +141,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return true
         } catch (error) {
             console.error('Login failed:', error)
+            if (error instanceof Error) {
+                throw error
+            }
             return false
         }
     }

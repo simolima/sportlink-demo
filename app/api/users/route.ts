@@ -216,7 +216,10 @@ export async function POST(req: Request) {
 
     } catch (err: any) {
         console.error('POST /api/users error:', err)
-        return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))
+        return withCors(NextResponse.json({
+            error: 'create_user_failed',
+            message: err?.message || 'Errore creazione utente'
+        }, { status: 500 }))
     }
 }
 
@@ -330,6 +333,9 @@ export async function PATCH(req: Request) {
 
     } catch (err: any) {
         console.error('PATCH /api/users error:', err)
-        return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))
+        return withCors(NextResponse.json({
+            error: 'update_user_failed',
+            message: err?.message || 'Errore aggiornamento utente'
+        }, { status: 500 }))
     }
 }

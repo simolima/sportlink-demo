@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
 import Avatar from "@/components/avatar"
+import SocialLinksForm from "@/components/social-links-form"
+import SelfEvaluationForm from "@/components/self-evaluation-form"
+import OrganizationAutocomplete from "@/components/organization-autocomplete"
 import { uploadService } from "@/lib/upload-service"
 
 interface Experience {
@@ -14,6 +17,8 @@ interface Experience {
     positionDetail?: string
     team: string
     country: string
+    city?: string
+    sport?: string // Sport dell'organizzazione
     category: string
     categoryTier?: string
     competitionType?: string // 'male' | 'female' | 'open' | 'mixed'
@@ -86,6 +91,19 @@ interface FormState {
     agentNotes?: string
     // Certificazioni Staff
     certifications?: Certification[]
+    // Social Links (JSONB) - deve corrispondere a branch_3101
+    socialLinks?: {
+        instagram?: string
+        tiktok?: string
+        youtube?: string
+        facebook?: string
+        twitter?: string
+        linkedin?: string
+        transfermarkt?: string
+    }
+    // Self Evaluation (JSONB)
+    playerSelfEvaluation?: any
+    coachSelfEvaluation?: any
 }
 
 const emptyExperience = (): Experience => ({
@@ -137,6 +155,17 @@ const initialForm: FormState = {
     fifaLicenseNumber: "",
     agentNotes: "",
     certifications: [],
+    socialLinks: {
+        instagram: "",
+        tiktok: "",
+        youtube: "",
+        facebook: "",
+        twitter: "",
+        linkedin: "",
+        transfermarkt: ""
+    },
+    playerSelfEvaluation: undefined,
+    coachSelfEvaluation: undefined
 }
 
 export default function EditProfilePage() {
@@ -181,73 +210,132 @@ export default function EditProfilePage() {
                     router.push("/home");
                     return;
                 }
-                setIsPlayer(user.professionalRole === "Player");
-                setIsFootball(Array.isArray(user.sports) && user.sports.includes("Calcio"));
-                setIsCoach(user.professionalRole === "Coach");
-                setIsAgent(user.professionalRole === "Agent");
-                setIsSportingDirector(user.professionalRole === "Sporting Director");
-                setIsPhysio(user.professionalRole === "Physio/Masseur");
-                setIsAthleticTrainer(user.professionalRole === "Athletic Trainer");
-                setIsStaff(["Athletic Trainer", "Nutritionist", "Physio/Masseur", "Talent Scout"].includes(user.professionalRole));
-                const sport = Array.isArray(user.sports) && user.sports.length > 0 ? user.sports[0] : user.sport || undefined;
+
+                // Supporta sia vecchio schema (professionalRole) che nuovo (role_id)
+                const roleId = user.role_id || user.professionalRole
+                const professionalRole = roleId === 'player' ? 'Player' :
+                    roleId === 'coach' ? 'Coach' :
+                        roleId === 'agent' ? 'Agent' :
+                            roleId === 'sporting_director' ? 'Sporting Director' :
+                                roleId === 'athletic_trainer' ? 'Athletic Trainer' :
+                                    roleId === 'nutritionist' ? 'Nutritionist' :
+                                        roleId === 'physio' ? 'Physio/Masseur' :
+                                            roleId === 'talent_scout' ? 'Talent Scout' :
+                                                user.professionalRole || 'Player'
+
+                // Use roleId (lowercase from DB) for comparisons instead of professionalRole
+                setIsPlayer(roleId === "player");
+                setIsCoach(roleId === "coach");
+                setIsAgent(roleId === "agent");
+                setIsSportingDirector(roleId === "sporting_director");
+                setIsPhysio(roleId === "physio");
+                setIsAthleticTrainer(roleId === "athletic_trainer");
+                setIsStaff(["athletic_trainer", "nutritionist", "physio", "talent_scout"].includes(roleId));
+
+                // Fetch sports from profile_sports table (nuovo schema Supabase)
+                const fetchSports = async () => {
+                    const { supabase: supabaseClient } = await import('@/lib/supabase-browser')
+                    const { data: sportsData } = await supabaseClient
+                        .from('profile_sports')
+                        .select('sport_id, lookup_sports(name)')
+                        .eq('user_id', userId)
+
+                    return sportsData?.map((s: any) => s.lookup_sports?.name).filter(Boolean) || []
+                }
+
+                const userSports = user.sports || await fetchSports()
+                const sport = Array.isArray(userSports) && userSports.length > 0 ? userSports[0] : user.sport || undefined;
                 setMainSport(sport);
+                setIsFootball(Array.isArray(userSports) && userSports.includes("Calcio"));
+
+                // Fetch physical stats from dedicated table
+                const fetchPhysicalStats = async () => {
+                    try {
+                        const res = await fetch(`/api/physical-stats?userId=${userId}`)
+                        if (!res.ok) return null
+                        return await res.json()
+                    } catch (err) {
+                        console.error('Error fetching physical stats:', err)
+                        return null
+                    }
+                }
+
+                // Fetch career experiences from dedicated table
+                const fetchCareerExperiences = async () => {
+                    try {
+                        const res = await fetch(`/api/career-experiences?userId=${userId}`)
+                        if (!res.ok) return []
+                        const data = await res.json()
+                        // Map DB fields to form fields
+                        return data.map((exp: any) => ({
+                            id: exp.id, // UUID from database
+                            season: exp.season || '',
+                            role: exp.role || 'Player',
+                            primaryPosition: exp.position?.name || '',
+                            positionDetail: exp.role_detail || '',
+                            team: exp.organization?.name || '',
+                            country: exp.organization?.country || '',
+                            city: exp.organization?.city || '',
+                            sport: exp.organization?.sport || 'Calcio',
+                            category: exp.category || '',
+                            competitionType: exp.competition_type || 'male',
+                            from: exp.start_date || '',
+                            to: exp.end_date || '',
+                            isCurrentlyPlaying: exp.is_current || false,
+                            summary: '', // Not stored in DB yet
+                            // Player stats
+                            goals: exp.goals || undefined,
+                            assists: exp.assists || undefined,
+                            cleanSheets: exp.clean_sheets || undefined,
+                            appearances: exp.appearances || undefined,
+                            minutesPlayed: exp.minutes_played || undefined,
+                            penalties: exp.penalties || undefined,
+                            yellowCards: exp.yellow_cards || undefined,
+                            redCards: exp.red_cards || undefined,
+                            substitutionsIn: exp.substitutions_in || undefined,
+                            substitutionsOut: exp.substitutions_out || undefined,
+                            pointsPerGame: exp.points_per_game || undefined,
+                            rebounds: exp.rebounds || undefined,
+                            volleyAces: exp.aces || undefined,
+                            volleyBlocks: exp.blocks || undefined,
+                            volleyDigs: exp.digs || undefined,
+                            // Coach stats
+                            matchesCoached: exp.matches_coached || undefined,
+                            wins: exp.wins || undefined,
+                            draws: exp.draws || undefined,
+                            losses: exp.losses || undefined,
+                            trophies: exp.trophies || undefined,
+                        }))
+                    } catch (err) {
+                        console.error('Error fetching career experiences:', err)
+                        return []
+                    }
+                }
+
+                const physicalStats = await fetchPhysicalStats()
+                const careerExperiences = await fetchCareerExperiences()
 
                 setForm({
-                    firstName: user.firstName || "",
-                    lastName: user.lastName || "",
+                    firstName: user.first_name || user.firstName || "",
+                    lastName: user.last_name || user.lastName || "",
                     username: user.username || "",
                     email: user.email || "",
-                    birthDate: user.birthDate || "",
+                    birthDate: user.birth_date || user.birthDate || "",
                     currentRole: user.currentRole || "",
                     bio: user.bio || "",
                     city: user.city || "",
                     country: user.country || "",
-                    avatarUrl: user.avatarUrl || user.avatar || "",
-                    coverUrl: user.coverUrl || "",
-                    height: user.height || undefined,
-                    weight: user.weight || undefined,
-                    experiences: Array.isArray(user.experiences)
-                        ? user.experiences.map((e: any, idx: number) => ({
-                            id: `${Date.now()}-${idx}`,
-                            season: e.season || "", // Nuovo campo
-                            role: e.role || e.title || "",
-                            primaryPosition: e.primaryPosition || "",
-                            positionDetail: e.positionDetail || "",
-                            team: e.team || e.company || "",
-                            country: e.country || "",
-                            category: e.category || "",
-                            categoryTier: e.categoryTier || "",
-                            competitionType: e.competitionType || "",
-                            from: e.from || "",
-                            to: e.to || "",
-                            isCurrentlyPlaying: e.isCurrentlyPlaying || false,
-                            summary: e.summary || e.description || "",
-                            goals: typeof e.goals === 'number' ? e.goals : undefined,
-                            cleanSheets: typeof e.cleanSheets === 'number' ? e.cleanSheets : undefined,
-                            appearances: typeof e.appearances === 'number' ? e.appearances : undefined,
-                            pointsPerGame: typeof e.pointsPerGame === 'number' ? e.pointsPerGame : undefined,
-                            assists: typeof e.assists === 'number' ? e.assists : undefined,
-                            rebounds: typeof e.rebounds === 'number' ? e.rebounds : undefined,
-                            volleyAces: typeof e.volleyAces === 'number' ? e.volleyAces : undefined,
-                            volleyBlocks: typeof e.volleyBlocks === 'number' ? e.volleyBlocks : undefined,
-                            volleyDigs: typeof e.volleyDigs === 'number' ? e.volleyDigs : undefined,
-                            minutesPlayed: typeof e.minutesPlayed === 'number' ? e.minutesPlayed : undefined,
-                            penalties: typeof e.penalties === 'number' ? e.penalties : undefined,
-                            yellowCards: typeof e.yellowCards === 'number' ? e.yellowCards : undefined,
-                            redCards: typeof e.redCards === 'number' ? e.redCards : undefined,
-                            substitutionsIn: typeof e.substitutionsIn === 'number' ? e.substitutionsIn : undefined,
-                            substitutionsOut: typeof e.substitutionsOut === 'number' ? e.substitutionsOut : undefined,
-                            matchesCoached: typeof e.matchesCoached === 'number' ? e.matchesCoached : undefined,
-                            wins: typeof e.wins === 'number' ? e.wins : undefined,
-                            draws: typeof e.draws === 'number' ? e.draws : undefined,
-                            losses: typeof e.losses === 'number' ? e.losses : undefined,
-                            trophies: typeof e.trophies === 'number' ? e.trophies : undefined,
-                        }))
+                    avatarUrl: user.avatar_url || user.avatarUrl || user.avatar || "",
+                    coverUrl: user.cover_url || user.coverUrl || "",
+                    experiences: careerExperiences.length > 0
+                        ? careerExperiences
                         : [],
                     availability: user.availability || "Disponibile",
-                    dominantFoot: user.professionalRole === "Player" && sport === "Calcio" ? (user.dominantFoot ?? undefined) : undefined,
-                    dominantHand: user.professionalRole === "Player" && (sport === "Basket" || sport === "Pallavolo") ? (user.dominantHand ?? undefined) : undefined,
-                    specificRole: user.professionalRole === "Player" ? (user.specificRole ?? undefined) : undefined,
+                    height: physicalStats?.height_cm || user.height || undefined,
+                    weight: physicalStats?.weight_kg || user.weight || undefined,
+                    dominantFoot: physicalStats?.dominant_foot || user.dominantFoot || undefined,
+                    dominantHand: physicalStats?.dominant_hand || user.dominantHand || undefined,
+                    specificRole: roleId === "player" ? (user.specificRole ?? undefined) : undefined,
                     secondaryRole: user.secondaryRole ?? undefined,
                     footballPrimaryPosition: user.footballPrimaryPosition ?? undefined,
                     footballSecondaryPosition: user.footballSecondaryPosition ?? undefined,
@@ -265,6 +353,17 @@ export default function EditProfilePage() {
                             expiryDate: c.expiryDate || "",
                         }))
                         : [],
+                    socialLinks: {
+                        instagram: user.social_links?.instagram || user.socialLinks?.instagram || "",
+                        tiktok: user.social_links?.tiktok || user.socialLinks?.tiktok || "",
+                        youtube: user.social_links?.youtube || user.socialLinks?.youtube || "",
+                        facebook: user.social_links?.facebook || user.socialLinks?.facebook || "",
+                        twitter: user.social_links?.twitter || user.socialLinks?.twitter || "",
+                        linkedin: user.social_links?.linkedin || user.socialLinks?.linkedin || "",
+                        transfermarkt: user.social_links?.transfermarkt || user.socialLinks?.transfermarkt || ""
+                    },
+                    playerSelfEvaluation: user.player_self_evaluation || user.playerSelfEvaluation || undefined,
+                    coachSelfEvaluation: user.coach_self_evaluation || user.coachSelfEvaluation || undefined
                 });
             } catch (error) {
                 console.error(error);
@@ -962,63 +1061,114 @@ export default function EditProfilePage() {
 
         setSaving(true)
         try {
-            // Sanificazione payload
-            let payload = { ...form, id: userId };
-
-            // Pulisci campi from/to se l'utente non ha attivato il checkbox "Specifica periodo esatto"
-            payload.experiences = payload.experiences.map(exp => {
-                if (!showDatesForExp[exp.id]) {
-                    // Se il checkbox non è attivo, rimuovi from/to/isCurrentlyPlaying
-                    return {
-                        ...exp,
-                        from: undefined,
-                        to: undefined,
-                        isCurrentlyPlaying: undefined
-                    }
-                }
-                return exp
-            })
-
-            if (isPlayer) {
-                // Player: logica sport dominanza
-                if (mainSport === "Calcio") {
-                    payload.dominantHand = undefined;
-                } else if (mainSport === "Basket" || mainSport === "Pallavolo") {
-                    payload.dominantFoot = undefined;
-                } else {
-                    payload.dominantFoot = undefined;
-                    payload.dominantHand = undefined;
-                }
-            } else {
-                // Non Player: azzera campi specifici giocatore
-                payload.specificRole = undefined;
-                payload.dominantFoot = undefined;
-                payload.dominantHand = undefined;
-                payload.height = undefined;
-                payload.weight = undefined;
+            // Sanificazione payload: rimuovi campi non supportati dalla tabella profiles
+            let payload: any = {
+                id: userId,
+                firstName: form.firstName,
+                lastName: form.lastName,
+                username: form.username,
+                email: form.email,
+                birthDate: form.birthDate,
+                bio: form.bio,
+                city: form.city,
+                country: form.country,
+                avatarUrl: form.avatarUrl,
+                coverUrl: form.coverUrl,
+                socialLinks: form.socialLinks,
+                playerSelfEvaluation: isPlayer ? form.playerSelfEvaluation : undefined,
+                coachSelfEvaluation: isCoach ? form.coachSelfEvaluation : undefined,
             }
 
-            // Sanificazione campi qualifiche per ruolo
-            if (!isCoach) {
-                payload.uefaLicenses = undefined;
-                payload.coachSpecializations = undefined;
-            }
-            if (!isAgent) {
-                payload.hasFifaLicense = undefined;
-                payload.fifaLicenseNumber = undefined;
-                payload.agentNotes = undefined;
-            }
-            if (!isStaff) {
-                payload.certifications = undefined;
-            }
+            // Le experiences NON vanno nella tabella profiles (verranno gestite separatamente)
+            // I dati fisici (height, weight, dominantFoot, dominantHand) vanno in physical_stats
+            // Tutti i campi role-specific (uefaLicenses, certifications, ecc.) non sono più nella tabella profiles
 
             const res = await fetch("/api/users", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             })
-            if (!res.ok) throw new Error("Save failed")
+            if (!res.ok) {
+                const errorData = await res.text()
+                console.error('Save failed:', res.status, errorData)
+                throw new Error(`Save failed: ${res.status}`)
+            }
             const updated = await res.json()
+
+            // Save physical stats to dedicated table if user is a player
+            if (isPlayer && (form.height || form.weight || form.dominantFoot || form.dominantHand)) {
+                try {
+                    const physRes = await fetch("/api/physical-stats", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userId: userId,
+                            height_cm: form.height || null,
+                            weight_kg: form.weight || null,
+                            dominant_foot: form.dominantFoot || null,
+                            dominant_hand: form.dominantHand || null,
+                        }),
+                    })
+                    if (!physRes.ok) {
+                        const physError = await physRes.text()
+                        console.error('Physical stats save failed:', physRes.status, physError)
+                    }
+                } catch (physErr) {
+                    console.error('Error saving physical stats:', physErr)
+                    // Non blocchiamo il salvataggio principale
+                }
+            }
+
+            // Save career experiences
+            if (form.experiences && form.experiences.length > 0) {
+                try {
+                    const expRes = await fetch("/api/career-experiences", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userId: userId,
+                            experiences: form.experiences,
+                        }),
+                    })
+
+                    const expResult = await expRes.json()
+
+                    if (!expRes.ok) {
+                        console.error('Career experiences save failed:', expRes.status, expResult)
+                        alert(
+                            `⚠️ Errore nel salvataggio esperienze:\n\n${expResult.error || 'Errore sconosciuto'}\n\n` +
+                            `Verifica che le organizzazioni/club esistano nel database.`
+                        )
+                    } else {
+                        console.log(`✅ Saved ${expResult.count} experiences`)
+
+                        // Mostra warning se alcune esperienze non sono state salvate
+                        if (expResult.errors && expResult.errors.length > 0) {
+                            const failedItems = expResult.errors.map((e: any) => {
+                                const exp = e.experience || {}
+                                const season = exp.season || 'N/A'
+                                const team = exp.team || 'N/A'
+                                const category = exp.category || ''
+                                return `- Stagione: ${season}, Club: ${team}${category ? ` (${category})` : ''}\n  Errore: ${e.error}`
+                            }).join('\n\n')
+
+                            alert(
+                                `⚠️ Attenzione:\n\n` +
+                                `${expResult.count} esperienze salvate correttamente.\n\n` +
+                                `${expResult.errors.length} esperienze NON salvate:\n\n` +
+                                `${failedItems}\n\n` +
+                                `Verifica che i campi obbligatori siano compilati:\n` +
+                                `• Stagione (es: 2024/2025)\n` +
+                                `• Organizzazione/Club (seleziona dall'autocomplete)`
+                            )
+                        }
+                    }
+                } catch (expErr) {
+                    console.error('Error saving career experiences:', expErr)
+                    alert('Errore inatteso nel salvataggio esperienze. Riprova.')
+                }
+            }
+
             localStorage.setItem("currentUserName", `${updated.firstName ?? ""} ${updated.lastName ?? ""}`.trim())
             localStorage.setItem("currentUserEmail", updated.email ?? "")
             if (updated.avatarUrl) localStorage.setItem("currentUserAvatar", updated.avatarUrl)
@@ -1116,6 +1266,35 @@ export default function EditProfilePage() {
                                     placeholder="Racconta la tua storia, specializzazioni, risultati..."
                                     className={`${inputBase} resize-none`}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm text-gray-700">Nazionalità</label>
+                                <select
+                                    value={form.country || ""}
+                                    onChange={(e) => updateField("country", e.target.value)}
+                                    className={inputBase}
+                                >
+                                    <option value="">Seleziona nazionalità</option>
+                                    <option value="Italia">🇮🇹 Italia</option>
+                                    <option value="Spagna">🇪🇸 Spagna</option>
+                                    <option value="Francia">🇫🇷 Francia</option>
+                                    <option value="Germania">🇩🇪 Germania</option>
+                                    <option value="Inghilterra">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inghilterra</option>
+                                    <option value="Portogallo">🇵🇹 Portogallo</option>
+                                    <option value="Olanda">🇳🇱 Olanda</option>
+                                    <option value="Belgio">🇧🇪 Belgio</option>
+                                    <option value="Argentina">🇦🇷 Argentina</option>
+                                    <option value="Brasile">🇧🇷 Brasile</option>
+                                    <option value="Uruguay">🇺🇾 Uruguay</option>
+                                    <option value="Colombia">🇨🇴 Colombia</option>
+                                    <option value="Stati Uniti">🇺🇸 Stati Uniti</option>
+                                    <option value="Messico">🇲🇽 Messico</option>
+                                    <option value="Croazia">🇭🇷 Croazia</option>
+                                    <option value="Serbia">🇷🇸 Serbia</option>
+                                    <option value="Grecia">🇬🇷 Grecia</option>
+                                    <option value="Turchia">🇹🇷 Turchia</option>
+                                    <option value="Altro">🌍 Altro</option>
+                                </select>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Disponibilità per lavori</label>
@@ -1677,6 +1856,41 @@ export default function EditProfilePage() {
                         </section>
                     )}
 
+                    {/* Social Links Section */}
+                    <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <SocialLinksForm
+                            socialLinks={form.socialLinks}
+                            onChange={(updated) => setForm(prev => ({ ...prev, socialLinks: updated }))}
+                            inputClassName={inputBase}
+                            showTransfermarkt={isPlayer}
+                        />
+                    </section>
+
+                    {/* Player Self Evaluation Section */}
+                    {isPlayer && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <SelfEvaluationForm
+                                evaluation={form.playerSelfEvaluation}
+                                professionalRole="Player"
+                                sports={mainSport ? [mainSport] : []}
+                                onChange={(updated) => setForm(prev => ({ ...prev, playerSelfEvaluation: updated }))}
+                            />
+                        </section>
+                    )}
+
+                    {/* Coach Self Evaluation Section */}
+                    {isCoach && (
+                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                            <SelfEvaluationForm
+                                evaluation={form.coachSelfEvaluation}
+                                professionalRole="Coach"
+                                sports={mainSport ? [mainSport] : []}
+                                onChange={(updated) => setForm(prev => ({ ...prev, coachSelfEvaluation: updated }))}
+                            />
+                        </section>
+                    )}
+
+                    {/* Esperienze Section */}
                     <section className="rounded-2xl border border-gray-200 bg-white p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -1736,11 +1950,21 @@ export default function EditProfilePage() {
                                                         ))}
                                                     </select>
 
-                                                    {/* Team/Club */}
-                                                    <input
+                                                    {/* Team/Club - Autocomplete */}
+                                                    <OrganizationAutocomplete
                                                         value={exp.team}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
-                                                        placeholder="Organizzazione/Club"
+                                                        onChange={(value, org) => {
+                                                            handleExperienceChange(exp.id, "team", value)
+                                                            // Auto-fill country, city, sport if organization is selected
+                                                            if (org) {
+                                                                handleExperienceChange(exp.id, "country", org.country)
+                                                                if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                                handleExperienceChange(exp.id, "sport", org.sport)
+                                                            }
+                                                        }}
+                                                        sport={mainSport}
+                                                        country={exp.country || undefined}
+                                                        placeholder="Cerca organizzazione/club..."
                                                         className={inputBase}
                                                     />
 
@@ -1944,10 +2168,20 @@ export default function EditProfilePage() {
                                                 />
                                             )}
                                             {!isCoach && (
-                                                <input
+                                                <OrganizationAutocomplete
                                                     value={exp.team}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "team", e.target.value)}
-                                                    placeholder="Organizzazione/Club"
+                                                    onChange={(value, org) => {
+                                                        handleExperienceChange(exp.id, "team", value)
+                                                        // Auto-fill country, city, sport if organization is selected
+                                                        if (org) {
+                                                            handleExperienceChange(exp.id, "country", org.country)
+                                                            if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                            handleExperienceChange(exp.id, "sport", org.sport)
+                                                        }
+                                                    }}
+                                                    sport={mainSport}
+                                                    country={exp.country || undefined}
+                                                    placeholder="Cerca organizzazione/club..."
                                                     className={inputBase}
                                                 />
                                             )}

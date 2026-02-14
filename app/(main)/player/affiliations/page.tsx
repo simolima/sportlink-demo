@@ -38,8 +38,8 @@ export default function PlayerAffiliationsPage() {
           return
         }
 
-        // Check if user is a player
-        if (user.professionalRole !== 'Player') {
+        // Check if user is a player (use role_id from DB, not professionalRole)
+        if (user.role_id !== 'player') {
           showToast('error', 'Accesso negato', 'Solo i giocatori possono accedere a questa pagina')
           setLoading(false)
           router.push('/home')
@@ -61,9 +61,22 @@ export default function PlayerAffiliationsPage() {
     try {
       const res = await fetch(`/api/affiliations?playerId=${playerId}`)
       const data = await res.json()
-      setAffiliations(data)
+
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setAffiliations(data)
+      } else if (data.error) {
+        console.error('API error:', data.error)
+        showToast('error', 'Errore', data.error)
+        setAffiliations([])
+      } else {
+        console.error('Unexpected response format:', data)
+        setAffiliations([])
+      }
     } catch (error) {
+      console.error('Fetch error:', error)
       showToast('error', 'Errore', 'Impossibile caricare le affiliazioni')
+      setAffiliations([])
     } finally {
       setLoading(false)
     }
@@ -167,7 +180,7 @@ export default function PlayerAffiliationsPage() {
   }
 
   // Se l'utente non è Player, non mostrare contenuto (evita flash in attesa redirect)
-  if (currentUser && currentUser.professionalRole !== 'Player') {
+  if (currentUser && currentUser.role_id !== 'player') {
     return null
   }
 

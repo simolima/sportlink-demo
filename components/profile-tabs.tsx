@@ -1,15 +1,17 @@
 'use client'
 
-type TabType = 'informazioni'
+type TabType = 'informazioni' | 'autovalutazione'
 
 interface ProfileTabsProps {
     activeTab: TabType
     onTabChange: (tab: TabType) => void
+    showAutovalutazione?: boolean
 }
 
-export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
+export default function ProfileTabs({ activeTab, onTabChange, showAutovalutazione = false }: ProfileTabsProps) {
     const tabs = [
-        { id: 'informazioni' as TabType, label: 'Informazioni' }
+        { id: 'informazioni' as TabType, label: 'Informazioni' },
+        ...(showAutovalutazione ? [{ id: 'autovalutazione' as TabType, label: 'Autovalutazione' }] : [])
     ]
 
     return (

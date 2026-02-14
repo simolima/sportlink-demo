@@ -1,0 +1,83 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+export async function GET(request: Request) {
+    const requestUrl = new URL(request.url)
+    const code = requestUrl.searchParams.get('code')
+    const error = requestUrl.searchParams.get('error')
+    const errorDescription = requestUrl.searchParams.get('error_description')
+
+    console.log('🔐 OAuth Callback received')
+    console.log('📍 Full URL:', requestUrl.href)
+    console.log('🔑 Code:', code?.substring(0, 20) + '...' || 'MISSING')
+    console.log('❌ Error:', error)
+    console.log('📝 Error Description:', errorDescription)
+
+    if (error) {
+        console.error('❌ OAuth error:', error, errorDescription)
+        return NextResponse.redirect(new URL(`/login?error=${error}`, requestUrl.origin))
+    }
+
+    if (!code) {
+        console.error('❌ No code in callback URL')
+        return NextResponse.redirect(new URL('/login?error=no_code', requestUrl.origin))
+    }
+
+    // Create supabase server client
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (exchangeError) {
+        console.error('❌ Exchange code error:', exchangeError)
+        return NextResponse.redirect(new URL('/login?error=auth_failed', requestUrl.origin))
+    }
+
+    console.log('✅ Code exchanged successfully')
+
+    // Check if profile is complete
+    const { data: { user } } = await supabase.auth.getUser()
+
+    console.log('👤 User:', user?.id, user?.email)
+
+    if (user) {
+        // Check if user has role_id and sports
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role_id, first_name, last_name, email')
+            .eq('id', user.id)
+            .single()
+
+        console.log('📋 Profile:', profile, 'Error:', profileError)
+
+        const { data: sports, error: sportsError } = await supabase
+            .from('profile_sports')
+            .select('id')
+            .eq('user_id', user.id)
+
+        console.log('🏀 Sports:', sports, 'Error:', sportsError)
+
+        // If profile incomplete, redirect to onboarding flow
+        if (!profile?.role_id || !sports || sports.length === 0) {
+            console.log('⚠️ Profile incomplete, redirecting to onboarding...')
+
+            // Create redirect URL with user info in query params (will be saved in localStorage by client)
+            const redirectUrl = new URL('/profile-setup', requestUrl.origin)
+            redirectUrl.searchParams.set('oauth', 'true')
+            redirectUrl.searchParams.set('userId', user.id)
+            redirectUrl.searchParams.set('email', user.email || '')
+            if (profile?.first_name) redirectUrl.searchParams.set('firstName', profile.first_name)
+            if (profile?.last_name) redirectUrl.searchParams.set('lastName', profile.last_name)
+
+            return NextResponse.redirect(redirectUrl)
+        }
+
+        console.log('✅ Profile complete, redirecting to home')
+    }
+
+    // Profile is complete, go to home
+    return NextResponse.redirect(new URL('/home', requestUrl.origin))
+}

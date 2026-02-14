@@ -486,5 +486,35 @@
     },
     "read": false,
     "createdAt": "2025-12-30T15:04:01.336Z"
+  },
+  {
+    "id": 1770312874299,
+    "userId": "1768342738771",
+    "type": "profile_verified",
+    "message": "Mario Rossi ha verificato il tuo profilo",
+    "metadata": {},
+    "read": true,
+    "createdAt": "2026-02-05T17:34:34.299Z"
+  },
+  {
+    "id": 1770312878091,
+    "userId": "1768342738771",
+    "type": "added_to_favorites",
+    "message": "Mario Rossi ti ha aggiunto ai preferiti",
+    "metadata": {},
+    "read": true,
+    "createdAt": "2026-02-05T17:34:38.091Z"
+  },
+  {
+    "id": 1771082790452,
+    "userId": "b3e8e2fe-bcd1-47be-9461-84f6729c9a55",
+    "type": "profile_verified",
+    "title": "Profilo Verificato",
+    "message": "Mario Rossi ha verificato il tuo profilo",
+    "metadata": {
+      "verifierId": "20a89e25-b28c-46d4-b4d0-0e067661156a"
+    },
+    "read": false,
+    "createdAt": "2026-02-14T15:26:30.452Z"
   }
 ]

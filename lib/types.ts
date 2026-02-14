@@ -12,16 +12,16 @@ export const SUPPORTED_SPORTS = [
 export type SupportedSport = typeof SUPPORTED_SPORTS[number];
 
 
-// Ruoli professionali principali (solo quelli consentiti)
+// Ruoli professionali principali (valori dal database: lowercase con underscore)
 export const PROFESSIONAL_ROLES = [
-  'Player',
-  'Coach',
-  'Agent',
-  'Sporting Director',
-  'Athletic Trainer',
-  'Nutritionist',
-  'Physio/Masseur',
-  'Talent Scout'
+  'player',
+  'coach',
+  'agent',
+  'sporting_director',
+  'athletic_trainer',
+  'nutritionist',
+  'physio',
+  'talent_scout'
 ] as const;
 
 export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
@@ -29,14 +29,14 @@ export type ProfessionalRole = typeof PROFESSIONAL_ROLES[number];
 
 // Ruoli professionali tradotti (per UI)
 export const ROLE_TRANSLATIONS: Record<ProfessionalRole, string> = {
-  'Player': 'Giocatore',
-  'Coach': 'Allenatore',
-  'Agent': 'Agente',
-  'Sporting Director': 'Direttore Sportivo',
-  'Athletic Trainer': 'Preparatore Atletico',
-  'Nutritionist': 'Nutrizionista',
-  'Physio/Masseur': 'Fisioterapista/Massaggiatore',
-  'Talent Scout': 'Talent Scout'
+  'player': 'Giocatore',
+  'coach': 'Allenatore',
+  'agent': 'Agente',
+  'sporting_director': 'Direttore Sportivo',
+  'athletic_trainer': 'Preparatore Atletico',
+  'nutritionist': 'Nutrizionista',
+  'physio': 'Fisioterapista/Massaggiatore',
+  'talent_scout': 'Talent Scout'
 };
 
 // Tipi di opportunità
@@ -152,7 +152,9 @@ export const NOTIFICATION_TYPES = [
   'new_application', // Notifica per Sporting Director quando riceve una candidatura a un annuncio
   'candidacy_accepted', // Notifica per candidato quando la sua candidatura viene accettata
   'candidacy_rejected', // Notifica per candidato quando la sua candidatura viene rifiutata
-  'message_received' // Notifica quando ricevi un nuovo messaggio in chat
+  'message_received', // Notifica quando ricevi un nuovo messaggio in chat
+  'profile_verified', // Notifica quando qualcuno verifica il tuo profilo
+  'added_to_favorites' // Notifica quando qualcuno ti aggiunge ai preferiti
 ] as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[number];
@@ -208,6 +210,196 @@ export type CreatedUser = {
 // ============================================================================
 
 
+// ============================================================================
+// SOCIAL LINKS & SELF EVALUATION
+// ============================================================================
+
+// Social links supportati
+export type SocialLink = {
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  facebook?: string;
+  twitter?: string;
+  linkedin?: string;
+  transfermarkt?: string;
+};
+
+// Abilità universali per tutti gli atleti
+export type UniversalAbilities = {
+  velocita?: number; // 0-5
+  resistenza?: number;
+  comunicazione?: number;
+  intelligenzaTattica?: number;
+  movimentoSenzaPalla?: number;
+  concentrazione?: number;
+};
+
+// Abilità calcio - comuni a tutti
+export type FootballCommonAbilities = {
+  controlPalla?: number;
+  passaggio?: number;
+  tiro?: number;
+  visioneDiGioco?: number;
+};
+
+// Abilità calcio - attaccante
+export type FootballAttackerAbilities = {
+  efficaciaSottoporta?: number;
+  posizionamentoOffensivo?: number;
+};
+
+// Abilità calcio - centrocampista
+export type FootballMidfielderAbilities = {
+  distribuzione?: number;
+  coperturaDifensiva?: number;
+  verticalizzazione?: number;
+};
+
+// Abilità calcio - difensore
+export type FootballDefenderAbilities = {
+  marcatura?: number;
+  posizionamentoDifensivo?: number;
+  anticipo?: number;
+};
+
+// Abilità calcio - portiere
+export type FootballGoalkeeperAbilities = {
+  reattivita?: number;
+  posizionamento?: number;
+  giocoConPiedi?: number;
+  distribuzione?: number;
+  usciteAeree?: number;
+  presaSicura?: number;
+};
+
+// Abilità pallavolo - comuni
+export type VolleyballCommonAbilities = {
+  ricezione?: number;
+  posizionamento?: number;
+  salto?: number;
+  reattivita?: number;
+};
+
+// Abilità pallavolo - palleggiatore
+export type VolleyballSetterAbilities = {
+  distribuzione?: number;
+  letturaDelGioco?: number;
+  rapiditaEsecutiva?: number;
+};
+
+// Abilità pallavolo - schiacciatore
+export type VolleyballSpikerAbilities = {
+  potenzaAttacco?: number;
+  timingSalto?: number;
+  fiutoAttacco?: number;
+};
+
+// Abilità pallavolo - centrale
+export type VolleyballMiddleAbilities = {
+  muro?: number;
+  attaccoDaPost3?: number;
+};
+
+// Abilità pallavolo - libero
+export type VolleyballLiberoBilities = {
+  ricezioneSpecializzata?: number;
+  difesaBassa?: number;
+};
+
+// Abilità basketball - comuni
+export type BasketballCommonAbilities = {
+  palleggio?: number;
+  tiro?: number;
+  letturaDifensiva?: number;
+  movimentoOffensivo?: number;
+};
+
+// Abilità basketball - guardia
+export type BasketballGuardAbilities = {
+  visioneDiGioco?: number;
+  gestionePallone?: number;
+};
+
+// Abilità basketball - ala
+export type BasketballWingAbilities = {
+  versatilita?: number;
+  atletismo?: number;
+};
+
+// Abilità basketball - centro
+export type BasketballCenterAbilities = {
+  dominioArea?: number;
+  rimbalzo?: number;
+};
+
+// Abilità allenatore - universali
+export type CoachUniversalAbilities = {
+  comunicazione?: number;
+  preparazioneTattica?: number;
+  gestioneDelGruppo?: number;
+  capacitaMotivationale?: number;
+  sviluppoGiocatori?: number;
+  adattamentoStrategico?: number;
+};
+
+// Abilità allenatore - calcio
+export type CoachFootballAbilities = {
+  imposizioneDifensiva?: number;
+  costruzioneOffensiva?: number;
+  transizioni?: number;
+};
+
+// Abilità allenatore - pallavolo
+export type CoachVolleyballAbilities = {
+  organizzazioneDifensiva?: number;
+  rotazioni?: number;
+  gestioneTempi?: number;
+};
+
+// Abilità allenatore - basketball
+export type CoachBasketballAbilities = {
+  offensiva?: number;
+  difensiva?: number;
+  gestionePanchina?: number;
+};
+
+// Self Evaluation for Players
+export type PlayerSelfEvaluation = {
+  football?: {
+    velocita?: number;
+    tiro?: number;
+    passaggio?: number;
+    dribbling?: number;
+    difesa?: number;
+    fisico?: number;
+  };
+  basketball?: {
+    velocita?: number;
+    tiro?: number;
+    passaggio?: number;
+    palleggio?: number;
+    difesa?: number;
+    atletismo?: number;
+  };
+  volleyball?: {
+    battuta?: number;
+    ricezione?: number;
+    attacco?: number;
+    muro?: number;
+    difesa?: number;
+    elevazione?: number;
+  };
+};
+
+// Self Evaluation for Coaches
+export type CoachSelfEvaluation = {
+  universal?: CoachUniversalAbilities;
+  football?: CoachFootballAbilities;
+  volleyball?: CoachVolleyballAbilities;
+  basketball?: CoachBasketballAbilities;
+};
+
 // User/Profile
 export type User = {
   id: number | string;
@@ -222,8 +414,10 @@ export type User = {
   avatarUrl?: string;
   coverUrl?: string;
   city?: string;
-  country?: string;
+  country?: string; // Nazionalità/Paese dell'utente
   availability?: AvailabilityStatus;
+  contractStatus?: 'svincolato' | 'sotto contratto';
+  contractEndDate?: string;
   level?: Level;
   dominantFoot?: 'destro' | 'sinistro' | 'ambidestro';
   secondaryRole?: string;
@@ -235,8 +429,13 @@ export type User = {
   updatedAt?: string;
   /** Ruolo specifico per sport (es. playmaker, centrale, etc) */
   specificRole?: string;
-  /** Mano dominante (basket, volley) */
+  /** Mana dominante (basket, volley) */
   dominantHand?: 'destra' | 'sinistra' | 'ambidestra';
+  // --- Social links (opzionali) ---
+  socialLinks?: SocialLink;
+  // --- Self evaluation (opzionale) ---
+  playerSelfEvaluation?: PlayerSelfEvaluation;
+  coachSelfEvaluation?: CoachSelfEvaluation;
 };
 
 // Club Membership - relazione User <-> Club

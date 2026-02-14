@@ -20,14 +20,45 @@ const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
 
 export default function Page() {
     const router = useRouter()
+    const { user } = useAuth()
     const [selectedRole, setSelectedRole] = useState<ProfessionalRole | ''>('')
     const [loading, setLoading] = useState(false)
     const [checked, setChecked] = useState(false)
+    const [isOAuthFlow, setIsOAuthFlow] = useState(false)
 
     useEffect(() => {
         if (typeof window === 'undefined' || checked) return
         setChecked(true)
-        // Controlla che tutti i dati temporanei siano presenti
+
+        // Check if this is OAuth flow (user logged in via Google)
+        const urlParams = new URLSearchParams(window.location.search)
+        const isOAuth = urlParams.has('oauth')
+        setIsOAuthFlow(isOAuth)
+
+        // If OAuth flow, save user info from query params to localStorage
+        if (isOAuth) {
+            const userId = urlParams.get('userId')
+            const email = urlParams.get('email')
+            const firstName = urlParams.get('firstName')
+            const lastName = urlParams.get('lastName')
+
+            console.log('🔐 OAuth flow detected, saving user info:', { userId, email, firstName, lastName })
+
+            if (userId) {
+                localStorage.setItem('currentUserId', userId)
+            }
+            if (email) {
+                localStorage.setItem('currentUserEmail', email)
+            }
+            if (firstName && lastName) {
+                localStorage.setItem('currentUserName', `${firstName} ${lastName}`)
+            }
+
+            // OAuth user - already authenticated, just need to complete profile
+            return
+        }
+
+        // Regular signup flow - check localStorage
         const firstName = localStorage.getItem('signup_firstName')
         const lastName = localStorage.getItem('signup_lastName')
         const email = localStorage.getItem('signup_email')
@@ -74,7 +105,10 @@ export default function Page() {
             if (typeof window === 'undefined') return;
             // Salva il ruolo in localStorage
             localStorage.setItem('currentUserRole', selectedRole)
-            // Vai al prossimo step
+
+            console.log('✅ Role saved, redirecting to sport selection')
+
+            // Always go to sport selection after role is selected
             router.push('/select-sport')
         } catch (err) {
             alert('Errore durante la selezione del ruolo')
@@ -93,7 +127,8 @@ export default function Page() {
                     <OnboardingHeader
                         title="Qual è il tuo ruolo?"
                         subtitle="Serve per personalizzare opportunità e connessioni."
-                        currentStep={1}
+                        currentStep={2}
+                        totalSteps={3}
                     />
 
                     {/* Role Selection */}

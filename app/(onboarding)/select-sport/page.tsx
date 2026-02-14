@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SUPPORTED_SPORTS, isMultiSportRole, mapRoleToDatabase } from '@/utils/roleHelpers'
-import { ProfessionalRole } from '@/lib/types'
+import { ROLE_TRANSLATIONS, ProfessionalRole } from '@/lib/types'
 import OnboardingHeader from '@/components/onboarding/OnboardingHeader'
 import { createUser } from '@/lib/services/auth-service'
 import { setCurrentUserSession, clearSignupDraft } from '@/lib/services/session'
@@ -86,13 +86,6 @@ export default function SelectSportPage() {
 
         setIsLoading(true)
         setError(null)
-
-        if (!role) {
-            setError('Ruolo professionale mancante. Torna indietro e riprova.')
-            setIsLoading(false)
-            return
-        }
-
         try {
             // Salva gli sport in localStorage
             localStorage.setItem('currentUserSports', JSON.stringify(selectedSports))
@@ -153,6 +146,9 @@ export default function SelectSportPage() {
                 }
 
                 console.log('✅ Profile updated successfully')
+
+                // Note: profile_stats will be created automatically by database trigger
+                // or we'll create it later once schema is fixed
 
                 // Insert sports in profile_sports
                 console.log('🏀 Fetching sports from lookup_sports...', sports)
@@ -254,7 +250,7 @@ export default function SelectSportPage() {
         } catch (err: any) {
             console.error('Signup error:', err)
             // Mostra messaggio errore più specifico
-            if (err.message?.includes('email')) {
+            if (err.message.includes('email')) {
                 setError('Email non valida o già in uso. Prova con un\'altra email.')
             } else {
                 setError('Errore nella creazione del profilo. Riprova.')
@@ -271,7 +267,8 @@ export default function SelectSportPage() {
                     <OnboardingHeader
                         title="Qual è il tuo sport principale?"
                         subtitle="Lo useremo per mostrarti persone e opportunità più rilevanti."
-                        currentStep={2}
+                        currentStep={3}
+                        totalSteps={3}
                     />
 
                     {error && (

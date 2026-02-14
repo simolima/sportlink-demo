@@ -1,3 +1,4 @@
 {
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "chat.mcp.autostart": "newAndOutdated"
 }

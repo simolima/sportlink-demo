@@ -1143,16 +1143,22 @@ export default function EditProfilePage() {
 
                         // Mostra warning se alcune esperienze non sono state salvate
                         if (expResult.errors && expResult.errors.length > 0) {
-                            const failedOrgs = expResult.errors.map((e: any) =>
-                                `- ${e.experience?.team || 'Unknown'} (${e.experience?.country || '?'})`
-                            ).join('\n')
+                            const failedItems = expResult.errors.map((e: any) => {
+                                const exp = e.experience || {}
+                                const season = exp.season || 'N/A'
+                                const team = exp.team || 'N/A'
+                                const category = exp.category || ''
+                                return `- Stagione: ${season}, Club: ${team}${category ? ` (${category})` : ''}\n  Errore: ${e.error}`
+                            }).join('\n\n')
 
                             alert(
                                 `⚠️ Attenzione:\n\n` +
                                 `${expResult.count} esperienze salvate correttamente.\n\n` +
-                                `${expResult.errors.length} esperienze NON salvate (organizzazioni non trovate):\n\n` +
-                                `${failedOrgs}\n\n` +
-                                `Contatta l'amministratore per aggiungere queste organizzazioni al database.`
+                                `${expResult.errors.length} esperienze NON salvate:\n\n` +
+                                `${failedItems}\n\n` +
+                                `Verifica che i campi obbligatori siano compilati:\n` +
+                                `• Stagione (es: 2024/2025)\n` +
+                                `• Organizzazione/Club (seleziona dall'autocomplete)`
                             )
                         }
                     }

@@ -30,12 +30,13 @@ export async function GET(req: NextRequest) {
                     id,
                     name,
                     country,
-                    city
+                    city,
+                    sport
                 ),
                 position:lookup_positions(
                     id,
                     name,
-                    sport
+                    category
                 )
             `)
             .eq('user_id', userId)
@@ -82,18 +83,33 @@ export async function POST(req: NextRequest) {
         const errors = []
 
         for (const exp of experiences) {
-            // 1. Trova l'organizzazione (deve esistere nel DB)
+            // 0. Validazione campi obbligatori
             const orgName = exp.team?.trim()
             const orgCountry = exp.country?.trim() || 'Italia'
             const orgSport = exp.sport?.trim() || 'Calcio'
+            const season = exp.season?.trim()
 
+            // Validazione: team obbligatorio
             if (!orgName) {
-                errors.push({ experience: exp, error: 'Missing team name' })
+                errors.push({
+                    experience: { season: season || '?', team: 'N/A', category: exp.category },
+                    error: 'Campo "Organizzazione/Club" obbligatorio'
+                })
                 console.warn('Skipping experience without team name:', exp)
                 continue
             }
 
-            // Cerca l'organizzazione nel database
+            // Validazione: season obbligatoria
+            if (!season) {
+                errors.push({
+                    experience: { season: 'N/A', team: orgName, category: exp.category },
+                    error: 'Campo "Stagione" obbligatorio (es: 2024/2025)'
+                })
+                console.warn('Skipping experience without season:', exp)
+                continue
+            }
+
+            // 1. Cerca l'organizzazione nel database
             const { data: existingOrg } = await supabase
                 .from('sports_organizations')
                 .select('id')
@@ -114,12 +130,36 @@ export async function POST(req: NextRequest) {
 
             const organizationId = existingOrg.id
 
-            // 2. Prepara i dati dell'esperienza mappando i campi del form ai campi DB
+            // 2. Determina il ruolo generico (Player, Coach, Staff, Other)
+            // Il form può mandare posizioni specifiche (es: "Difensore") che vanno in role_detail
+            let genericRole = 'Player' // default
+            const roleValue = exp.role || ''
+
+            // Lista ruoli validi per il DB
+            const validRoles = ['Player', 'Coach', 'Staff', 'Other']
+
+            // Se il ruolo dal form è già valido, usalo
+            if (validRoles.includes(roleValue)) {
+                genericRole = roleValue
+            } else {
+                // Altrimenti, cerca di inferire dal valore
+                const lowerRole = roleValue.toLowerCase()
+                if (lowerRole.includes('coach') || lowerRole.includes('allenatore') || lowerRole.includes('mister')) {
+                    genericRole = 'Coach'
+                } else if (lowerRole.includes('staff') || lowerRole.includes('preparatore') || lowerRole.includes('fisioterapista')) {
+                    genericRole = 'Staff'
+                } else {
+                    // Se è una posizione (Portiere, Difensore, etc.) → Player
+                    genericRole = 'Player'
+                }
+            }
+
+            // 3. Prepara i dati dell'esperienza mappando i campi del form ai campi DB
             const expData: any = {
                 user_id: userId,
                 organization_id: organizationId,
-                role: exp.role || 'Player',
-                role_detail: exp.positionDetail || exp.primaryPosition || null,
+                role: genericRole,
+                role_detail: validRoles.includes(roleValue) ? (exp.positionDetail || exp.primaryPosition || null) : roleValue,
                 season: exp.season,
                 category: exp.category || 'Non specificato',
                 competition_type: exp.competitionType || 'male',
@@ -128,32 +168,39 @@ export async function POST(req: NextRequest) {
                 is_current: exp.isCurrentlyPlaying || false,
             }
 
-            // Aggiungi statistiche giocatore se role = Player
+            // Aggiungi statistiche giocatore se role = Player (solo se fornite)
             if (exp.role === 'Player') {
-                expData.goals = exp.goals || 0
-                expData.assists = exp.assists || 0
-                expData.clean_sheets = exp.cleanSheets || 0
-                expData.appearances = exp.appearances || 0
-                expData.minutes_played = exp.minutesPlayed || 0
-                expData.penalties = exp.penalties || 0
-                expData.yellow_cards = exp.yellowCards || 0
-                expData.red_cards = exp.redCards || 0
-                expData.substitutions_in = exp.substitutionsIn || 0
-                expData.substitutions_out = exp.substitutionsOut || 0
-                expData.points_per_game = exp.pointsPerGame || 0
-                expData.rebounds = exp.rebounds || 0
-                expData.aces = exp.volleyAces || 0
-                expData.blocks = exp.volleyBlocks || 0
-                expData.digs = exp.volleyDigs || 0
+                // Calcio - Base
+                expData.goals = exp.goals !== undefined && exp.goals !== null ? exp.goals : null
+                expData.assists = exp.assists !== undefined && exp.assists !== null ? exp.assists : null
+                expData.clean_sheets = exp.cleanSheets !== undefined && exp.cleanSheets !== null ? exp.cleanSheets : null
+                expData.appearances = exp.appearances !== undefined && exp.appearances !== null ? exp.appearances : null
+
+                // Calcio - Avanzate
+                expData.minutes_played = exp.minutesPlayed !== undefined && exp.minutesPlayed !== null ? exp.minutesPlayed : null
+                expData.penalties = exp.penalties !== undefined && exp.penalties !== null ? exp.penalties : null
+                expData.yellow_cards = exp.yellowCards !== undefined && exp.yellowCards !== null ? exp.yellowCards : null
+                expData.red_cards = exp.redCards !== undefined && exp.redCards !== null ? exp.redCards : null
+                expData.substitutions_in = exp.substitutionsIn !== undefined && exp.substitutionsIn !== null ? exp.substitutionsIn : null
+                expData.substitutions_out = exp.substitutionsOut !== undefined && exp.substitutionsOut !== null ? exp.substitutionsOut : null
+
+                // Basket
+                expData.points_per_game = exp.pointsPerGame !== undefined && exp.pointsPerGame !== null ? exp.pointsPerGame : null
+                expData.rebounds = exp.rebounds !== undefined && exp.rebounds !== null ? exp.rebounds : null
+
+                // Volley
+                expData.aces = exp.volleyAces !== undefined && exp.volleyAces !== null ? exp.volleyAces : null
+                expData.blocks = exp.volleyBlocks !== undefined && exp.volleyBlocks !== null ? exp.volleyBlocks : null
+                expData.digs = exp.volleyDigs !== undefined && exp.volleyDigs !== null ? exp.volleyDigs : null
             }
 
-            // Aggiungi statistiche coach se role = Coach
+            // Aggiungi statistiche coach se role = Coach (solo se fornite)
             if (exp.role === 'Coach') {
-                expData.matches_coached = exp.matchesCoached || 0
-                expData.wins = exp.wins || 0
-                expData.draws = exp.draws || 0
-                expData.losses = exp.losses || 0
-                expData.trophies = exp.trophies || 0
+                expData.matches_coached = exp.matchesCoached !== undefined && exp.matchesCoached !== null ? exp.matchesCoached : null
+                expData.wins = exp.wins !== undefined && exp.wins !== null ? exp.wins : null
+                expData.draws = exp.draws !== undefined && exp.draws !== null ? exp.draws : null
+                expData.losses = exp.losses !== undefined && exp.losses !== null ? exp.losses : null
+                expData.trophies = exp.trophies !== undefined && exp.trophies !== null ? exp.trophies : null
             }
 
             // Se l'esperienza ha già un ID UUID, fai upsert
@@ -169,6 +216,10 @@ export async function POST(req: NextRequest) {
 
                 if (error) {
                     console.error('Error upserting experience:', error)
+                    errors.push({
+                        experience: { season: exp.season, team: orgName, category: exp.category },
+                        error: `Errore database: ${error.message}`
+                    })
                     continue
                 }
 
@@ -183,6 +234,10 @@ export async function POST(req: NextRequest) {
 
                 if (error) {
                     console.error('Error inserting experience:', error)
+                    errors.push({
+                        experience: { season: exp.season, team: orgName, category: exp.category },
+                        error: `Errore database: ${error.message}`
+                    })
                     continue
                 }
 

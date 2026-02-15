@@ -119,10 +119,10 @@ export async function POST(request: Request) {
 
         // Check if player has blocked this agent
         const { data: blockedAgents } = await supabaseServer
-            .from('blocked_agents')
+            .from('blocks')
             .select('*')
-            .eq('player_id', playerId)
-            .eq('agent_id', agentId)
+            .eq('blocker_id', playerId)
+            .eq('blocked_id', agentId)
 
         if (blockedAgents && blockedAgents.length > 0) {
             return withCors(NextResponse.json({ error: 'Operation not permitted' }, { status: 403 }))
@@ -288,12 +288,10 @@ export async function DELETE(request: Request) {
         // If block is true, add to blocked agents
         if (block) {
             await supabaseServer
-                .from('blocked_agents')
+                .from('blocks')
                 .insert({
-                    player_id: affiliation.player_id,
-                    agent_id: affiliation.agent_id,
-                    blocked_at: new Date().toISOString(),
-                    reason: 'Blocked by player'
+                    blocker_id: affiliation.player_id,
+                    blocked_id: affiliation.agent_id,
                 })
         }
 

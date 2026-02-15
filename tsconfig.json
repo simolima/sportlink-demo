@@ -38,6 +38,8 @@
   "exclude": [
     "node_modules",
     "mobile/**",
-    "services/mock/**"
+    "services/mock/**",
+    "vitest.config.ts",
+    "**/__tests__/**"
   ]
 }

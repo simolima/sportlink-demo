@@ -411,6 +411,94 @@ User Action → Component (useState)
 - ❌ Don't add input validation (focus on functionality)
 - ❌ Don't optimize for production (MVP stage)
 
+## Testing & CI/CD (February 2026)
+
+### Testing Stack
+- **Vitest** — Test runner (fast, ESM-native, Jest-compatible API)
+- **@testing-library/react** + **@testing-library/jest-dom** — Component testing
+- **jsdom** — Simulated browser environment
+
+### Test Structure
+Tests live in `__tests__/` folders next to source files:
+```
+lib/
+  __tests__/
+    notification-utils.test.ts   ← Pure utility functions
+    cors.test.ts                 ← CORS helpers
+app/api/follows/
+  __tests__/
+    route.test.ts               ← API route with mocked fs
+```
+
+### Running Tests
+```bash
+pnpm test              # Run all tests once
+pnpm test:watch        # Watch mode (re-runs on save)
+pnpm test:coverage     # With coverage report
+```
+
+### Writing Tests Conventions
+- **File naming**: `*.test.ts` or `*.test.tsx` inside `__tests__/` folder
+- **Pure functions first**: Prioritize testing utility functions (`lib/`) — no mocks needed
+- **API routes**: Mock `fs` module to avoid touching real JSON files
+- **Components**: Use `@testing-library/react` with `render()` + `screen` queries
+- **Helper factory**: Use `makeNotification()` / `makeUser()` patterns for test data
+- **No network calls**: Mock fetch/Supabase in tests
+
+### Test Patterns
+
+**Utility function test**:
+```typescript
+import { describe, it, expect } from 'vitest'
+import { myFunction } from '../my-utils'
+
+describe('myFunction', () => {
+  it('handles the happy path', () => {
+    expect(myFunction('input')).toBe('expected')
+  })
+
+  it('returns null for unknown input', () => {
+    expect(myFunction('unknown')).toBeNull()
+  })
+})
+```
+
+**API route test (with fs mock)**:
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn(() => true),
+    readFileSync: vi.fn(() => JSON.stringify([])),
+    writeFileSync: vi.fn(),
+    mkdirSync: vi.fn(),
+  },
+  // ...named exports too
+}))
+
+import { GET, POST } from '@/app/api/resource/route'
+```
+
+### GitHub Actions CI
+File: `.github/workflows/ci.yml`
+
+**Triggers**: Push to `main` + Pull Requests to `main`
+
+**Steps**: Install → Lint → Test → Build
+
+The CI runs automatically on GitHub. To activate:
+1. Push the `.github/workflows/ci.yml` file to GitHub
+2. It starts working immediately — no extra configuration needed
+3. Optional: Enable branch protection in GitHub Settings → Branches → "Require status checks"
+
+### When to Add Tests
+- ✅ New utility functions in `lib/` — always add tests
+- ✅ New API routes — test happy path + error cases
+- ✅ Complex business logic — grouping, filtering, calculations
+- ⚠️ Simple UI components — optional for MVP stage
+- ❌ Layout/styling only — don't test CSS classes
+
 ## Recent Updates (November 2025)
 
 ### Mobile App Added (November 29, 2025)

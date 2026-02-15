@@ -13,6 +13,20 @@ export default function AuthCallbackPage() {
             try {
                 console.log('🔐 Auth Callback Page - Starting...')
 
+                // If Supabase returned an auth code, exchange it explicitly
+                const url = new URL(window.location.href)
+                const authCode = url.searchParams.get('code')
+                if (authCode) {
+                    console.log('🔁 Exchanging OAuth code for session...')
+                    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode)
+                    if (exchangeError) {
+                        console.error('❌ Code exchange error:', exchangeError)
+                        setError('Errore durante lo scambio sessione OAuth')
+                        setTimeout(() => router.push('/login'), 2000)
+                        return
+                    }
+                }
+
                 // Force session refresh to ensure we have the latest auth state
                 await supabase.auth.refreshSession()
 

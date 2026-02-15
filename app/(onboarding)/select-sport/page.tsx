@@ -148,14 +148,53 @@ export default function SelectSportPage() {
                     profileUpdate.avatar_url = avatarUrl
                 }
 
-                const { error: profileError } = await supabase
+                // Ensure profile row exists (some projects may miss auth trigger)
+                const { data: existingProfile, error: existingProfileError } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', currentUserId)
+                    .maybeSingle()
+
+                if (existingProfileError) {
+                    console.error('❌ Error checking existing profile:', existingProfileError)
+                    throw new Error('Errore verifica profilo esistente')
+                }
+
+                if (!existingProfile) {
+                    console.warn('⚠️ Profile row missing, creating it now...')
+                    const { error: insertProfileError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: currentUserId,
+                            email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            role_id: mapRoleToDatabase(professionalRole),
+                            birth_date: birthDate || null,
+                            avatar_url: avatarUrl || null,
+                        })
+
+                    if (insertProfileError) {
+                        console.error('❌ Profile insert error:', insertProfileError)
+                        throw new Error('Errore creazione profilo OAuth')
+                    }
+                }
+
+                const { data: updatedProfile, error: profileError } = await supabase
                     .from('profiles')
                     .update(profileUpdate)
                     .eq('id', currentUserId)
+                    .select('id')
+                    .maybeSingle()
 
                 if (profileError) {
                     console.error('❌ Profile update error:', profileError)
                     throw new Error('Errore aggiornamento profilo')
+                }
+
+                if (!updatedProfile) {
+                    console.error('❌ Profile update affected 0 rows for user:', currentUserId)
+                    throw new Error('Profilo non trovato dopo login Google')
                 }
 
                 console.log('✅ Profile updated successfully')

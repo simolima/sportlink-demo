@@ -21,7 +21,7 @@ export default function LoginPage() {
         try {
             const success = await login(email, password)
             if (!success) {
-                setError('Email o password non validi')
+                setError('Email o password non validi. Se hai usato Google, accedi con “Continua con Google”.')
                 setLoading(false)
                 return
             }

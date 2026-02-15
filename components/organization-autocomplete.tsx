@@ -156,13 +156,13 @@ export default function OrganizationAutocomplete({
 
             {/* Dropdown Results */}
             {isOpen && results.length > 0 && (
-                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-auto">
                     {results.map((org) => (
                         <button
                             key={org.id}
                             type="button"
                             onClick={() => handleSelect(org)}
-                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors"
+                            className="w-full text-left px-4 py-2.5 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors first:rounded-t-xl last:rounded-b-xl"
                         >
                             <div className="font-medium text-gray-900">{org.name}</div>
                             <div className="text-xs text-gray-500 mt-0.5">
@@ -175,7 +175,7 @@ export default function OrganizationAutocomplete({
 
             {/* No results message */}
             {isOpen && !isLoading && query.length >= 2 && results.length === 0 && (
-                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-sm text-gray-500">
+                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-center text-sm text-gray-500">
                     Nessuna organizzazione trovata per "{query}"
                     <div className="text-xs text-gray-400 mt-1">
                         Contatta l'amministratore per aggiungere questa organizzazione

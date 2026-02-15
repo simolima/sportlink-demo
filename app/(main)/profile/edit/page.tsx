@@ -7,6 +7,7 @@ import Avatar from "@/components/avatar"
 import SocialLinksForm from "@/components/social-links-form"
 import SelfEvaluationForm from "@/components/self-evaluation-form"
 import OrganizationAutocomplete from "@/components/organization-autocomplete"
+import CustomSelect from "@/components/custom-select"
 import { uploadService } from "@/lib/upload-service"
 
 interface Experience {
@@ -196,6 +197,17 @@ export default function EditProfilePage() {
     // --- Stati per errori validazione date ---
     const [dateErrors, setDateErrors] = useState<Record<string, string>>({})
 
+    // --- Stati per autocomplete nazionalità ---
+    const [countrySearchTerm, setCountrySearchTerm] = useState("")
+    const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+
+    // --- Stati per dropdown disponibilità ---
+    const [showAvailabilityDropdown, setShowAvailabilityDropdown] = useState(false)
+
+    // --- Stati per dropdown piede/mano dominante ---
+    const [showFootDropdown, setShowFootDropdown] = useState(false)
+    const [showHandDropdown, setShowHandDropdown] = useState(false)
+
     useEffect(() => {
         let didRedirect = false;
         const fetchUser = async () => {
@@ -278,6 +290,7 @@ export default function EditProfilePage() {
                             city: exp.organization?.city || '',
                             sport: exp.organization?.sport || 'Calcio',
                             category: exp.category || '',
+                            categoryTier: exp.category_tier || '',
                             competitionType: exp.competition_type || 'male',
                             from: exp.start_date || '',
                             to: exp.end_date || '',
@@ -381,6 +394,11 @@ export default function EditProfilePage() {
             router.push("/home");
         }
     }, [router, userId]);
+
+    // Sincronizza il campo di ricerca con il valore del form
+    useEffect(() => {
+        setCountrySearchTerm(form.country || "")
+    }, [form.country])
 
     const volleyRoles = [
         "Palleggiatore",
@@ -489,6 +507,254 @@ export default function EditProfilePage() {
 
         return null // Tutto OK
     }
+
+    // Lista completa paesi del mondo con bandiere
+    const allCountries = [
+        { code: "AF", name: "Afghanistan", flag: "🇦🇫" },
+        { code: "ZA", name: "Sudafrica", flag: "🇿🇦" },
+        { code: "AL", name: "Albania", flag: "🇦🇱" },
+        { code: "DZ", name: "Algeria", flag: "🇩🇿" },
+        { code: "DE", name: "Germania", flag: "🇩🇪" },
+        { code: "AD", name: "Andorra", flag: "🇦🇩" },
+        { code: "AO", name: "Angola", flag: "🇦🇴" },
+        { code: "AI", name: "Anguilla", flag: "🇦🇮" },
+        { code: "AQ", name: "Antartide", flag: "🇦🇶" },
+        { code: "AG", name: "Antigua e Barbuda", flag: "🇦🇬" },
+        { code: "SA", name: "Arabia Saudita", flag: "🇸🇦" },
+        { code: "AR", name: "Argentina", flag: "🇦🇷" },
+        { code: "AM", name: "Armenia", flag: "🇦🇲" },
+        { code: "AW", name: "Aruba", flag: "🇦🇼" },
+        { code: "AU", name: "Australia", flag: "🇦🇺" },
+        { code: "AT", name: "Austria", flag: "🇦🇹" },
+        { code: "AZ", name: "Azerbaigian", flag: "🇦🇿" },
+        { code: "BS", name: "Bahamas", flag: "🇧🇸" },
+        { code: "BH", name: "Bahrein", flag: "🇧🇭" },
+        { code: "BD", name: "Bangladesh", flag: "🇧🇩" },
+        { code: "BB", name: "Barbados", flag: "🇧🇧" },
+        { code: "BE", name: "Belgio", flag: "🇧🇪" },
+        { code: "BZ", name: "Belize", flag: "🇧🇿" },
+        { code: "BJ", name: "Benin", flag: "🇧🇯" },
+        { code: "BM", name: "Bermuda", flag: "🇧🇲" },
+        { code: "BT", name: "Bhutan", flag: "🇧🇹" },
+        { code: "BY", name: "Bielorussia", flag: "🇧🇾" },
+        { code: "BO", name: "Bolivia", flag: "🇧🇴" },
+        { code: "BA", name: "Bosnia ed Erzegovina", flag: "🇧🇦" },
+        { code: "BW", name: "Botswana", flag: "🇧🇼" },
+        { code: "BR", name: "Brasile", flag: "🇧🇷" },
+        { code: "BN", name: "Brunei", flag: "🇧🇳" },
+        { code: "BG", name: "Bulgaria", flag: "🇧🇬" },
+        { code: "BF", name: "Burkina Faso", flag: "🇧🇫" },
+        { code: "BI", name: "Burundi", flag: "🇧🇮" },
+        { code: "KH", name: "Cambogia", flag: "🇰🇭" },
+        { code: "CM", name: "Camerun", flag: "🇨🇲" },
+        { code: "CA", name: "Canada", flag: "🇨🇦" },
+        { code: "CV", name: "Capo Verde", flag: "🇨🇻" },
+        { code: "TD", name: "Ciad", flag: "🇹🇩" },
+        { code: "CL", name: "Cile", flag: "🇨🇱" },
+        { code: "CN", name: "Cina", flag: "🇨🇳" },
+        { code: "CY", name: "Cipro", flag: "🇨🇾" },
+        { code: "VA", name: "Città del Vaticano", flag: "🇻🇦" },
+        { code: "CO", name: "Colombia", flag: "🇨🇴" },
+        { code: "KM", name: "Comore", flag: "🇰🇲" },
+        { code: "CG", name: "Congo", flag: "🇨🇬" },
+        { code: "CD", name: "Congo (RDC)", flag: "🇨🇩" },
+        { code: "KP", name: "Corea del Nord", flag: "🇰🇵" },
+        { code: "KR", name: "Corea del Sud", flag: "🇰🇷" },
+        { code: "CI", name: "Costa d'Avorio", flag: "🇨🇮" },
+        { code: "CR", name: "Costa Rica", flag: "🇨🇷" },
+        { code: "HR", name: "Croazia", flag: "🇭🇷" },
+        { code: "CU", name: "Cuba", flag: "🇨🇺" },
+        { code: "CW", name: "Curaçao", flag: "🇨🇼" },
+        { code: "DK", name: "Danimarca", flag: "🇩🇰" },
+        { code: "DM", name: "Dominica", flag: "🇩🇲" },
+        { code: "EC", name: "Ecuador", flag: "🇪🇨" },
+        { code: "EG", name: "Egitto", flag: "🇪🇬" },
+        { code: "SV", name: "El Salvador", flag: "🇸🇻" },
+        { code: "AE", name: "Emirati Arabi Uniti", flag: "🇦🇪" },
+        { code: "ER", name: "Eritrea", flag: "🇪🇷" },
+        { code: "EE", name: "Estonia", flag: "🇪🇪" },
+        { code: "SZ", name: "Eswatini", flag: "🇸🇿" },
+        { code: "ET", name: "Etiopia", flag: "🇪🇹" },
+        { code: "FJ", name: "Figi", flag: "🇫🇯" },
+        { code: "PH", name: "Filippine", flag: "🇵🇭" },
+        { code: "FI", name: "Finlandia", flag: "🇫🇮" },
+        { code: "FR", name: "Francia", flag: "🇫🇷" },
+        { code: "GA", name: "Gabon", flag: "🇬🇦" },
+        { code: "GM", name: "Gambia", flag: "🇬🇲" },
+        { code: "GE", name: "Georgia", flag: "🇬🇪" },
+        { code: "GH", name: "Ghana", flag: "🇬🇭" },
+        { code: "JM", name: "Giamaica", flag: "🇯🇲" },
+        { code: "JP", name: "Giappone", flag: "🇯🇵" },
+        { code: "GI", name: "Gibilterra", flag: "🇬🇮" },
+        { code: "DJ", name: "Gibuti", flag: "🇩🇯" },
+        { code: "JO", name: "Giordania", flag: "🇯🇴" },
+        { code: "GR", name: "Grecia", flag: "🇬🇷" },
+        { code: "GD", name: "Grenada", flag: "🇬🇩" },
+        { code: "GL", name: "Groenlandia", flag: "🇬🇱" },
+        { code: "GP", name: "Guadalupa", flag: "🇬🇵" },
+        { code: "GU", name: "Guam", flag: "🇬🇺" },
+        { code: "GT", name: "Guatemala", flag: "🇬🇹" },
+        { code: "GG", name: "Guernsey", flag: "🇬🇬" },
+        { code: "GN", name: "Guinea", flag: "🇬🇳" },
+        { code: "GW", name: "Guinea-Bissau", flag: "🇬🇼" },
+        { code: "GQ", name: "Guinea Equatoriale", flag: "🇬🇶" },
+        { code: "GY", name: "Guyana", flag: "🇬🇾" },
+        { code: "GF", name: "Guyana Francese", flag: "🇬🇫" },
+        { code: "HT", name: "Haiti", flag: "🇭🇹" },
+        { code: "HN", name: "Honduras", flag: "🇭🇳" },
+        { code: "HK", name: "Hong Kong", flag: "🇭🇰" },
+        { code: "IN", name: "India", flag: "🇮🇳" },
+        { code: "ID", name: "Indonesia", flag: "🇮🇩" },
+        { code: "IR", name: "Iran", flag: "🇮🇷" },
+        { code: "IQ", name: "Iraq", flag: "🇮🇶" },
+        { code: "IE", name: "Irlanda", flag: "🇮🇪" },
+        { code: "IS", name: "Islanda", flag: "🇮🇸" },
+        { code: "BV", name: "Isola Bouvet", flag: "🇧🇻" },
+        { code: "IM", name: "Isola di Man", flag: "🇮🇲" },
+        { code: "NF", name: "Isola Norfolk", flag: "🇳🇫" },
+        { code: "AX", name: "Isole Åland", flag: "🇦🇽" },
+        { code: "KY", name: "Isole Cayman", flag: "🇰🇾" },
+        { code: "CC", name: "Isole Cocos", flag: "🇨🇨" },
+        { code: "CK", name: "Isole Cook", flag: "🇨🇰" },
+        { code: "FO", name: "Isole Fær Øer", flag: "🇫🇴" },
+        { code: "FK", name: "Isole Falkland", flag: "🇫🇰" },
+        { code: "MP", name: "Isole Marianne Settentrionali", flag: "🇲🇵" },
+        { code: "MH", name: "Isole Marshall", flag: "🇲🇭" },
+        { code: "PN", name: "Isole Pitcairn", flag: "🇵🇳" },
+        { code: "SB", name: "Isole Salomone", flag: "🇸🇧" },
+        { code: "TC", name: "Isole Turks e Caicos", flag: "🇹🇨" },
+        { code: "VG", name: "Isole Vergini Britanniche", flag: "🇻🇬" },
+        { code: "VI", name: "Isole Vergini Americane", flag: "🇻🇮" },
+        { code: "IL", name: "Israele", flag: "🇮🇱" },
+        { code: "IT", name: "Italia", flag: "🇮🇹" },
+        { code: "JE", name: "Jersey", flag: "🇯🇪" },
+        { code: "KZ", name: "Kazakistan", flag: "🇰🇿" },
+        { code: "KE", name: "Kenya", flag: "🇰🇪" },
+        { code: "KG", name: "Kirghizistan", flag: "🇰🇬" },
+        { code: "KI", name: "Kiribati", flag: "🇰🇮" },
+        { code: "KW", name: "Kuwait", flag: "🇰🇼" },
+        { code: "LA", name: "Laos", flag: "🇱🇦" },
+        { code: "LS", name: "Lesotho", flag: "🇱🇸" },
+        { code: "LV", name: "Lettonia", flag: "🇱🇻" },
+        { code: "LB", name: "Libano", flag: "🇱🇧" },
+        { code: "LR", name: "Liberia", flag: "🇱🇷" },
+        { code: "LY", name: "Libia", flag: "🇱🇾" },
+        { code: "LI", name: "Liechtenstein", flag: "🇱🇮" },
+        { code: "LT", name: "Lituania", flag: "🇱🇹" },
+        { code: "LU", name: "Lussemburgo", flag: "🇱🇺" },
+        { code: "MO", name: "Macao", flag: "🇲🇴" },
+        { code: "MK", name: "Macedonia del Nord", flag: "🇲🇰" },
+        { code: "MG", name: "Madagascar", flag: "🇲🇬" },
+        { code: "MW", name: "Malawi", flag: "🇲🇼" },
+        { code: "MY", name: "Malesia", flag: "🇲🇾" },
+        { code: "MV", name: "Maldive", flag: "🇲🇻" },
+        { code: "ML", name: "Mali", flag: "🇲🇱" },
+        { code: "MT", name: "Malta", flag: "🇲🇹" },
+        { code: "MA", name: "Marocco", flag: "🇲🇦" },
+        { code: "MQ", name: "Martinica", flag: "🇲🇶" },
+        { code: "MR", name: "Mauritania", flag: "🇲🇷" },
+        { code: "MU", name: "Mauritius", flag: "🇲🇺" },
+        { code: "YT", name: "Mayotte", flag: "🇾🇹" },
+        { code: "MX", name: "Messico", flag: "🇲🇽" },
+        { code: "FM", name: "Micronesia", flag: "🇫🇲" },
+        { code: "MD", name: "Moldavia", flag: "🇲🇩" },
+        { code: "MC", name: "Monaco", flag: "🇲🇨" },
+        { code: "MN", name: "Mongolia", flag: "🇲🇳" },
+        { code: "ME", name: "Montenegro", flag: "🇲🇪" },
+        { code: "MS", name: "Montserrat", flag: "🇲🇸" },
+        { code: "MZ", name: "Mozambico", flag: "🇲🇿" },
+        { code: "MM", name: "Myanmar", flag: "🇲🇲" },
+        { code: "NA", name: "Namibia", flag: "🇳🇦" },
+        { code: "NR", name: "Nauru", flag: "🇳🇷" },
+        { code: "NP", name: "Nepal", flag: "🇳🇵" },
+        { code: "NI", name: "Nicaragua", flag: "🇳🇮" },
+        { code: "NE", name: "Niger", flag: "🇳🇪" },
+        { code: "NG", name: "Nigeria", flag: "🇳🇬" },
+        { code: "NU", name: "Niue", flag: "🇳🇺" },
+        { code: "NO", name: "Norvegia", flag: "🇳🇴" },
+        { code: "NC", name: "Nuova Caledonia", flag: "🇳🇨" },
+        { code: "NZ", name: "Nuova Zelanda", flag: "🇳🇿" },
+        { code: "OM", name: "Oman", flag: "🇴🇲" },
+        { code: "NL", name: "Paesi Bassi", flag: "🇳🇱" },
+        { code: "PK", name: "Pakistan", flag: "🇵🇰" },
+        { code: "PW", name: "Palau", flag: "🇵🇼" },
+        { code: "PS", name: "Palestina", flag: "🇵🇸" },
+        { code: "PA", name: "Panama", flag: "🇵🇦" },
+        { code: "PG", name: "Papua Nuova Guinea", flag: "🇵🇬" },
+        { code: "PY", name: "Paraguay", flag: "🇵🇾" },
+        { code: "PE", name: "Perù", flag: "🇵🇪" },
+        { code: "PF", name: "Polinesia Francese", flag: "🇵🇫" },
+        { code: "PL", name: "Polonia", flag: "🇵🇱" },
+        { code: "PT", name: "Portogallo", flag: "🇵🇹" },
+        { code: "PR", name: "Porto Rico", flag: "🇵🇷" },
+        { code: "QA", name: "Qatar", flag: "🇶🇦" },
+        { code: "GB", name: "Regno Unito", flag: "🇬🇧" },
+        { code: "CZ", name: "Repubblica Ceca", flag: "🇨🇿" },
+        { code: "CF", name: "Repubblica Centrafricana", flag: "🇨🇫" },
+        { code: "DO", name: "Repubblica Dominicana", flag: "🇩🇴" },
+        { code: "RE", name: "Riunione", flag: "🇷🇪" },
+        { code: "RO", name: "Romania", flag: "🇷🇴" },
+        { code: "RW", name: "Ruanda", flag: "🇷🇼" },
+        { code: "RU", name: "Russia", flag: "🇷🇺" },
+        { code: "EH", name: "Sahara Occidentale", flag: "🇪🇭" },
+        { code: "KN", name: "Saint Kitts e Nevis", flag: "🇰🇳" },
+        { code: "LC", name: "Saint Lucia", flag: "🇱🇨" },
+        { code: "VC", name: "Saint Vincent e Grenadine", flag: "🇻🇨" },
+        { code: "BL", name: "Saint-Barthélemy", flag: "🇧🇱" },
+        { code: "MF", name: "Saint-Martin", flag: "🇲🇫" },
+        { code: "PM", name: "Saint-Pierre e Miquelon", flag: "🇵🇲" },
+        { code: "WS", name: "Samoa", flag: "🇼🇸" },
+        { code: "AS", name: "Samoa Americane", flag: "🇦🇸" },
+        { code: "SM", name: "San Marino", flag: "🇸🇲" },
+        { code: "SH", name: "Sant'Elena", flag: "🇸🇭" },
+        { code: "ST", name: "São Tomé e Príncipe", flag: "🇸🇹" },
+        { code: "SN", name: "Senegal", flag: "🇸🇳" },
+        { code: "RS", name: "Serbia", flag: "🇷🇸" },
+        { code: "SC", name: "Seychelles", flag: "🇸🇨" },
+        { code: "SL", name: "Sierra Leone", flag: "🇸🇱" },
+        { code: "SG", name: "Singapore", flag: "🇸🇬" },
+        { code: "SX", name: "Sint Maarten", flag: "🇸🇽" },
+        { code: "SY", name: "Siria", flag: "🇸🇾" },
+        { code: "SK", name: "Slovacchia", flag: "🇸🇰" },
+        { code: "SI", name: "Slovenia", flag: "🇸🇮" },
+        { code: "SO", name: "Somalia", flag: "🇸🇴" },
+        { code: "ES", name: "Spagna", flag: "🇪🇸" },
+        { code: "LK", name: "Sri Lanka", flag: "🇱🇰" },
+        { code: "US", name: "Stati Uniti", flag: "🇺🇸" },
+        { code: "SD", name: "Sudan", flag: "🇸🇩" },
+        { code: "SS", name: "Sudan del Sud", flag: "🇸🇸" },
+        { code: "SR", name: "Suriname", flag: "🇸🇷" },
+        { code: "SJ", name: "Svalbard e Jan Mayen", flag: "🇸🇯" },
+        { code: "SE", name: "Svezia", flag: "🇸🇪" },
+        { code: "CH", name: "Svizzera", flag: "🇨🇭" },
+        { code: "TJ", name: "Tagikistan", flag: "🇹🇯" },
+        { code: "TH", name: "Thailandia", flag: "🇹🇭" },
+        { code: "TW", name: "Taiwan", flag: "🇹🇼" },
+        { code: "TZ", name: "Tanzania", flag: "🇹🇿" },
+        { code: "TF", name: "Terre Australi Francesi", flag: "🇹🇫" },
+        { code: "IO", name: "Territorio Britannico dell'Oceano Indiano", flag: "🇮🇴" },
+        { code: "TL", name: "Timor Est", flag: "🇹🇱" },
+        { code: "TG", name: "Togo", flag: "🇹🇬" },
+        { code: "TK", name: "Tokelau", flag: "🇹🇰" },
+        { code: "TO", name: "Tonga", flag: "🇹🇴" },
+        { code: "TT", name: "Trinidad e Tobago", flag: "🇹🇹" },
+        { code: "TN", name: "Tunisia", flag: "🇹🇳" },
+        { code: "TR", name: "Turchia", flag: "🇹🇷" },
+        { code: "TM", name: "Turkmenistan", flag: "🇹🇲" },
+        { code: "TV", name: "Tuvalu", flag: "🇹🇻" },
+        { code: "UA", name: "Ucraina", flag: "🇺🇦" },
+        { code: "UG", name: "Uganda", flag: "🇺🇬" },
+        { code: "HU", name: "Ungheria", flag: "🇭🇺" },
+        { code: "UY", name: "Uruguay", flag: "🇺🇾" },
+        { code: "UZ", name: "Uzbekistan", flag: "🇺🇿" },
+        { code: "VU", name: "Vanuatu", flag: "🇻🇺" },
+        { code: "VE", name: "Venezuela", flag: "🇻🇪" },
+        { code: "VN", name: "Vietnam", flag: "🇻🇳" },
+        { code: "WF", name: "Wallis e Futuna", flag: "🇼🇫" },
+        { code: "YE", name: "Yemen", flag: "🇾🇪" },
+        { code: "ZM", name: "Zambia", flag: "🇿🇲" },
+        { code: "ZW", name: "Zimbabwe", flag: "🇿🇼" }
+    ];
 
     // Paesi e categorie per sport (semplificati, demo)
     const footballCountries = ["Italia", "Spagna", "Francia", "Germania", "Inghilterra", "Altro"];
@@ -1122,6 +1388,18 @@ export default function EditProfilePage() {
             // Save career experiences
             if (form.experiences && form.experiences.length > 0) {
                 try {
+                    // Debug: mostra cosa stiamo per salvare
+                    console.log('🔍 Tentativo salvataggio esperienze:', {
+                        count: form.experiences.length,
+                        experiences: form.experiences.map(exp => ({
+                            season: exp.season,
+                            team: exp.team,
+                            country: exp.country,
+                            sport: exp.sport,
+                            category: exp.category
+                        }))
+                    })
+
                     const expRes = await fetch("/api/career-experiences", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -1133,14 +1411,22 @@ export default function EditProfilePage() {
 
                     const expResult = await expRes.json()
 
+                    // Debug: mostra risposta completa
+                    console.log('📦 Risposta API:', expResult)
+
                     if (!expRes.ok) {
-                        console.error('Career experiences save failed:', expRes.status, expResult)
+                        console.error('❌ Salvataggio fallito:', expRes.status, expResult)
                         alert(
-                            `⚠️ Errore nel salvataggio esperienze:\n\n${expResult.error || 'Errore sconosciuto'}\n\n` +
-                            `Verifica che le organizzazioni/club esistano nel database.`
+                            `❌ NESSUNA esperienza salvata!\n\n` +
+                            `Errore: ${expResult.error || 'Errore sconosciuto'}\n\n` +
+                            `Possibili cause:\n` +
+                            `• Organizzazione/Club non esiste nel database\n` +
+                            `• Devi SELEZIONARE il club dall'autocomplete (non solo digitarlo)\n` +
+                            `• Campo "Stagione" mancante (es: 2024/2025)\n\n` +
+                            `Per aggiungere un nuovo club, contatta l'amministratore.`
                         )
                     } else {
-                        console.log(`✅ Saved ${expResult.count} experiences`)
+                        console.log(`✅ Salvate ${expResult.count}/${form.experiences.length} esperienze`)
 
                         // Mostra warning se alcune esperienze non sono state salvate
                         if (expResult.errors && expResult.errors.length > 0) {
@@ -1149,23 +1435,27 @@ export default function EditProfilePage() {
                                 const season = exp.season || 'N/A'
                                 const team = exp.team || 'N/A'
                                 const category = exp.category || ''
-                                return `- Stagione: ${season}, Club: ${team}${category ? ` (${category})` : ''}\n  Errore: ${e.error}`
+                                return `• Stagione: ${season}, Club: ${team}${category ? ` (${category})` : ''}\n  → ${e.error}`
                             }).join('\n\n')
 
                             alert(
-                                `⚠️ Attenzione:\n\n` +
-                                `${expResult.count} esperienze salvate correttamente.\n\n` +
-                                `${expResult.errors.length} esperienze NON salvate:\n\n` +
+                                `⚠️ ATTENZIONE - Salvataggio parziale:\n\n` +
+                                `✅ ${expResult.count} esperienze salvate\n` +
+                                `❌ ${expResult.errors.length} esperienze NON salvate:\n\n` +
                                 `${failedItems}\n\n` +
-                                `Verifica che i campi obbligatori siano compilati:\n` +
-                                `• Stagione (es: 2024/2025)\n` +
-                                `• Organizzazione/Club (seleziona dall'autocomplete)`
+                                `💡 IMPORTANTE:\n` +
+                                `Devi SELEZIONARE il club dall'autocomplete.\n` +
+                                `Non basta digitare il nome - devi cliccare sulla voce che appare.\n\n` +
+                                `Se il club non esiste nella lista, contatta l'amministratore.`
                             )
+                        } else if (expResult.count > 0) {
+                            // Tutto ok - messaggio di successo
+                            console.log(`✅ Tutte le ${expResult.count} esperienze salvate con successo`)
                         }
                     }
                 } catch (expErr) {
-                    console.error('Error saving career experiences:', expErr)
-                    alert('Errore inatteso nel salvataggio esperienze. Riprova.')
+                    console.error('💥 Errore inatteso:', expErr)
+                    alert('❌ Errore di rete nel salvataggio esperienze.\n\nControlla la connessione e riprova.')
                 }
             }
 
@@ -1240,15 +1530,6 @@ export default function EditProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Username</label>
-                                <input
-                                    value={form.username}
-                                    onChange={(e) => updateField("username", e.target.value)}
-                                    placeholder="Username"
-                                    className={inputBase}
-                                />
-                            </div>
-                            <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Data di nascita</label>
                                 <input
                                     type="date"
@@ -1262,50 +1543,99 @@ export default function EditProfilePage() {
                                 <textarea
                                     value={form.bio}
                                     onChange={(e) => updateField("bio", e.target.value)}
+                                    maxLength={500}
                                     rows={4}
                                     placeholder="Racconta la tua storia, specializzazioni, risultati..."
                                     className={`${inputBase} resize-none`}
                                 />
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className={`${form.bio.length > 450 ? 'text-amber-600' : 'text-gray-500'}`}>
+                                        {form.bio.length}/500 caratteri
+                                    </span>
+                                    <span className="text-gray-400 text-right">
+                                        Usa un linguaggio professionale e rispettoso
+                                    </span>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Nazionalità</label>
-                                <select
-                                    value={form.country || ""}
-                                    onChange={(e) => updateField("country", e.target.value)}
-                                    className={inputBase}
-                                >
-                                    <option value="">Seleziona nazionalità</option>
-                                    <option value="Italia">🇮🇹 Italia</option>
-                                    <option value="Spagna">🇪🇸 Spagna</option>
-                                    <option value="Francia">🇫🇷 Francia</option>
-                                    <option value="Germania">🇩🇪 Germania</option>
-                                    <option value="Inghilterra">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inghilterra</option>
-                                    <option value="Portogallo">🇵🇹 Portogallo</option>
-                                    <option value="Olanda">🇳🇱 Olanda</option>
-                                    <option value="Belgio">🇧🇪 Belgio</option>
-                                    <option value="Argentina">🇦🇷 Argentina</option>
-                                    <option value="Brasile">🇧🇷 Brasile</option>
-                                    <option value="Uruguay">🇺🇾 Uruguay</option>
-                                    <option value="Colombia">🇨🇴 Colombia</option>
-                                    <option value="Stati Uniti">🇺🇸 Stati Uniti</option>
-                                    <option value="Messico">🇲🇽 Messico</option>
-                                    <option value="Croazia">🇭🇷 Croazia</option>
-                                    <option value="Serbia">🇷🇸 Serbia</option>
-                                    <option value="Grecia">🇬🇷 Grecia</option>
-                                    <option value="Turchia">🇹🇷 Turchia</option>
-                                    <option value="Altro">🌍 Altro</option>
-                                </select>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={countrySearchTerm}
+                                        onChange={(e) => {
+                                            setCountrySearchTerm(e.target.value)
+                                            setShowCountryDropdown(true)
+                                        }}
+                                        onFocus={() => setShowCountryDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                                        placeholder="Cerca nazionalità..."
+                                        className={inputBase}
+                                    />
+                                    {showCountryDropdown && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                            {allCountries
+                                                .filter((country) =>
+                                                    country.name.toLowerCase().includes(countrySearchTerm.toLowerCase())
+                                                )
+                                                .slice(0, 10)
+                                                .map((country) => (
+                                                    <div
+                                                        key={country.code}
+                                                        onClick={() => {
+                                                            updateField("country", country.name)
+                                                            setCountrySearchTerm(country.name)
+                                                            setShowCountryDropdown(false)
+                                                        }}
+                                                        className="px-4 py-2.5 cursor-pointer hover:bg-gray-100 transition-colors flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
+                                                    >
+                                                        <span>{country.flag}</span>
+                                                        <span>{country.name}</span>
+                                                    </div>
+                                                ))}
+                                            {allCountries.filter((country) =>
+                                                country.name.toLowerCase().includes(countrySearchTerm.toLowerCase())
+                                            ).length === 0 && (
+                                                    <div className="px-4 py-2 text-gray-500 text-sm">
+                                                        Nessun paese trovato
+                                                    </div>
+                                                )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm text-gray-700">Disponibilità per lavori</label>
-                                <select
-                                    value={form.availability}
-                                    onChange={(e) => updateField("availability", e.target.value)}
-                                    className={inputBase}
-                                >
-                                    <option value="Disponibile">Disponibile</option>
-                                    <option value="Non disponibile">Non disponibile</option>
-                                </select>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={form.availability}
+                                        readOnly
+                                        onFocus={() => setShowAvailabilityDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowAvailabilityDropdown(false), 200)}
+                                        placeholder="Seleziona disponibilità"
+                                        className={`${inputBase} cursor-pointer`}
+                                    />
+                                    {showAvailabilityDropdown && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                            {['Disponibile', 'Non disponibile'].map((option) => (
+                                                <div
+                                                    key={option}
+                                                    onClick={() => {
+                                                        updateField("availability", option)
+                                                        setShowAvailabilityDropdown(false)
+                                                    }}
+                                                    className={`px-4 py-2.5 cursor-pointer transition-colors ${form.availability === option
+                                                        ? 'bg-gray-100 font-medium'
+                                                        : 'hover:bg-gray-100'
+                                                        }`}
+                                                >
+                                                    {option}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             {isPlayer && (
                                 <>
@@ -1336,31 +1666,71 @@ export default function EditProfilePage() {
                                     {mainSport === "Calcio" && (
                                         <div className="space-y-2">
                                             <label className="text-sm text-gray-700">Piede dominante</label>
-                                            <select
-                                                value={form.dominantFoot || ""}
-                                                onChange={(e) => updateField("dominantFoot", e.target.value || undefined)}
-                                                className={inputBase}
-                                            >
-                                                <option value="">Seleziona piede</option>
-                                                <option value="destro">Destro</option>
-                                                <option value="sinistro">Sinistro</option>
-                                                <option value="ambidestro">Ambidestro</option>
-                                            </select>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={form.dominantFoot || ""}
+                                                    readOnly
+                                                    onFocus={() => setShowFootDropdown(true)}
+                                                    onBlur={() => setTimeout(() => setShowFootDropdown(false), 200)}
+                                                    placeholder="Seleziona piede"
+                                                    className={`${inputBase} cursor-pointer`}
+                                                />
+                                                {showFootDropdown && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                        {['', 'destro', 'sinistro', 'ambidestro'].map((option) => (
+                                                            <div
+                                                                key={option || 'empty'}
+                                                                onClick={() => {
+                                                                    updateField("dominantFoot", option || undefined)
+                                                                    setShowFootDropdown(false)
+                                                                }}
+                                                                className={`px-4 py-2.5 cursor-pointer transition-colors ${form.dominantFoot === option || (!form.dominantFoot && !option)
+                                                                    ? 'bg-gray-100 font-medium'
+                                                                    : 'hover:bg-gray-100'
+                                                                    }`}
+                                                            >
+                                                                {option ? option.charAt(0).toUpperCase() + option.slice(1) : 'Seleziona piede'}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                     {(mainSport === "Basket" || mainSport === "Pallavolo") && (
                                         <div className="space-y-2">
                                             <label className="text-sm text-gray-700">Mano dominante</label>
-                                            <select
-                                                value={form.dominantHand || ""}
-                                                onChange={(e) => updateField("dominantHand", e.target.value || undefined)}
-                                                className={inputBase}
-                                            >
-                                                <option value="">Seleziona mano</option>
-                                                <option value="destra">Destra</option>
-                                                <option value="sinistra">Sinistra</option>
-                                                <option value="ambidestra">Ambidestra</option>
-                                            </select>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={form.dominantHand || ""}
+                                                    readOnly
+                                                    onFocus={() => setShowHandDropdown(true)}
+                                                    onBlur={() => setTimeout(() => setShowHandDropdown(false), 200)}
+                                                    placeholder="Seleziona mano"
+                                                    className={`${inputBase} cursor-pointer`}
+                                                />
+                                                {showHandDropdown && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                        {['', 'destra', 'sinistra', 'ambidestra'].map((option) => (
+                                                            <div
+                                                                key={option || 'empty'}
+                                                                onClick={() => {
+                                                                    updateField("dominantHand", option || undefined)
+                                                                    setShowHandDropdown(false)
+                                                                }}
+                                                                className={`px-4 py-2.5 cursor-pointer transition-colors ${form.dominantHand === option || (!form.dominantHand && !option)
+                                                                    ? 'bg-gray-100 font-medium'
+                                                                    : 'hover:bg-gray-100'
+                                                                    }`}
+                                                            >
+                                                                {option ? option.charAt(0).toUpperCase() + option.slice(1) : 'Seleziona mano'}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </>
@@ -1924,31 +2294,27 @@ export default function EditProfilePage() {
                                             {isCoach ? (
                                                 <>
                                                     {/* Stagione - OBBLIGATORIO */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.season}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona stagione *" },
+                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                        ]}
                                                         className={inputBase}
                                                         required
-                                                    >
-                                                        <option value="">Seleziona stagione *</option>
-                                                        {availableSeasons.map((season) => (
-                                                            <option key={season} value={season}>
-                                                                Stagione {season}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Ruolo Coach */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.role}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona ruolo" },
+                                                            ...(mainSport === "Calcio" ? coachFootballRoles : coachRoles).map(role => ({ value: role, label: role }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona ruolo</option>
-                                                        {(mainSport === "Calcio" ? coachFootballRoles : coachRoles).map((role) => (
-                                                            <option key={role} value={role}>{role}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Team/Club - Autocomplete */}
                                                     <OrganizationAutocomplete
@@ -1969,54 +2335,51 @@ export default function EditProfilePage() {
                                                     />
 
                                                     {/* Nazione */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.country}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "country", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "country", value)
                                                             handleExperienceChange(exp.id, "categoryTier", "")
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: "Seleziona nazione" },
+                                                            ...footballCountries.map(country => ({ value: country, label: country }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona nazione</option>
-                                                        {footballCountries.map((country) => (
-                                                            <option key={country} value={country}>{country}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Macro Categoria */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.categoryTier || ""}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "categoryTier", value)
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={!exp.country}
-                                                    >
-                                                        <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
-                                                        {footballMacroCategories.map((tier) => (
-                                                            <option key={tier} value={tier}>{tier}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Tipologia Competizione */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.competitionType || ""}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "competitionType", value)
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
+                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={!exp.country || !exp.categoryTier}
-                                                    >
-                                                        <option value="">{exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria"}</option>
-                                                        {competitionTypes.map((type) => (
-                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Categoria */}
                                                     {exp.categoryTier === "Altro" ? (
@@ -2028,136 +2391,114 @@ export default function EditProfilePage() {
                                                             disabled={!exp.country}
                                                         />
                                                     ) : (
-                                                        <select
+                                                        <CustomSelect
                                                             value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                            options={[
+                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                    exp.competitionType === "female" ? (
+                                                                        exp.country === "Italia"
+                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                    ) : (
+                                                                        exp.country === "Italia"
+                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                    )
+                                                                ) : [])
+                                                            ]}
                                                             className={inputBase}
                                                             disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
-                                                        >
-                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
-                                                            {exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                exp.competitionType === "female" ? (
-                                                                    // Categorie femminili
-                                                                    exp.country === "Italia"
-                                                                        ? footballFemaleCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                        : footballFemaleCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                ) : (
-                                                                    // Categorie maschili/open/miste
-                                                                    exp.country === "Italia"
-                                                                        ? footballCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                        : footballCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                )
-                                                            ) : null}
-                                                        </select>
+                                                        />
                                                     )}
                                                 </>
                                             ) : isPlayer && mainSport === "Calcio" ? (
                                                 <>
                                                     {/* Stagione - OBBLIGATORIO */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.season}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona stagione *" },
+                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                        ]}
                                                         className={inputBase}
                                                         required
-                                                    >
-                                                        <option value="">Seleziona stagione *</option>
-                                                        {availableSeasons.map((season) => (
-                                                            <option key={season} value={season}>
-                                                                Stagione {season}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.primaryPosition || ''}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "primaryPosition", e.target.value)
-                                                            handleExperienceChange(exp.id, "role", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "primaryPosition", value)
+                                                            handleExperienceChange(exp.id, "role", value)
                                                             // Reset positionDetail quando cambia primaryPosition
                                                             handleExperienceChange(exp.id, "positionDetail", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: "Seleziona ruolo" },
+                                                            ...footballPrimaryOptions.map(opt => ({ value: opt.value, label: opt.label }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona ruolo</option>
-                                                        {footballPrimaryOptions.map((opt) => (
-                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                        ))}
-                                                    </select>
-                                                    <select
+                                                    />
+                                                    <CustomSelect
                                                         value={exp.positionDetail || ''}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "positionDetail", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "positionDetail", value)}
+                                                        options={[
+                                                            { value: "", label: exp.primaryPosition ? "Seleziona dettaglio ruolo" : "Prima seleziona un ruolo" },
+                                                            ...(exp.primaryPosition && footballSecondaryOptions[exp.primaryPosition] ? footballSecondaryOptions[exp.primaryPosition].map(opt => ({ value: opt.value, label: opt.label })) : [])
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={!exp.primaryPosition}
-                                                    >
-                                                        <option value="">{exp.primaryPosition ? "Seleziona dettaglio ruolo" : "Prima seleziona un ruolo"}</option>
-                                                        {exp.primaryPosition && footballSecondaryOptions[exp.primaryPosition]?.map((opt) => (
-                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                 </>
                                             ) : isPlayer && mainSport === "Basket" ? (
                                                 <>
                                                     {/* Stagione - OBBLIGATORIO */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.season}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona stagione *" },
+                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                        ]}
                                                         className={inputBase}
                                                         required
-                                                    >
-                                                        <option value="">Seleziona stagione *</option>
-                                                        {availableSeasons.map((season) => (
-                                                            <option key={season} value={season}>
-                                                                Stagione {season}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.role}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona ruolo" },
+                                                            ...basketRoles.map(role => ({ value: role, label: role }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona ruolo</option>
-                                                        {basketRoles.map((role) => (
-                                                            <option key={role} value={role}>{role}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                 </>
                                             ) : isPlayer && mainSport === "Pallavolo" ? (
                                                 <>
                                                     {/* Stagione - OBBLIGATORIO */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.season}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "season", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona stagione *" },
+                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                        ]}
                                                         className={inputBase}
                                                         required
-                                                    >
-                                                        <option value="">Seleziona stagione *</option>
-                                                        {availableSeasons.map((season) => (
-                                                            <option key={season} value={season}>
-                                                                Stagione {season}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.role}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                        options={[
+                                                            { value: "", label: "Seleziona ruolo" },
+                                                            ...volleyRoles.map(role => ({ value: role, label: role }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona ruolo</option>
-                                                        {volleyRoles.map((role) => (
-                                                            <option key={role} value={role}>{role}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                 </>
                                             ) : (
                                                 <input
@@ -2188,57 +2529,54 @@ export default function EditProfilePage() {
                                             {!isCoach && isPlayer && mainSport === "Calcio" ? (
                                                 <>
                                                     {/* Nazione */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.country}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "country", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "country", value)
                                                             // Reset tutti i campi successivi quando cambia nazione
                                                             handleExperienceChange(exp.id, "categoryTier", "")
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: "Seleziona nazione" },
+                                                            ...footballCountries.map(country => ({ value: country, label: country }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona nazione</option>
-                                                        {footballCountries.map((country) => (
-                                                            <option key={country} value={country}>{country}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Macro categoria */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.categoryTier || ""}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "categoryTier", value)
                                                             // Reset campi successivi quando cambia macro
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={!exp.country}
-                                                    >
-                                                        <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
-                                                        {footballMacroCategories.map((tier) => (
-                                                            <option key={tier} value={tier}>{tier}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Tipologia Competizione (NUOVO) */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.competitionType || ""}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "competitionType", value)
                                                             // Reset categoria quando cambia tipologia
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
+                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={!exp.country || !exp.categoryTier}
-                                                    >
-                                                        <option value="">{exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria"}</option>
-                                                        {competitionTypes.map((type) => (
-                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Categoria dettagliata */}
                                                     {exp.categoryTier === "Altro" ? (
@@ -2250,90 +2588,78 @@ export default function EditProfilePage() {
                                                             disabled={!exp.country}
                                                         />
                                                     ) : (
-                                                        <select
+                                                        <CustomSelect
                                                             value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                            options={[
+                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                    exp.competitionType === "female" ? (
+                                                                        exp.country === "Italia"
+                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                    ) : (
+                                                                        exp.country === "Italia"
+                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                    )
+                                                                ) : [])
+                                                            ]}
                                                             className={inputBase}
                                                             disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
-                                                        >
-                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
-                                                            {exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                exp.competitionType === "female" ? (
-                                                                    // Categorie femminili
-                                                                    exp.country === "Italia"
-                                                                        ? footballFemaleCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                        : footballFemaleCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                ) : (
-                                                                    // Categorie maschili/open/miste (usa struttura esistente)
-                                                                    exp.country === "Italia"
-                                                                        ? footballCategoriesByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                        : footballCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                            <option key={cat} value={cat}>{cat}</option>
-                                                                        ))
-                                                                )
-                                                            ) : null}
-                                                        </select>
+                                                        />
                                                     )}
                                                 </>
                                             ) : !isCoach && isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
                                                 <>
                                                     {/* Nazione */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.country}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "country", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "country", value)
                                                             handleExperienceChange(exp.id, "categoryTier", "")
                                                             handleExperienceChange(exp.id, "competitionType", "")
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: "Seleziona nazione" },
+                                                            ...(mainSport === "Basket" ? basketCountries : volleyCountries).map(country => ({ value: country, label: country }))
+                                                        ]}
                                                         className={inputBase}
-                                                    >
-                                                        <option value="">Seleziona nazione</option>
-                                                        {(mainSport === "Basket" ? basketCountries : volleyCountries).map((country) => (
-                                                            <option key={country} value={country}>{country}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Macro categoria (Italia per Basket e Pallavolo) */}
                                                     {(mainSport === "Basket" || mainSport === "Pallavolo") && exp.country === "Italia" && (
-                                                        <select
+                                                        <CustomSelect
                                                             value={exp.categoryTier || ""}
-                                                            onChange={(e) => {
-                                                                handleExperienceChange(exp.id, "categoryTier", e.target.value)
+                                                            onChange={(value) => {
+                                                                handleExperienceChange(exp.id, "categoryTier", value)
                                                                 handleExperienceChange(exp.id, "competitionType", "")
                                                                 handleExperienceChange(exp.id, "category", "")
                                                             }}
+                                                            options={[
+                                                                { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                                ...(mainSport === "Basket" ? basketMacroCategories : volleyMacroCategories).map(tier => ({ value: tier, label: tier }))
+                                                            ]}
                                                             className={inputBase}
                                                             disabled={!exp.country}
-                                                        >
-                                                            <option value="">{exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione"}</option>
-                                                            {(mainSport === "Basket" ? basketMacroCategories : volleyMacroCategories).map((tier) => (
-                                                                <option key={tier} value={tier}>{tier}</option>
-                                                            ))}
-                                                        </select>
+                                                        />
                                                     )}
 
                                                     {/* Tipologia Competizione */}
-                                                    <select
+                                                    <CustomSelect
                                                         value={exp.competitionType || ""}
-                                                        onChange={(e) => {
-                                                            handleExperienceChange(exp.id, "competitionType", e.target.value)
+                                                        onChange={(value) => {
+                                                            handleExperienceChange(exp.id, "competitionType", value)
                                                             handleExperienceChange(exp.id, "category", "")
                                                         }}
+                                                        options={[
+                                                            { value: "", label: exp.country === "Italia" ? (exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria") : (exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione") },
+                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                        ]}
                                                         className={inputBase}
                                                         disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier : !exp.country}
-                                                    >
-                                                        <option value="">{exp.country === "Italia" ? (exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria") : (exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione")}</option>
-                                                        {competitionTypes.map((type) => (
-                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
 
                                                     {/* Categoria dettagliata */}
                                                     {exp.country === "Altro" ? (
@@ -2344,67 +2670,43 @@ export default function EditProfilePage() {
                                                             className={inputBase}
                                                         />
                                                     ) : (
-                                                        <select
+                                                        <CustomSelect
                                                             value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
-                                                            className={inputBase}
-                                                            disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier || !exp.competitionType : !exp.country || !exp.competitionType}
-                                                        >
-                                                            <option value="">{exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione"}</option>
-                                                            {mainSport === "Basket" ? (
-                                                                exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                    exp.competitionType === "female" ? (
-                                                                        // Categorie femminili Basket
-                                                                        exp.country === "Italia"
-                                                                            ? basketFemaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                            : basketCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                    ) : (
-                                                                        // Categorie maschili/open/miste Basket
-                                                                        exp.country === "Italia"
-                                                                            ? basketMaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                            : basketCategoriesByTierDefault[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                    )
-                                                                ) : null
-                                                            ) : (
-                                                                // Pallavolo
-                                                                exp.country === "Italia" ? (
+                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                            options={[
+                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                ...(mainSport === "Basket" ? (
                                                                     exp.country && exp.categoryTier && exp.competitionType ? (
                                                                         exp.competitionType === "female" ? (
-                                                                            // Categorie femminili Pallavolo (Italia)
-                                                                            volleyFemaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
+                                                                            exp.country === "Italia"
+                                                                                ? (basketFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
                                                                         ) : (
-                                                                            // Categorie maschili/open/miste Pallavolo (Italia)
-                                                                            volleyMaleCategoresByTierItaly[exp.categoryTier]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
+                                                                            exp.country === "Italia"
+                                                                                ? (basketMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
                                                                         )
-                                                                    ) : null
+                                                                    ) : []
                                                                 ) : (
-                                                                    // Pallavolo altri paesi - senza macro-categoria
-                                                                    exp.country && exp.competitionType ? (
-                                                                        exp.competitionType === "female" ? (
-                                                                            volleyCategoriesByCountry[exp.country]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                        ) : (
-                                                                            volleyCategoriesByCountry[exp.country]?.map((cat) => (
-                                                                                <option key={cat} value={cat}>{cat}</option>
-                                                                            ))
-                                                                        )
-                                                                    ) : null
-                                                                )
-                                                            )}
-                                                        </select>
+                                                                    // Pallavolo
+                                                                    exp.country === "Italia" ? (
+                                                                        exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                            exp.competitionType === "female" ? (
+                                                                                (volleyFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            ) : (
+                                                                                (volleyMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                            )
+                                                                        ) : []
+                                                                    ) : (
+                                                                        exp.country && exp.competitionType ? (
+                                                                            (volleyCategoriesByCountry[exp.country] || []).map(cat => ({ value: cat, label: cat }))
+                                                                        ) : []
+                                                                    )
+                                                                ))
+                                                            ]}
+                                                            className={inputBase}
+                                                            disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier || !exp.competitionType : !exp.country || !exp.competitionType}
+                                                        />
                                                     )}
                                                 </>
                                             ) : !isCoach ? (

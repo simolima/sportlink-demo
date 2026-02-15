@@ -1,77 +1,104 @@
-import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { withCors } from '@/lib/cors'
+/**
+ * API Route: /api/club-join-requests/accept
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Accepts a join request and creates the club membership.
+ */
 
 export const runtime = 'nodejs'
 
-const requestsPath = path.join(process.cwd(), 'data', 'club-join-requests.json')
-const membershipsPath = path.join(process.cwd(), 'data', 'club-memberships.json')
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-server'
+import { withCors, handleOptions } from '@/lib/cors'
 
-function ensureFile(p: string) {
-    if (!fs.existsSync(p)) fs.writeFileSync(p, '[]', 'utf-8')
-}
-
-function readJson(p: string) {
-    ensureFile(p)
-    try {
-        const data = fs.readFileSync(p, 'utf-8') || '[]'
-        return JSON.parse(data)
-    } catch {
-        return []
-    }
-}
-
-function writeJson(p: string, data: any[]) {
-    fs.writeFileSync(p, JSON.stringify(data, null, 2))
+export async function OPTIONS() {
+    return handleOptions()
 }
 
 export async function POST(request: Request) {
-    const body = await request.json().catch(() => ({}))
-    const { requestId, respondedBy } = body as { requestId?: string | number; respondedBy?: string | number }
-    if (!requestId) {
-        return withCors(NextResponse.json({ error: 'requestId required' }, { status: 400 }))
+    try {
+        const body = await request.json()
+        const { requestId, respondedBy } = body
+
+        if (!requestId) {
+            return withCors(NextResponse.json({ error: 'requestId required' }, { status: 400 }))
+        }
+
+        // Get the request
+        const { data: joinReq, error: fetchErr } = await supabaseServer
+            .from('club_join_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single()
+
+        if (fetchErr || !joinReq) {
+            return withCors(NextResponse.json({ error: 'Request not found' }, { status: 404 }))
+        }
+
+        if (joinReq.status !== 'pending') {
+            return withCors(NextResponse.json({ error: 'Request is not pending' }, { status: 400 }))
+        }
+
+        // Update request status to accepted
+        const { error: updateErr } = await supabaseServer
+            .from('club_join_requests')
+            .update({
+                status: 'accepted',
+                responded_at: new Date().toISOString(),
+                responded_by: respondedBy || null,
+            })
+            .eq('id', requestId)
+
+        if (updateErr) {
+            console.error('Accept request update error:', updateErr)
+            return withCors(NextResponse.json({ error: updateErr.message }, { status: 500 }))
+        }
+
+        // Check if already a member
+        const { data: existingMember } = await supabaseServer
+            .from('club_memberships')
+            .select('id')
+            .eq('club_id', joinReq.club_id)
+            .eq('user_id', joinReq.user_id)
+            .eq('status', 'active')
+            .is('deleted_at', null)
+            .maybeSingle()
+
+        if (existingMember) {
+            return withCors(NextResponse.json({ success: true, alreadyMember: true }))
+        }
+
+        // Create membership
+        const { data: membership, error: memberErr } = await supabaseServer
+            .from('club_memberships')
+            .insert({
+                club_id: joinReq.club_id,
+                user_id: joinReq.user_id,
+                club_role: joinReq.requested_role || 'Player',
+                position_id: joinReq.requested_position_id || null,
+                permissions: [],
+                status: 'active',
+            })
+            .select()
+            .single()
+
+        if (memberErr) {
+            console.error('Create membership error:', memberErr)
+            return withCors(NextResponse.json({ error: memberErr.message }, { status: 500 }))
+        }
+
+        return withCors(NextResponse.json({
+            success: true,
+            membership: {
+                id: membership.id,
+                clubId: membership.club_id,
+                userId: membership.user_id,
+                role: membership.club_role,
+                joinedAt: membership.joined_at,
+            },
+        }))
+    } catch (err) {
+        console.error('POST /api/club-join-requests/accept exception:', err)
+        return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))
     }
-
-    const requests = readJson(requestsPath)
-    const idx = requests.findIndex((r: any) => String(r.id) === String(requestId))
-    if (idx === -1) {
-        return withCors(NextResponse.json({ error: 'Request not found' }, { status: 404 }))
-    }
-    if (requests[idx].status !== 'pending') {
-        return withCors(NextResponse.json({ error: 'Request is not pending' }, { status: 400 }))
-    }
-
-    // Update request status
-    requests[idx].status = 'accepted'
-    requests[idx].respondedAt = new Date().toISOString()
-    if (respondedBy) requests[idx].respondedBy = respondedBy
-    writeJson(requestsPath, requests)
-
-    // Create membership if not already active
-    const memberships = readJson(membershipsPath)
-    const { clubId, userId, requestedRole, requestedPosition } = requests[idx]
-    const alreadyMember = memberships.find((m: any) => String(m.clubId) === String(clubId) && String(m.userId) === String(userId) && m.isActive !== false)
-    if (alreadyMember) {
-        return withCors(NextResponse.json({ success: true, alreadyMember: true }))
-    }
-
-    const newMembership = {
-        id: Date.now(),
-        clubId,
-        userId,
-        role: requestedRole || 'Player',
-        position: requestedPosition || '',
-        permissions: [],
-        joinedAt: new Date().toISOString(),
-        isActive: true
-    }
-    memberships.push(newMembership)
-    writeJson(membershipsPath, memberships)
-
-    return withCors(NextResponse.json({ success: true, membership: newMembership }))
-}
-
-export async function OPTIONS() {
-    return withCors(new NextResponse(null, { status: 204 }))
 }

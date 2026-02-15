@@ -1,167 +1,193 @@
+/**
+ * API Route: /api/club-join-requests
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Table: public.club_join_requests
+ */
+
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { supabaseServer } from '@/lib/supabase-server'
+import { withCors, handleOptions } from '@/lib/cors'
 
-const requestsPath = path.join(process.cwd(), 'data', 'club-join-requests.json')
-const usersPath = path.join(process.cwd(), 'data', 'users.json')
-const clubsPath = path.join(process.cwd(), 'data', 'clubs.json')
-
-function readRequests() {
-    const data = fs.readFileSync(requestsPath, 'utf-8')
-    return JSON.parse(data)
+export async function OPTIONS() {
+    return handleOptions()
 }
 
-function writeRequests(requests: any[]) {
-    fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2))
-}
-
-function readUsers() {
-    const data = fs.readFileSync(usersPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-function readClubs() {
-    const data = fs.readFileSync(clubsPath, 'utf-8')
-    return JSON.parse(data)
-}
-
-// GET /api/club-join-requests - Get join requests
+// GET /api/club-join-requests?clubId=X&userId=Y&status=Z
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
-    const clubId = searchParams.get('clubId')
-    const userId = searchParams.get('userId')
-    const status = searchParams.get('status')
+    try {
+        const { searchParams } = new URL(request.url)
+        const clubId = searchParams.get('clubId')
+        const userId = searchParams.get('userId')
+        const status = searchParams.get('status')
 
-    let requests = readRequests()
-    const users = readUsers()
-    const clubs = readClubs()
+        let query = supabaseServer
+            .from('club_join_requests')
+            .select(`
+                *,
+                user:user_id (id, first_name, last_name, avatar_url, role_id),
+                club:club_id (id, name, logo_url)
+            `)
+            .is('deleted_at', null)
+            .order('created_at', { ascending: false })
 
-    // Filter by club
-    if (clubId) {
-        requests = requests.filter((r: any) => r.clubId.toString() === clubId)
-    }
+        if (clubId) query = query.eq('club_id', clubId)
+        if (userId) query = query.eq('user_id', userId)
+        if (status) query = query.eq('status', status)
 
-    // Filter by user
-    if (userId) {
-        requests = requests.filter((r: any) => r.userId.toString() === userId)
-    }
+        const { data, error } = await query
 
-    // Filter by status
-    if (status) {
-        requests = requests.filter((r: any) => r.status === status)
-    }
-
-    // Enrich with user and club data
-    const enriched = requests.map((r: any) => {
-        const user = users.find((u: any) => u.id.toString() === r.userId.toString())
-        const club = clubs.find((c: any) => c.id.toString() === r.clubId.toString())
-        
-        return {
-            ...r,
-            user: user ? {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                avatarUrl: user.avatarUrl,
-                professionalRole: user.professionalRole,
-                sport: user.sport
-            } : null,
-            club: club ? {
-                id: club.id,
-                name: club.name,
-                logoUrl: club.logoUrl
-            } : null
+        if (error) {
+            console.error('GET /api/club-join-requests error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
-    })
 
-    // Sort by date (most recent first)
-    enriched.sort((a: any, b: any) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime())
+        const enriched = (data || []).map((r: any) => ({
+            id: r.id,
+            clubId: r.club_id,
+            userId: r.user_id,
+            requestedRole: r.requested_role,
+            requestedPosition: r.requested_position_id || '',
+            message: r.message || '',
+            status: r.status,
+            requestedAt: r.created_at,
+            respondedAt: r.responded_at,
+            respondedBy: r.responded_by,
+            user: r.user ? {
+                id: r.user.id,
+                firstName: r.user.first_name,
+                lastName: r.user.last_name,
+                avatarUrl: r.user.avatar_url,
+                professionalRole: r.user.role_id,
+            } : null,
+            club: r.club ? {
+                id: r.club.id,
+                name: r.club.name,
+                logoUrl: r.club.logo_url,
+            } : null,
+        }))
 
-    return NextResponse.json(enriched)
+        return withCors(NextResponse.json(enriched))
+    } catch (err) {
+        console.error('GET /api/club-join-requests exception:', err)
+        return withCors(NextResponse.json({ error: 'internal_error' }, { status: 500 }))
+    }
 }
 
-// POST /api/club-join-requests - Create join request
+// POST /api/club-join-requests — Create request
 export async function POST(request: Request) {
-    const body = await request.json()
-    const { clubId, userId, requestedRole, requestedPosition, message } = body
+    try {
+        const body = await request.json()
+        const { clubId, userId, requestedRole, requestedPosition, message } = body
 
-    if (!clubId || !userId || !requestedRole) {
-        return NextResponse.json({ error: 'clubId, userId, and requestedRole required' }, { status: 400 })
+        if (!clubId || !userId || !requestedRole) {
+            return withCors(NextResponse.json({ error: 'clubId, userId, and requestedRole required' }, { status: 400 }))
+        }
+
+        // Check existing pending request
+        const { data: existing } = await supabaseServer
+            .from('club_join_requests')
+            .select('id')
+            .eq('club_id', clubId)
+            .eq('user_id', userId)
+            .eq('status', 'pending')
+            .is('deleted_at', null)
+            .maybeSingle()
+
+        if (existing) {
+            return withCors(NextResponse.json({ error: 'Request already pending' }, { status: 400 }))
+        }
+
+        const { data, error } = await supabaseServer
+            .from('club_join_requests')
+            .insert({
+                club_id: clubId,
+                user_id: userId,
+                requested_role: requestedRole,
+                requested_position_id: requestedPosition || null,
+                message: message || '',
+                status: 'pending',
+            })
+            .select()
+            .single()
+
+        if (error) {
+            console.error('POST /api/club-join-requests error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
+
+        return withCors(NextResponse.json({
+            id: data.id,
+            clubId: data.club_id,
+            userId: data.user_id,
+            status: data.status,
+            requestedAt: data.created_at,
+        }, { status: 201 }))
+    } catch (err) {
+        console.error('POST /api/club-join-requests exception:', err)
+        return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))
     }
-
-    const requests = readRequests()
-
-    // Check if request already exists
-    const existing = requests.find((r: any) => 
-        r.clubId.toString() === clubId.toString() &&
-        r.userId.toString() === userId.toString() &&
-        r.status === 'pending'
-    )
-
-    if (existing) {
-        return NextResponse.json({ error: 'Request already pending' }, { status: 400 })
-    }
-
-    const newRequest = {
-        id: Date.now(),
-        clubId,
-        userId,
-        requestedRole,
-        requestedPosition: requestedPosition || '',
-        message: message || '',
-        status: 'pending',
-        requestedAt: new Date().toISOString()
-    }
-
-    requests.push(newRequest)
-    writeRequests(requests)
-
-    return NextResponse.json(newRequest, { status: 201 })
 }
 
-// PUT /api/club-join-requests - Update request status (accept/reject)
+// PUT /api/club-join-requests — Update status (accept/reject)
 export async function PUT(request: Request) {
-    const body = await request.json()
-    const { id, status, respondedBy } = body
+    try {
+        const body = await request.json()
+        const { id, status, respondedBy } = body
 
-    if (!id || !status) {
-        return NextResponse.json({ error: 'id and status required' }, { status: 400 })
+        if (!id || !status) {
+            return withCors(NextResponse.json({ error: 'id and status required' }, { status: 400 }))
+        }
+
+        const updateData: Record<string, any> = {
+            status,
+            responded_at: new Date().toISOString(),
+        }
+        if (respondedBy) updateData.responded_by = respondedBy
+
+        const { data, error } = await supabaseServer
+            .from('club_join_requests')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (error) {
+            console.error('PUT /api/club-join-requests error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
+
+        return withCors(NextResponse.json({
+            id: data.id,
+            status: data.status,
+            respondedAt: data.responded_at,
+        }))
+    } catch (err) {
+        console.error('PUT /api/club-join-requests exception:', err)
+        return withCors(NextResponse.json({ error: 'invalid_body' }, { status: 400 }))
     }
-
-    const requests = readRequests()
-    const index = requests.findIndex((r: any) => r.id.toString() === id.toString())
-
-    if (index === -1) {
-        return NextResponse.json({ error: 'Request not found' }, { status: 404 })
-    }
-
-    requests[index].status = status
-    requests[index].respondedAt = new Date().toISOString()
-    
-    if (respondedBy) {
-        requests[index].respondedBy = respondedBy
-    }
-
-    writeRequests(requests)
-    return NextResponse.json(requests[index])
 }
 
-// DELETE /api/club-join-requests - Cancel request
+// DELETE /api/club-join-requests?id=X
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
-    const requests = readRequests()
-    const filtered = requests.filter((r: any) => r.id.toString() !== id)
+    const { error } = await supabaseServer
+        .from('club_join_requests')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
 
-    if (requests.length === filtered.length) {
-        return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    if (error) {
+        console.error('DELETE /api/club-join-requests error:', error)
+        return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
     }
 
-    writeRequests(filtered)
-    return NextResponse.json({ success: true })
+    return withCors(NextResponse.json({ success: true }))
 }

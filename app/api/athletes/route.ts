@@ -1,77 +1,97 @@
-import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { withCors, handleOptions } from '@/lib/cors'
+/**
+ * API Route: /api/athletes
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Reads from profiles table where role_id = 'player'
+ */
 
 export const runtime = 'nodejs'
 
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-server'
+import { withCors, handleOptions } from '@/lib/cors'
 
-function readUsers() {
-  if (!fs.existsSync(USERS_PATH)) return []
-  const raw = fs.readFileSync(USERS_PATH, 'utf8')
-  try {
-    return JSON.parse(raw || '[]')
-  } catch {
-    return []
-  }
+export async function OPTIONS() {
+    return handleOptions()
 }
 
 function getAge(birthDate?: string): number | null {
-  if (!birthDate) return null
-  const date = new Date(birthDate)
-  if (Number.isNaN(date.getTime())) return null
-  const now = new Date()
-  let age = now.getFullYear() - date.getFullYear()
-  const m = now.getMonth() - date.getMonth()
-  if (m < 0 || (m === 0 && now.getDate() < date.getDate())) age--
-  return age
-}
-
-function isAthlete(user: any) {
-  const role = String(user?.professionalRole ?? '').toLowerCase()
-  return role.includes('player') || role.includes('athlete')
-}
-
-function mapAthlete(user: any) {
-  const firstName = String(user?.firstName ?? '').trim()
-  const lastName = String(user?.lastName ?? '').trim()
-  const displayName = `${firstName} ${lastName}`.trim() || String(user?.email ?? 'Athlete')
-  const sport = user?.sport || (Array.isArray(user?.sports) ? user.sports[0] : '') || ''
-  const position = user?.specificRole || user?.footballPrimaryPosition || user?.currentRole || ''
-
-  return {
-    id: String(user?.id ?? ''),
-    sport,
-    position,
-    age: getAge(user?.birthDate),
-    contract: String(user?.availability ?? '').toLowerCase().includes('disponibile') ? 'FREE' : 'CONTRACT',
-    profile: {
-      displayName,
-      avatarUrl: user?.avatarUrl ?? null,
-    },
-  }
-}
-
-export async function OPTIONS() {
-  return handleOptions()
+    if (!birthDate) return null
+    const date = new Date(birthDate)
+    if (Number.isNaN(date.getTime())) return null
+    const now = new Date()
+    let age = now.getFullYear() - date.getFullYear()
+    const m = now.getMonth() - date.getMonth()
+    if (m < 0 || (m === 0 && now.getDate() < date.getDate())) age--
+    return age
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const sport = searchParams.get('sport') || undefined
-  const position = searchParams.get('position') || undefined
-  const ageMin = Number(searchParams.get('age_min') || 0)
-  const ageMax = Number(searchParams.get('age_max') || 100)
+    try {
+        const { searchParams } = new URL(req.url)
+        const sport = searchParams.get('sport') || undefined
+        const ageMin = Number(searchParams.get('age_min') || 0)
+        const ageMax = Number(searchParams.get('age_max') || 100)
 
-  let items = readUsers().filter(isAthlete).map(mapAthlete)
+        // Get players from profiles
+        const { data: profiles, error } = await supabaseServer
+            .from('profiles')
+            .select('id, first_name, last_name, email, avatar_url, bio, city, country, birth_date, role_id')
+            .eq('role_id', 'player')
+            .is('deleted_at', null)
 
-  if (sport) items = items.filter((a: any) => a.sport === sport)
-  if (position) items = items.filter((a: any) => a.position === position)
-  items = items.filter((a: any) => {
-    if (typeof a.age !== 'number') return true
-    return a.age >= ageMin && a.age <= ageMax
-  })
+        if (error) {
+            console.error('GET /api/athletes error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
 
-  return withCors(NextResponse.json({ items: items.slice(0, 60), total: items.length }))
+        // Get sports for each player
+        const playerIds = (profiles || []).map((p: any) => p.id)
+        let sportsMap: Record<string, string> = {}
+
+        if (playerIds.length > 0) {
+            const { data: sportData } = await supabaseServer
+                .from('profile_sports')
+                .select('user_id, sport_id, lookup_sports:sport_id(name)')
+                .in('user_id', playerIds)
+                .is('deleted_at', null)
+
+            if (sportData) {
+                for (const ps of sportData) {
+                    const sportName = (ps as any).lookup_sports?.name || ''
+                    if (sportName && !sportsMap[ps.user_id]) {
+                        sportsMap[ps.user_id] = sportName
+                    }
+                }
+            }
+        }
+
+        let items = (profiles || []).map((p: any) => ({
+            id: p.id,
+            sport: sportsMap[p.id] || '',
+            position: '',
+            age: getAge(p.birth_date),
+            contract: 'FREE',
+            profile: {
+                displayName: `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email || 'Athlete',
+                avatarUrl: p.avatar_url || null,
+            },
+        }))
+
+        // Filter by sport
+        if (sport) {
+            items = items.filter((a: any) => a.sport === sport)
+        }
+
+        // Filter by age range
+        items = items.filter((a: any) => {
+            if (typeof a.age !== 'number') return true
+            return a.age >= ageMin && a.age <= ageMax
+        })
+
+        return withCors(NextResponse.json({ items: items.slice(0, 60), total: items.length }))
+    } catch (err) {
+        console.error('GET /api/athletes exception:', err)
+        return withCors(NextResponse.json({ error: 'internal_error' }, { status: 500 }))
+    }
 }

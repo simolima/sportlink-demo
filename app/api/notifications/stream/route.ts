@@ -53,13 +53,16 @@ export async function GET(request: Request) {
             controller.enqueue(encoder.encode(connectMessage))
 
             // Invia il conteggio iniziale delle non lette
-            try {
-                const unreadCount = getUnreadCount(userId)
-                const countMessage = `event: unread_count\ndata: ${JSON.stringify({ count: unreadCount })}\n\n`
-                controller.enqueue(encoder.encode(countMessage))
-            } catch (error) {
+            getUnreadCount(userId).then((unreadCount: number) => {
+                try {
+                    const countMessage = `event: unread_count\ndata: ${JSON.stringify({ count: unreadCount })}\n\n`
+                    controller.enqueue(encoder.encode(countMessage))
+                } catch (error: any) {
+                    console.error('[SSE] Failed to send initial unread count:', error)
+                }
+            }).catch((error: any) => {
                 console.error('[SSE] Failed to get initial unread count:', error)
-            }
+            })
 
             // Heartbeat per mantenere la connessione attiva
             heartbeatInterval = setInterval(() => {

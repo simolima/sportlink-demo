@@ -104,7 +104,6 @@ export default function PeoplePage() {
                 `${u.firstName} ${u.lastName}`.toLowerCase().includes(query) ||
                 u.email?.toLowerCase().includes(query) ||
                 u.currentRole?.toLowerCase().includes(query) ||
-                u.username?.toLowerCase().includes(query) ||
                 u.bio?.toLowerCase().includes(query)
             );
         }
@@ -348,7 +347,7 @@ export default function PeoplePage() {
 
                                                 {/* User Info */}
                                                 <div className="flex-1 min-w-0">
-                                                    {/* Name & Username */}
+                                                    {/* Name */}
                                                     <div className="flex items-center gap-2">
                                                         <h3
                                                             className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-green-600 truncate"
@@ -357,9 +356,6 @@ export default function PeoplePage() {
                                                             {user.firstName} {user.lastName}
                                                         </h3>
                                                     </div>
-                                                    {user.username && (
-                                                        <p className="text-sm text-gray-500">@{user.username}</p>
-                                                    )}
 
                                                     {/* Role & Sport Tags */}
                                                     <div className="flex items-center gap-2 mt-2 flex-wrap">

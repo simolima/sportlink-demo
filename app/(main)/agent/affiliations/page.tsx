@@ -63,6 +63,7 @@ export default function AgentAffiliationsPage() {
             }
         }
         loadData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const fetchAffiliations = async (agentId: string) => {

@@ -1,191 +1,218 @@
-import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+/**
+ * API Route: /api/messages
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Table: public.messages (id uuid, sender_id, receiver_id, content, is_read, created_at, deleted_at)
+ */
 
 export const runtime = 'nodejs'
 
-// Percorso file JSON
-const MESSAGES_PATH = path.join(process.cwd(), 'data', 'messages.json')
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-server'
+import { withCors, handleOptions } from '@/lib/cors'
 
-function ensureFile() {
-    if (!fs.existsSync(MESSAGES_PATH)) {
-        fs.mkdirSync(path.dirname(MESSAGES_PATH), { recursive: true })
-        fs.writeFileSync(MESSAGES_PATH, '[]')
-    }
+export async function OPTIONS() {
+    return handleOptions()
 }
-
-function readMessages() {
-    ensureFile()
-    const raw = fs.readFileSync(MESSAGES_PATH, 'utf8')
-    try { return JSON.parse(raw || '[]') } catch { return [] }
-}
-
-function writeMessages(messages: any[]) {
-    ensureFile()
-    fs.writeFileSync(MESSAGES_PATH, JSON.stringify(messages, null, 2))
-}
-
-// Helpers
-function normalizeId(id: any) { return String(id) }
 
 // GET /api/messages
-// Modalità 1: ?userId=U&peerId=P -> ritorna thread conversazione (ordinato per timestamp asc)
-// Modalità 2: ?userId=U -> ritorna elenco conversazioni (ultimo messaggio + conteggio non letti)
+// Mode 1: ?userId=U&peerId=P  → conversation thread (ordered asc)
+// Mode 2: ?userId=U           → list of conversations (last message + unread count)
 export async function GET(req: Request) {
     const url = new URL(req.url)
     const userId = url.searchParams.get('userId')
     const peerId = url.searchParams.get('peerId')
 
-    const messages = readMessages()
+    try {
+        // Mode 1: conversation thread
+        if (userId && peerId) {
+            const { data, error } = await supabaseServer
+                .from('messages')
+                .select('*')
+                .is('deleted_at', null)
+                .or(
+                    `and(sender_id.eq.${userId},receiver_id.eq.${peerId}),and(sender_id.eq.${peerId},receiver_id.eq.${userId})`
+                )
+                .order('created_at', { ascending: true })
 
-    if (userId && peerId) {
-        const u = normalizeId(userId)
-        const p = normalizeId(peerId)
-        const thread = messages.filter((m: any) => (
-            (m.senderId === u && m.receiverId === p) ||
-            (m.senderId === p && m.receiverId === u)
-        ))
-        thread.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-        return NextResponse.json(thread)
-    }
+            if (error) {
+                console.error('GET messages thread error:', error)
+                return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+            }
 
-    if (userId) {
-        const u = normalizeId(userId)
-        // Raggruppa per interlocutore
-        const convoMap: Record<string, { peerId: string, lastMessage: any, unread: number }> = {}
-        messages.forEach((m: any) => {
-            if (m.senderId === u || m.receiverId === u) {
-                const peer = m.senderId === u ? m.receiverId : m.senderId
+            const mapped = (data || []).map(mapMessage)
+            return withCors(NextResponse.json(mapped))
+        }
+
+        // Mode 2: conversations list
+        if (userId) {
+            // Get all messages involving this user
+            const { data, error } = await supabaseServer
+                .from('messages')
+                .select('*')
+                .is('deleted_at', null)
+                .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+                .order('created_at', { ascending: false })
+
+            if (error) {
+                console.error('GET conversations error:', error)
+                return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+            }
+
+            // Group by peer
+            const convoMap: Record<string, { peerId: string; lastMessage: any; unread: number }> = {}
+
+            for (const m of data || []) {
+                const peer = m.sender_id === userId ? m.receiver_id : m.sender_id
                 if (!convoMap[peer]) {
-                    convoMap[peer] = { peerId: peer, lastMessage: m, unread: 0 }
+                    convoMap[peer] = { peerId: peer, lastMessage: mapMessage(m), unread: 0 }
                 }
-                // Aggiorna ultimo messaggio se più recente
-                const currentLast = convoMap[peer].lastMessage
-                if (new Date(m.timestamp).getTime() > new Date(currentLast.timestamp).getTime()) {
-                    convoMap[peer].lastMessage = m
-                }
-                // Conta non letti (messaggi ricevuti da peer -> userId e read=false)
-                if (m.receiverId === u && !m.read) {
+                // Keep most recent as lastMessage (already sorted desc)
+                // Count unread (received by userId and not read)
+                if (m.receiver_id === userId && !m.is_read) {
                     convoMap[peer].unread += 1
                 }
             }
-        })
-        const conversations = Object.values(convoMap)
-        conversations.sort((a, b) => new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime())
-        return NextResponse.json(conversations)
-    }
 
-    // Se nessun parametro, ritorna tutti i messaggi (debug)
-    return NextResponse.json(messages)
+            const conversations = Object.values(convoMap)
+            conversations.sort((a, b) =>
+                new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime()
+            )
+
+            return withCors(NextResponse.json(conversations))
+        }
+
+        // No params — return empty for safety
+        return withCors(NextResponse.json([]))
+    } catch (err) {
+        console.error('GET /api/messages exception:', err)
+        return withCors(NextResponse.json({ error: 'internal_error' }, { status: 500 }))
+    }
 }
 
-// POST /api/messages
-// Body: { senderId, receiverId, text, sharedPostId? }
+// POST /api/messages — Send message
+// Body: { senderId, receiverId, text }
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-        const senderId = normalizeId(body.senderId)
-        const receiverId = normalizeId(body.receiverId)
+        const senderId = body.senderId?.toString().trim()
+        const receiverId = body.receiverId?.toString().trim()
         const text = (body.text || '').toString().trim()
-        const sharedPostId = body.sharedPostId ? Number(body.sharedPostId) : undefined
 
         if (!senderId || !receiverId || !text) {
-            return NextResponse.json({ error: 'senderId, receiverId, text required' }, { status: 400 })
+            return withCors(NextResponse.json({ error: 'senderId, receiverId, text required' }, { status: 400 }))
         }
 
-        const messages = readMessages()
-        const newMessage: any = {
-            id: Date.now(),
-            senderId,
-            receiverId,
-            text,
-            timestamp: new Date().toISOString(),
-            read: false
+        const { data: newMsg, error } = await supabaseServer
+            .from('messages')
+            .insert({
+                sender_id: senderId,
+                receiver_id: receiverId,
+                content: text,
+                is_read: false,
+            })
+            .select()
+            .single()
+
+        if (error) {
+            console.error('POST /api/messages error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
-        // Add sharedPostId if provided
-        if (sharedPostId !== undefined) {
-            newMessage.sharedPostId = sharedPostId
-        }
-
-        messages.push(newMessage)
-        writeMessages(messages)
-
-        // ========== CREA NOTIFICA PER IL DESTINATARIO ==========
+        // Create notification for the receiver
         try {
-            // Carica i dati degli utenti per ottenere il nome del mittente
-            const usersPath = path.join(process.cwd(), 'data', 'users.json')
-            const usersData = fs.readFileSync(usersPath, 'utf8')
-            const users = JSON.parse(usersData)
-            const sender = users.find((u: any) => normalizeId(u.id) === senderId)
+            const { data: sender } = await supabaseServer
+                .from('profiles')
+                .select('id, first_name, last_name')
+                .eq('id', senderId)
+                .single()
+
             const senderName = sender
-                ? `${sender.firstName} ${sender.lastName}`
+                ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
                 : 'Un utente'
 
-            // Crea notifica message_received
-            await fetch(`${req.headers.get('origin') || 'http://localhost:3000'}/api/notifications`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: receiverId,
-                    type: 'message_received',
-                    title: 'Nuovo messaggio ricevuto',
-                    message: `${senderName} ti ha inviato un nuovo messaggio`,
-                    metadata: {
-                        fromUserId: senderId,
-                        fromUserName: senderName,
-                        conversationId: senderId, // Usa senderId come conversationId
-                        messageId: newMessage.id
-                    }
-                })
+            await supabaseServer.from('notifications').insert({
+                user_id: receiverId,
+                type: 'message_received',
+                title: 'Nuovo messaggio ricevuto',
+                message: `${senderName} ti ha inviato un nuovo messaggio`,
+                metadata: {
+                    fromUserId: senderId,
+                    fromUserName: senderName,
+                    conversationId: senderId,
+                    messageId: newMsg.id,
+                },
+                is_read: false,
             })
-        } catch (notifError) {
-            // Se la notifica fallisce, non bloccare la creazione del messaggio
-            console.error('Failed to create message notification:', notifError)
+        } catch (notifErr) {
+            console.error('Message notification failed:', notifErr)
         }
 
-        return NextResponse.json(newMessage, { status: 201 })
+        return withCors(NextResponse.json(mapMessage(newMsg), { status: 201 }))
     } catch (err) {
-        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+        console.error('POST /api/messages exception:', err)
+        return withCors(NextResponse.json({ error: 'invalid body' }, { status: 400 }))
     }
 }
 
-// PATCH /api/messages
-// Body: { userId, peerId } -> segna tutti i messaggi ricevuti da peer come letti
-// oppure { ids: [ ... ] } -> segna specifici messaggi
+// PATCH /api/messages — Mark messages as read
+// Body: { userId, peerId } → mark all from peer as read
+// or    { ids: [...] }     → mark specific messages
 export async function PATCH(req: Request) {
     try {
         const body = await req.json()
-        const messages = readMessages()
-
-        const ids: number[] = Array.isArray(body.ids) ? body.ids : []
-        const userId = body.userId ? normalizeId(body.userId) : null
-        const peerId = body.peerId ? normalizeId(body.peerId) : null
-
-        let updatedCount = 0
+        const ids: string[] = Array.isArray(body.ids) ? body.ids : []
+        const userId = body.userId?.toString() || null
+        const peerId = body.peerId?.toString() || null
 
         if (ids.length > 0) {
-            ids.forEach(id => {
-                const msg = messages.find((m: any) => Number(m.id) === Number(id))
-                if (msg && !msg.read) {
-                    msg.read = true
-                    updatedCount++
-                }
-            })
-        } else if (userId && peerId) {
-            messages.forEach((m: any) => {
-                if (m.senderId === peerId && m.receiverId === userId && !m.read) {
-                    m.read = true
-                    updatedCount++
-                }
-            })
-        } else {
-            return NextResponse.json({ error: 'provide ids[] or userId+peerId' }, { status: 400 })
+            const { data, error } = await supabaseServer
+                .from('messages')
+                .update({ is_read: true })
+                .in('id', ids)
+                .eq('is_read', false)
+                .select('id')
+
+            if (error) {
+                console.error('PATCH messages by ids error:', error)
+                return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+            }
+
+            return withCors(NextResponse.json({ updated: data?.length || 0 }))
         }
 
-        writeMessages(messages)
-        return NextResponse.json({ updated: updatedCount })
+        if (userId && peerId) {
+            const { data, error } = await supabaseServer
+                .from('messages')
+                .update({ is_read: true })
+                .eq('sender_id', peerId)
+                .eq('receiver_id', userId)
+                .eq('is_read', false)
+                .select('id')
+
+            if (error) {
+                console.error('PATCH messages by peer error:', error)
+                return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+            }
+
+            return withCors(NextResponse.json({ updated: data?.length || 0 }))
+        }
+
+        return withCors(NextResponse.json({ error: 'provide ids[] or userId+peerId' }, { status: 400 }))
     } catch (err) {
-        return NextResponse.json({ error: 'invalid body' }, { status: 400 })
+        console.error('PATCH /api/messages exception:', err)
+        return withCors(NextResponse.json({ error: 'invalid body' }, { status: 400 }))
+    }
+}
+
+// Helper: map DB row to frontend-compatible shape
+function mapMessage(m: any) {
+    return {
+        id: m.id,
+        senderId: m.sender_id,
+        receiverId: m.receiver_id,
+        text: m.content,
+        timestamp: m.created_at,
+        read: m.is_read,
     }
 }

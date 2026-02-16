@@ -1,8 +1,9 @@
 /**
  * API Route: /api/notifications
- * 
- * Gestisce le operazioni CRUD sulle notifiche usando il repository centralizzato.
- * Integra il dispatcher SSE per notifiche real-time.
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Uses notifications-repository.ts (Supabase-backed).
+ * SSE dispatcher calls are kept but will only work on non-serverless runtimes.
  */
 
 export const runtime = 'nodejs'
@@ -18,140 +19,142 @@ import {
     isNotificationTypeEnabled,
     getUnreadCount
 } from '@/lib/notifications-repository'
-import { dispatchToUser, dispatchUnreadCount } from '@/lib/notification-dispatcher'
+import { withCors, handleOptions } from '@/lib/cors'
 
-// ============================================================================
-// GET /api/notifications
-// ============================================================================
+// SSE dispatcher — may not work on Vercel serverless, imported conditionally
+let dispatchToUser: any = () => 0
+let dispatchUnreadCount: any = () => 0
+try {
+    const dispatcher = require('@/lib/notification-dispatcher')
+    dispatchToUser = dispatcher.dispatchToUser
+    dispatchUnreadCount = dispatcher.dispatchUnreadCount
+} catch {
+    // SSE dispatcher not available (serverless)
+}
+
+export async function OPTIONS() {
+    return handleOptions()
+}
+
+// GET /api/notifications?userId=X&unreadOnly=true
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const unreadOnly = searchParams.get('unreadOnly') === 'true'
 
     if (!userId) {
-        return NextResponse.json({ error: 'userId required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'userId required' }, { status: 400 }))
     }
 
-    const notifications = getUserNotifications({
-        userId,
-        unreadOnly
-    })
+    const notifications = await getUserNotifications({ userId, unreadOnly })
 
-    return NextResponse.json(notifications)
+    return withCors(NextResponse.json(notifications))
 }
 
-// ============================================================================
-// POST /api/notifications - Crea notifica
-// ============================================================================
+// POST /api/notifications — Create notification
 export async function POST(request: Request) {
     const body = await request.json()
     const { userId, type, title, message, metadata } = body
 
     if (!userId || !type || !title || !message) {
-        return NextResponse.json(
+        return withCors(NextResponse.json(
             { error: 'userId, type, title, and message required' },
             { status: 400 }
-        )
+        ))
     }
 
-    // Verifica preferenze utente
+    // Check user preferences
     if (!isNotificationTypeEnabled(String(userId), type)) {
-        return NextResponse.json({
+        return withCors(NextResponse.json({
             skipped: true,
             reason: 'notification_disabled_by_user',
-            message: 'User has disabled notifications for this category'
-        }, { status: 200 })
+        }, { status: 200 }))
     }
 
-    // Crea la notifica
-    const newNotification = createNotification({
-        userId,
+    const newNotification = await createNotification({
+        userId: String(userId),
         type,
         title,
         message,
-        metadata
+        metadata,
     })
 
     if (!newNotification) {
-        return NextResponse.json({
-            skipped: true,
-            reason: 'notification_disabled_by_user',
-            message: 'User has disabled notifications for this category'
-        }, { status: 200 })
+        return withCors(NextResponse.json({ error: 'failed_to_create' }, { status: 500 }))
     }
 
-    // Dispatch real-time via SSE
-    dispatchToUser(userId, newNotification)
-    dispatchUnreadCount(userId, getUnreadCount(userId))
+    // Dispatch real-time via SSE (best-effort)
+    try {
+        dispatchToUser(userId, newNotification)
+        const count = await getUnreadCount(String(userId))
+        dispatchUnreadCount(userId, count)
+    } catch { /* SSE not available */ }
 
-    return NextResponse.json(newNotification, { status: 201 })
+    return withCors(NextResponse.json(newNotification, { status: 201 }))
 }
 
-// ============================================================================
-// PUT /api/notifications - Segna come letta/non letta
-// ============================================================================
+// PUT /api/notifications — Mark as read
 export async function PUT(request: Request) {
     const body = await request.json()
     const { id, markAllAsRead: markAll, userId } = body
 
-    // Segna tutte come lette
+    // Mark all as read
     if (markAll && userId) {
-        const count = markAllAsRead(String(userId))
+        const count = await markAllAsRead(String(userId))
 
-        // Aggiorna contatore SSE
-        dispatchUnreadCount(userId, 0)
+        try { dispatchUnreadCount(userId, 0) } catch { /* SSE */ }
 
-        return NextResponse.json({ success: true, markedCount: count })
+        return withCors(NextResponse.json({ success: true, markedCount: count }))
     }
 
-    // Segna singola notifica
+    // Mark single notification as read
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
-    const notification = markAsRead(id)
+    const notification = await markAsRead(id)
 
     if (!notification) {
-        return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Notification not found' }, { status: 404 }))
     }
 
-    // Aggiorna contatore SSE
-    if (notification.userId) {
-        dispatchUnreadCount(notification.userId, getUnreadCount(notification.userId))
-    }
+    // Update SSE badge
+    try {
+        if (notification.userId) {
+            const count = await getUnreadCount(String(notification.userId))
+            dispatchUnreadCount(notification.userId, count)
+        }
+    } catch { /* SSE */ }
 
-    return NextResponse.json(notification)
+    return withCors(NextResponse.json(notification))
 }
 
-// ============================================================================
-// DELETE /api/notifications - Elimina notifica
-// ============================================================================
+// DELETE /api/notifications
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const userId = searchParams.get('userId')
     const deleteAll = searchParams.get('deleteAll') === 'true'
 
-    // Elimina tutte per utente
+    // Delete all for user
     if (deleteAll && userId) {
-        const count = deleteAllUserNotifications(String(userId))
+        const count = await deleteAllUserNotifications(String(userId))
 
-        // Aggiorna contatore SSE
-        dispatchUnreadCount(userId, 0)
+        try { dispatchUnreadCount(userId, 0) } catch { /* SSE */ }
 
-        return NextResponse.json({ success: true, deletedCount: count })
+        return withCors(NextResponse.json({ success: true, deletedCount: count }))
     }
 
-    // Elimina singola
+    // Delete single
     if (!id) {
-        return NextResponse.json({ error: 'id required' }, { status: 400 })
+        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
     }
 
-    const deleted = deleteNotification(id)
+    const deleted = await deleteNotification(id)
 
     if (!deleted) {
-        return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+        return withCors(NextResponse.json({ error: 'Notification not found' }, { status: 404 }))
     }
 
-    return NextResponse.json({ success: true })
+    return withCors(NextResponse.json({ success: true }))
 }

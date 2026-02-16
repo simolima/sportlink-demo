@@ -81,11 +81,14 @@ export async function GET(request: Request) {
             agentId: aff.agent_id,
             playerId: aff.player_id,
             status: aff.status,
+            startDate: aff.start_date,
+            endDate: aff.end_date,
             requestedAt: aff.requested_at,
             respondedAt: aff.responded_at,
             affiliatedAt: aff.affiliated_at,
             notes: aff.notes,
             message: aff.message,
+            createdAt: aff.created_at,
             agent: aff.agent ? {
                 id: aff.agent.id,
                 firstName: aff.agent.first_name,
@@ -119,10 +122,10 @@ export async function POST(request: Request) {
 
         // Check if player has blocked this agent
         const { data: blockedAgents } = await supabaseServer
-            .from('blocked_agents')
+            .from('blocks')
             .select('*')
-            .eq('player_id', playerId)
-            .eq('agent_id', agentId)
+            .eq('blocker_id', playerId)
+            .eq('blocked_id', agentId)
 
         if (blockedAgents && blockedAgents.length > 0) {
             return withCors(NextResponse.json({ error: 'Operation not permitted' }, { status: 403 }))
@@ -134,7 +137,7 @@ export async function POST(request: Request) {
             .select('*')
             .eq('agent_id', agentId)
             .eq('player_id', playerId)
-            .in('status', ['pending', 'accepted'])
+            .in('status', ['pending', 'active'])
 
         if (existing && existing.length > 0) {
             return withCors(NextResponse.json({ error: 'Affiliation already exists' }, { status: 400 }))
@@ -214,8 +217,10 @@ export async function PUT(request: Request) {
             responded_at: new Date().toISOString()
         }
 
-        if (status === 'accepted') {
+        if (status === 'active') {
+            // When accepted, set affiliated_at and start_date
             updateData.affiliated_at = new Date().toISOString()
+            updateData.start_date = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
         }
 
         const { data: updated, error: updateError } = await supabaseServer
@@ -238,16 +243,16 @@ export async function PUT(request: Request) {
             .single()
 
         if (player) {
-            const notifTitle = status === 'accepted'
+            const notifTitle = status === 'active'
                 ? 'Richiesta di affiliazione accettata'
                 : 'Richiesta di affiliazione rifiutata'
-            const notifMessage = status === 'accepted'
+            const notifMessage = status === 'active'
                 ? `${player.first_name} ${player.last_name} ha accettato la tua richiesta di affiliazione.`
                 : `${player.first_name} ${player.last_name} ha rifiutato la tua richiesta di affiliazione.`
 
             await createNotification(
                 affiliation.agent_id,
-                status === 'accepted' ? 'affiliation_accepted' : 'affiliation_rejected',
+                status === 'active' ? 'affiliation_accepted' : 'affiliation_rejected',
                 notifTitle,
                 notifMessage,
                 { affiliationId: affiliation.id, playerId: affiliation.player_id, playerName: `${player.first_name} ${player.last_name}` }
@@ -288,17 +293,15 @@ export async function DELETE(request: Request) {
         // If block is true, add to blocked agents
         if (block) {
             await supabaseServer
-                .from('blocked_agents')
+                .from('blocks')
                 .insert({
-                    player_id: affiliation.player_id,
-                    agent_id: affiliation.agent_id,
-                    blocked_at: new Date().toISOString(),
-                    reason: 'Blocked by player'
+                    blocker_id: affiliation.player_id,
+                    blocked_id: affiliation.agent_id,
                 })
         }
 
-        // Create notification if affiliation was accepted
-        if (affiliation.status === 'accepted') {
+        // Create notification if affiliation was active
+        if (affiliation.status === 'active') {
             // Check who is removing: if playerId is passed, it's the player removing the agent
             if (playerId && playerId === affiliation.player_id) {
                 // Player is removing the agent -> notify the agent

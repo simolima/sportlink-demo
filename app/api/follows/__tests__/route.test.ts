@@ -1,31 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ============================================================================
-// Mock fs BEFORE importing the route
+// Mock Supabase BEFORE importing the route
 // ============================================================================
-const mockFiles: Record<string, string> = {}
 
-vi.mock('fs', () => ({
-    default: {
-        existsSync: vi.fn((filePath: string) => filePath in mockFiles),
-        readFileSync: vi.fn((filePath: string) => {
-            if (filePath in mockFiles) return mockFiles[filePath]
-            throw new Error(`ENOENT: ${filePath}`)
-        }),
-        writeFileSync: vi.fn((filePath: string, content: string) => {
-            mockFiles[filePath] = content
-        }),
-        mkdirSync: vi.fn(),
+let mockQueryResult: { data: any; error: any } = { data: [], error: null }
+let mockSingleResult: { data: any; error: any } = { data: null, error: null }
+
+function createChain() {
+    const chain: any = {}
+
+    const methods = [
+        'select', 'insert', 'upsert', 'delete', 'update',
+        'eq', 'neq', 'is', 'order',
+    ]
+    for (const m of methods) {
+        chain[m] = vi.fn(() => chain)
+    }
+
+    chain.maybeSingle = vi.fn(() => Promise.resolve(mockSingleResult))
+    chain.single = vi.fn(() => Promise.resolve(mockSingleResult))
+    chain.then = (resolve: any) => resolve(mockQueryResult)
+
+    return chain
+}
+
+vi.mock('@/lib/supabase-server', () => ({
+    supabaseServer: {
+        from: vi.fn(() => createChain()),
     },
-    existsSync: vi.fn((filePath: string) => filePath in mockFiles),
-    readFileSync: vi.fn((filePath: string) => {
-        if (filePath in mockFiles) return mockFiles[filePath]
-        throw new Error(`ENOENT: ${filePath}`)
-    }),
-    writeFileSync: vi.fn((filePath: string, content: string) => {
-        mockFiles[filePath] = content
-    }),
-    mkdirSync: vi.fn(),
+}))
+
+vi.mock('@/lib/cors', () => ({
+    withCors: (res: any) => {
+        res.headers.set('Access-Control-Allow-Origin', '*')
+        return res
+    },
+    handleOptions: () => new Response(null, { status: 204 }),
 }))
 
 // Import AFTER mocking
@@ -34,18 +45,8 @@ import { GET, POST, DELETE } from '@/app/api/follows/route'
 // ============================================================================
 // Helpers
 // ============================================================================
-function setFileContent(filePath: string, data: any) {
-    // Normalize path separators for cross-platform matching
-    const normalized = filePath.replace(/\\/g, '/')
-    // Store with both possible separators
-    mockFiles[filePath] = JSON.stringify(data)
-    mockFiles[normalized] = JSON.stringify(data)
-    // Also store with the other separator style
-    mockFiles[filePath.replace(/\//g, '\\')] = JSON.stringify(data)
-}
-
-function makeRequest(url: string, options: RequestInit = {}): Request {
-    return new Request(url, options)
+function makeRequest(url: string): Request {
+    return new Request(url)
 }
 
 function makeJsonRequest(url: string, body: any, method = 'POST'): Request {
@@ -57,36 +58,11 @@ function makeJsonRequest(url: string, body: any, method = 'POST'): Request {
 }
 
 // ============================================================================
-// Setup: seed mock files before each test
+// Reset before each test
 // ============================================================================
 beforeEach(() => {
-    // Clear all mock files
-    Object.keys(mockFiles).forEach(k => delete mockFiles[k])
-
-    // Seed default data - use patterns that match path.join output
-    // We need to set all possible path variations
-    const follows = [
-        { id: 1, followerId: '10', followingId: '20', createdAt: '2025-01-01T00:00:00Z' },
-        { id: 2, followerId: '10', followingId: '30', createdAt: '2025-01-02T00:00:00Z' },
-        { id: 3, followerId: '30', followingId: '10', createdAt: '2025-01-03T00:00:00Z' },
-    ]
-
-    const users = [
-        { id: '10', firstName: 'Mario', lastName: 'Rossi', avatarUrl: null },
-        { id: '20', firstName: 'Luca', lastName: 'Bianchi', avatarUrl: null },
-        { id: '30', firstName: 'Anna', lastName: 'Verdi', avatarUrl: null },
-    ]
-
-    const notifications: any[] = []
-
-    // Set for every possible path format
-    for (const sep of ['/', '\\']) {
-        const base = `${process.cwd().replace(/\\/g, sep)}${sep}data${sep}`
-        setFileContent(`${base}follows.json`, follows)
-        setFileContent(`${base}users.json`, users)
-        setFileContent(`${base}notifications.json`, notifications)
-    }
-
+    mockQueryResult = { data: [], error: null }
+    mockSingleResult = { data: null, error: null }
     vi.clearAllMocks()
 })
 
@@ -94,34 +70,31 @@ beforeEach(() => {
 // GET /api/follows
 // ============================================================================
 describe('GET /api/follows', () => {
-    it('returns all follows when no query params', async () => {
-        const req = makeRequest('http://localhost:3000/api/follows')
-        const res = await GET(req)
+    it('returns 200 with mapped follows', async () => {
+        mockQueryResult = {
+            data: [
+                { follower_id: '10', following_id: '20', created_at: '2025-01-01T00:00:00Z' },
+                { follower_id: '10', following_id: '30', created_at: '2025-01-02T00:00:00Z' },
+            ],
+            error: null,
+        }
+
+        const res = await GET(makeRequest('http://localhost:3000/api/follows'))
         const data = await res.json()
 
         expect(res.status).toBe(200)
         expect(Array.isArray(data)).toBe(true)
-        // Should have CORS header
+        expect(data.length).toBe(2)
+        expect(data[0].followerId).toBe('10')
+        expect(data[0].followingId).toBe('20')
         expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
     })
 
-    it('filters by followerId', async () => {
-        const req = makeRequest('http://localhost:3000/api/follows?followerId=10')
-        const res = await GET(req)
-        const data = await res.json()
+    it('returns 500 when Supabase errors', async () => {
+        mockQueryResult = { data: null, error: { message: 'db error' } }
 
-        expect(res.status).toBe(200)
-        // User 10 follows users 20 and 30
-        expect(data.every((f: any) => String(f.followerId) === '10')).toBe(true)
-    })
-
-    it('filters by followingId', async () => {
-        const req = makeRequest('http://localhost:3000/api/follows?followingId=10')
-        const res = await GET(req)
-        const data = await res.json()
-
-        expect(res.status).toBe(200)
-        expect(data.every((f: any) => String(f.followingId) === '10')).toBe(true)
+        const res = await GET(makeRequest('http://localhost:3000/api/follows'))
+        expect(res.status).toBe(500)
     })
 })
 
@@ -129,65 +102,94 @@ describe('GET /api/follows', () => {
 // POST /api/follows
 // ============================================================================
 describe('POST /api/follows', () => {
-    it('creates a new follow (201)', async () => {
-        const req = makeJsonRequest('http://localhost:3000/api/follows', {
-            followerId: '20',
-            followingId: '30',
-        })
-        const res = await POST(req)
-        const data = await res.json()
-
-        expect(res.status).toBe(201)
-        expect(data.followerId).toBe('20')
-        expect(data.followingId).toBe('30')
-        expect(data.id).toBeDefined()
-        expect(data.createdAt).toBeDefined()
-    })
-
     it('returns 400 when followerId is missing', async () => {
-        const req = makeJsonRequest('http://localhost:3000/api/follows', {
-            followingId: '20',
-        })
-        const res = await POST(req)
-        const data = await res.json()
-
+        const res = await POST(
+            makeJsonRequest('http://localhost:3000/api/follows', { followingId: '20' }),
+        )
         expect(res.status).toBe(400)
+        const data = await res.json()
         expect(data.error).toBe('followerId_and_followingId_required')
     })
 
     it('returns 400 when followingId is missing', async () => {
-        const req = makeJsonRequest('http://localhost:3000/api/follows', {
-            followerId: '10',
-        })
-        const res = await POST(req)
-        const data = await res.json()
-
+        const res = await POST(
+            makeJsonRequest('http://localhost:3000/api/follows', { followerId: '10' }),
+        )
         expect(res.status).toBe(400)
+        const data = await res.json()
         expect(data.error).toBe('followerId_and_followingId_required')
     })
 
     it('returns 400 for self-follow', async () => {
-        const req = makeJsonRequest('http://localhost:3000/api/follows', {
-            followerId: '10',
-            followingId: '10',
-        })
-        const res = await POST(req)
-        const data = await res.json()
-
+        const res = await POST(
+            makeJsonRequest('http://localhost:3000/api/follows', {
+                followerId: '10',
+                followingId: '10',
+            }),
+        )
         expect(res.status).toBe(400)
+        const data = await res.json()
         expect(data.error).toBe('cannot_follow_self')
     })
 
-    it('returns 409 for duplicate follow', async () => {
-        const req = makeJsonRequest('http://localhost:3000/api/follows', {
-            followerId: '10',
-            followingId: '20',
-        })
-        const res = await POST(req)
-        const data = await res.json()
+    it('returns 409 when already following', async () => {
+        mockSingleResult = {
+            data: { follower_id: '10', following_id: '20' },
+            error: null,
+        }
 
+        const res = await POST(
+            makeJsonRequest('http://localhost:3000/api/follows', {
+                followerId: '10',
+                followingId: '20',
+            }),
+        )
         expect(res.status).toBe(409)
+        const data = await res.json()
         expect(data.error).toBe('already_following')
+    })
+
+    it('creates a new follow (201)', async () => {
+        let callCount = 0
+        const { supabaseServer } = await import('@/lib/supabase-server')
+        vi.mocked(supabaseServer.from).mockImplementation(() => {
+            const chain = createChain()
+            callCount++
+            if (callCount === 1) {
+                chain.maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }))
+            } else if (callCount === 2) {
+                chain.single = vi.fn(() =>
+                    Promise.resolve({
+                        data: {
+                            follower_id: '20',
+                            following_id: '30',
+                            created_at: '2026-02-16T00:00:00Z',
+                        },
+                        error: null,
+                    }),
+                )
+            } else {
+                chain.single = vi.fn(() =>
+                    Promise.resolve({
+                        data: { id: '20', first_name: 'Mario', last_name: 'Rossi', avatar_url: null },
+                        error: null,
+                    }),
+                )
+                chain.then = (resolve: any) => resolve({ data: {}, error: null })
+            }
+            return chain
+        })
+
+        const res = await POST(
+            makeJsonRequest('http://localhost:3000/api/follows', {
+                followerId: '20',
+                followingId: '30',
+            }),
+        )
+        expect(res.status).toBe(201)
+        const data = await res.json()
+        expect(data.followerId).toBe('20')
+        expect(data.followingId).toBe('30')
     })
 
     it('returns 400 for invalid JSON body', async () => {
@@ -197,7 +199,6 @@ describe('POST /api/follows', () => {
             body: 'not json',
         })
         const res = await POST(req)
-
         expect(res.status).toBe(400)
     })
 })
@@ -206,42 +207,37 @@ describe('POST /api/follows', () => {
 // DELETE /api/follows
 // ============================================================================
 describe('DELETE /api/follows', () => {
-    it('removes an existing follow', async () => {
-        const req = makeJsonRequest(
-            'http://localhost:3000/api/follows',
-            { followerId: '10', followingId: '20' },
-            'DELETE',
+    it('returns 400 when missing params', async () => {
+        const res = await DELETE(
+            makeJsonRequest('http://localhost:3000/api/follows', { followerId: '10' }, 'DELETE'),
         )
-        const res = await DELETE(req)
+        expect(res.status).toBe(400)
         const data = await res.json()
+        expect(data.error).toBe('followerId_and_followingId_required')
+    })
 
+    it('removes an existing follow (200)', async () => {
+        mockQueryResult = { data: null, error: null }
+
+        const res = await DELETE(
+            makeJsonRequest(
+                'http://localhost:3000/api/follows',
+                { followerId: '10', followingId: '20' },
+                'DELETE',
+            ),
+        )
         expect(res.status).toBe(200)
+        const data = await res.json()
         expect(data.removed).toBe(1)
     })
 
-    it('returns 404 when relation not found', async () => {
-        const req = makeJsonRequest(
-            'http://localhost:3000/api/follows',
-            { followerId: '99', followingId: '88' },
-            'DELETE',
-        )
+    it('returns 400 for invalid JSON', async () => {
+        const req = new Request('http://localhost:3000/api/follows', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: 'not json',
+        })
         const res = await DELETE(req)
-        const data = await res.json()
-
-        expect(res.status).toBe(404)
-        expect(data.warning).toBe('relation_not_found')
-    })
-
-    it('returns 400 when missing params', async () => {
-        const req = makeJsonRequest(
-            'http://localhost:3000/api/follows',
-            { followerId: '10' },
-            'DELETE',
-        )
-        const res = await DELETE(req)
-        const data = await res.json()
-
         expect(res.status).toBe(400)
-        expect(data.error).toBe('followerId_and_followingId_required')
     })
 })

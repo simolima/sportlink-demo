@@ -1,28 +1,16 @@
 /**
- * Notifications Repository
- * 
- * Layer di astrazione per le operazioni di storage delle notifiche.
- * Attualmente usa JSON file storage, ma è progettato per facilitare
- * la migrazione futura a Supabase o altro database.
- * 
- * Per migrare a Supabase:
- * 1. Cambiare le implementazioni interne di questo file
- * 2. Il resto dell'applicazione non richiede modifiche
+ * Notifications Repository — Supabase Version
+ * Migrated from JSON to Supabase — 15/02/2026
+ *
+ * Table: public.notifications (id uuid, user_id uuid, type, title, message, metadata jsonb, is_read, created_at, deleted_at)
+ *
+ * NOTE: This is now async because it queries Supabase.
+ * The old sync functions are replaced with async equivalents.
  */
 
-import fs from 'fs'
-import path from 'path'
-import { Notification, NotificationType } from './types'
+import { supabaseServer } from './supabase-server'
 
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
-
-const DATA_DIR = path.join(process.cwd(), 'data')
-const NOTIFICATIONS_PATH = path.join(DATA_DIR, 'notifications.json')
-const PREFERENCES_PATH = path.join(DATA_DIR, 'notification-preferences.json')
-
-// Mappatura tipo notifica -> categoria preferenza
+// Re-export type mapping for backward compat
 export const TYPE_TO_CATEGORY: Record<string, string> = {
     'new_follower': 'follower',
     'message_received': 'messages',
@@ -45,7 +33,6 @@ export const TYPE_TO_CATEGORY: Record<string, string> = {
     'added_to_favorites': 'profile'
 }
 
-// Preferenze di default
 export const DEFAULT_PREFERENCES: Record<string, boolean> = {
     follower: true,
     messages: true,
@@ -58,298 +45,220 @@ export const DEFAULT_PREFERENCES: Record<string, boolean> = {
 }
 
 // ============================================================================
-// FILE HELPERS (interno)
-// ============================================================================
-
-function ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true })
-    }
-}
-
-function ensureNotificationsFile() {
-    ensureDataDir()
-    if (!fs.existsSync(NOTIFICATIONS_PATH)) {
-        fs.writeFileSync(NOTIFICATIONS_PATH, '[]')
-    }
-}
-
-function ensurePreferencesFile() {
-    ensureDataDir()
-    if (!fs.existsSync(PREFERENCES_PATH)) {
-        fs.writeFileSync(PREFERENCES_PATH, '[]')
-    }
-}
-
-function readJsonFile<T>(filePath: string, defaultValue: T): T {
-    try {
-        if (!fs.existsSync(filePath)) {
-            return defaultValue
-        }
-        const data = fs.readFileSync(filePath, 'utf-8')
-        return JSON.parse(data || JSON.stringify(defaultValue))
-    } catch {
-        return defaultValue
-    }
-}
-
-function writeJsonFile(filePath: string, data: any) {
-    ensureDataDir()
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
-}
-
-// ============================================================================
-// NOTIFICATIONS REPOSITORY
+// NOTIFICATIONS
 // ============================================================================
 
 export interface CreateNotificationInput {
-    userId: string | number
-    type: NotificationType | string
+    userId: string
+    type: string
     title: string
     message: string
     metadata?: Record<string, any>
 }
 
 export interface NotificationFilters {
-    userId: string | number
+    userId: string
     unreadOnly?: boolean
-    type?: NotificationType | string
+    type?: string
     limit?: number
 }
 
 /**
- * Ottiene tutte le notifiche (raw, per uso interno)
+ * Get notifications for a user
  */
-export function getAllNotifications(): Notification[] {
-    ensureNotificationsFile()
-    return readJsonFile<Notification[]>(NOTIFICATIONS_PATH, [])
-}
-
-/**
- * Salva tutte le notifiche (raw, per uso interno)
- */
-export function saveAllNotifications(notifications: Notification[]) {
-    writeJsonFile(NOTIFICATIONS_PATH, notifications)
-}
-
-/**
- * Ottiene le notifiche di un utente con filtri opzionali
- */
-export function getUserNotifications(filters: NotificationFilters): Notification[] {
+export async function getUserNotifications(filters: NotificationFilters) {
     const { userId, unreadOnly, type, limit } = filters
-    let notifications = getAllNotifications()
 
-    // Filter by user
-    notifications = notifications.filter(
-        (n) => String(n.userId) === String(userId)
-    )
+    let query = supabaseServer
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
 
-    // Filter by unread
     if (unreadOnly) {
-        notifications = notifications.filter((n) => !n.read)
+        query = query.eq('is_read', false)
     }
 
-    // Filter by type
     if (type) {
-        notifications = notifications.filter((n) => n.type === type)
+        query = query.eq('type', type)
     }
 
-    // Sort by date (most recent first)
-    notifications.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-
-    // Limit results
     if (limit && limit > 0) {
-        notifications = notifications.slice(0, limit)
+        query = query.limit(limit)
     }
 
-    return notifications
+    const { data, error } = await query
+
+    if (error) {
+        console.error('getUserNotifications error:', error)
+        return []
+    }
+
+    // Map to camelCase for frontend compat
+    return (data || []).map((n: any) => ({
+        id: n.id,
+        userId: n.user_id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        metadata: n.metadata || {},
+        read: n.is_read,
+        createdAt: n.created_at,
+    }))
 }
 
 /**
- * Conta le notifiche non lette di un utente.
- * 
- * IMPORTANTE: Esclude le notifiche di tipo messaggio (message_received, categoria 'messages')
- * perché i messaggi vengono gestiti solo nell'area chat e non devono contribuire
- * al badge del centro notifiche.
+ * Count unread notifications (excluding messages)
  */
-export function getUnreadCount(userId: string | number): number {
-    const unreadNotifications = getUserNotifications({ userId, unreadOnly: true })
-    // Filtra le notifiche messaggi - vanno gestite solo nell'area chat
-    const systemNotifications = unreadNotifications.filter(n => {
-        const category = TYPE_TO_CATEGORY[n.type]
-        return category !== 'messages'
-    })
-    return systemNotifications.length
+export async function getUnreadCount(userId: string): Promise<number> {
+    const { count, error } = await supabaseServer
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .is('deleted_at', null)
+        .not('type', 'eq', 'message_received')
+
+    if (error) {
+        console.error('getUnreadCount error:', error)
+        return 0
+    }
+
+    return count || 0
 }
 
 /**
- * Crea una nuova notifica
- * Ritorna la notifica creata o null se skippata (preferenze utente)
+ * Create a notification
  */
-export function createNotification(input: CreateNotificationInput): Notification | null {
+export async function createNotification(input: CreateNotificationInput) {
     const { userId, type, title, message, metadata } = input
 
-    // Verifica preferenze utente
-    if (!isNotificationTypeEnabled(String(userId), type)) {
-        return null // Skipped
-    }
+    const { data, error } = await supabaseServer
+        .from('notifications')
+        .insert({
+            user_id: userId,
+            type,
+            title,
+            message,
+            metadata: metadata || {},
+            is_read: false,
+        })
+        .select()
+        .single()
 
-    const notifications = getAllNotifications()
-
-    const newNotification: Notification = {
-        id: Date.now(),
-        userId: String(userId),
-        type: type as NotificationType,
-        title,
-        message,
-        metadata: metadata || {},
-        read: false,
-        createdAt: new Date().toISOString()
-    }
-
-    notifications.push(newNotification)
-    saveAllNotifications(notifications)
-
-    return newNotification
-}
-
-/**
- * Segna una notifica come letta
- */
-export function markAsRead(id: number | string): Notification | null {
-    const notifications = getAllNotifications()
-    const index = notifications.findIndex((n) => String(n.id) === String(id))
-
-    if (index === -1) {
+    if (error) {
+        console.error('createNotification error:', error)
         return null
     }
 
-    notifications[index].read = true
-    saveAllNotifications(notifications)
-
-    return notifications[index]
+    return {
+        id: data.id,
+        userId: data.user_id,
+        type: data.type,
+        title: data.title,
+        message: data.message,
+        metadata: data.metadata || {},
+        read: data.is_read,
+        createdAt: data.created_at,
+    }
 }
 
 /**
- * Segna tutte le notifiche di un utente come lette
+ * Mark a single notification as read
  */
-export function markAllAsRead(userId: string | number): number {
-    const notifications = getAllNotifications()
-    let count = 0
+export async function markAsRead(id: string) {
+    const { data, error } = await supabaseServer
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id)
+        .select()
+        .single()
 
-    notifications.forEach((n) => {
-        if (String(n.userId) === String(userId) && !n.read) {
-            n.read = true
-            count++
-        }
-    })
-
-    saveAllNotifications(notifications)
-    return count
-}
-
-/**
- * Elimina una notifica
- */
-export function deleteNotification(id: number | string): boolean {
-    const notifications = getAllNotifications()
-    const initialLength = notifications.length
-    const filtered = notifications.filter((n) => String(n.id) !== String(id))
-
-    if (filtered.length === initialLength) {
-        return false // Not found
+    if (error) {
+        console.error('markAsRead error:', error)
+        return null
     }
 
-    saveAllNotifications(filtered)
+    return {
+        id: data.id,
+        userId: data.user_id,
+        type: data.type,
+        title: data.title,
+        message: data.message,
+        metadata: data.metadata || {},
+        read: data.is_read,
+        createdAt: data.created_at,
+    }
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export async function markAllAsRead(userId: string): Promise<number> {
+    const { data, error } = await supabaseServer
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .is('deleted_at', null)
+        .select('id')
+
+    if (error) {
+        console.error('markAllAsRead error:', error)
+        return 0
+    }
+
+    return data?.length || 0
+}
+
+/**
+ * Delete a single notification (soft delete)
+ */
+export async function deleteNotification(id: string): Promise<boolean> {
+    const { error } = await supabaseServer
+        .from('notifications')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+
+    if (error) {
+        console.error('deleteNotification error:', error)
+        return false
+    }
+
     return true
 }
 
 /**
- * Elimina tutte le notifiche di un utente
+ * Delete all notifications for a user (soft delete)
  */
-export function deleteAllUserNotifications(userId: string | number): number {
-    const notifications = getAllNotifications()
-    const initialLength = notifications.length
-    const filtered = notifications.filter((n) => String(n.userId) !== String(userId))
+export async function deleteAllUserNotifications(userId: string): Promise<number> {
+    const { data, error } = await supabaseServer
+        .from('notifications')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .select('id')
 
-    saveAllNotifications(filtered)
-    return initialLength - filtered.length
+    if (error) {
+        console.error('deleteAllUserNotifications error:', error)
+        return 0
+    }
+
+    return data?.length || 0
 }
 
 // ============================================================================
-// PREFERENCES REPOSITORY
+// PREFERENCES (stored in profiles.privacy_settings for now, or JSONB column)
+// For the MVP, preferences are not stored in a separate table.
+// We return defaults. Can be extended later with a notification_preferences table.
 // ============================================================================
 
-export interface UserPreferences {
-    userId: string
-    preferences: Record<string, boolean>
+export function isNotificationTypeEnabled(userId: string, type: string): boolean {
+    // For now, all types are enabled — preferences can be added later
+    return true
 }
 
-/**
- * Ottiene tutte le preferenze (raw)
- */
-export function getAllPreferences(): UserPreferences[] {
-    ensurePreferencesFile()
-    return readJsonFile<UserPreferences[]>(PREFERENCES_PATH, [])
-}
-
-/**
- * Salva tutte le preferenze (raw)
- */
-export function saveAllPreferences(preferences: UserPreferences[]) {
-    writeJsonFile(PREFERENCES_PATH, preferences)
-}
-
-/**
- * Ottiene le preferenze di un utente (con default merge)
- */
-export function getUserPreferences(userId: string | number): Record<string, boolean> {
-    const allPrefs = getAllPreferences()
-    const userPrefs = allPrefs.find((p) => p.userId === String(userId))
-    return userPrefs
-        ? { ...DEFAULT_PREFERENCES, ...userPrefs.preferences }
-        : { ...DEFAULT_PREFERENCES }
-}
-
-/**
- * Salva le preferenze di un utente
- */
-export function saveUserPreferences(
-    userId: string | number,
-    preferences: Record<string, boolean>
-): UserPreferences {
-    const allPrefs = getAllPreferences()
-    const existingIndex = allPrefs.findIndex((p) => p.userId === String(userId))
-
-    const userPrefs: UserPreferences = {
-        userId: String(userId),
-        preferences: { ...DEFAULT_PREFERENCES, ...preferences }
-    }
-
-    if (existingIndex >= 0) {
-        allPrefs[existingIndex] = userPrefs
-    } else {
-        allPrefs.push(userPrefs)
-    }
-
-    saveAllPreferences(allPrefs)
-    return userPrefs
-}
-
-/**
- * Verifica se un tipo di notifica è abilitato per un utente
- */
-export function isNotificationTypeEnabled(
-    userId: string,
-    type: NotificationType | string
-): boolean {
-    const category = TYPE_TO_CATEGORY[type]
-    if (!category) {
-        // Tipo sconosciuto - abilita di default
-        return true
-    }
-    const prefs = getUserPreferences(userId)
-    return prefs[category] ?? true
+export function getUserPreferences(userId: string): Record<string, boolean> {
+    return { ...DEFAULT_PREFERENCES }
 }

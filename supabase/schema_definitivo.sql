@@ -504,6 +504,12 @@ create table public.affiliations (
   start_date date,
   end_date date,
   
+  requested_at timestamptz default now(),
+  responded_at timestamptz,
+  affiliated_at timestamptz,
+  notes text default '',
+  message text,
+  
   created_at timestamptz default now(),
   deleted_at timestamptz,
   

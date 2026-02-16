@@ -1,93 +1,72 @@
-import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { withCors, handleOptions } from '@/lib/cors'
+/**
+ * API Route: /api/match
+ * Migrated — 15/02/2026
+ *
+ * Matches athletes from Supabase profiles against a need.
+ * Note: needs table doesn't exist yet, so this uses inline need data.
+ */
 
 export const runtime = 'nodejs'
 
-const NEEDS_PATH = path.join(process.cwd(), 'data', 'needs.json')
-const USERS_PATH = path.join(process.cwd(), 'data', 'users.json')
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-server'
+import { withCors, handleOptions } from '@/lib/cors'
 
-function readJsonArray(filePath: string) {
-  if (!fs.existsSync(filePath)) return []
-  const raw = fs.readFileSync(filePath, 'utf8')
-  try {
-    return JSON.parse(raw || '[]')
-  } catch {
-    return []
-  }
+export async function OPTIONS() {
+    return handleOptions()
 }
 
 function getAge(birthDate?: string): number | null {
-  if (!birthDate) return null
-  const date = new Date(birthDate)
-  if (Number.isNaN(date.getTime())) return null
-  const now = new Date()
-  let age = now.getFullYear() - date.getFullYear()
-  const m = now.getMonth() - date.getMonth()
-  if (m < 0 || (m === 0 && now.getDate() < date.getDate())) age--
-  return age
-}
-
-function isAthlete(user: any) {
-  const role = String(user?.professionalRole ?? '').toLowerCase()
-  return role.includes('player') || role.includes('athlete')
-}
-
-function mapAthlete(user: any) {
-  const firstName = String(user?.firstName ?? '').trim()
-  const lastName = String(user?.lastName ?? '').trim()
-  const displayName = `${firstName} ${lastName}`.trim() || String(user?.email ?? 'Athlete')
-
-  return {
-    sport: user?.sport || (Array.isArray(user?.sports) ? user.sports[0] : '') || '',
-    position: user?.specificRole || user?.footballPrimaryPosition || user?.currentRole || '',
-    age: getAge(user?.birthDate),
-    contract: String(user?.availability ?? '').toLowerCase().includes('disponibile') ? 'FREE' : 'CONTRACT',
-    profile: {
-      displayName,
-    },
-  }
-}
-
-function score(a: any, need: any) {
-  let s = 0
-  const why: string[] = []
-  if (a.sport === need.sport) {
-    s += 40
-    why.push('sport match')
-  }
-  if (need.position && a.position === need.position) {
-    s += 20
-    why.push('position match')
-  }
-  if (need.ageMin && a.age && a.age >= need.ageMin) s += 5
-  if (need.ageMax && a.age && a.age <= need.ageMax) s += 5
-  if (a.contract === 'FREE') {
-    s += 10
-    why.push('free agent')
-  }
-  return { s, why }
-}
-
-export async function OPTIONS() {
-  return handleOptions()
+    if (!birthDate) return null
+    const date = new Date(birthDate)
+    if (Number.isNaN(date.getTime())) return null
+    const now = new Date()
+    let age = now.getFullYear() - date.getFullYear()
+    const m = now.getMonth() - date.getMonth()
+    if (m < 0 || (m === 0 && now.getDate() < date.getDate())) age--
+    return age
 }
 
 export async function POST(req: Request) {
-  const { needId } = await req.json()
-  const needs = readJsonArray(NEEDS_PATH)
-  const need = needs.find((n: any) => String(n.id) === String(needId))
-  if (!need) return withCors(NextResponse.json({ candidates: [] }))
+    try {
+        const body = await req.json()
+        const need = body // Use inline need data since needs table doesn't exist
 
-  const athletes = readJsonArray(USERS_PATH).filter(isAthlete).map(mapAthlete).slice(0, 100)
-  const candidates = athletes
-    .map((a: any) => {
-      const r = score(a, need)
-      return { name: a.profile.displayName, score: r.s, why: r.why }
-    })
-    .sort((x: any, y: any) => y.score - x.score)
-    .slice(0, 10)
+        // Get players from Supabase
+        const { data: profiles, error } = await supabaseServer
+            .from('profiles')
+            .select('id, first_name, last_name, birth_date, city, role_id')
+            .eq('role_id', 'player')
+            .is('deleted_at', null)
+            .limit(100)
 
-  return withCors(NextResponse.json({ candidates }))
+        if (error) {
+            console.error('Match API error:', error)
+            return withCors(NextResponse.json({ candidates: [] }))
+        }
+
+        const candidates = (profiles || [])
+            .map((p: any) => {
+                const age = getAge(p.birth_date)
+                const displayName = `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Athlete'
+                let score = 0
+                const why: string[] = []
+
+                // Basic scoring
+                if (need.ageMin && age && age >= need.ageMin) { score += 5; why.push('age ok') }
+                if (need.ageMax && age && age <= need.ageMax) { score += 5; why.push('age ok') }
+                if (need.city && p.city && p.city.toLowerCase().includes(need.city.toLowerCase())) {
+                    score += 10; why.push('city match')
+                }
+
+                return { name: displayName, score, why }
+            })
+            .sort((a: any, b: any) => b.score - a.score)
+            .slice(0, 10)
+
+        return withCors(NextResponse.json({ candidates }))
+    } catch (err) {
+        console.error('Match API exception:', err)
+        return withCors(NextResponse.json({ candidates: [] }))
+    }
 }

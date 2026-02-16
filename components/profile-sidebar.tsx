@@ -167,6 +167,7 @@ export default function ProfileSidebar({
             }
         }
         checkUserStatus()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id])
 
     // Funzione per verificare il profilo

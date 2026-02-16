@@ -54,6 +54,7 @@ export default function PlayerAffiliationsPage() {
     }
 
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchAffiliations = async (playerId: number) => {

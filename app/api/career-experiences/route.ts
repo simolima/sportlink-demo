@@ -162,10 +162,26 @@ export async function POST(req: NextRequest) {
                 role_detail: validRoles.includes(roleValue) ? (exp.positionDetail || exp.primaryPosition || null) : roleValue,
                 season: exp.season,
                 category: exp.category || 'Non specificato',
+                category_tier: exp.categoryTier || null,
                 competition_type: exp.competitionType || 'male',
                 start_date: exp.from || null,
                 end_date: exp.to || null,
                 is_current: exp.isCurrentlyPlaying || false,
+            }
+
+            // 4. Risolvi position_id da lookup_positions (se positionDetail o role corrisponde a un nome)
+            const positionName = exp.positionDetail || (validRoles.includes(roleValue) ? null : roleValue)
+            if (positionName) {
+                const { data: posData } = await supabase
+                    .from('lookup_positions')
+                    .select('id')
+                    .eq('name', positionName)
+                    .limit(1)
+                    .maybeSingle()
+
+                if (posData) {
+                    expData.position_id = posData.id
+                }
             }
 
             // Aggiungi statistiche giocatore se role = Player (solo se fornite)

@@ -27,7 +27,6 @@ interface Experience {
     from?: string
     to?: string
     isCurrentlyPlaying?: boolean // "Gioca/Allena ancora qui"
-    summary: string
     // Statistiche opzionali per Player
     goals?: number
     cleanSheets?: number
@@ -83,6 +82,9 @@ interface FormState {
     secondaryRole?: string
     footballPrimaryPosition?: 'Portiere' | 'Difensore' | 'Centrocampista' | 'Attaccante'
     footballSecondaryPosition?: string
+    // Stato contrattuale (Player, Coach, DS)
+    contractStatus?: 'svincolato' | 'sotto contratto'
+    contractEndDate?: string
     // Qualifiche Coach
     uefaLicenses?: string[]
     coachSpecializations?: string
@@ -121,7 +123,6 @@ const emptyExperience = (): Experience => ({
     from: "",
     to: "",
     isCurrentlyPlaying: false,
-    summary: "",
 })
 
 const emptyCertification = (): Certification => ({
@@ -208,6 +209,12 @@ export default function EditProfilePage() {
     const [showFootDropdown, setShowFootDropdown] = useState(false)
     const [showHandDropdown, setShowHandDropdown] = useState(false)
 
+    // --- Stato per dropdown stato contrattuale ---
+    const [showContractStatusDropdown, setShowContractStatusDropdown] = useState(false)
+
+    // --- Posizioni dinamiche da lookup_positions (Supabase) ---
+    const [lookupPositions, setLookupPositions] = useState<{ id: number, name: string, category: string }[]>([])
+
     useEffect(() => {
         let didRedirect = false;
         const fetchUser = async () => {
@@ -260,6 +267,34 @@ export default function EditProfilePage() {
                 setMainSport(sport);
                 setIsFootball(Array.isArray(userSports) && userSports.includes("Calcio"));
 
+                // Fetch posizioni da lookup_positions (Supabase)
+                if (sport) {
+                    const fetchPositions = async () => {
+                        try {
+                            const { supabase: supabaseClient } = await import('@/lib/supabase-browser')
+                            const { data: sportData } = await supabaseClient
+                                .from('lookup_sports')
+                                .select('id')
+                                .eq('name', sport)
+                                .single()
+
+                            if (sportData) {
+                                const { data: positions } = await supabaseClient
+                                    .from('lookup_positions')
+                                    .select('id, name, category')
+                                    .eq('sport_id', sportData.id)
+                                    .eq('role_id', 'player')
+                                    .order('id')
+
+                                setLookupPositions(positions || [])
+                            }
+                        } catch (err) {
+                            console.error('Error fetching lookup positions:', err)
+                        }
+                    }
+                    fetchPositions()
+                }
+
                 // Fetch physical stats from dedicated table
                 const fetchPhysicalStats = async () => {
                     try {
@@ -283,8 +318,8 @@ export default function EditProfilePage() {
                             id: exp.id, // UUID from database
                             season: exp.season || '',
                             role: exp.role || 'Player',
-                            primaryPosition: exp.position?.name || '',
-                            positionDetail: exp.role_detail || '',
+                            primaryPosition: exp.position?.category || '',
+                            positionDetail: exp.position?.name || exp.role_detail || '',
                             team: exp.organization?.name || '',
                             country: exp.organization?.country || '',
                             city: exp.organization?.city || '',
@@ -295,29 +330,30 @@ export default function EditProfilePage() {
                             from: exp.start_date || '',
                             to: exp.end_date || '',
                             isCurrentlyPlaying: exp.is_current || false,
-                            summary: '', // Not stored in DB yet
-                            // Player stats
-                            goals: exp.goals || undefined,
-                            assists: exp.assists || undefined,
-                            cleanSheets: exp.clean_sheets || undefined,
-                            appearances: exp.appearances || undefined,
-                            minutesPlayed: exp.minutes_played || undefined,
-                            penalties: exp.penalties || undefined,
-                            yellowCards: exp.yellow_cards || undefined,
-                            redCards: exp.red_cards || undefined,
-                            substitutionsIn: exp.substitutions_in || undefined,
-                            substitutionsOut: exp.substitutions_out || undefined,
-                            pointsPerGame: exp.points_per_game || undefined,
-                            rebounds: exp.rebounds || undefined,
-                            volleyAces: exp.aces || undefined,
-                            volleyBlocks: exp.blocks || undefined,
-                            volleyDigs: exp.digs || undefined,
+                            // Player stats (use ?? to preserve 0 values)
+                            goals: exp.goals ?? undefined,
+                            assists: exp.assists ?? undefined,
+                            cleanSheets: exp.clean_sheets ?? undefined,
+                            appearances: exp.appearances ?? undefined,
+                            minutesPlayed: exp.minutes_played ?? undefined,
+                            penalties: exp.penalties ?? undefined,
+                            yellowCards: exp.yellow_cards ?? undefined,
+                            redCards: exp.red_cards ?? undefined,
+                            substitutionsIn: exp.substitutions_in ?? undefined,
+                            substitutionsOut: exp.substitutions_out ?? undefined,
+                            // Basket
+                            pointsPerGame: exp.points_per_game ?? undefined,
+                            rebounds: exp.rebounds ?? undefined,
+                            // Volley (DB columns: aces, blocks, digs)
+                            volleyAces: exp.aces ?? undefined,
+                            volleyBlocks: exp.blocks ?? undefined,
+                            volleyDigs: exp.digs ?? undefined,
                             // Coach stats
-                            matchesCoached: exp.matches_coached || undefined,
-                            wins: exp.wins || undefined,
-                            draws: exp.draws || undefined,
-                            losses: exp.losses || undefined,
-                            trophies: exp.trophies || undefined,
+                            matchesCoached: exp.matches_coached ?? undefined,
+                            wins: exp.wins ?? undefined,
+                            draws: exp.draws ?? undefined,
+                            losses: exp.losses ?? undefined,
+                            trophies: exp.trophies ?? undefined,
                         }))
                     } catch (err) {
                         console.error('Error fetching career experiences:', err)
@@ -376,7 +412,10 @@ export default function EditProfilePage() {
                         transfermarkt: user.social_links?.transfermarkt || user.socialLinks?.transfermarkt || ""
                     },
                     playerSelfEvaluation: user.player_self_evaluation || user.playerSelfEvaluation || undefined,
-                    coachSelfEvaluation: user.coach_self_evaluation || user.coachSelfEvaluation || undefined
+                    coachSelfEvaluation: user.coach_self_evaluation || user.coachSelfEvaluation || undefined,
+                    // Stato contrattuale
+                    contractStatus: user.contract_status || user.contractStatus || undefined,
+                    contractEndDate: user.contract_end_date || user.contractEndDate || undefined,
                 });
             } catch (error) {
                 console.error(error);
@@ -400,22 +439,16 @@ export default function EditProfilePage() {
         setCountrySearchTerm(form.country || "")
     }, [form.country])
 
-    const volleyRoles = [
-        "Palleggiatore",
-        "Schiacciatore",
-        "Centrale",
-        "Opposto",
-        "Libero"
-    ];
+    const volleyRoles = useMemo(() => {
+        if (mainSport !== 'Pallavolo' && mainSport !== 'Volley') return []
+        return lookupPositions.map(p => p.name)
+    }, [lookupPositions, mainSport])
 
-    // Basket: ruoli base
-    const basketRoles = [
-        "Playmaker",
-        "Guardia",
-        "Ala",
-        "Ala grande",
-        "Centro",
-    ];
+    // Basket: ruoli base (dinamici da lookup_positions)
+    const basketRoles = useMemo(() => {
+        if (mainSport !== 'Basket') return []
+        return lookupPositions.map(p => p.name)
+    }, [lookupPositions, mainSport])
 
     // Coach: ruoli
     const coachRoles = [
@@ -1135,34 +1168,21 @@ export default function EditProfilePage() {
         }));
     };
 
-    // --- Calcio: opzioni guidate ---
-    const footballPrimaryOptions = [
-        { value: "Portiere", label: "Portiere" },
-        { value: "Difensore", label: "Difensore" },
-        { value: "Centrocampista", label: "Centrocampista" },
-        { value: "Attaccante", label: "Attaccante" },
-    ];
-    const footballSecondaryOptions: Record<string, { value: string; label: string }[]> = {
-        Portiere: [{ value: "Portiere", label: "Portiere" }],
-        Difensore: [
-            { value: "Difensore centrale", label: "Difensore centrale" },
-            { value: "Terzino destro", label: "Terzino destro" },
-            { value: "Terzino sinistro", label: "Terzino sinistro" },
-        ],
-        Centrocampista: [
-            { value: "Mediano", label: "Mediano" },
-            { value: "Mezzala", label: "Mezzala" },
-            { value: "Trequartista", label: "Trequartista" },
-            { value: "Esterno destro", label: "Esterno destro" },
-            { value: "Esterno sinistro", label: "Esterno sinistro" },
-        ],
-        Attaccante: [
-            { value: "Ala destra", label: "Ala destra" },
-            { value: "Ala sinistra", label: "Ala sinistra" },
-            { value: "Punta centrale", label: "Punta centrale" },
-            { value: "Seconda punta", label: "Seconda punta" },
-        ],
-    };
+    // --- Calcio: opzioni guidate (dinamiche da lookup_positions) ---
+    const footballPrimaryOptions = useMemo(() => {
+        const cats = [...new Set(lookupPositions.map(p => p.category).filter(Boolean))]
+        return cats.map(c => ({ value: c, label: c }))
+    }, [lookupPositions])
+
+    const footballSecondaryOptions: Record<string, { value: string; label: string }[]> = useMemo(() => {
+        const map: Record<string, { value: string; label: string }[]> = {}
+        lookupPositions.forEach(p => {
+            if (!p.category) return
+            if (!map[p.category]) map[p.category] = []
+            map[p.category].push({ value: p.name, label: p.name })
+        })
+        return map
+    }, [lookupPositions])
 
     // Gestione auto-popola e compatibilità
     const handleFootballPrimaryChange = (value: string) => {
@@ -1343,6 +1363,9 @@ export default function EditProfilePage() {
                 socialLinks: form.socialLinks,
                 playerSelfEvaluation: isPlayer ? form.playerSelfEvaluation : undefined,
                 coachSelfEvaluation: isCoach ? form.coachSelfEvaluation : undefined,
+                // Stato contrattuale (solo per Player, Coach, Sporting Director)
+                contractStatus: (isPlayer || isCoach || isSportingDirector) ? form.contractStatus : undefined,
+                contractEndDate: (isPlayer || isCoach || isSportingDirector) ? form.contractEndDate : undefined,
             }
 
             // Le experiences NON vanno nella tabella profiles (verranno gestite separatamente)
@@ -1637,6 +1660,62 @@ export default function EditProfilePage() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Stato Contrattuale - Solo per Player, Coach, Sporting Director */}
+                            {(isPlayer || isCoach || isSportingDirector) && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-700">Stato contrattuale</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={form.contractStatus
+                                                    ? form.contractStatus === 'svincolato' ? 'Svincolato' : 'Sotto contratto'
+                                                    : ''}
+                                                readOnly
+                                                onFocus={() => setShowContractStatusDropdown(true)}
+                                                onBlur={() => setTimeout(() => setShowContractStatusDropdown(false), 200)}
+                                                placeholder="Seleziona stato"
+                                                className={`${inputBase} cursor-pointer`}
+                                            />
+                                            {showContractStatusDropdown && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                    {[{ value: 'svincolato', label: 'Svincolato' }, { value: 'sotto contratto', label: 'Sotto contratto' }].map((option) => (
+                                                        <div
+                                                            key={option.value}
+                                                            onClick={() => {
+                                                                updateField('contractStatus', option.value)
+                                                                if (option.value === 'svincolato') updateField('contractEndDate', undefined)
+                                                                setShowContractStatusDropdown(false)
+                                                            }}
+                                                            className={`px-4 py-2.5 cursor-pointer transition-colors ${form.contractStatus === option.value
+                                                                ? 'bg-gray-100 font-medium'
+                                                                : 'hover:bg-gray-100'
+                                                                }`}
+                                                        >
+                                                            {option.label}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {form.contractStatus === 'sotto contratto' && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-700">Data fine contratto</label>
+                                            <input
+                                                type="date"
+                                                value={form.contractEndDate || ""}
+                                                onChange={(e) => updateField("contractEndDate", e.target.value || undefined)}
+                                                className={inputBase}
+                                                min={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
                             {isPlayer && (
                                 <>
                                     <div className="space-y-2">
@@ -2431,7 +2510,7 @@ export default function EditProfilePage() {
                                                         value={exp.primaryPosition || ''}
                                                         onChange={(value) => {
                                                             handleExperienceChange(exp.id, "primaryPosition", value)
-                                                            handleExperienceChange(exp.id, "role", value)
+                                                            handleExperienceChange(exp.id, "role", "Player")
                                                             // Reset positionDetail quando cambia primaryPosition
                                                             handleExperienceChange(exp.id, "positionDetail", "")
                                                         }}
@@ -2804,13 +2883,6 @@ export default function EditProfilePage() {
                                                 )}
                                             </div>
 
-                                            <textarea
-                                                value={exp.summary}
-                                                onChange={(e) => handleExperienceChange(exp.id, "summary", e.target.value)}
-                                                placeholder="Responsabilita, risultati..."
-                                                className={`${inputBase} md:col-span-2 resize-none`}
-                                                rows={3}
-                                            />
                                             {isPlayer && mainSport === "Calcio" && (
                                                 <div className="mt-3 md:col-span-2 w-full">
                                                     <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>

@@ -79,7 +79,49 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     socialLinks: profile.social_links || {},
                     playerSelfEvaluation: profile.player_self_evaluation || null,
                     coachSelfEvaluation: profile.coach_self_evaluation || null,
-                    experiences: [], // TODO: fetch from career_experiences table
+                    contractStatus: profile.contract_status || null,
+                    contractEndDate: profile.contract_end_date || null,
+                    experiences: [], // populated below
+                }
+
+                // Fetch career experiences
+                const expRes = await fetch(`/api/career-experiences?userId=${params.id}`)
+                if (expRes.ok) {
+                    const rawExps = await expRes.json()
+                    userData.experiences = (rawExps || []).map((exp: any) => ({
+                        id: exp.id,
+                        team: exp.organization?.name || exp.organization_name || '',
+                        role: exp.role_detail || exp.role || '',
+                        category: exp.category || '',
+                        season: exp.season || '',
+                        from: exp.start_date || '',
+                        to: exp.end_date || '',
+                        isCurrentlyPlaying: exp.is_current || false,
+                        // Player Stats
+                        goals: exp.goals ?? undefined,
+                        assists: exp.assists ?? undefined,
+                        cleanSheets: exp.clean_sheets ?? undefined,
+                        appearances: exp.appearances ?? undefined,
+                        minutesPlayed: exp.minutes_played ?? undefined,
+                        penalties: exp.penalties ?? undefined,
+                        yellowCards: exp.yellow_cards ?? undefined,
+                        redCards: exp.red_cards ?? undefined,
+                        substitutionsIn: exp.substitutions_in ?? undefined,
+                        substitutionsOut: exp.substitutions_out ?? undefined,
+                        // Basket
+                        pointsPerGame: exp.points_per_game ?? undefined,
+                        rebounds: exp.rebounds ?? undefined,
+                        // Volley (DB columns: aces, blocks, digs)
+                        volleyAces: exp.aces ?? undefined,
+                        volleyBlocks: exp.blocks ?? undefined,
+                        volleyDigs: exp.digs ?? undefined,
+                        // Coach Stats
+                        matchesCoached: exp.matches_coached ?? undefined,
+                        wins: exp.wins ?? undefined,
+                        draws: exp.draws ?? undefined,
+                        losses: exp.losses ?? undefined,
+                        trophies: exp.trophies ?? undefined,
+                    }))
                 }
 
                 console.log('🔍 Profile Data Loaded:', {
@@ -185,9 +227,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
                     {/* Colonna Destra - Contenuti (scrollabile) */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Bio e Competenze */}
+                        {/* Profilo */}
                         <ProfileSection
-                            title="Bio e Competenze"
+                            title="Profilo"
                             subtitle="Descrizione e abilità principali"
                         >
                             {user.bio ? (
@@ -293,9 +335,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             )
                         })()}
 
-                        {/* Esperienze / Carriera */}
+                        {/* Carriera */}
                         <ProfileSection
-                            title="Esperienze e Carriera"
+                            title="Carriera"
                             subtitle="Percorso professionale"
                         >
                             {experiences.length > 0 ? (

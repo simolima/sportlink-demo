@@ -298,6 +298,10 @@ export async function PATCH(req: Request) {
         if (body.playerSelfEvaluation !== undefined) updates.player_self_evaluation = body.playerSelfEvaluation
         if (body.coachSelfEvaluation !== undefined) updates.coach_self_evaluation = body.coachSelfEvaluation
 
+        // Contract status fields (per Player, Coach, Sporting Director)
+        if (body.contractStatus !== undefined) updates.contract_status = body.contractStatus || null
+        if (body.contractEndDate !== undefined) updates.contract_end_date = body.contractEndDate || null
+
         console.log('📝 Update payload:', updates)
 
         // Update in Supabase (using service role to bypass RLS)

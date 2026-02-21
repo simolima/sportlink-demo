@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from './avatar'
 import SocialLinks from './social-links'
+import { formatCountryWithFlag } from '@/lib/countries'
 import {
     UserPlusIcon,
     EnvelopeIcon,
@@ -70,7 +71,7 @@ export default function ProfileSidebar({
             const footLabel = foot === 'destro' ? 'Destro' : foot === 'sinistro' ? 'Sinistro' : foot === 'ambidestro' ? 'Ambidestro' : undefined
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
+                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
                 { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'Non specificato' },
                 { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'Non specificato' },
                 { label: 'Piede', value: footLabel || 'Non specificato' },
@@ -82,14 +83,14 @@ export default function ProfileSidebar({
             const licenseLabel = licenses.length > 0 ? licenses.join(', ') : 'Non specificato'
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
+                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
                 { label: 'Licenza', value: licenseLabel }
             ] as StatItem[]
         }
         if (isDS) {
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
+                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
                 { label: 'Club gestito', value: clubName || 'Nessuno' }
             ] as StatItem[]
         }
@@ -98,7 +99,7 @@ export default function ProfileSidebar({
             const fifaNumber = user?.fifaLicenseNumber
             const stats = [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: user?.country || 'Non specificato' },
+                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
                 { label: 'Assistiti', value: assistatiCount || 0 },
                 { label: 'Licenza FIFA', value: hasFifa ? 'Sì' : 'No' },
             ]

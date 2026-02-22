@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         let dbQuery = supabase
             .from('sports_organizations')
-            .select('*')
+            .select('id, name, country, city, sport_id, lookup_sports(name)')
             .is('deleted_at', null)
             .order('name')
 
@@ -27,7 +27,16 @@ export async function GET(request: NextRequest) {
         }
 
         if (sport) {
-            dbQuery = dbQuery.eq('sport', sport)
+            // Risolve il nome sport → sport_id tramite join
+            const { data: sportRow } = await supabase
+                .from('lookup_sports')
+                .select('id')
+                .ilike('name', sport)
+                .maybeSingle()
+
+            if (sportRow) {
+                dbQuery = dbQuery.eq('sport_id', sportRow.id)
+            }
         }
 
         const { data, error } = await dbQuery.limit(20)
@@ -37,7 +46,17 @@ export async function GET(request: NextRequest) {
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
-        return withCors(NextResponse.json(data))
+        // Normalizza la risposta: aggiunge `sport` come stringa per compatibilità col frontend
+        const normalized = (data || []).map((org: any) => ({
+            id: org.id,
+            name: org.name,
+            country: org.country,
+            city: org.city,
+            sport_id: org.sport_id,
+            sport: org.lookup_sports?.name ?? null,
+        }))
+
+        return withCors(NextResponse.json(normalized))
     } catch (error) {
         console.error('Unexpected error:', error)
         return withCors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))

@@ -110,13 +110,28 @@ export async function POST(req: NextRequest) {
             }
 
             // 1. Cerca l'organizzazione nel database
-            const { data: existingOrg } = await supabase
+            // Risolve sport_id da nome sport se presente
+            let sportIdFilter: number | null = null
+            if (orgSport) {
+                const { data: sportRow } = await supabase
+                    .from('lookup_sports')
+                    .select('id')
+                    .ilike('name', orgSport)
+                    .maybeSingle()
+                sportIdFilter = sportRow?.id ?? null
+            }
+
+            let orgQuery = supabase
                 .from('sports_organizations')
                 .select('id')
                 .eq('name', orgName)
                 .eq('country', orgCountry)
-                .eq('sport', orgSport)
-                .maybeSingle()
+
+            if (sportIdFilter) {
+                orgQuery = orgQuery.eq('sport_id', sportIdFilter)
+            }
+
+            const { data: existingOrg } = await orgQuery.maybeSingle()
 
             if (!existingOrg) {
                 // Organizzazione non trovata - skip e riporta errore

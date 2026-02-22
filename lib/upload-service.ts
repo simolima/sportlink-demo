@@ -1,14 +1,10 @@
+import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+
 /**
  * Upload Service - Abstract interface for file uploads
- * 
- * This service provides an abstraction layer for file uploads.
- * Current implementation: LocalUploadService (saves to /public/avatars)
- * Future implementation: SupabaseUploadService (saves to Supabase Storage)
- * 
- * To migrate to Supabase:
- * 1. Create SupabaseUploadService implementing IUploadService
- * 2. Update getUploadService() to return new SupabaseUploadService()
- * 3. No changes needed in components or API routes!
+ *
+ * Current implementation: SupabaseUploadService (saves to Supabase Storage bucket 'avatars')
  */
 
 export interface UploadResult {
@@ -33,53 +29,11 @@ export interface IUploadService {
     deleteFile(url: string): Promise<boolean>
 }
 
-/**
- * Local Upload Service - Saves files to /public/avatars
- * Used for development and testing
- */
-class LocalUploadService implements IUploadService {
-    async uploadFile(file: File, folder: string = 'avatars'): Promise<UploadResult> {
-        try {
-            const formData = new FormData()
-            formData.append('file', file)
-            formData.append('folder', folder)
-
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            })
-
-            if (!response.ok) {
-                const error = await response.text()
-                return { success: false, error }
-            }
-
-            const data = await response.json()
-            return { success: true, url: data.url }
-        } catch (error) {
-            console.error('Upload error:', error)
-            return { success: false, error: 'Upload failed' }
-        }
-    }
-
-    async deleteFile(url: string): Promise<boolean> {
-        try {
-            // For local files, we could implement deletion via API
-            // For now, just return true (files stay in public folder)
-            console.log('Delete not implemented for local storage:', url)
-            return true
-        } catch (error) {
-            console.error('Delete error:', error)
-            return false
-        }
-    }
-}
+const BUCKET = 'avatars'
 
 /**
- * Supabase Upload Service - PLACEHOLDER for future implementation
- * Uncomment and implement when migrating to Supabase
+ * Supabase Upload Service - Saves files to Supabase Storage bucket 'avatars'
  */
-/*
 class SupabaseUploadService implements IUploadService {
     private supabase: SupabaseClient
 
@@ -92,11 +46,12 @@ class SupabaseUploadService implements IUploadService {
 
     async uploadFile(file: File, folder: string = 'avatars'): Promise<UploadResult> {
         try {
-            const fileName = `${Date.now()}-${file.name}`
+            const ext = file.name.split('.').pop() ?? 'jpg'
+            const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
             const filePath = `${folder}/${fileName}`
 
-            const { data, error } = await this.supabase.storage
-                .from('public-assets') // or your bucket name
+            const { error } = await this.supabase.storage
+                .from(BUCKET)
                 .upload(filePath, file, {
                     cacheControl: '3600',
                     upsert: false
@@ -106,9 +61,8 @@ class SupabaseUploadService implements IUploadService {
                 return { success: false, error: error.message }
             }
 
-            // Get public URL
             const { data: { publicUrl } } = this.supabase.storage
-                .from('public-assets')
+                .from(BUCKET)
                 .getPublicUrl(filePath)
 
             return { success: true, url: publicUrl }
@@ -120,13 +74,15 @@ class SupabaseUploadService implements IUploadService {
 
     async deleteFile(url: string): Promise<boolean> {
         try {
-            // Extract file path from URL
-            const urlObj = new URL(url)
-            const pathParts = urlObj.pathname.split('/')
-            const filePath = pathParts.slice(pathParts.indexOf('avatars')).join('/')
+            // Estrae il path relativo dall'URL pubblico Supabase
+            // es: https://xxx.supabase.co/storage/v1/object/public/avatars/avatars/file.jpg
+            const marker = `/object/public/${BUCKET}/`
+            const idx = url.indexOf(marker)
+            if (idx === -1) return false
+            const filePath = url.slice(idx + marker.length)
 
             const { error } = await this.supabase.storage
-                .from('public-assets')
+                .from(BUCKET)
                 .remove([filePath])
 
             return !error
@@ -136,18 +92,12 @@ class SupabaseUploadService implements IUploadService {
         }
     }
 }
-*/
 
 /**
- * Factory function to get the appropriate upload service
- * Switch between Local and Supabase by changing the return value
+ * Factory function - restituisce il servizio di upload attivo
  */
 export function getUploadService(): IUploadService {
-    // TODO: When migrating to Supabase, uncomment the next line and comment out the current return
-    // return new SupabaseUploadService()
-
-    return new LocalUploadService()
+    return new SupabaseUploadService()
 }
 
-// Helper function for client-side usage
 export const uploadService = getUploadService()

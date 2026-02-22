@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-import { existsSync, mkdirSync } from 'fs'
+import { createClient } from '@supabase/supabase-js'
+import { withCors } from '@/lib/cors'
 
 export const runtime = 'nodejs'
 
+const BUCKET = 'avatars'
+
 /**
  * POST /api/upload
- * Handles file uploads to /public/avatars/
- * 
+ * Carica un file su Supabase Storage bucket 'avatars'
+ *
  * Body (FormData):
- * - file: File to upload
- * - folder: Optional folder name (default: 'avatars')
- * 
- * Returns: { url: string } - Public URL of uploaded file
- * 
- * NOTE: This implementation saves to local filesystem.
- * When migrating to Supabase, this endpoint can be removed
- * and uploads will go directly to Supabase Storage from the client.
+ * - file: File da caricare
+ * - folder: Sottocartella opzionale (default: 'avatars')
+ *
+ * Returns: { url: string } - URL pubblico del file caricato
  */
 export async function POST(req: Request) {
     try {
@@ -27,54 +24,69 @@ export async function POST(req: Request) {
         const folder = rawFolder ? String(rawFolder) : 'avatars'
 
         if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+            return withCors(NextResponse.json({ error: 'No file provided' }, { status: 400 }))
         }
 
-        // Validate file type (images only)
+        // Valida tipo file (solo immagini)
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
         if (!allowedTypes.includes(file.type)) {
-            return NextResponse.json(
+            return withCors(NextResponse.json(
                 { error: 'Invalid file type. Only images are allowed.' },
                 { status: 400 }
-            )
+            ))
         }
 
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024 // 5MB
+        // Valida dimensione (max 5MB)
+        const maxSize = 5 * 1024 * 1024
         if (file.size > maxSize) {
-            return NextResponse.json(
+            return withCors(NextResponse.json(
                 { error: 'File too large. Maximum size is 5MB.' },
                 { status: 400 }
-            )
+            ))
         }
 
-        // Generate unique filename
-        const timestamp = Date.now()
-        const extension = file.name.split('.').pop()
-        const fileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`
+        // Genera nome file univoco
+        const ext = file.name.split('.').pop() ?? 'jpg'
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const filePath = `${folder}/${fileName}`
 
-        // Ensure folder exists
-        const uploadDir = join(process.cwd(), 'public', folder)
-        if (!existsSync(uploadDir)) {
-            mkdirSync(uploadDir, { recursive: true })
-        }
+        // Carica su Supabase Storage
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
 
-        // Convert file to buffer and save
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
-        const filePath = join(uploadDir, fileName)
 
-        await writeFile(filePath, buffer)
+        const { error } = await supabase.storage
+            .from(BUCKET)
+            .upload(filePath, buffer, {
+                contentType: file.type,
+                cacheControl: '3600',
+                upsert: false
+            })
 
-        // Return public URL
-        const publicUrl = `/${folder}/${fileName}`
+        if (error) {
+            console.error('Supabase storage error:', error)
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
 
-        return NextResponse.json({ url: publicUrl }, { status: 201 })
+        // Ottieni URL pubblico
+        const { data: { publicUrl } } = supabase.storage
+            .from(BUCKET)
+            .getPublicUrl(filePath)
+
+        return withCors(NextResponse.json({ url: publicUrl }, { status: 201 }))
     } catch (error) {
         console.error('Upload error:', error)
-        return NextResponse.json(
+        return withCors(NextResponse.json(
             { error: 'Upload failed. Please try again.' },
             { status: 500 }
-        )
+        ))
     }
+}
+
+export async function OPTIONS() {
+    return withCors(new NextResponse(null, { status: 204 }))
 }

@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
                     name,
                     country,
                     city,
-                    sport
+                    sport_id,
+                    lookup_sports(name)
                 ),
                 position:lookup_positions(
                     id,
@@ -50,7 +51,16 @@ export async function GET(req: NextRequest) {
             )
         }
 
-        return withCors(NextResponse.json(experiences || []))
+        // Normalizza: aggiunge `organization.sport` come stringa per il frontend
+        const normalized = (experiences || []).map((exp: any) => ({
+            ...exp,
+            organization: exp.organization ? {
+                ...exp.organization,
+                sport: exp.organization.lookup_sports?.name ?? null,
+            } : null,
+        }))
+
+        return withCors(NextResponse.json(normalized))
     } catch (err: any) {
         console.error('Unexpected error in GET /api/career-experiences:', err)
         return withCors(
@@ -85,7 +95,16 @@ export async function POST(req: NextRequest) {
         for (const exp of experiences) {
             // 0. Validazione campi obbligatori
             const orgName = exp.team?.trim()
-            const orgCountry = exp.country?.trim() || 'Italia'
+            const orgCountryRaw = exp.country?.trim() || 'Italia'
+            // Normalizza country: il form usa nomi italiani, il DB usa nomi in inglese
+            const countryMap: Record<string, string> = {
+                'italia': 'Italy', 'spagna': 'Spain', 'francia': 'France',
+                'germania': 'Germany', 'inghilterra': 'England', 'portogallo': 'Portugal',
+                'olanda': 'Netherlands', 'belgio': 'Belgium', 'svizzera': 'Switzerland',
+                'austria': 'Austria', 'grecia': 'Greece', 'turchia': 'Turkey',
+                'stati uniti': 'United States', 'brasile': 'Brazil', 'argentina': 'Argentina',
+            }
+            const orgCountry = countryMap[orgCountryRaw.toLowerCase()] ?? orgCountryRaw
             const orgSport = exp.sport?.trim() || 'Calcio'
             const season = exp.season?.trim()
 
@@ -110,13 +129,39 @@ export async function POST(req: NextRequest) {
             }
 
             // 1. Cerca l'organizzazione nel database
-            const { data: existingOrg } = await supabase
+            // Risolve sport_id da nome sport se presente
+            let sportIdFilter: number | null = null
+            if (orgSport) {
+                const { data: sportRow } = await supabase
+                    .from('lookup_sports')
+                    .select('id')
+                    .ilike('name', orgSport)
+                    .maybeSingle()
+                sportIdFilter = sportRow?.id ?? null
+            }
+
+            let orgQuery = supabase
                 .from('sports_organizations')
                 .select('id')
-                .eq('name', orgName)
+                .ilike('name', orgName)
                 .eq('country', orgCountry)
-                .eq('sport', orgSport)
-                .maybeSingle()
+
+            if (sportIdFilter) {
+                orgQuery = orgQuery.eq('sport_id', sportIdFilter)
+            }
+
+            let { data: existingOrg } = await orgQuery.maybeSingle()
+
+            // Fallback: cerca senza filtro country (gestisce varianti non mappate)
+            if (!existingOrg) {
+                let fallbackQuery = supabase
+                    .from('sports_organizations')
+                    .select('id')
+                    .ilike('name', orgName)
+                if (sportIdFilter) fallbackQuery = fallbackQuery.eq('sport_id', sportIdFilter)
+                const { data: fallbackOrg } = await fallbackQuery.maybeSingle()
+                existingOrg = fallbackOrg
+            }
 
             if (!existingOrg) {
                 // Organizzazione non trovata - skip e riporta errore

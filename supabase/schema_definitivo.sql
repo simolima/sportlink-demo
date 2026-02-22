@@ -56,17 +56,17 @@ create table public.sports_organizations (
   name text not null,
   country text not null,
   city text,
-  sport text not null,
+  sport_id bigint references public.lookup_sports(id) on delete restrict not null,
   created_at timestamptz default now(),
   deleted_at timestamptz,
-  
+
   -- Vincolo: evita duplicati (stessa società, stessa nazione, stessa città, stesso sport)
-  constraint unique_org unique (name, country, city, sport)
+  constraint unique_org unique (name, country, city, sport_id)
 );
 
 -- Indici per performance ricerca autocomplete
 create index idx_sports_orgs_name on public.sports_organizations (name) where deleted_at is null;
-create index idx_sports_orgs_country_sport on public.sports_organizations (country, sport) where deleted_at is null;
+create index idx_sports_orgs_country_sport on public.sports_organizations (country, sport_id) where deleted_at is null;
 
 insert into public.lookup_sports (name) values ('Calcio'), ('Basket'), ('Volley');
 

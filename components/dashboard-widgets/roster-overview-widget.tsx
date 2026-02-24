@@ -30,7 +30,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                 if (affRes.ok) {
                     const affiliations = await affRes.json()
                     const myAffiliations = affiliations.filter((a: any) => a.agentId === userId)
-                    const accepted = myAffiliations.filter((a: any) => a.status === 'accepted')
+                    const accepted = myAffiliations.filter((a: any) => a.status === 'active')
                     const pending = myAffiliations.filter((a: any) => a.status === 'pending')
 
                     setTotalAthletes(accepted.length)

@@ -3,7 +3,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
-import { MapPinIcon, CheckBadgeIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, CheckBadgeIcon, AcademicCapIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
 interface CoachCardProps {
     coach: any
@@ -17,116 +17,99 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
         router.push(`/profile/${coach.id}`)
     }
 
+    const fullName = `${coach.firstName || ''} ${coach.lastName || ''}`.trim() || 'Allenatore'
     const mainSport = Array.isArray(coach.sports) && coach.sports.length > 0
         ? coach.sports[0]
-        : coach.sport || 'Sport'
-    const location = coach.city || coach.country || 'Non specificato'
+        : coach.sport || ''
+    const city = coach.city || ''
+    const country = coach.country || ''
     const isVerified = coach.verified === true
     const uefaLicenses = Array.isArray(coach.uefaLicenses) ? coach.uefaLicenses : []
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-            {/* Header with gradient for Coaches */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
-
-            {/* Content */}
-            <div className="px-4 pb-4 flex flex-col h-full">
-                {/* Avatar section */}
-                <div className="flex items-start justify-between -mt-12 relative z-10 mb-3">
-                    <div className="flex items-start gap-3 flex-1">
-                        <Avatar
-                            src={coach.avatarUrl || ''}
-                            alt={`${coach.firstName} ${coach.lastName}`}
-                            fallbackText={coach.firstName?.charAt(0) || 'A'}
-                            size="lg"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mt-2">
-                                <h3 className="font-bold text-lg text-gray-900">
-                                    {coach.firstName} {coach.lastName}
-                                </h3>
-                                {isVerified && (
-                                    <CheckBadgeIcon className="w-5 h-5 text-purple-600" />
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-600">Allenatore</p>
+        <div
+            onClick={handleProfileClick}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200 h-full flex flex-col cursor-pointer group"
+        >
+            <div className="p-5 flex flex-col h-full">
+                {/* Top: Avatar + Name + Follow */}
+                <div className="flex items-start gap-3.5 mb-4">
+                    <Avatar
+                        src={coach.avatarUrl || ''}
+                        alt={fullName}
+                        fallbackText={coach.firstName?.charAt(0) || 'A'}
+                        size="lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-green-700 transition-colors">
+                                {fullName}
+                            </h3>
+                            {isVerified && (
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-purple-500 flex-shrink-0" />
+                            )}
                         </div>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                            Allenatore{coach.coachSpecializations ? ` · ${coach.coachSpecializations}` : ''}
+                        </p>
                     </div>
-
                     {currentUserId && currentUserId !== coach.id && (
-                        <div className="flex-shrink-0 mt-2">
+                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                             <FollowButton targetId={coach.id} />
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col gap-3 flex-1">
-                    {/* Bio - min height for consistency */}
-                    <div className="min-h-[2.5rem]">
-                        {coach.bio && (
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                                {coach.bio}
-                            </p>
+                {/* Bio */}
+                {coach.bio && (
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                        {coach.bio}
+                    </p>
+                )}
+
+                {/* Tags row */}
+                <div className="flex flex-wrap items-center gap-2 mt-auto">
+                    {mainSport && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                            {mainSport}
+                        </span>
+                    )}
+                    {uefaLicenses.length > 0 && uefaLicenses.slice(0, 2).map((license: string, idx: number) => (
+                        <span key={idx} className="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                            <AcademicCapIcon className="w-3 h-3 inline mr-0.5 -mt-0.5" />
+                            {license}
+                        </span>
+                    ))}
+                    {uefaLicenses.length > 2 && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                            +{uefaLicenses.length - 2}
+                        </span>
+                    )}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${coach.availability === 'Disponibile'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : 'bg-gray-50 text-gray-500 border border-gray-200'
+                        }`}>
+                        {coach.availability || 'Non specificato'}
+                    </span>
+                </div>
+
+                {/* Location & Country footer */}
+                {(city || country) && (
+                    <div className="flex items-center gap-3 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+                        {city && (
+                            <div className="flex items-center gap-1">
+                                <MapPinIcon className="w-3.5 h-3.5" />
+                                <span>{city}</span>
+                            </div>
                         )}
-                    </div>
-
-                    {/* Sport & Location Row */}
-                    <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                            <span className="font-medium text-gray-700">{mainSport}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                            <MapPinIcon className="w-4 h-4" />
-                            <span>{location}</span>
-                        </div>
-                    </div>
-
-                    {/* UEFA Licenses - min height for alignment */}
-                    <div className="min-h-[2rem]">
-                        {uefaLicenses.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {uefaLicenses.slice(0, 2).map((license: string, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-1 bg-purple-50 border border-purple-200 px-2 py-1 rounded text-xs">
-                                        <AcademicCapIcon className="w-3.5 h-3.5 text-purple-600" />
-                                        <span className="text-purple-900 font-semibold">{license}</span>
-                                    </div>
-                                ))}
-                                {uefaLicenses.length > 2 && (
-                                    <span className="text-xs font-semibold px-2.5 py-1 rounded bg-gray-100 text-gray-800">
-                                        +{uefaLicenses.length - 2} licenze
-                                    </span>
-                                )}
+                        {country && (
+                            <div className="flex items-center gap-1">
+                                <GlobeAltIcon className="w-3.5 h-3.5" />
+                                <span>{country}</span>
                             </div>
                         )}
                     </div>
-
-                    {/* Specialization */}
-                    {coach.coachSpecializations && (
-                        <div>
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded bg-gray-100 text-gray-800">
-                                {coach.coachSpecializations}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Availability */}
-                    <div>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${coach.availability === 'Disponibile'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {coach.availability || 'Non specificato'}
-                        </span>
-                    </div>
-                </div>
-
-                {/* View Profile Button */}
-                <button
-                    onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                >
-                    Visualizza Profilo
-                </button>
+                )}
             </div>
         </div>
     )

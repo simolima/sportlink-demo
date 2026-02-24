@@ -3,7 +3,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
-import { MapPinIcon, CheckBadgeIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, CheckBadgeIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
 interface ProfessionalCardProps {
     professional: any
@@ -17,113 +17,93 @@ export default function ProfessionalCard({ professional, currentUserId }: Profes
         router.push(`/profile/${professional.id}`)
     }
 
+    const fullName = `${professional.firstName || ''} ${professional.lastName || ''}`.trim() || 'Professionista'
     const mainSport = Array.isArray(professional.sports) && professional.sports.length > 0
         ? professional.sports[0]
-        : professional.sport || 'Sport'
-    const location = professional.city || professional.country || 'Non specificato'
+        : professional.sport || ''
+    const city = professional.city || ''
+    const country = professional.country || ''
     const isVerified = professional.verified === true
-
-    // Get role label
     const roleLabel = professional.professionalRole || 'Professionista'
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-            {/* Header with green gradient */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
-
-            {/* Content */}
-            <div className="px-4 pb-4 flex flex-col h-full">
-                {/* Avatar section */}
-                <div className="flex items-start justify-between -mt-12 relative z-10 mb-3">
-                    <div className="flex items-start gap-3 flex-1">
-                        <Avatar
-                            src={professional.avatarUrl || ''}
-                            alt={`${professional.firstName} ${professional.lastName}`}
-                            fallbackText={professional.firstName?.charAt(0) || 'P'}
-                            size="lg"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mt-2">
-                                <h3 className="font-bold text-lg text-gray-900">
-                                    {professional.firstName} {professional.lastName}
-                                </h3>
-                                {isVerified && (
-                                    <CheckBadgeIcon className="w-5 h-5 text-green-600" />
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-600">{roleLabel}</p>
+        <div
+            onClick={handleProfileClick}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200 h-full flex flex-col cursor-pointer group"
+        >
+            <div className="p-5 flex flex-col h-full">
+                {/* Top: Avatar + Name + Follow */}
+                <div className="flex items-start gap-3.5 mb-4">
+                    <Avatar
+                        src={professional.avatarUrl || ''}
+                        alt={fullName}
+                        fallbackText={professional.firstName?.charAt(0) || 'P'}
+                        size="lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-green-700 transition-colors">
+                                {fullName}
+                            </h3>
+                            {isVerified && (
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-green-500 flex-shrink-0" />
+                            )}
                         </div>
+                        <p className="text-sm text-gray-500 mt-0.5">{roleLabel}</p>
                     </div>
-
                     {currentUserId && currentUserId !== professional.id && (
-                        <div className="flex-shrink-0 mt-2">
+                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                             <FollowButton targetId={professional.id} />
                         </div>
                     )}
                 </div>
 
-                {/* Info Section */}
-                <div className="space-y-2 mb-4 flex-1">
-                    {/* Sport */}
-                    <div className="flex items-center gap-2">
-                        <BriefcaseIcon className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-700 font-medium">{mainSport}</span>
-                    </div>
+                {/* Bio */}
+                {professional.bio && (
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                        {professional.bio}
+                    </p>
+                )}
 
-                    {/* Location */}
-                    <div className="flex items-center gap-2">
-                        <MapPinIcon className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{location}</span>
-                    </div>
-
-                    {/* Availability */}
-                    {professional.availability && (
-                        <div className="mt-2">
-                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${professional.availability === 'Disponibile'
-                                    ? 'bg-green-100 text-green-800'
-                                    : professional.availability === 'Valuta proposte'
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                {professional.availability}
-                            </span>
-                        </div>
+                {/* Tags row */}
+                <div className="flex flex-wrap items-center gap-2 mt-auto">
+                    {mainSport && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                            {mainSport}
+                        </span>
                     )}
-
-                    {/* Bio */}
-                    {professional.bio && (
-                        <p className="text-sm text-gray-600 line-clamp-2 mt-2">
-                            {professional.bio}
-                        </p>
-                    )}
-
-                    {/* Certifications preview */}
-                    {Array.isArray(professional.certifications) && professional.certifications.length > 0 && (
-                        <div className="mt-2">
-                            <p className="text-xs text-gray-500 font-medium">Certificazioni:</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                                {professional.certifications.slice(0, 2).map((cert: any, idx: number) => (
-                                    <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">
-                                        {typeof cert === 'string' ? cert : (cert.name || cert.title || 'Certificazione')}
-                                    </span>
-                                ))}
-                                {professional.certifications.length > 2 && (
-                                    <span className="text-xs text-gray-500">
-                                        +{professional.certifications.length - 2}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {Array.isArray(professional.certifications) && professional.certifications.slice(0, 2).map((cert: any, idx: number) => (
+                        <span key={idx} className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            {typeof cert === 'string' ? cert : (cert.name || cert.title || 'Cert.')}
+                        </span>
+                    ))}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${professional.availability === 'Disponibile'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : professional.availability === 'Valuta proposte'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                            : 'bg-gray-50 text-gray-500 border border-gray-200'
+                        }`}>
+                        {professional.availability || 'Non specificato'}
+                    </span>
                 </div>
 
-                {/* Action Button */}
-                <button
-                    onClick={handleProfileClick}
-                    className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                >
-                    Visualizza Profilo
-                </button>
+                {/* Location & Country footer */}
+                {(city || country) && (
+                    <div className="flex items-center gap-3 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+                        {city && (
+                            <div className="flex items-center gap-1">
+                                <MapPinIcon className="w-3.5 h-3.5" />
+                                <span>{city}</span>
+                            </div>
+                        )}
+                        {country && (
+                            <div className="flex items-center gap-1">
+                                <GlobeAltIcon className="w-3.5 h-3.5" />
+                                <span>{country}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )

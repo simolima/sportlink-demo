@@ -50,7 +50,7 @@ export default function ProfileSidebar({
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
     const [requestingAffiliation, setRequestingAffiliation] = useState(false)
-    const [affiliationStatus, setAffiliationStatus] = useState<'none' | 'pending' | 'accepted'>('none')
+    const [affiliationStatus, setAffiliationStatus] = useState<'none' | 'pending' | 'active'>('none')
 
     const role = user?.professionalRole || 'Professionista'
     const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
@@ -555,7 +555,7 @@ export default function ProfileSidebar({
                                     </div>
                                 </div>
                             )}
-                            {affiliationStatus === 'accepted' && (
+                            {affiliationStatus === 'active' && (
                                 <div className="w-full px-4 py-3 bg-green-100 text-green-700 rounded-lg font-semibold border border-green-300 text-center">
                                     <div className="flex items-center justify-center gap-2">
                                         <CheckIcon className="w-5 h-5" />

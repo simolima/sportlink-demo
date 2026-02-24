@@ -83,7 +83,7 @@ export default function OpportunitiesPage() {
 
       // Se è un Agent, carica i giocatori affiliati
       if (user && user.professionalRole === 'Agent') {
-        const affiliationsRes = await fetch(`/api/affiliations?agentId=${userId}&status=accepted`)
+        const affiliationsRes = await fetch(`/api/affiliations?agentId=${userId}&status=active`)
         const affiliations = await affiliationsRes.json()
         setAffiliatedPlayers(affiliations.map((aff: any) => aff.player).filter(Boolean))
       }

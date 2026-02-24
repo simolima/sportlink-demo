@@ -37,7 +37,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                     const announcements = await annRes.json()
 
                     const myAthleteIds = affiliations
-                        .filter((a: any) => a.agentId === userId && a.status === 'accepted')
+                        .filter((a: any) => a.agentId === userId && a.status === 'active')
                         .map((a: any) => a.athleteId)
 
                     const myAthletes = users.filter((u: any) => myAthleteIds.includes(String(u.id)))

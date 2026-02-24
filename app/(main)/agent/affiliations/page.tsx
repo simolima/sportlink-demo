@@ -17,7 +17,7 @@ export default function AgentAffiliationsPage() {
     const [affiliations, setAffiliations] = useState<AffiliationWithDetails[]>([])
     const [loading, setLoading] = useState(true)
     const [currentUser, setCurrentUser] = useState<any>(null)
-    const [filter, setFilter] = useState<'all' | 'pending' | 'accepted'>('all')
+    const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all')
     const [showRequestModal, setShowRequestModal] = useState(false)
     const [players, setPlayers] = useState<any[]>([])
     const [searchTerm, setSearchTerm] = useState('')
@@ -180,7 +180,7 @@ export default function AgentAffiliationsPage() {
 
     // Filtri derivati da affiliations per status/tab
     const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
-    const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
+    const acceptedAffiliations = affiliations.filter((a) => a.status === 'active')
     const rejectedAffiliations = affiliations.filter((a) => a.status === 'rejected')
     const filteredAffiliations =
         filter === 'all'
@@ -349,8 +349,8 @@ export default function AgentAffiliationsPage() {
                         In Attesa ({pendingAffiliations.length})
                     </button>
                     <button
-                        onClick={() => setFilter('accepted')}
-                        className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'accepted'
+                        onClick={() => setFilter('active')}
+                        className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'active'
                             ? 'bg-primary text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
@@ -404,7 +404,7 @@ export default function AgentAffiliationsPage() {
                             key={affiliation.id}
                             className={`rounded-lg shadow-sm p-6 ${affiliation.status === 'pending'
                                 ? 'bg-warning/5 border-2 border-warning/20'
-                                : affiliation.status === 'accepted'
+                                : affiliation.status === 'active'
                                     ? 'bg-primary/5 border-2 border-primary/20'
                                     : 'bg-error/5 border-2 border-error/20'
                                 }`}
@@ -426,7 +426,7 @@ export default function AgentAffiliationsPage() {
                                         <p className="text-xs text-gray-500 mt-1">
                                             Richiesta inviata il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
                                         </p>
-                                        {affiliation.status === 'accepted' && affiliation.affiliatedAt && (
+                                        {affiliation.status === 'active' && affiliation.affiliatedAt && (
                                             <p className="text-xs text-success font-medium mt-1">
                                                 ✓ Affiliato dal: {new Date(affiliation.affiliatedAt).toLocaleDateString('it-IT')}
                                             </p>
@@ -451,14 +451,14 @@ export default function AgentAffiliationsPage() {
                                     <span
                                         className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 ${affiliation.status === 'pending'
                                             ? 'bg-warning/20 text-warning'
-                                            : affiliation.status === 'accepted'
+                                            : affiliation.status === 'active'
                                                 ? 'bg-green-100 text-green-700 border-2 border-green-500'
                                                 : 'bg-error/20 text-error'
                                             }`}
                                     >
                                         {affiliation.status === 'pending'
                                             ? 'In Attesa'
-                                            : affiliation.status === 'accepted'
+                                            : affiliation.status === 'active'
                                                 ? <>✓ Accettata</>
                                                 : 'Rifiutata'}
                                     </span>
@@ -491,7 +491,7 @@ export default function AgentAffiliationsPage() {
                                     )}
 
                                     {/* Actions for accepted */}
-                                    {affiliation.status === 'accepted' && (
+                                    {affiliation.status === 'active' && (
                                         <>
                                             <button
                                                 onClick={() => router.push(`/messages/${affiliation.player?.id}`)}

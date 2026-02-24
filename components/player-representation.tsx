@@ -9,7 +9,7 @@ interface Affiliation {
     id: number
     agentId: number
     playerId: number
-    status: 'pending' | 'accepted' | 'rejected'
+    status: 'pending' | 'active' | 'rejected'
     requestedAt: string
     affiliatedAt?: string
     message?: string
@@ -62,7 +62,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     id: affiliationId,
-                    status: 'accepted',
+                    status: 'active',
                 }),
             })
 
@@ -145,7 +145,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
     }
 
     const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
-    const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
+    const acceptedAffiliations = affiliations.filter((a) => a.status === 'active')
 
     // Se non è il proprio profilo, mostra solo l'agente affiliato (se presente)
     if (!isOwnProfile) {

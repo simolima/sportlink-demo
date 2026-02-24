@@ -154,7 +154,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     .from('affiliations')
                     .select('*', { count: 'exact', head: true })
                     .eq('agent_id', params.id)
-                    .eq('status', 'accepted')
+                    .eq('status', 'active')
 
                 setAssistatiCount(assistatiC || 0)
 

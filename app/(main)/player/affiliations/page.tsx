@@ -16,7 +16,7 @@ export default function PlayerAffiliationsPage() {
   const [affiliations, setAffiliations] = useState<AffiliationWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'accepted'>('all')
+  const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all')
 
   useEffect(() => {
     const loadData = async () => {
@@ -90,7 +90,7 @@ export default function PlayerAffiliationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: affiliationId,
-          status: 'accepted',
+          status: 'active',
         }),
       })
 
@@ -164,7 +164,7 @@ export default function PlayerAffiliationsPage() {
 
   // --- Filtri derivati da affiliations per status/tab ---
   const pendingAffiliations = affiliations.filter((a) => a.status === 'pending')
-  const acceptedAffiliations = affiliations.filter((a) => a.status === 'accepted')
+  const acceptedAffiliations = affiliations.filter((a) => a.status === 'active')
   const filteredAffiliations =
     filter === 'all'
       ? affiliations
@@ -217,8 +217,8 @@ export default function PlayerAffiliationsPage() {
           In Attesa ({pendingAffiliations.length})
         </button>
         <button
-          onClick={() => setFilter('accepted')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'accepted'
+          onClick={() => setFilter('active')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${filter === 'active'
             ? 'bg-primary text-white'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -265,7 +265,7 @@ export default function PlayerAffiliationsPage() {
                         Richiesta ricevuta il: {new Date(affiliation.requestedAt).toLocaleDateString('it-IT')}
                       </p>
                     )}
-                    {affiliation.status === 'accepted' && affiliation.affiliatedAt && (
+                    {affiliation.status === 'active' && affiliation.affiliatedAt && (
                       <p className="text-xs text-gray-500 mt-2">
                         Affiliato dal: {new Date(affiliation.affiliatedAt).toLocaleDateString('it-IT')}
                       </p>
@@ -314,7 +314,7 @@ export default function PlayerAffiliationsPage() {
                       </button>
                     </>
                   )}
-                  {affiliation.status === 'accepted' && (
+                  {affiliation.status === 'active' && (
                     <>
                       <button
                         onClick={() => router.push(`/messages/${affiliation.agent?.id}`)}

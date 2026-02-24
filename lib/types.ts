@@ -113,9 +113,9 @@ export type ClubPermission = typeof CLUB_PERMISSIONS[number];
 // Stati affiliazione
 export const AFFILIATION_STATUS = [
   'pending',
-  'accepted',
+  'active',
   'rejected',
-  'blocked'
+  'terminated'
 ] as const;
 
 export type AffiliationStatus = typeof AFFILIATION_STATUS[number];

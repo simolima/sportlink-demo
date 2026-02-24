@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import { FunnelIcon } from '@heroicons/react/24/outline'
-import { SUPPORTED_SPORTS, PROFESSIONAL_ROLES } from '@/lib/types'
+import { SUPPORTED_SPORTS, PROFESSIONAL_ROLES, ROLE_TRANSLATIONS } from '@/lib/types'
 
 interface DynamicFilterBarProps {
     searchTerm: string
@@ -223,7 +223,7 @@ export default function DynamicFilterBar({
                     <option value="all">Tutti i Professionisti</option>
                     {PROFESSIONAL_ROLES.map((role) => (
                         <option key={role} value={role}>
-                            {role}
+                            {ROLE_TRANSLATIONS[role] || role}
                         </option>
                     ))}
                 </select>
@@ -252,7 +252,7 @@ export default function DynamicFilterBar({
             </div>
 
             {/* Position Filter (Contextual - Players only) */}
-            {(roleType === 'Player' || roleType === 'all') && positions.length > 0 && (
+            {(roleType === 'player' || roleType === 'all') && positions.length > 0 && (
                 <div className="mb-6">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Ruolo
@@ -367,7 +367,7 @@ export default function DynamicFilterBar({
             )}
 
             {/* ===== PLAYER-SPECIFIC FILTERS ===== */}
-            {(roleType === 'Player' || roleType === 'all') && (
+            {(roleType === 'player' || roleType === 'all') && (
                 <>
                     {/* Season Filter - PRIMO FILTRO */}
                     <div className="mb-6 pb-6 border-b border-gray-200">
@@ -519,7 +519,7 @@ export default function DynamicFilterBar({
             )}
 
             {/* ===== COACH-SPECIFIC FILTERS ===== */}
-            {(roleType === 'Coach' || roleType === 'all') && (
+            {(roleType === 'coach' || roleType === 'all') && (
                 <>
                     {/* UEFA License Filter */}
                     <div className="mb-6 pb-6 border-b border-gray-200">
@@ -557,7 +557,7 @@ export default function DynamicFilterBar({
             )}
 
             {/* ===== AGENT-SPECIFIC FILTERS ===== */}
-            {(roleType === 'Agent' || roleType === 'all') && (
+            {(roleType === 'agent' || roleType === 'all') && (
                 <>
                     {/* UEFA License Filter */}
                     <div className="mb-6">

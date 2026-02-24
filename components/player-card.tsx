@@ -3,7 +3,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
-import { MapPinIcon, CheckBadgeIcon, TrophyIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, CheckBadgeIcon, TrophyIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
 interface PlayerCardProps {
     player: any
@@ -17,101 +17,101 @@ export default function PlayerCard({ player, currentUserId }: PlayerCardProps) {
         router.push(`/profile/${player.id}`)
     }
 
-    const primaryPosition = player.experiences?.[0]?.primaryPosition || player.level || 'Giocatore'
+    const fullName = `${player.firstName || ''} ${player.lastName || ''}`.trim() || 'Giocatore'
+    const primaryPosition = player.primaryPosition || player.experiences?.[0]?.primaryPosition || player.level || ''
     const mainSport = Array.isArray(player.sports) && player.sports.length > 0
         ? player.sports[0]
-        : player.sport || 'Sport'
-    const location = player.city || player.country || 'Non specificato'
+        : player.sport || ''
+    const city = player.city || ''
+    const country = player.country || ''
     const isVerified = player.verified === true
     const lastSeasonGoals = player.experiences?.[0]?.goals ? parseInt(player.experiences[0].goals) : null
     const lastSeasonCategory = player.experiences?.[0]?.category || ''
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-            {/* Header with blue gradient for Players */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
-
-            {/* Content */}
-            <div className="px-4 pb-4 flex flex-col h-full">
-                {/* Avatar section */}
-                <div className="flex items-start justify-between -mt-12 relative z-10 mb-3">
-                    <div className="flex items-start gap-3 flex-1">
-                        <Avatar
-                            src={player.avatarUrl || ''}
-                            alt={`${player.firstName} ${player.lastName}`}
-                            fallbackText={player.firstName?.charAt(0) || 'P'}
-                            size="lg"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mt-2">
-                                <h3 className="font-bold text-lg text-gray-900">
-                                    {player.firstName} {player.lastName}
-                                </h3>
-                                {isVerified && (
-                                    <CheckBadgeIcon className="w-5 h-5 text-blue-600" />
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-600">{primaryPosition}</p>
+        <div
+            onClick={handleProfileClick}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200 h-full flex flex-col cursor-pointer group"
+        >
+            <div className="p-5 flex flex-col h-full">
+                {/* Top: Avatar + Name + Follow */}
+                <div className="flex items-start gap-3.5 mb-4">
+                    <Avatar
+                        src={player.avatarUrl || ''}
+                        alt={fullName}
+                        fallbackText={player.firstName?.charAt(0) || 'P'}
+                        size="lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-green-700 transition-colors">
+                                {fullName}
+                            </h3>
+                            {isVerified && (
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-blue-500 flex-shrink-0" />
+                            )}
                         </div>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                            Giocatore{primaryPosition ? ` · ${primaryPosition}` : ''}
+                        </p>
                     </div>
-
                     {currentUserId && currentUserId !== player.id && (
-                        <div className="flex-shrink-0 mt-2">
+                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                             <FollowButton targetId={player.id} />
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col gap-3 flex-1">
-                    {/* Bio - min height for consistency */}
-                    <div className="min-h-[2.5rem]">
-                        {player.bio && (
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                                {player.bio}
-                            </p>
-                        )}
-                    </div>
+                {/* Bio */}
+                {player.bio && (
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                        {player.bio}
+                    </p>
+                )}
 
-                    {/* Sport & Location Row */}
-                    <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                            <span className="font-medium text-gray-700">{mainSport}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                            <MapPinIcon className="w-4 h-4" />
-                            <span>{location}</span>
-                        </div>
-                    </div>
-
-                    {/* Stats row: Goals + Category - min height for alignment */}
-                    <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                        {lastSeasonGoals !== null && (
-                            <div className="flex items-center gap-1 bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs">
-                                <TrophyIcon className="w-3.5 h-3.5 text-blue-600" />
-                                <span className="text-blue-900 font-semibold">{lastSeasonGoals} goal</span>
-                            </div>
-                        )}
-                        {lastSeasonCategory && (
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded bg-gray-100 text-gray-800">
-                                {lastSeasonCategory}
-                            </span>
-                        )}
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${player.availability === 'Disponibile'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {player.availability || 'Non specificato'}
+                {/* Tags row */}
+                <div className="flex flex-wrap items-center gap-2 mt-auto">
+                    {mainSport && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                            {mainSport}
                         </span>
-                    </div>
+                    )}
+                    {lastSeasonCategory && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+                            {lastSeasonCategory}
+                        </span>
+                    )}
+                    {lastSeasonGoals !== null && (
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            <TrophyIcon className="w-3 h-3 inline mr-0.5 -mt-0.5" />
+                            {lastSeasonGoals} goal
+                        </span>
+                    )}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${player.availability === 'Disponibile'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : 'bg-gray-50 text-gray-500 border border-gray-200'
+                        }`}>
+                        {player.availability || 'Non specificato'}
+                    </span>
                 </div>
 
-                {/* View Profile Button */}
-                <button
-                    onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                >
-                    Visualizza Profilo
-                </button>
+                {/* Location & Country footer */}
+                {(city || country) && (
+                    <div className="flex items-center gap-3 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+                        {city && (
+                            <div className="flex items-center gap-1">
+                                <MapPinIcon className="w-3.5 h-3.5" />
+                                <span>{city}</span>
+                            </div>
+                        )}
+                        {country && (
+                            <div className="flex items-center gap-1">
+                                <GlobeAltIcon className="w-3.5 h-3.5" />
+                                <span>{country}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )

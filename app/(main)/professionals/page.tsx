@@ -358,7 +358,7 @@ export default function ProfessionalsPage() {
                                     <button
                                         onClick={() => fetchProfessionals(Math.max(0, offset - limit))}
                                         disabled={offset === 0 || loading}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-[#0A0F32] hover:bg-[#161B4A] disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Precedenti
                                     </button>
@@ -370,7 +370,7 @@ export default function ProfessionalsPage() {
                                     <button
                                         onClick={() => fetchProfessionals(offset + limit)}
                                         disabled={!hasMore || loading}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-[#0A0F32] hover:bg-[#161B4A] disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Successivi
                                     </button>

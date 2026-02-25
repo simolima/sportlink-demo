@@ -5,22 +5,37 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug - Check if secret exists
+      - name: Debug Info
         run: |
-          if [ -z "$HOOK_URL" ]; then
-            echo "❌ ERROR: VERCEL_DEPLOY_HOOK is empty or not set!"
-            exit 1
-          else
-            echo "✅ Secret is set (length: ${#HOOK_URL} chars)"
-          fi
-        env:
-          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          echo "🔍 Workflow triggered by: ${{ github.actor }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "🌿 Branch: ${{ github.ref }}"
+          echo "👤 Event: ${{ github.event_name }}"
       
       - name: Call Vercel Deploy Hook
-        run: curl -X POST "$HOOK_URL"
-        env:
-          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "${{ secrets.VERCEL_DEPLOY_HOOK }}" ]; then
+            echo "❌ ERROR: VERCEL_DEPLOY_HOOK secret is not set"
+            echo "This usually means:"
+            echo "1. Secret is not in Repository Secrets (check Settings > Secrets)"
+            echo "2. Secret is in Environment Secrets instead"
+            echo "3. Workflow doesn't have permission to access it"
+            exit 1
+          fi
+          echo "✅ Secret is present - calling Vercel deploy hook..."
+          RESPONSE=$(curl -X POST -w "\n%{http_code}" "${{ secrets.VERCEL_DEPLOY_HOOK }}")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          echo "📡 HTTP Response Code: $HTTP_CODE"
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+            echo "✅ Deploy triggered successfully!"
+          else
+            echo "❌ Deploy hook failed with code $HTTP_CODE"
+            exit 1
+          fi

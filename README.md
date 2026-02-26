@@ -349,7 +349,7 @@ MIT License - See LICENSE file for details
 
 ## 👥 Team
 
-**SportLink Team** - Building the future of sports networking
+
 
 ## 🆘 Support
 

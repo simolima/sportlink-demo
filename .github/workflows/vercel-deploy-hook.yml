@@ -1,4 +1,4 @@
-name: Vercel Deploy Hook (prod)
+name: Vercel Deploy Trigger Commit
 
 on:
   push:
@@ -9,33 +9,42 @@ permissions:
   contents: read
 
 jobs:
-  trigger:
+  trigger-empty-commit:
+    if: github.event.head_commit.message != 'trigger deploy on vercel'
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Info
+      - name: Checkout main with user token
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.USER_GH_PAT }}
+
+      - name: Validate required secrets
         run: |
-          echo "🔍 Workflow triggered by: ${{ github.actor }}"
-          echo "📝 Commit: ${{ github.sha }}"
-          echo "🌿 Branch: ${{ github.ref }}"
-          echo "👤 Event: ${{ github.event_name }}"
-      
-      - name: Call Vercel Deploy Hook
-        run: |
-          if [ -z "${{ secrets.VERCEL_DEPLOY_HOOK }}" ]; then
-            echo "❌ ERROR: VERCEL_DEPLOY_HOOK secret is not set"
-            echo "This usually means:"
-            echo "1. Secret is not in Repository Secrets (check Settings > Secrets)"
-            echo "2. Secret is in Environment Secrets instead"
-            echo "3. Workflow doesn't have permission to access it"
+          if [ -z "${{ secrets.USER_GH_PAT }}" ]; then
+            echo "❌ Missing secret USER_GH_PAT"
             exit 1
           fi
-          echo "✅ Secret is present - calling Vercel deploy hook..."
-          RESPONSE=$(curl -X POST -w "\n%{http_code}" "${{ secrets.VERCEL_DEPLOY_HOOK }}")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          echo "📡 HTTP Response Code: $HTTP_CODE"
-          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
-            echo "✅ Deploy triggered successfully!"
-          else
-            echo "❌ Deploy hook failed with code $HTTP_CODE"
+          if [ -z "${{ secrets.GIT_USER_NAME }}" ]; then
+            echo "❌ Missing secret GIT_USER_NAME"
             exit 1
           fi
+          if [ -z "${{ secrets.GIT_USER_EMAIL }}" ]; then
+            echo "❌ Missing secret GIT_USER_EMAIL"
+            exit 1
+          fi
+
+      - name: Configure git identity
+        run: |
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+
+      - name: Create empty commit
+        run: git commit --allow-empty -m "trigger deploy on vercel"
+
+      - name: Push empty commit to main
+        env:
+          USER_GH_PAT: ${{ secrets.USER_GH_PAT }}
+        run: |
+          git remote set-url origin https://x-access-token:${USER_GH_PAT}@github.com/${{ github.repository }}.git
+          git push origin main

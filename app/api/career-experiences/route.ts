@@ -1,76 +1,172 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { withCors } from '@/lib/cors'
+import { supabaseServer } from '@/lib/supabase-server'
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// ─── Helper: map frontend role string → profile_type_enum value ───
+function resolveProfileType(role: string | undefined): string {
+    if (!role) return 'player'
+    const lower = role.toLowerCase()
+    if (lower === 'player' || lower.includes('giocatore')) return 'player'
+    if (lower === 'coach' || lower.includes('allenatore') || lower.includes('mister')) return 'coach'
+    if (lower === 'agent' || lower.includes('agente') || lower.includes('procuratore')) return 'agent'
+    if (lower.includes('direttore') || lower.includes('director') || lower === 'ds') return 'sporting_director'
+    if (lower.includes('preparatore') || lower.includes('athletic')) return 'athletic_trainer'
+    if (lower.includes('nutrizionista') || lower.includes('nutritionist')) return 'nutritionist'
+    if (lower.includes('fisioterapista') || lower.includes('physio')) return 'physio'
+    return 'player'
+}
 
+// ─── Helper: determine which stats table to use based on sport + profile_type ───
+function getStatsTable(sportName: string | null, profileType: string): string | null {
+    if (profileType === 'coach') return 'experience_stats_coach'
+    if (profileType !== 'player') return null // only player and coach have stats
+
+    const sport = (sportName || '').toLowerCase()
+    if (sport.includes('basket') || sport.includes('pallacanestro')) {
+        return 'experience_stats_basketball_player'
+    }
+    if (sport.includes('volley') || sport.includes('pallavolo')) {
+        return 'experience_stats_volleyball_player'
+    }
+    // Default: football (calcio, soccer, or unspecified)
+    return 'experience_stats_football_player'
+}
+
+// ─── Country name normalization (Italian → English) ───
+const COUNTRY_MAP: Record<string, string> = {
+    'italia': 'Italy', 'spagna': 'Spain', 'francia': 'France',
+    'germania': 'Germany', 'inghilterra': 'England', 'portogallo': 'Portugal',
+    'olanda': 'Netherlands', 'belgio': 'Belgium', 'svizzera': 'Switzerland',
+    'austria': 'Austria', 'grecia': 'Greece', 'turchia': 'Turkey',
+    'stati uniti': 'United States', 'brasile': 'Brazil', 'argentina': 'Argentina',
+}
+
+// ═══════════════════════════════════════════════════════════════
 // GET /api/career-experiences?userId=xxx
-// Recupera tutte le esperienze di un utente
+// Returns experiences with stats flattened (backward-compatible)
+// ═══════════════════════════════════════════════════════════════
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url)
         const userId = searchParams.get('userId')
 
         if (!userId) {
-            return withCors(
-                NextResponse.json({ error: 'userId is required' }, { status: 400 })
-            )
+            return withCors(NextResponse.json({ error: 'userId is required' }, { status: 400 }))
         }
 
-        const { data: experiences, error } = await supabase
-            .from('career_experiences')
+        // Fetch base experiences with organization + all stats tables via left joins
+        const { data: experiences, error } = await supabaseServer
+            .from('profile_experiences')
             .select(`
                 *,
                 organization:sports_organizations(
-                    id,
-                    name,
-                    country,
-                    city,
-                    sport_id,
+                    id, name, country, city, sport_id,
                     lookup_sports(name)
                 ),
-                position:lookup_positions(
-                    id,
-                    name,
-                    category
+                football_stats:experience_stats_football_player(
+                    position_id, appearances, minutes_played, goals, assists,
+                    clean_sheets, penalties_scored, yellow_cards, red_cards,
+                    substitutions_in, substitutions_out,
+                    position:lookup_positions(id, name, category)
+                ),
+                basketball_stats:experience_stats_basketball_player(
+                    games_played, minutes_played, points_per_game, rebounds
+                ),
+                volleyball_stats:experience_stats_volleyball_player(
+                    matches_played, aces, blocks, digs
+                ),
+                coach_stats:experience_stats_coach(
+                    matches_coached, wins, draws, losses, trophies
                 )
             `)
             .eq('user_id', userId)
             .is('deleted_at', null)
-            .order('season', { ascending: false })
+            .order('start_date', { ascending: false })
 
         if (error) {
             console.error('Error fetching experiences:', error)
-            return withCors(
-                NextResponse.json({ error: error.message }, { status: 500 })
-            )
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
-        // Normalizza: aggiunge `organization.sport` come stringa per il frontend
-        const normalized = (experiences || []).map((exp: any) => ({
-            ...exp,
-            organization: exp.organization ? {
-                ...exp.organization,
-                sport: exp.organization.lookup_sports?.name ?? null,
-            } : null,
-        }))
+        // Flatten stats into top-level fields for backward compatibility with frontend
+        const normalized = (experiences || []).map((exp: any) => {
+            const fb = exp.football_stats // single object or null (1:1 via PK)
+            const bb = exp.basketball_stats
+            const vb = exp.volleyball_stats
+            const co = exp.coach_stats
+
+            return {
+                id: exp.id,
+                user_id: exp.user_id,
+                organization_id: exp.organization_id,
+                profile_type: exp.profile_type,
+                experience_kind: exp.experience_kind,
+                title: exp.title,
+                // Legacy compat: "role" field for frontend mapping
+                role: exp.profile_type === 'player' ? 'Player'
+                    : exp.profile_type === 'coach' ? 'Coach'
+                        : exp.profile_type === 'agent' ? 'Agent'
+                            : 'Other',
+                role_detail: exp.role_detail || exp.title,
+                season: exp.season,
+                category: exp.category,
+                category_tier: exp.category_tier,
+                competition_type: exp.competition_type,
+                start_date: exp.start_date,
+                end_date: exp.end_date,
+                is_current: exp.is_current,
+                employment_type: exp.employment_type,
+                description: exp.description,
+                is_public: exp.is_public,
+                created_at: exp.created_at,
+                updated_at: exp.updated_at,
+                // Organization (enriched with sport name)
+                organization: exp.organization ? {
+                    ...exp.organization,
+                    sport: exp.organization.lookup_sports?.name ?? null,
+                } : null,
+                // Position (from football stats join)
+                position: fb?.position ?? null,
+                // ── Flattened football stats ──
+                appearances: fb?.appearances ?? null,
+                minutes_played: fb?.minutes_played ?? null,
+                goals: fb?.goals ?? null,
+                assists: fb?.assists ?? null,
+                clean_sheets: fb?.clean_sheets ?? null,
+                penalties: fb?.penalties_scored ?? null,
+                yellow_cards: fb?.yellow_cards ?? null,
+                red_cards: fb?.red_cards ?? null,
+                substitutions_in: fb?.substitutions_in ?? null,
+                substitutions_out: fb?.substitutions_out ?? null,
+                // ── Flattened basketball stats ──
+                points_per_game: bb?.points_per_game ?? null,
+                rebounds: bb?.rebounds ?? null,
+                // ── Flattened volleyball stats ──
+                aces: vb?.aces ?? null,
+                blocks: vb?.blocks ?? null,
+                digs: vb?.digs ?? null,
+                // ── Flattened coach stats ──
+                matches_coached: co?.matches_coached ?? null,
+                wins: co?.wins ?? null,
+                draws: co?.draws ?? null,
+                losses: co?.losses ?? null,
+                trophies: co?.trophies ?? null,
+            }
+        })
 
         return withCors(NextResponse.json(normalized))
     } catch (err: any) {
         console.error('Unexpected error in GET /api/career-experiences:', err)
-        return withCors(
-            NextResponse.json({ error: err.message }, { status: 500 })
-        )
+        return withCors(NextResponse.json({ error: err.message }, { status: 500 }))
     }
 }
 
+// ═══════════════════════════════════════════════════════════════
 // POST /api/career-experiences
-// Crea o aggiorna esperienze (upsert multiplo)
+// Create or update experiences (upsert) + stats in child tables
+// ═══════════════════════════════════════════════════════════════
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
@@ -78,61 +174,41 @@ export async function POST(req: NextRequest) {
 
         if (!userId || !Array.isArray(experiences)) {
             return withCors(
-                NextResponse.json(
-                    { error: 'userId and experiences array are required' },
-                    { status: 400 }
-                )
+                NextResponse.json({ error: 'userId and experiences array are required' }, { status: 400 })
             )
         }
-
-        // Per ogni esperienza, dobbiamo:
-        // 1. Trovare l'organization (SOLO LETTURA - no auto-creazione)
-        // 2. Salvare l'esperienza
 
         const savedExperiences = []
         const errors = []
 
         for (const exp of experiences) {
-            // 0. Validazione campi obbligatori
+            // ── 0. Validate required fields ──
             const orgName = exp.team?.trim()
             const orgCountryRaw = exp.country?.trim() || 'Italia'
-            // Normalizza country: il form usa nomi italiani, il DB usa nomi in inglese
-            const countryMap: Record<string, string> = {
-                'italia': 'Italy', 'spagna': 'Spain', 'francia': 'France',
-                'germania': 'Germany', 'inghilterra': 'England', 'portogallo': 'Portugal',
-                'olanda': 'Netherlands', 'belgio': 'Belgium', 'svizzera': 'Switzerland',
-                'austria': 'Austria', 'grecia': 'Greece', 'turchia': 'Turkey',
-                'stati uniti': 'United States', 'brasile': 'Brazil', 'argentina': 'Argentina',
-            }
-            const orgCountry = countryMap[orgCountryRaw.toLowerCase()] ?? orgCountryRaw
+            const orgCountry = COUNTRY_MAP[orgCountryRaw.toLowerCase()] ?? orgCountryRaw
             const orgSport = exp.sport?.trim() || 'Calcio'
             const season = exp.season?.trim()
 
-            // Validazione: team obbligatorio
             if (!orgName) {
                 errors.push({
                     experience: { season: season || '?', team: 'N/A', category: exp.category },
                     error: 'Campo "Organizzazione/Club" obbligatorio'
                 })
-                console.warn('Skipping experience without team name:', exp)
                 continue
             }
 
-            // Validazione: season obbligatoria
             if (!season) {
                 errors.push({
                     experience: { season: 'N/A', team: orgName, category: exp.category },
                     error: 'Campo "Stagione" obbligatorio (es: 2024/2025)'
                 })
-                console.warn('Skipping experience without season:', exp)
                 continue
             }
 
-            // 1. Cerca l'organizzazione nel database
-            // Risolve sport_id da nome sport se presente
+            // ── 1. Resolve organization ──
             let sportIdFilter: number | null = null
             if (orgSport) {
-                const { data: sportRow } = await supabase
+                const { data: sportRow } = await supabaseServer
                     .from('lookup_sports')
                     .select('id')
                     .ilike('name', orgSport)
@@ -140,21 +216,18 @@ export async function POST(req: NextRequest) {
                 sportIdFilter = sportRow?.id ?? null
             }
 
-            let orgQuery = supabase
+            let orgQuery = supabaseServer
                 .from('sports_organizations')
                 .select('id')
                 .ilike('name', orgName)
                 .eq('country', orgCountry)
-
-            if (sportIdFilter) {
-                orgQuery = orgQuery.eq('sport_id', sportIdFilter)
-            }
+            if (sportIdFilter) orgQuery = orgQuery.eq('sport_id', sportIdFilter)
 
             let { data: existingOrg } = await orgQuery.maybeSingle()
 
-            // Fallback: cerca senza filtro country (gestisce varianti non mappate)
+            // Fallback: search without country filter
             if (!existingOrg) {
-                let fallbackQuery = supabase
+                let fallbackQuery = supabaseServer
                     .from('sports_organizations')
                     .select('id')
                     .ilike('name', orgName)
@@ -164,131 +237,81 @@ export async function POST(req: NextRequest) {
             }
 
             if (!existingOrg) {
-                // Organizzazione non trovata - skip e riporta errore
                 errors.push({
                     experience: exp,
                     error: `Organization not found: ${orgName} (${orgCountry}, ${orgSport})`
                 })
-                console.warn(`Organization not found in database: ${orgName} (${orgCountry}, ${orgSport})`)
                 continue
             }
 
             const organizationId = existingOrg.id
 
-            // 2. Determina il ruolo generico (Player, Coach, Staff, Other)
-            // Il form può mandare posizioni specifiche (es: "Difensore") che vanno in role_detail
-            let genericRole = 'Player' // default
+            // ── 2. Determine profile_type ──
+            const profileType = resolveProfileType(exp.role)
+
+            // ── 3. Build title from role/position ──
             const roleValue = exp.role || ''
+            const positionDetail = exp.positionDetail || exp.primaryPosition || ''
+            const title = positionDetail || roleValue || 'Esperienza'
 
-            // Lista ruoli validi per il DB
-            const validRoles = ['Player', 'Coach', 'Staff', 'Other']
+            // ── 4. Resolve start_date (required by DB) ──
+            let startDate = exp.from || null
+            let endDate = exp.to || null
 
-            // Se il ruolo dal form è già valido, usalo
-            if (validRoles.includes(roleValue)) {
-                genericRole = roleValue
-            } else {
-                // Altrimenti, cerca di inferire dal valore
-                const lowerRole = roleValue.toLowerCase()
-                if (lowerRole.includes('coach') || lowerRole.includes('allenatore') || lowerRole.includes('mister')) {
-                    genericRole = 'Coach'
-                } else if (lowerRole.includes('staff') || lowerRole.includes('preparatore') || lowerRole.includes('fisioterapista')) {
-                    genericRole = 'Staff'
-                } else {
-                    // Se è una posizione (Portiere, Difensore, etc.) → Player
-                    genericRole = 'Player'
+            if (!startDate && season) {
+                const yearMatch = season.match(/^(\d{4})/)
+                if (yearMatch) {
+                    startDate = `${yearMatch[1]}-07-01`
                 }
             }
+            if (!startDate) {
+                startDate = '2024-07-01' // ultimate fallback
+            }
 
-            // 3. Prepara i dati dell'esperienza mappando i campi del form ai campi DB
+            // ── 5. Build profile_experiences row ──
             const expData: any = {
                 user_id: userId,
                 organization_id: organizationId,
-                role: genericRole,
-                role_detail: validRoles.includes(roleValue) ? (exp.positionDetail || exp.primaryPosition || null) : roleValue,
-                season: exp.season,
-                category: exp.category || 'Non specificato',
+                profile_type: profileType,
+                experience_kind: 'club',
+                title: title,
+                role_detail: positionDetail || null,
+                season: season,
+                category: exp.category || null,
                 category_tier: exp.categoryTier || null,
-                competition_type: exp.competitionType || 'male',
-                start_date: exp.from || null,
-                end_date: exp.to || null,
+                competition_type: exp.competitionType || null,
+                start_date: startDate,
+                end_date: endDate || null,
                 is_current: exp.isCurrentlyPlaying || false,
+                employment_type: null,
+                description: exp.description || null,
+                is_public: true,
             }
 
-            // 4. Risolvi position_id da lookup_positions (se positionDetail o role corrisponde a un nome)
-            const positionName = exp.positionDetail || (validRoles.includes(roleValue) ? null : roleValue)
-            if (positionName) {
-                const { data: posData } = await supabase
-                    .from('lookup_positions')
-                    .select('id')
-                    .eq('name', positionName)
-                    .limit(1)
-                    .maybeSingle()
-
-                if (posData) {
-                    expData.position_id = posData.id
-                }
-            }
-
-            // Aggiungi statistiche giocatore se role = Player (solo se fornite)
-            if (exp.role === 'Player') {
-                // Calcio - Base
-                expData.goals = exp.goals !== undefined && exp.goals !== null ? exp.goals : null
-                expData.assists = exp.assists !== undefined && exp.assists !== null ? exp.assists : null
-                expData.clean_sheets = exp.cleanSheets !== undefined && exp.cleanSheets !== null ? exp.cleanSheets : null
-                expData.appearances = exp.appearances !== undefined && exp.appearances !== null ? exp.appearances : null
-
-                // Calcio - Avanzate
-                expData.minutes_played = exp.minutesPlayed !== undefined && exp.minutesPlayed !== null ? exp.minutesPlayed : null
-                expData.penalties = exp.penalties !== undefined && exp.penalties !== null ? exp.penalties : null
-                expData.yellow_cards = exp.yellowCards !== undefined && exp.yellowCards !== null ? exp.yellowCards : null
-                expData.red_cards = exp.redCards !== undefined && exp.redCards !== null ? exp.redCards : null
-                expData.substitutions_in = exp.substitutionsIn !== undefined && exp.substitutionsIn !== null ? exp.substitutionsIn : null
-                expData.substitutions_out = exp.substitutionsOut !== undefined && exp.substitutionsOut !== null ? exp.substitutionsOut : null
-
-                // Basket
-                expData.points_per_game = exp.pointsPerGame !== undefined && exp.pointsPerGame !== null ? exp.pointsPerGame : null
-                expData.rebounds = exp.rebounds !== undefined && exp.rebounds !== null ? exp.rebounds : null
-
-                // Volley
-                expData.aces = exp.volleyAces !== undefined && exp.volleyAces !== null ? exp.volleyAces : null
-                expData.blocks = exp.volleyBlocks !== undefined && exp.volleyBlocks !== null ? exp.volleyBlocks : null
-                expData.digs = exp.volleyDigs !== undefined && exp.volleyDigs !== null ? exp.volleyDigs : null
-            }
-
-            // Aggiungi statistiche coach se role = Coach (solo se fornite)
-            if (exp.role === 'Coach') {
-                expData.matches_coached = exp.matchesCoached !== undefined && exp.matchesCoached !== null ? exp.matchesCoached : null
-                expData.wins = exp.wins !== undefined && exp.wins !== null ? exp.wins : null
-                expData.draws = exp.draws !== undefined && exp.draws !== null ? exp.draws : null
-                expData.losses = exp.losses !== undefined && exp.losses !== null ? exp.losses : null
-                expData.trophies = exp.trophies !== undefined && exp.trophies !== null ? exp.trophies : null
-            }
-
-            // Se l'esperienza ha già un ID UUID, fai upsert
-            if (exp.id && exp.id.length > 20) {
-                expData.id = exp.id
-                expData.updated_at = new Date().toISOString()
-
-                const { data, error } = await supabase
-                    .from('career_experiences')
-                    .upsert(expData)
+            // ── 6. Upsert base experience ──
+            let savedExp: any = null
+            if (exp.id && typeof exp.id === 'string' && exp.id.length > 20) {
+                // Update existing
+                const { data, error } = await supabaseServer
+                    .from('profile_experiences')
+                    .update(expData)
+                    .eq('id', exp.id)
                     .select()
                     .single()
 
                 if (error) {
-                    console.error('Error upserting experience:', error)
+                    console.error('Error updating experience:', error)
                     errors.push({
-                        experience: { season: exp.season, team: orgName, category: exp.category },
+                        experience: { season, team: orgName, category: exp.category },
                         error: `Errore database: ${error.message}`
                     })
                     continue
                 }
-
-                savedExperiences.push(data)
+                savedExp = data
             } else {
-                // Altrimenti, inserisci nuovo record
-                const { data, error } = await supabase
-                    .from('career_experiences')
+                // Insert new
+                const { data, error } = await supabaseServer
+                    .from('profile_experiences')
                     .insert(expData)
                     .select()
                     .single()
@@ -296,17 +319,75 @@ export async function POST(req: NextRequest) {
                 if (error) {
                     console.error('Error inserting experience:', error)
                     errors.push({
-                        experience: { season: exp.season, team: orgName, category: exp.category },
+                        experience: { season, team: orgName, category: exp.category },
                         error: `Errore database: ${error.message}`
                     })
                     continue
                 }
-
-                savedExperiences.push(data)
+                savedExp = data
             }
+
+            // ── 7. Upsert stats in the correct child table ──
+            const statsTable = getStatsTable(orgSport, profileType)
+
+            if (statsTable && savedExp) {
+                const statsData: any = { experience_id: savedExp.id }
+
+                if (statsTable === 'experience_stats_football_player') {
+                    // Resolve position_id
+                    const posName = exp.positionDetail || null
+                    if (posName) {
+                        const { data: posData } = await supabaseServer
+                            .from('lookup_positions')
+                            .select('id')
+                            .eq('name', posName)
+                            .limit(1)
+                            .maybeSingle()
+                        if (posData) statsData.position_id = posData.id
+                    }
+                    statsData.goals = exp.goals ?? null
+                    statsData.assists = exp.assists ?? null
+                    statsData.clean_sheets = exp.cleanSheets ?? null
+                    statsData.appearances = exp.appearances ?? null
+                    statsData.minutes_played = exp.minutesPlayed ?? null
+                    statsData.penalties_scored = exp.penalties ?? null
+                    statsData.yellow_cards = exp.yellowCards ?? null
+                    statsData.red_cards = exp.redCards ?? null
+                    statsData.substitutions_in = exp.substitutionsIn ?? null
+                    statsData.substitutions_out = exp.substitutionsOut ?? null
+                } else if (statsTable === 'experience_stats_basketball_player') {
+                    statsData.games_played = exp.appearances ?? null
+                    statsData.minutes_played = exp.minutesPlayed ?? null
+                    statsData.points_per_game = exp.pointsPerGame ?? null
+                    statsData.rebounds = exp.rebounds ?? null
+                } else if (statsTable === 'experience_stats_volleyball_player') {
+                    statsData.matches_played = exp.appearances ?? null
+                    statsData.aces = exp.volleyAces ?? null
+                    statsData.blocks = exp.volleyBlocks ?? null
+                    statsData.digs = exp.volleyDigs ?? null
+                } else if (statsTable === 'experience_stats_coach') {
+                    statsData.matches_coached = exp.matchesCoached ?? null
+                    statsData.wins = exp.wins ?? null
+                    statsData.draws = exp.draws ?? null
+                    statsData.losses = exp.losses ?? null
+                    statsData.trophies = exp.trophies ?? null
+                }
+
+                // Upsert stats (PK = experience_id)
+                const { error: statsError } = await supabaseServer
+                    .from(statsTable)
+                    .upsert(statsData, { onConflict: 'experience_id' })
+
+                if (statsError) {
+                    console.error(`Error upserting stats in ${statsTable}:`, statsError)
+                    // Non-blocking: experience saved, stats failed — log only
+                }
+            }
+
+            savedExperiences.push(savedExp)
         }
 
-        // Se ci sono errori e nessuna esperienza salvata, considera fallimento
+        // ── Response ──
         const hasErrors = errors.length > 0
         const allFailed = savedExperiences.length === 0 && experiences.length > 0
 
@@ -335,47 +416,41 @@ export async function POST(req: NextRequest) {
         )
     } catch (err: any) {
         console.error('Unexpected error in POST /api/career-experiences:', err)
-        return withCors(
-            NextResponse.json({ error: err.message }, { status: 500 })
-        )
+        return withCors(NextResponse.json({ error: err.message }, { status: 500 }))
     }
 }
 
+// ═══════════════════════════════════════════════════════════════
 // DELETE /api/career-experiences?id=xxx
-// Soft delete di un'esperienza
+// Soft delete (sets deleted_at). Stats remain via FK for audit.
+// ═══════════════════════════════════════════════════════════════
 export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url)
         const id = searchParams.get('id')
 
         if (!id) {
-            return withCors(
-                NextResponse.json({ error: 'id is required' }, { status: 400 })
-            )
+            return withCors(NextResponse.json({ error: 'id is required' }, { status: 400 }))
         }
 
-        const { error } = await supabase
-            .from('career_experiences')
+        const { error } = await supabaseServer
+            .from('profile_experiences')
             .update({ deleted_at: new Date().toISOString() })
             .eq('id', id)
 
         if (error) {
             console.error('Error deleting experience:', error)
-            return withCors(
-                NextResponse.json({ error: error.message }, { status: 500 })
-            )
+            return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
         return withCors(NextResponse.json({ success: true }))
     } catch (err: any) {
         console.error('Unexpected error in DELETE /api/career-experiences:', err)
-        return withCors(
-            NextResponse.json({ error: err.message }, { status: 500 })
-        )
+        return withCors(NextResponse.json({ error: err.message }, { status: 500 }))
     }
 }
 
 // OPTIONS handler per CORS preflight
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
     return withCors(new NextResponse(null, { status: 204 }))
 }

@@ -112,40 +112,84 @@ export async function GET(req: Request) {
             }
         }
 
-        // --- Filter by career stats (season, category, goals, etc.) via career_experiences ---
+        // --- Filter by career stats (season, category, goals, etc.) via profile_experiences + stats tables ---
         const hasCareerFilter = season || categoryParam || detailedCategory ||
             minGoals || minCleanSheets || minPoints || minAssists || minRebounds ||
             minAces || minBlocks || minDigs
 
         if (hasCareerFilter) {
+            // Step A: filter base experiences by season/category
             let ceQuery = supabaseServer
-                .from('career_experiences')
-                .select('user_id')
+                .from('profile_experiences')
+                .select('user_id, id')
+                .is('deleted_at', null)
 
             if (season) ceQuery = ceQuery.eq('season', season)
             if (detailedCategory) {
                 ceQuery = ceQuery.ilike('category', detailedCategory)
             } else if (categoryParam) {
-                // Macro-category: match any detailed category that belongs to it
-                // e.g. "Professionisti" → "Serie A", "Serie B", etc. — use ilike pattern
                 ceQuery = ceQuery.ilike('category', `%${categoryParam}%`)
             }
-            if (minGoals) ceQuery = ceQuery.gte('goals', parseInt(minGoals))
-            if (minCleanSheets) ceQuery = ceQuery.gte('clean_sheets', parseInt(minCleanSheets))
-            if (minPoints) ceQuery = ceQuery.gte('points_per_game', parseFloat(minPoints))
-            if (minAssists) ceQuery = ceQuery.gte('assists', parseInt(minAssists))
-            if (minRebounds) ceQuery = ceQuery.gte('rebounds', parseInt(minRebounds))
-            if (minAces) ceQuery = ceQuery.gte('aces', parseInt(minAces))
-            if (minBlocks) ceQuery = ceQuery.gte('blocks', parseInt(minBlocks))
-            if (minDigs) ceQuery = ceQuery.gte('digs', parseInt(minDigs))
 
-            // If sport filter also active, narrow to those user_ids
             if (filteredUserIds) {
                 ceQuery = ceQuery.in('user_id', filteredUserIds)
             }
 
             const { data: ceRows } = await ceQuery
-            filteredUserIds = [...new Set((ceRows || []).map((r: any) => r.user_id))]
+            let candidateUserIds = [...new Set((ceRows || []).map((r: any) => r.user_id))]
+            const experienceIds = (ceRows || []).map((r: any) => r.id)
+
+            // Step B: if stat filters, narrow via the sport-specific stats tables
+            const hasStatFilter = minGoals || minCleanSheets || minAssists ||
+                minPoints || minRebounds || minAces || minBlocks || minDigs
+
+            if (hasStatFilter && experienceIds.length > 0) {
+                const validExpIds = new Set<string>()
+
+                // Football stats
+                if (minGoals || minCleanSheets || minAssists) {
+                    let fbQuery = supabaseServer
+                        .from('experience_stats_football_player')
+                        .select('experience_id')
+                        .in('experience_id', experienceIds)
+                    if (minGoals) fbQuery = fbQuery.gte('goals', parseInt(minGoals))
+                    if (minCleanSheets) fbQuery = fbQuery.gte('clean_sheets', parseInt(minCleanSheets))
+                    if (minAssists) fbQuery = fbQuery.gte('assists', parseInt(minAssists))
+                    const { data: fbRows } = await fbQuery
+                        ; (fbRows || []).forEach((r: any) => validExpIds.add(r.experience_id))
+                }
+
+                // Basketball stats
+                if (minPoints || minRebounds) {
+                    let bbQuery = supabaseServer
+                        .from('experience_stats_basketball_player')
+                        .select('experience_id')
+                        .in('experience_id', experienceIds)
+                    if (minPoints) bbQuery = bbQuery.gte('points_per_game', parseFloat(minPoints))
+                    if (minRebounds) bbQuery = bbQuery.gte('rebounds', parseInt(minRebounds))
+                    const { data: bbRows } = await bbQuery
+                        ; (bbRows || []).forEach((r: any) => validExpIds.add(r.experience_id))
+                }
+
+                // Volleyball stats
+                if (minAces || minBlocks || minDigs) {
+                    let vbQuery = supabaseServer
+                        .from('experience_stats_volleyball_player')
+                        .select('experience_id')
+                        .in('experience_id', experienceIds)
+                    if (minAces) vbQuery = vbQuery.gte('aces', parseInt(minAces))
+                    if (minBlocks) vbQuery = vbQuery.gte('blocks', parseInt(minBlocks))
+                    if (minDigs) vbQuery = vbQuery.gte('digs', parseInt(minDigs))
+                    const { data: vbRows } = await vbQuery
+                        ; (vbRows || []).forEach((r: any) => validExpIds.add(r.experience_id))
+                }
+
+                // Map valid experience_ids back to user_ids
+                const validExps = (ceRows || []).filter((r: any) => validExpIds.has(r.id))
+                candidateUserIds = [...new Set(validExps.map((r: any) => r.user_id))]
+            }
+
+            filteredUserIds = candidateUserIds
             if (filteredUserIds.length === 0) {
                 return withCors(NextResponse.json({ data: [], total: 0, limit, offset, hasMore: false }))
             }

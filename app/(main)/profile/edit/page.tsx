@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
+import { CameraIcon, PlusIcon, XMarkIcon, ExclamationCircleIcon, ChevronDownIcon } from "@heroicons/react/24/outline"
 import Avatar from "@/components/avatar"
 import SocialLinksForm from "@/components/social-links-form"
 import SelfEvaluationForm from "@/components/self-evaluation-form"
@@ -195,6 +195,16 @@ export default function EditProfilePage() {
     // --- Stati per gestire date opzionali per esperienza ---
     const [showDatesForExp, setShowDatesForExp] = useState<Record<string, boolean>>({})
 
+    // --- Accordion: esperienze aperte/chiuse (nuove aperte, salvate chiuse) ---
+    const [expandedExps, setExpandedExps] = useState<Record<string, boolean>>({})
+
+    const toggleExpAccordion = (id: string) => {
+        setExpandedExps(prev => ({ ...prev, [id]: !prev[id] }))
+    }
+
+    // Helper: indica se un'esperienza è già salvata nel DB (UUID lungo)
+    const isSavedExperience = (id: string) => id.length > 20
+
     // --- Stati per errori validazione date ---
     const [dateErrors, setDateErrors] = useState<Record<string, string>>({})
 
@@ -313,48 +323,63 @@ export default function EditProfilePage() {
                         const res = await fetch(`/api/career-experiences?userId=${userId}`)
                         if (!res.ok) return []
                         const data = await res.json()
+
+                        // Reverse map: English DB country → Italian form label
+                        const countryEnToIt: Record<string, string> = {
+                            'Italy': 'Italia', 'Spain': 'Spagna', 'France': 'Francia',
+                            'Germany': 'Germania', 'England': 'Inghilterra', 'Portugal': 'Portogallo',
+                            'Netherlands': 'Olanda', 'Belgium': 'Belgio', 'Switzerland': 'Svizzera',
+                            'Austria': 'Austria', 'Greece': 'Grecia', 'Turkey': 'Turchia',
+                            'United States': 'Stati Uniti', 'Brazil': 'Brasile', 'Argentina': 'Argentina',
+                        }
+
                         // Map DB fields to form fields
-                        return data.map((exp: any) => ({
-                            id: exp.id, // UUID from database
-                            season: exp.season || '',
-                            role: exp.role || 'Player',
-                            primaryPosition: exp.position?.category || '',
-                            positionDetail: exp.position?.name || exp.role_detail || '',
-                            team: exp.organization?.name || '',
-                            country: exp.organization?.country || '',
-                            city: exp.organization?.city || '',
-                            sport: exp.organization?.sport || 'Calcio',
-                            category: exp.category || '',
-                            categoryTier: exp.category_tier || '',
-                            competitionType: exp.competition_type || 'male',
-                            from: exp.start_date || '',
-                            to: exp.end_date || '',
-                            isCurrentlyPlaying: exp.is_current || false,
-                            // Player stats (use ?? to preserve 0 values)
-                            goals: exp.goals ?? undefined,
-                            assists: exp.assists ?? undefined,
-                            cleanSheets: exp.clean_sheets ?? undefined,
-                            appearances: exp.appearances ?? undefined,
-                            minutesPlayed: exp.minutes_played ?? undefined,
-                            penalties: exp.penalties ?? undefined,
-                            yellowCards: exp.yellow_cards ?? undefined,
-                            redCards: exp.red_cards ?? undefined,
-                            substitutionsIn: exp.substitutions_in ?? undefined,
-                            substitutionsOut: exp.substitutions_out ?? undefined,
-                            // Basket
-                            pointsPerGame: exp.points_per_game ?? undefined,
-                            rebounds: exp.rebounds ?? undefined,
-                            // Volley (DB columns: aces, blocks, digs)
-                            volleyAces: exp.aces ?? undefined,
-                            volleyBlocks: exp.blocks ?? undefined,
-                            volleyDigs: exp.digs ?? undefined,
-                            // Coach stats
-                            matchesCoached: exp.matches_coached ?? undefined,
-                            wins: exp.wins ?? undefined,
-                            draws: exp.draws ?? undefined,
-                            losses: exp.losses ?? undefined,
-                            trophies: exp.trophies ?? undefined,
-                        }))
+                        return data.map((exp: any) => {
+                            const dbCountry = exp.organization?.country || ''
+                            const formCountry = countryEnToIt[dbCountry] || dbCountry
+
+                            return {
+                                id: exp.id, // UUID from database
+                                season: exp.season || '',
+                                role: exp.role || 'Player',
+                                primaryPosition: exp.position?.category || '',
+                                positionDetail: exp.position?.name || exp.role_detail || '',
+                                team: exp.organization?.name || '',
+                                country: formCountry,
+                                city: exp.organization?.city || '',
+                                sport: exp.organization?.sport || 'Calcio',
+                                category: exp.category || '',
+                                categoryTier: exp.category_tier || '',
+                                competitionType: exp.competition_type || 'male',
+                                from: exp.start_date || '',
+                                to: exp.end_date || '',
+                                isCurrentlyPlaying: exp.is_current || false,
+                                // Player stats (use ?? to preserve 0 values)
+                                goals: exp.goals ?? undefined,
+                                assists: exp.assists ?? undefined,
+                                cleanSheets: exp.clean_sheets ?? undefined,
+                                appearances: exp.appearances ?? undefined,
+                                minutesPlayed: exp.minutes_played ?? undefined,
+                                penalties: exp.penalties ?? undefined,
+                                yellowCards: exp.yellow_cards ?? undefined,
+                                redCards: exp.red_cards ?? undefined,
+                                substitutionsIn: exp.substitutions_in ?? undefined,
+                                substitutionsOut: exp.substitutions_out ?? undefined,
+                                // Basket
+                                pointsPerGame: exp.points_per_game ?? undefined,
+                                rebounds: exp.rebounds ?? undefined,
+                                // Volley (DB columns: aces, blocks, digs)
+                                volleyAces: exp.aces ?? undefined,
+                                volleyBlocks: exp.blocks ?? undefined,
+                                volleyDigs: exp.digs ?? undefined,
+                                // Coach stats
+                                matchesCoached: exp.matches_coached ?? undefined,
+                                wins: exp.wins ?? undefined,
+                                draws: exp.draws ?? undefined,
+                                losses: exp.losses ?? undefined,
+                                trophies: exp.trophies ?? undefined,
+                            }
+                        })
                     } catch (err) {
                         console.error('Error fetching career experiences:', err)
                         return []
@@ -1252,7 +1277,10 @@ export default function EditProfilePage() {
     }
 
     const addExperience = () => {
-        setForm((prev) => ({ ...prev, experiences: [...prev.experiences, emptyExperience()] }))
+        const newExp = emptyExperience()
+        setForm((prev) => ({ ...prev, experiences: [...prev.experiences, newExp] }))
+        // Auto-expand new experiences
+        setExpandedExps(prev => ({ ...prev, [newExp.id]: true }))
     }
 
     const removeExperience = (id: string) => {
@@ -1267,6 +1295,11 @@ export default function EditProfilePage() {
         })
         // Rimuovi anche eventuali errori di validazione date
         setDateErrors(prev => {
+            const { [id]: _, ...rest } = prev
+            return rest
+        })
+        // Rimuovi stato accordion
+        setExpandedExps(prev => {
             const { [id]: _, ...rest } = prev
             return rest
         })
@@ -2363,805 +2396,849 @@ export default function EditProfilePage() {
                                 </div>
                             )}
 
-                            {form.experiences.map((exp) => (
-                                <div
-                                    key={exp.id}
-                                    className="rounded-xl border border-gray-200 bg-white p-4"
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1 grid gap-3 md:grid-cols-2">
-                                            {isCoach ? (
-                                                <>
-                                                    {/* Stagione - OBBLIGATORIO */}
-                                                    <CustomSelect
-                                                        value={exp.season}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona stagione *" },
-                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        required
-                                                    />
+                            {form.experiences.map((exp) => {
+                                const isExpanded = expandedExps[exp.id] ?? !isSavedExperience(exp.id) // nuove aperte, salvate chiuse
+                                const summaryParts = [
+                                    exp.team || 'Club non specificato',
+                                    exp.season ? `Stagione ${exp.season}` : null,
+                                    exp.category || null,
+                                    exp.positionDetail || exp.role || null,
+                                ].filter(Boolean)
 
-                                                    {/* Ruolo Coach */}
-                                                    <CustomSelect
-                                                        value={exp.role}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona ruolo" },
-                                                            ...(mainSport === "Calcio" ? coachFootballRoles : coachRoles).map(role => ({ value: role, label: role }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-
-                                                    {/* Team/Club - Autocomplete */}
-                                                    <OrganizationAutocomplete
-                                                        value={exp.team}
-                                                        onChange={(value, org) => {
-                                                            handleExperienceChange(exp.id, "team", value)
-                                                            // Auto-fill country, city, sport if organization is selected
-                                                            if (org) {
-                                                                handleExperienceChange(exp.id, "country", org.country)
-                                                                if (org.city) handleExperienceChange(exp.id, "city", org.city)
-                                                                handleExperienceChange(exp.id, "sport", org.sport)
-                                                            }
-                                                        }}
-                                                        sport={mainSport}
-                                                        country={exp.country || undefined}
-                                                        placeholder="Cerca organizzazione/club..."
-                                                        className={inputBase}
-                                                    />
-
-                                                    {/* Nazione */}
-                                                    <CustomSelect
-                                                        value={exp.country}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "country", value)
-                                                            handleExperienceChange(exp.id, "categoryTier", "")
-                                                            handleExperienceChange(exp.id, "competitionType", "")
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: "Seleziona nazione" },
-                                                            ...footballCountries.map(country => ({ value: country, label: country }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-
-                                                    {/* Macro Categoria */}
-                                                    <CustomSelect
-                                                        value={exp.categoryTier || ""}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "categoryTier", value)
-                                                            handleExperienceChange(exp.id, "competitionType", "")
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
-                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={!exp.country}
-                                                    />
-
-                                                    {/* Tipologia Competizione */}
-                                                    <CustomSelect
-                                                        value={exp.competitionType || ""}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "competitionType", value)
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
-                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={!exp.country || !exp.categoryTier}
-                                                    />
-
-                                                    {/* Categoria */}
-                                                    {exp.categoryTier === "Altro" ? (
-                                                        <input
-                                                            value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
-                                                            placeholder="Categoria (testo libero)"
-                                                            className={inputBase}
-                                                            disabled={!exp.country}
-                                                        />
-                                                    ) : (
-                                                        <CustomSelect
-                                                            value={exp.category}
-                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
-                                                            options={[
-                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
-                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                    exp.competitionType === "female" ? (
-                                                                        exp.country === "Italia"
-                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                    ) : (
-                                                                        exp.country === "Italia"
-                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                    )
-                                                                ) : [])
-                                                            ]}
-                                                            className={inputBase}
-                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
-                                                        />
-                                                    )}
-                                                </>
-                                            ) : isPlayer && mainSport === "Calcio" ? (
-                                                <>
-                                                    {/* Stagione - OBBLIGATORIO */}
-                                                    <CustomSelect
-                                                        value={exp.season}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona stagione *" },
-                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        required
-                                                    />
-
-                                                    <CustomSelect
-                                                        value={exp.primaryPosition || ''}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "primaryPosition", value)
-                                                            handleExperienceChange(exp.id, "role", "Player")
-                                                            // Reset positionDetail quando cambia primaryPosition
-                                                            handleExperienceChange(exp.id, "positionDetail", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: "Seleziona ruolo" },
-                                                            ...footballPrimaryOptions.map(opt => ({ value: opt.value, label: opt.label }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-                                                    <CustomSelect
-                                                        value={exp.positionDetail || ''}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "positionDetail", value)}
-                                                        options={[
-                                                            { value: "", label: exp.primaryPosition ? "Seleziona dettaglio ruolo" : "Prima seleziona un ruolo" },
-                                                            ...(exp.primaryPosition && footballSecondaryOptions[exp.primaryPosition] ? footballSecondaryOptions[exp.primaryPosition].map(opt => ({ value: opt.value, label: opt.label })) : [])
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={!exp.primaryPosition}
-                                                    />
-                                                </>
-                                            ) : isPlayer && mainSport === "Basket" ? (
-                                                <>
-                                                    {/* Stagione - OBBLIGATORIO */}
-                                                    <CustomSelect
-                                                        value={exp.season}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona stagione *" },
-                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        required
-                                                    />
-
-                                                    <CustomSelect
-                                                        value={exp.role}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona ruolo" },
-                                                            ...basketRoles.map(role => ({ value: role, label: role }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-                                                </>
-                                            ) : isPlayer && mainSport === "Pallavolo" ? (
-                                                <>
-                                                    {/* Stagione - OBBLIGATORIO */}
-                                                    <CustomSelect
-                                                        value={exp.season}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona stagione *" },
-                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        required
-                                                    />
-
-                                                    <CustomSelect
-                                                        value={exp.role}
-                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
-                                                        options={[
-                                                            { value: "", label: "Seleziona ruolo" },
-                                                            ...volleyRoles.map(role => ({ value: role, label: role }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-                                                </>
-                                            ) : (
-                                                <input
-                                                    value={exp.role}
-                                                    onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
-                                                    placeholder="Ruolo"
-                                                    className={inputBase}
-                                                />
-                                            )}
-                                            {!isCoach && (
-                                                <OrganizationAutocomplete
-                                                    value={exp.team}
-                                                    onChange={(value, org) => {
-                                                        handleExperienceChange(exp.id, "team", value)
-                                                        // Auto-fill country, city, sport if organization is selected
-                                                        if (org) {
-                                                            handleExperienceChange(exp.id, "country", org.country)
-                                                            if (org.city) handleExperienceChange(exp.id, "city", org.city)
-                                                            handleExperienceChange(exp.id, "sport", org.sport)
-                                                        }
-                                                    }}
-                                                    sport={mainSport}
-                                                    country={exp.country || undefined}
-                                                    placeholder="Cerca organizzazione/club..."
-                                                    className={inputBase}
-                                                />
-                                            )}
-                                            {!isCoach && isPlayer && mainSport === "Calcio" ? (
-                                                <>
-                                                    {/* Nazione */}
-                                                    <CustomSelect
-                                                        value={exp.country}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "country", value)
-                                                            // Reset tutti i campi successivi quando cambia nazione
-                                                            handleExperienceChange(exp.id, "categoryTier", "")
-                                                            handleExperienceChange(exp.id, "competitionType", "")
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: "Seleziona nazione" },
-                                                            ...footballCountries.map(country => ({ value: country, label: country }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-
-                                                    {/* Macro categoria */}
-                                                    <CustomSelect
-                                                        value={exp.categoryTier || ""}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "categoryTier", value)
-                                                            // Reset campi successivi quando cambia macro
-                                                            handleExperienceChange(exp.id, "competitionType", "")
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
-                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={!exp.country}
-                                                    />
-
-                                                    {/* Tipologia Competizione (NUOVO) */}
-                                                    <CustomSelect
-                                                        value={exp.competitionType || ""}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "competitionType", value)
-                                                            // Reset categoria quando cambia tipologia
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
-                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={!exp.country || !exp.categoryTier}
-                                                    />
-
-                                                    {/* Categoria dettagliata */}
-                                                    {exp.categoryTier === "Altro" ? (
-                                                        <input
-                                                            value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
-                                                            placeholder="Categoria (testo libero)"
-                                                            className={inputBase}
-                                                            disabled={!exp.country}
-                                                        />
-                                                    ) : (
-                                                        <CustomSelect
-                                                            value={exp.category}
-                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
-                                                            options={[
-                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
-                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                    exp.competitionType === "female" ? (
-                                                                        exp.country === "Italia"
-                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                    ) : (
-                                                                        exp.country === "Italia"
-                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                    )
-                                                                ) : [])
-                                                            ]}
-                                                            className={inputBase}
-                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
-                                                        />
-                                                    )}
-                                                </>
-                                            ) : !isCoach && isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
-                                                <>
-                                                    {/* Nazione */}
-                                                    <CustomSelect
-                                                        value={exp.country}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "country", value)
-                                                            handleExperienceChange(exp.id, "categoryTier", "")
-                                                            handleExperienceChange(exp.id, "competitionType", "")
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: "Seleziona nazione" },
-                                                            ...(mainSport === "Basket" ? basketCountries : volleyCountries).map(country => ({ value: country, label: country }))
-                                                        ]}
-                                                        className={inputBase}
-                                                    />
-
-                                                    {/* Macro categoria (Italia per Basket e Pallavolo) */}
-                                                    {(mainSport === "Basket" || mainSport === "Pallavolo") && exp.country === "Italia" && (
-                                                        <CustomSelect
-                                                            value={exp.categoryTier || ""}
-                                                            onChange={(value) => {
-                                                                handleExperienceChange(exp.id, "categoryTier", value)
-                                                                handleExperienceChange(exp.id, "competitionType", "")
-                                                                handleExperienceChange(exp.id, "category", "")
-                                                            }}
-                                                            options={[
-                                                                { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
-                                                                ...(mainSport === "Basket" ? basketMacroCategories : volleyMacroCategories).map(tier => ({ value: tier, label: tier }))
-                                                            ]}
-                                                            className={inputBase}
-                                                            disabled={!exp.country}
-                                                        />
-                                                    )}
-
-                                                    {/* Tipologia Competizione */}
-                                                    <CustomSelect
-                                                        value={exp.competitionType || ""}
-                                                        onChange={(value) => {
-                                                            handleExperienceChange(exp.id, "competitionType", value)
-                                                            handleExperienceChange(exp.id, "category", "")
-                                                        }}
-                                                        options={[
-                                                            { value: "", label: exp.country === "Italia" ? (exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria") : (exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione") },
-                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
-                                                        ]}
-                                                        className={inputBase}
-                                                        disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier : !exp.country}
-                                                    />
-
-                                                    {/* Categoria dettagliata */}
-                                                    {exp.country === "Altro" ? (
-                                                        <input
-                                                            value={exp.category}
-                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
-                                                            placeholder="Categoria"
-                                                            className={inputBase}
-                                                        />
-                                                    ) : (
-                                                        <CustomSelect
-                                                            value={exp.category}
-                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
-                                                            options={[
-                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
-                                                                ...(mainSport === "Basket" ? (
-                                                                    exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                        exp.competitionType === "female" ? (
-                                                                            exp.country === "Italia"
-                                                                                ? (basketFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                        ) : (
-                                                                            exp.country === "Italia"
-                                                                                ? (basketMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                        )
-                                                                    ) : []
-                                                                ) : (
-                                                                    // Pallavolo
-                                                                    exp.country === "Italia" ? (
-                                                                        exp.country && exp.categoryTier && exp.competitionType ? (
-                                                                            exp.competitionType === "female" ? (
-                                                                                (volleyFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            ) : (
-                                                                                (volleyMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
-                                                                            )
-                                                                        ) : []
-                                                                    ) : (
-                                                                        exp.country && exp.competitionType ? (
-                                                                            (volleyCategoriesByCountry[exp.country] || []).map(cat => ({ value: cat, label: cat }))
-                                                                        ) : []
-                                                                    )
-                                                                ))
-                                                            ]}
-                                                            className={inputBase}
-                                                            disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier || !exp.competitionType : !exp.country || !exp.competitionType}
-                                                        />
-                                                    )}
-                                                </>
-                                            ) : !isCoach ? (
-                                                <>
-                                                    <input
-                                                        value={exp.country}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "country", e.target.value)}
-                                                        placeholder="Nazione"
-                                                        className={inputBase}
-                                                    />
-                                                    <select
-                                                        value={exp.competitionType || ""}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "competitionType", e.target.value)}
-                                                        className={inputBase}
-                                                    >
-                                                        <option value="">Tipologia competizione (opzionale)</option>
-                                                        {competitionTypes.map((type) => (
-                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                        ))}
-                                                    </select>
-                                                    <input
-                                                        value={exp.category}
-                                                        onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
-                                                        placeholder="Categoria"
-                                                        className={inputBase}
-                                                    />
-                                                </>
-                                            ) : null}
-
-                                            {/* Checkbox per mostrare date opzionali */}
-                                            <div className="md:col-span-2 space-y-3">
-                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={showDatesForExp[exp.id] || false}
-                                                        onChange={() => toggleDatesForExp(exp.id)}
-                                                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                    />
-                                                    <span className="text-sm text-gray-700">
-                                                        Specifica periodo esatto (opzionale)
-                                                    </span>
-                                                </label>
-
-                                                {/* Date opzionali - mostrate solo se checkbox attivo */}
-                                                {showDatesForExp[exp.id] && (
-                                                    <div className="space-y-3 pl-6 border-l-2 border-gray-200">
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="text-xs text-gray-600 mb-1 block">Data inizio</label>
-                                                                <input
-                                                                    type="date"
-                                                                    value={exp.from || ""}
-                                                                    onChange={(e) => handleExperienceChange(exp.id, "from", e.target.value)}
-                                                                    placeholder="Inizio"
-                                                                    className={inputBase}
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="text-xs text-gray-600 mb-1 block">Data fine</label>
-                                                                <input
-                                                                    type="date"
-                                                                    value={exp.to || ""}
-                                                                    onChange={(e) => handleExperienceChange(exp.id, "to", e.target.value)}
-                                                                    placeholder="Fine"
-                                                                    className={inputBase}
-                                                                    disabled={exp.isCurrentlyPlaying}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={exp.isCurrentlyPlaying || false}
-                                                                onChange={(e) => {
-                                                                    handleExperienceChange(exp.id, "isCurrentlyPlaying", e.target.checked)
-                                                                    if (e.target.checked) {
-                                                                        handleExperienceChange(exp.id, "to", "")
-                                                                    }
-                                                                }}
-                                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                                            />
-                                                            <span className="text-sm text-gray-700">
-                                                                {isCoach ? "Alleno ancora qui" : "Gioco ancora qui"}
-                                                            </span>
-                                                        </label>
-                                                    </div>
-                                                )}
-
-                                                {/* Messaggio di errore validazione date */}
-                                                {dateErrors[exp.id] && (
-                                                    <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
-                                                        <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                                        <span>{dateErrors[exp.id]}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {isPlayer && mainSport === "Calcio" && (
-                                                <div className="mt-3 md:col-span-2 w-full">
-                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Presenze</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.appearances ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Minuti Giocati</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.minutesPlayed ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'minutesPlayed', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Gol</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.goals ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'goals', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Assist</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.assists ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Rete Inviolata</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.cleanSheets ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'cleanSheets', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Rigori</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.penalties ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'penalties', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Ammonizioni</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.yellowCards ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'yellowCards', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Espulsioni</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.redCards ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'redCards', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Sost. (IN)</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.substitutionsIn ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsIn', e.target.value)}
-                                                                className={inputBase}
-                                                                placeholder="Entrate"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Sost. (OUT)</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.substitutionsOut ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsOut', e.target.value)}
-                                                                className={inputBase}
-                                                                placeholder="Uscite"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {isPlayer && mainSport === "Basket" && (
-                                                <div className="mt-3 md:col-span-2 w-full">
-                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Punti/partita</label>
-                                                            <input
-                                                                type="number"
-                                                                step="0.1"
-                                                                min={0}
-                                                                value={exp.pointsPerGame ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'pointsPerGame', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Assist</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.assists ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Rimbalzi</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.rebounds ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'rebounds', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Presenze</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.appearances ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {isPlayer && mainSport === "Pallavolo" && (
-                                                <div className="mt-3 md:col-span-2 w-full">
-                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Ace</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.volleyAces ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyAces', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Muri</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.volleyBlocks ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyBlocks', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Difese</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.volleyDigs ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyDigs', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Presenze</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.appearances ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {isCoach && (
-                                                <div className="mt-3 md:col-span-2 w-full">
-                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
-                                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Partite Allenate</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.matchesCoached ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'matchesCoached', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Vittorie</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.wins ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'wins', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Pareggi</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.draws ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'draws', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Sconfitte</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.losses ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'losses', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-xs text-gray-600">Trofei</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                value={exp.trophies ?? ''}
-                                                                onChange={(e) => handleExperienceChange(exp.id, 'trophies', e.target.value)}
-                                                                className={inputBase}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    {!validateCoachStats(exp) && (
-                                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                            <p className="text-sm text-red-700">
-                                                                ⚠️ Errore: Le partite allenate ({exp.matchesCoached}) devono essere uguali alla somma di vittorie ({exp.wins || 0}) + pareggi ({exp.draws || 0}) + sconfitte ({exp.losses || 0}) = {(exp.wins || 0) + (exp.draws || 0) + (exp.losses || 0)}
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeExperience(exp.id)}
-                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300 text-red-500 hover:border-red-500 hover:bg-red-50"
+                                return (
+                                    <div
+                                        key={exp.id}
+                                        className={`rounded-xl border ${isExpanded ? 'border-[#2341F0]/30 bg-white shadow-sm' : 'border-gray-200 bg-gray-50/50'} transition-all duration-200`}
+                                    >
+                                        {/* ── Accordion Header ── */}
+                                        <div
+                                            className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer select-none"
+                                            onClick={() => toggleExpAccordion(exp.id)}
                                         >
-                                            <XMarkIcon className="h-5 w-5" />
-                                        </button>
+                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                <div className={`flex-shrink-0 w-2 h-2 rounded-full ${exp.isCurrentlyPlaying ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                                        {exp.team || <span className="text-gray-400 italic">Nuova esperienza</span>}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 truncate">
+                                                        {[exp.season, exp.category, exp.positionDetail || exp.role].filter(Boolean).join(' · ') || 'Compila i dettagli'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                {exp.isCurrentlyPlaying && (
+                                                    <span className="hidden sm:inline-flex text-[10px] font-semibold uppercase tracking-wider bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                                        Attuale
+                                                    </span>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); removeExperience(exp.id) }}
+                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-full text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                                    title="Rimuovi esperienza"
+                                                >
+                                                    <XMarkIcon className="h-4 w-4" />
+                                                </button>
+                                                <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                            </div>
+                                        </div>
+
+                                        {/* ── Accordion Body ── */}
+                                        {isExpanded && (
+                                            <div className="px-4 pb-4 border-t border-gray-100">
+                                                <div className="pt-3">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="flex-1 grid gap-3 md:grid-cols-2">
+                                                            {isCoach ? (
+                                                                <>
+                                                                    {/* Stagione - OBBLIGATORIO */}
+                                                                    <CustomSelect
+                                                                        value={exp.season}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona stagione *" },
+                                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        required
+                                                                    />
+
+                                                                    {/* Ruolo Coach */}
+                                                                    <CustomSelect
+                                                                        value={exp.role}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona ruolo" },
+                                                                            ...(mainSport === "Calcio" ? coachFootballRoles : coachRoles).map(role => ({ value: role, label: role }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+
+                                                                    {/* Team/Club - Autocomplete */}
+                                                                    <OrganizationAutocomplete
+                                                                        value={exp.team}
+                                                                        onChange={(value, org) => {
+                                                                            handleExperienceChange(exp.id, "team", value)
+                                                                            // Auto-fill country, city, sport if organization is selected
+                                                                            if (org) {
+                                                                                handleExperienceChange(exp.id, "country", org.country)
+                                                                                if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                                                handleExperienceChange(exp.id, "sport", org.sport)
+                                                                            }
+                                                                        }}
+                                                                        sport={mainSport}
+                                                                        country={exp.country || undefined}
+                                                                        placeholder="Cerca organizzazione/club..."
+                                                                        className={inputBase}
+                                                                    />
+
+                                                                    {/* Nazione */}
+                                                                    <CustomSelect
+                                                                        value={exp.country}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "country", value)
+                                                                            handleExperienceChange(exp.id, "categoryTier", "")
+                                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona nazione" },
+                                                                            ...footballCountries.map(country => ({ value: country, label: country }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+
+                                                                    {/* Macro Categoria */}
+                                                                    <CustomSelect
+                                                                        value={exp.categoryTier || ""}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "categoryTier", value)
+                                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={!exp.country}
+                                                                    />
+
+                                                                    {/* Tipologia Competizione */}
+                                                                    <CustomSelect
+                                                                        value={exp.competitionType || ""}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "competitionType", value)
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
+                                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={!exp.country || !exp.categoryTier}
+                                                                    />
+
+                                                                    {/* Categoria */}
+                                                                    {exp.categoryTier === "Altro" ? (
+                                                                        <input
+                                                                            value={exp.category}
+                                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                                            placeholder="Categoria (testo libero)"
+                                                                            className={inputBase}
+                                                                            disabled={!exp.country}
+                                                                        />
+                                                                    ) : (
+                                                                        <CustomSelect
+                                                                            value={exp.category}
+                                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                                            options={[
+                                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                                    exp.competitionType === "female" ? (
+                                                                                        exp.country === "Italia"
+                                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                    ) : (
+                                                                                        exp.country === "Italia"
+                                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                    )
+                                                                                ) : [])
+                                                                            ]}
+                                                                            className={inputBase}
+                                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
+                                                                        />
+                                                                    )}
+                                                                </>
+                                                            ) : isPlayer && mainSport === "Calcio" ? (
+                                                                <>
+                                                                    {/* Stagione - OBBLIGATORIO */}
+                                                                    <CustomSelect
+                                                                        value={exp.season}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona stagione *" },
+                                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        required
+                                                                    />
+
+                                                                    <CustomSelect
+                                                                        value={exp.primaryPosition || ''}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "primaryPosition", value)
+                                                                            handleExperienceChange(exp.id, "role", "Player")
+                                                                            // Reset positionDetail quando cambia primaryPosition
+                                                                            handleExperienceChange(exp.id, "positionDetail", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona ruolo" },
+                                                                            ...footballPrimaryOptions.map(opt => ({ value: opt.value, label: opt.label }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+                                                                    <CustomSelect
+                                                                        value={exp.positionDetail || ''}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "positionDetail", value)}
+                                                                        options={[
+                                                                            { value: "", label: exp.primaryPosition ? "Seleziona dettaglio ruolo" : "Prima seleziona un ruolo" },
+                                                                            ...(exp.primaryPosition && footballSecondaryOptions[exp.primaryPosition] ? footballSecondaryOptions[exp.primaryPosition].map(opt => ({ value: opt.value, label: opt.label })) : [])
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={!exp.primaryPosition}
+                                                                    />
+                                                                </>
+                                                            ) : isPlayer && mainSport === "Basket" ? (
+                                                                <>
+                                                                    {/* Stagione - OBBLIGATORIO */}
+                                                                    <CustomSelect
+                                                                        value={exp.season}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona stagione *" },
+                                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        required
+                                                                    />
+
+                                                                    <CustomSelect
+                                                                        value={exp.role}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona ruolo" },
+                                                                            ...basketRoles.map(role => ({ value: role, label: role }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+                                                                </>
+                                                            ) : isPlayer && mainSport === "Pallavolo" ? (
+                                                                <>
+                                                                    {/* Stagione - OBBLIGATORIO */}
+                                                                    <CustomSelect
+                                                                        value={exp.season}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "season", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona stagione *" },
+                                                                            ...availableSeasons.map(season => ({ value: season, label: `Stagione ${season}` }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        required
+                                                                    />
+
+                                                                    <CustomSelect
+                                                                        value={exp.role}
+                                                                        onChange={(value) => handleExperienceChange(exp.id, "role", value)}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona ruolo" },
+                                                                            ...volleyRoles.map(role => ({ value: role, label: role }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+                                                                </>
+                                                            ) : (
+                                                                <input
+                                                                    value={exp.role}
+                                                                    onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+                                                                    placeholder="Ruolo"
+                                                                    className={inputBase}
+                                                                />
+                                                            )}
+                                                            {!isCoach && (
+                                                                <OrganizationAutocomplete
+                                                                    value={exp.team}
+                                                                    onChange={(value, org) => {
+                                                                        handleExperienceChange(exp.id, "team", value)
+                                                                        // Auto-fill country, city, sport if organization is selected
+                                                                        if (org) {
+                                                                            handleExperienceChange(exp.id, "country", org.country)
+                                                                            if (org.city) handleExperienceChange(exp.id, "city", org.city)
+                                                                            handleExperienceChange(exp.id, "sport", org.sport)
+                                                                        }
+                                                                    }}
+                                                                    sport={mainSport}
+                                                                    country={exp.country || undefined}
+                                                                    placeholder="Cerca organizzazione/club..."
+                                                                    className={inputBase}
+                                                                />
+                                                            )}
+                                                            {!isCoach && isPlayer && mainSport === "Calcio" ? (
+                                                                <>
+                                                                    {/* Nazione */}
+                                                                    <CustomSelect
+                                                                        value={exp.country}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "country", value)
+                                                                            // Reset tutti i campi successivi quando cambia nazione
+                                                                            handleExperienceChange(exp.id, "categoryTier", "")
+                                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona nazione" },
+                                                                            ...footballCountries.map(country => ({ value: country, label: country }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+
+                                                                    {/* Macro categoria */}
+                                                                    <CustomSelect
+                                                                        value={exp.categoryTier || ""}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "categoryTier", value)
+                                                                            // Reset campi successivi quando cambia macro
+                                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                                            ...footballMacroCategories.map(tier => ({ value: tier, label: tier }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={!exp.country}
+                                                                    />
+
+                                                                    {/* Tipologia Competizione (NUOVO) */}
+                                                                    <CustomSelect
+                                                                        value={exp.competitionType || ""}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "competitionType", value)
+                                                                            // Reset categoria quando cambia tipologia
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria" },
+                                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={!exp.country || !exp.categoryTier}
+                                                                    />
+
+                                                                    {/* Categoria dettagliata */}
+                                                                    {exp.categoryTier === "Altro" ? (
+                                                                        <input
+                                                                            value={exp.category}
+                                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                                            placeholder="Categoria (testo libero)"
+                                                                            className={inputBase}
+                                                                            disabled={!exp.country}
+                                                                        />
+                                                                    ) : (
+                                                                        <CustomSelect
+                                                                            value={exp.category}
+                                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                                            options={[
+                                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                                ...(exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                                    exp.competitionType === "female" ? (
+                                                                                        exp.country === "Italia"
+                                                                                            ? (footballFemaleCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            : (footballFemaleCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                    ) : (
+                                                                                        exp.country === "Italia"
+                                                                                            ? (footballCategoriesByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            : (footballCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                    )
+                                                                                ) : [])
+                                                                            ]}
+                                                                            className={inputBase}
+                                                                            disabled={!exp.country || !exp.categoryTier || !exp.competitionType}
+                                                                        />
+                                                                    )}
+                                                                </>
+                                                            ) : !isCoach && isPlayer && (mainSport === "Basket" || mainSport === "Pallavolo") ? (
+                                                                <>
+                                                                    {/* Nazione */}
+                                                                    <CustomSelect
+                                                                        value={exp.country}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "country", value)
+                                                                            handleExperienceChange(exp.id, "categoryTier", "")
+                                                                            handleExperienceChange(exp.id, "competitionType", "")
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: "Seleziona nazione" },
+                                                                            ...(mainSport === "Basket" ? basketCountries : volleyCountries).map(country => ({ value: country, label: country }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                    />
+
+                                                                    {/* Macro categoria (Italia per Basket e Pallavolo) */}
+                                                                    {(mainSport === "Basket" || mainSport === "Pallavolo") && exp.country === "Italia" && (
+                                                                        <CustomSelect
+                                                                            value={exp.categoryTier || ""}
+                                                                            onChange={(value) => {
+                                                                                handleExperienceChange(exp.id, "categoryTier", value)
+                                                                                handleExperienceChange(exp.id, "competitionType", "")
+                                                                                handleExperienceChange(exp.id, "category", "")
+                                                                            }}
+                                                                            options={[
+                                                                                { value: "", label: exp.country ? "Seleziona macro categoria" : "Prima seleziona una nazione" },
+                                                                                ...(mainSport === "Basket" ? basketMacroCategories : volleyMacroCategories).map(tier => ({ value: tier, label: tier }))
+                                                                            ]}
+                                                                            className={inputBase}
+                                                                            disabled={!exp.country}
+                                                                        />
+                                                                    )}
+
+                                                                    {/* Tipologia Competizione */}
+                                                                    <CustomSelect
+                                                                        value={exp.competitionType || ""}
+                                                                        onChange={(value) => {
+                                                                            handleExperienceChange(exp.id, "competitionType", value)
+                                                                            handleExperienceChange(exp.id, "category", "")
+                                                                        }}
+                                                                        options={[
+                                                                            { value: "", label: exp.country === "Italia" ? (exp.categoryTier ? "Seleziona tipologia competizione" : "Prima seleziona macro categoria") : (exp.country ? "Seleziona tipologia competizione" : "Prima seleziona una nazione") },
+                                                                            ...competitionTypes.map(type => ({ value: type.value, label: type.label }))
+                                                                        ]}
+                                                                        className={inputBase}
+                                                                        disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier : !exp.country}
+                                                                    />
+
+                                                                    {/* Categoria dettagliata */}
+                                                                    {exp.country === "Altro" ? (
+                                                                        <input
+                                                                            value={exp.category}
+                                                                            onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                                            placeholder="Categoria"
+                                                                            className={inputBase}
+                                                                        />
+                                                                    ) : (
+                                                                        <CustomSelect
+                                                                            value={exp.category}
+                                                                            onChange={(value) => handleExperienceChange(exp.id, "category", value)}
+                                                                            options={[
+                                                                                { value: "", label: exp.competitionType ? "Seleziona categoria" : "Prima seleziona tipologia competizione" },
+                                                                                ...(mainSport === "Basket" ? (
+                                                                                    exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                                        exp.competitionType === "female" ? (
+                                                                                            exp.country === "Italia"
+                                                                                                ? (basketFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                        ) : (
+                                                                                            exp.country === "Italia"
+                                                                                                ? (basketMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                                : (basketCategoriesByTierDefault[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                        )
+                                                                                    ) : []
+                                                                                ) : (
+                                                                                    // Pallavolo
+                                                                                    exp.country === "Italia" ? (
+                                                                                        exp.country && exp.categoryTier && exp.competitionType ? (
+                                                                                            exp.competitionType === "female" ? (
+                                                                                                (volleyFemaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            ) : (
+                                                                                                (volleyMaleCategoresByTierItaly[exp.categoryTier] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                            )
+                                                                                        ) : []
+                                                                                    ) : (
+                                                                                        exp.country && exp.competitionType ? (
+                                                                                            (volleyCategoriesByCountry[exp.country] || []).map(cat => ({ value: cat, label: cat }))
+                                                                                        ) : []
+                                                                                    )
+                                                                                ))
+                                                                            ]}
+                                                                            className={inputBase}
+                                                                            disabled={exp.country === "Italia" ? !exp.country || !exp.categoryTier || !exp.competitionType : !exp.country || !exp.competitionType}
+                                                                        />
+                                                                    )}
+                                                                </>
+                                                            ) : !isCoach ? (
+                                                                <>
+                                                                    <input
+                                                                        value={exp.country}
+                                                                        onChange={(e) => handleExperienceChange(exp.id, "country", e.target.value)}
+                                                                        placeholder="Nazione"
+                                                                        className={inputBase}
+                                                                    />
+                                                                    <select
+                                                                        value={exp.competitionType || ""}
+                                                                        onChange={(e) => handleExperienceChange(exp.id, "competitionType", e.target.value)}
+                                                                        className={inputBase}
+                                                                    >
+                                                                        <option value="">Tipologia competizione (opzionale)</option>
+                                                                        {competitionTypes.map((type) => (
+                                                                            <option key={type.value} value={type.value}>{type.label}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <input
+                                                                        value={exp.category}
+                                                                        onChange={(e) => handleExperienceChange(exp.id, "category", e.target.value)}
+                                                                        placeholder="Categoria"
+                                                                        className={inputBase}
+                                                                    />
+                                                                </>
+                                                            ) : null}
+
+                                                            {/* Checkbox per mostrare date opzionali */}
+                                                            <div className="md:col-span-2 space-y-3">
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={showDatesForExp[exp.id] || false}
+                                                                        onChange={() => toggleDatesForExp(exp.id)}
+                                                                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                                    />
+                                                                    <span className="text-sm text-gray-700">
+                                                                        Specifica periodo esatto (opzionale)
+                                                                    </span>
+                                                                </label>
+
+                                                                {/* Date opzionali - mostrate solo se checkbox attivo */}
+                                                                {showDatesForExp[exp.id] && (
+                                                                    <div className="space-y-3 pl-6 border-l-2 border-gray-200">
+                                                                        <div className="grid grid-cols-2 gap-3">
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600 mb-1 block">Data inizio</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={exp.from || ""}
+                                                                                    onChange={(e) => handleExperienceChange(exp.id, "from", e.target.value)}
+                                                                                    placeholder="Inizio"
+                                                                                    className={inputBase}
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label className="text-xs text-gray-600 mb-1 block">Data fine</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={exp.to || ""}
+                                                                                    onChange={(e) => handleExperienceChange(exp.id, "to", e.target.value)}
+                                                                                    placeholder="Fine"
+                                                                                    className={inputBase}
+                                                                                    disabled={exp.isCurrentlyPlaying}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={exp.isCurrentlyPlaying || false}
+                                                                                onChange={(e) => {
+                                                                                    handleExperienceChange(exp.id, "isCurrentlyPlaying", e.target.checked)
+                                                                                    if (e.target.checked) {
+                                                                                        handleExperienceChange(exp.id, "to", "")
+                                                                                    }
+                                                                                }}
+                                                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                                            />
+                                                                            <span className="text-sm text-gray-700">
+                                                                                {isCoach ? "Alleno ancora qui" : "Gioco ancora qui"}
+                                                                            </span>
+                                                                        </label>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Messaggio di errore validazione date */}
+                                                                {dateErrors[exp.id] && (
+                                                                    <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
+                                                                        <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                                                        <span>{dateErrors[exp.id]}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {isPlayer && mainSport === "Calcio" && (
+                                                                <div className="mt-3 md:col-span-2 w-full">
+                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Presenze</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.appearances ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Minuti Giocati</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.minutesPlayed ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'minutesPlayed', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Gol</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.goals ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'goals', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Assist</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.assists ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Rete Inviolata</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.cleanSheets ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'cleanSheets', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Rigori</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.penalties ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'penalties', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Ammonizioni</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.yellowCards ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'yellowCards', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Espulsioni</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.redCards ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'redCards', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Sost. (IN)</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.substitutionsIn ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsIn', e.target.value)}
+                                                                                className={inputBase}
+                                                                                placeholder="Entrate"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Sost. (OUT)</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.substitutionsOut ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'substitutionsOut', e.target.value)}
+                                                                                className={inputBase}
+                                                                                placeholder="Uscite"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {isPlayer && mainSport === "Basket" && (
+                                                                <div className="mt-3 md:col-span-2 w-full">
+                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Punti/partita</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                step="0.1"
+                                                                                min={0}
+                                                                                value={exp.pointsPerGame ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'pointsPerGame', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Assist</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.assists ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'assists', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Rimbalzi</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.rebounds ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'rebounds', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Presenze</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.appearances ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {isPlayer && mainSport === "Pallavolo" && (
+                                                                <div className="mt-3 md:col-span-2 w-full">
+                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Ace</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.volleyAces ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyAces', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Muri</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.volleyBlocks ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyBlocks', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Difese</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.volleyDigs ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'volleyDigs', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Presenze</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.appearances ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'appearances', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {isCoach && (
+                                                                <div className="mt-3 md:col-span-2 w-full">
+                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Partite Allenate</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.matchesCoached ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'matchesCoached', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Vittorie</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.wins ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'wins', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Pareggi</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.draws ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'draws', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Sconfitte</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.losses ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'losses', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <label className="text-xs text-gray-600">Trofei</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                value={exp.trophies ?? ''}
+                                                                                onChange={(e) => handleExperienceChange(exp.id, 'trophies', e.target.value)}
+                                                                                className={inputBase}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    {!validateCoachStats(exp) && (
+                                                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                            <p className="text-sm text-red-700">
+                                                                                ⚠️ Errore: Le partite allenate ({exp.matchesCoached}) devono essere uguali alla somma di vittorie ({exp.wins || 0}) + pareggi ({exp.draws || 0}) + sconfitte ({exp.losses || 0}) = {(exp.wins || 0) + (exp.draws || 0) + (exp.losses || 0)}
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </section>
 

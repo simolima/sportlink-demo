@@ -7,7 +7,8 @@ import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
 import SelfEvaluationDisplay from '@/components/self-evaluation-display'
 import SocialLinks from '@/components/social-links'
-import { BriefcaseIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import ExperienceCard from '@/components/experience-card'
+import { SparklesIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase-browser'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
@@ -21,7 +22,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     const [favoritesCount, setFavoritesCount] = useState(0)
     const [userClub, setUserClub] = useState<string | null>(null)
     const [sports, setSports] = useState<string[]>([])
-
+    const [showCareerModal, setShowCareerModal] = useState(false)
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -90,14 +91,26 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     const rawExps = await expRes.json()
                     userData.experiences = (rawExps || []).map((exp: any) => ({
                         id: exp.id,
-                        team: exp.organization?.name || exp.organization_name || '',
-                        role: exp.role_detail || exp.role || '',
+                        team: exp.organization?.name || '',
+                        role: exp.role || '',
+                        roleDetail: exp.role_detail || '',
+                        profileType: exp.profile_type || '',
+                        experienceKind: exp.experience_kind || '',
                         category: exp.category || '',
+                        categoryTier: exp.category_tier || '',
+                        competitionType: exp.competition_type || '',
                         season: exp.season || '',
                         from: exp.start_date || '',
                         to: exp.end_date || '',
                         isCurrentlyPlaying: exp.is_current || false,
-                        // Player Stats
+                        employmentType: exp.employment_type || '',
+                        description: exp.description || '',
+                        organizationCity: exp.organization?.city || '',
+                        organizationCountry: exp.organization?.country || '',
+                        sportName: exp.organization?.sport || exp.organization?.lookup_sports?.name || '',
+                        positionName: exp.position?.name || '',
+                        positionCategory: exp.position?.category || '',
+                        // Football stats
                         goals: exp.goals ?? undefined,
                         assists: exp.assists ?? undefined,
                         cleanSheets: exp.clean_sheets ?? undefined,
@@ -108,14 +121,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         redCards: exp.red_cards ?? undefined,
                         substitutionsIn: exp.substitutions_in ?? undefined,
                         substitutionsOut: exp.substitutions_out ?? undefined,
-                        // Basket
+                        // Basketball stats
+                        gamesPlayed: exp.games_played ?? undefined,
                         pointsPerGame: exp.points_per_game ?? undefined,
                         rebounds: exp.rebounds ?? undefined,
-                        // Volley (DB columns: aces, blocks, digs)
+                        // Volleyball stats
+                        matchesPlayed: exp.matches_played ?? undefined,
                         volleyAces: exp.aces ?? undefined,
                         volleyBlocks: exp.blocks ?? undefined,
                         volleyDigs: exp.digs ?? undefined,
-                        // Coach Stats
+                        // Coach stats
                         matchesCoached: exp.matches_coached ?? undefined,
                         wins: exp.wins ?? undefined,
                         draws: exp.draws ?? undefined,
@@ -204,8 +219,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     }
 
     const experiences = Array.isArray(user.experiences) ? user.experiences : []
-    const sportNorm = (sports[0] || '').toString().toLowerCase()
-    const isPlayerRole = (user.professionalRole || '').toString().toLowerCase().includes('player')
 
     return (
         <div className="min-h-screen bg-white py-8">
@@ -342,123 +355,94 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         >
                             {experiences.length > 0 ? (
                                 <div className="space-y-4">
-                                    {experiences.map((exp: any, idx: number) => (
-                                        <div
-                                            key={idx}
-                                            className="bg-white rounded-lg p-4 border border-gray-200 hover:border-[#2341F0]/40 shadow-sm transition"
+                                    {/* Show only the latest experience (first in array, ordered by start_date DESC) */}
+                                    <ExperienceCard
+                                        key={experiences[0].id}
+                                        exp={experiences[0]}
+                                        sportName={sports[0] || ''}
+                                    />
+
+                                    {/* Button to open full career modal */}
+                                    {experiences.length > 1 && (
+                                        <button
+                                            onClick={() => setShowCareerModal(true)}
+                                            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-dashed border-[#2341F0]/30 text-[#2341F0] hover:bg-[#eaf2ff] hover:border-[#2341F0]/50 transition-all duration-200 text-sm font-semibold group"
                                         >
-                                            <div className="flex items-start gap-3">
-                                                <div className="mt-1">
-                                                    <BriefcaseIcon className="w-5 h-5 text-[#2341F0]" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                        <h4 className="font-bold text-gray-900">
-                                                            {exp.role || exp.title || 'Ruolo'}
-                                                        </h4>
-                                                        {exp.team && (
-                                                            <span className="text-gray-600 text-sm">
-                                                                @ {exp.team}
-                                                            </span>
-                                                        )}
-                                                        {exp.category && (
-                                                            <span className="px-2 py-1 bg-[#eaf2ff] text-[#2341F0] text-xs rounded-full font-semibold">
-                                                                {exp.category}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {(() => {
-                                                        // Priorità: mostra stagione se presente, altrimenti mostra date specifiche
-                                                        if (exp.season && exp.season.trim() !== '') {
-                                                            // Mostra stagione + eventualmente date precise tra parentesi
-                                                            let periodText = `Stagione ${exp.season}`
-                                                            if (exp.from || exp.to) {
-                                                                const fromFormatted = exp.from ? new Date(exp.from).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
-                                                                const toFormatted = exp.isCurrentlyPlaying ? 'Presente' : exp.to ? new Date(exp.to).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
-                                                                if (fromFormatted || toFormatted) {
-                                                                    periodText += ` (${fromFormatted || '—'} - ${toFormatted || 'Presente'})`
-                                                                }
-                                                            }
-                                                            return (
-                                                                <p className="text-xs text-gray-500 mb-2">
-                                                                    {periodText}
-                                                                </p>
-                                                            )
-                                                        } else if (exp.from || exp.to) {
-                                                            // Fallback: mostra solo date (vecchio formato)
-                                                            return (
-                                                                <p className="text-xs text-gray-500 mb-2">
-                                                                    {exp.from || '—'} - {exp.to || 'Presente'}
-                                                                </p>
-                                                            )
-                                                        }
-                                                        return null
-                                                    })()}
-                                                    {exp.summary && (
-                                                        <p className="text-sm text-gray-700">
-                                                            {exp.summary}
-                                                        </p>
-                                                    )}
-                                                    {isPlayerRole && (() => {
-                                                        const goals = typeof exp.goals === 'number' ? exp.goals : (exp.goals === '' ? undefined : Number(exp.goals))
-                                                        const cleanSheets = typeof exp.cleanSheets === 'number' ? exp.cleanSheets : (exp.cleanSheets === '' ? undefined : Number(exp.cleanSheets))
-                                                        const appearances = typeof exp.appearances === 'number' ? exp.appearances : (exp.appearances === '' ? undefined : Number(exp.appearances))
-                                                        const pointsPerGame = typeof exp.pointsPerGame === 'number' ? exp.pointsPerGame : (exp.pointsPerGame === '' ? undefined : Number(exp.pointsPerGame))
-                                                        const assists = typeof exp.assists === 'number' ? exp.assists : (exp.assists === '' ? undefined : Number(exp.assists))
-                                                        const rebounds = typeof exp.rebounds === 'number' ? exp.rebounds : (exp.rebounds === '' ? undefined : Number(exp.rebounds))
-                                                        const volleyAces = typeof exp.volleyAces === 'number' ? exp.volleyAces : (exp.volleyAces === '' ? undefined : Number(exp.volleyAces))
-                                                        const volleyBlocks = typeof exp.volleyBlocks === 'number' ? exp.volleyBlocks : (exp.volleyBlocks === '' ? undefined : Number(exp.volleyBlocks))
-                                                        const volleyDigs = typeof exp.volleyDigs === 'number' ? exp.volleyDigs : (exp.volleyDigs === '' ? undefined : Number(exp.volleyDigs))
-
-                                                        const hasAny = [goals, cleanSheets, appearances, pointsPerGame, assists, rebounds, volleyAces, volleyBlocks, volleyDigs]
-                                                            .some(v => v !== null && v !== undefined && !Number.isNaN(v))
-                                                        if (!hasAny) return null
-
-                                                        const isFootball = sportNorm === 'calcio'
-                                                        const isBasket = sportNorm === 'basket'
-                                                        const isVolley = sportNorm === 'pallavolo'
-
-                                                        return (
-                                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                                                                {isFootball && goals != null && !Number.isNaN(goals) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Gol: {goals}</span>
-                                                                )}
-                                                                {isFootball && cleanSheets != null && !Number.isNaN(cleanSheets) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Clean sheet: {cleanSheets}</span>
-                                                                )}
-                                                                {isBasket && pointsPerGame != null && !Number.isNaN(pointsPerGame) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">PPG: {pointsPerGame}</span>
-                                                                )}
-                                                                {isBasket && assists != null && !Number.isNaN(assists) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Assist: {assists}</span>
-                                                                )}
-                                                                {isBasket && rebounds != null && !Number.isNaN(rebounds) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Rimbalzi: {rebounds}</span>
-                                                                )}
-                                                                {isVolley && volleyAces != null && !Number.isNaN(volleyAces) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Ace: {volleyAces}</span>
-                                                                )}
-                                                                {isVolley && volleyBlocks != null && !Number.isNaN(volleyBlocks) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Muri: {volleyBlocks}</span>
-                                                                )}
-                                                                {isVolley && volleyDigs != null && !Number.isNaN(volleyDigs) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Difese: {volleyDigs}</span>
-                                                                )}
-                                                                {appearances != null && !Number.isNaN(appearances) && (
-                                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700">Presenze: {appearances}</span>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            <span>Visualizza tutta la carriera</span>
+                                            <span className="text-xs text-gray-400 font-normal">({experiences.length} esperienze)</span>
+                                            <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <p className="text-gray-500 italic">Nessuna esperienza inserita</p>
                             )}
                         </ProfileSection>
+
+                        {/* Career Modal (Full career view) */}
+                        {showCareerModal && (
+                            <div
+                                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                onClick={() => setShowCareerModal(false)}
+                            >
+                                {/* Backdrop */}
+                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+                                {/* Modal */}
+                                <div
+                                    className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#2341F0]/5 to-transparent flex-shrink-0">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900">Carriera completa</h3>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {experiences.length} esperienza{experiences.length !== 1 ? 'e' : ''} · {user?.firstName} {user?.lastName}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowCareerModal(false)}
+                                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                                        >
+                                            <XMarkIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {/* Scrollable content */}
+                                    <div className="overflow-y-auto flex-1 px-6 py-4">
+                                        <div className="relative">
+                                            {/* Timeline line */}
+                                            <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-gray-200 hidden sm:block" />
+
+                                            <div className="space-y-4">
+                                                {experiences.map((exp: any, idx: number) => (
+                                                    <div key={exp.id} className="relative sm:pl-10">
+                                                        {/* Timeline dot */}
+                                                        <div className={`absolute left-2.5 top-5 w-3 h-3 rounded-full border-2 border-white shadow-sm hidden sm:block ${idx === 0 ? 'bg-[#2341F0]' : 'bg-gray-300'
+                                                            }`} />
+                                                        <ExperienceCard
+                                                            exp={exp}
+                                                            sportName={sports[0] || ''}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="px-6 py-3 border-t border-gray-100 flex-shrink-0 bg-gray-50/50">
+                                        <button
+                                            onClick={() => setShowCareerModal(false)}
+                                            className="w-full py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+                                        >
+                                            Chiudi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Relazioni (Rappresentazioni per Players) */}
                         {user.professionalRole?.toLowerCase() === 'player' && (

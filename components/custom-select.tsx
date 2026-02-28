@@ -60,8 +60,10 @@ export default function CustomSelect({
                 type="text"
                 value={displayValue}
                 readOnly
-                onClick={() => !disabled && setIsOpen(!isOpen)}
-                onFocus={() => !disabled && setIsOpen(true)}
+                onClick={() => {
+                    if (disabled) return
+                    setIsOpen(prev => !prev)
+                }}
                 placeholder={placeholder}
                 disabled={disabled}
                 className={`${className} cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -75,8 +77,8 @@ export default function CustomSelect({
                             key={option.value}
                             onClick={() => handleSelect(option.value)}
                             className={`px-4 py-2.5 cursor-pointer transition-colors first:rounded-t-xl last:rounded-b-xl ${value === option.value
-                                    ? 'bg-gray-100 font-medium'
-                                    : 'hover:bg-gray-100'
+                                ? 'bg-gray-100 font-medium'
+                                : 'hover:bg-gray-100'
                                 }`}
                         >
                             {option.label}

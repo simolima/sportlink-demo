@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
             .from('profile_experiences')
             .select(`
                 *,
-                organization:sports_organizations(
+                organization:sports_organizations!organization_id(
                     id, name, country, city, sport_id,
                     lookup_sports(name)
                 ),
@@ -385,6 +385,38 @@ export async function POST(req: NextRequest) {
             }
 
             savedExperiences.push(savedExp)
+        }
+
+        // ── 8. Auto-close previous experiences ──
+        // If a newer experience exists, set end_date of the previous one
+        // to the start_date of the next one (only if end_date is NULL and not is_current)
+        if (savedExperiences.length > 0) {
+            try {
+                const { data: allExps } = await supabaseServer
+                    .from('profile_experiences')
+                    .select('id, start_date, end_date, is_current')
+                    .eq('user_id', userId)
+                    .is('deleted_at', null)
+                    .order('start_date', { ascending: true })
+
+                if (allExps && allExps.length > 1) {
+                    for (let i = 0; i < allExps.length - 1; i++) {
+                        const current = allExps[i]
+                        const next = allExps[i + 1]
+
+                        // Only auto-close if: no end_date AND not marked as current
+                        if (!current.end_date && !current.is_current && next.start_date) {
+                            await supabaseServer
+                                .from('profile_experiences')
+                                .update({ end_date: next.start_date })
+                                .eq('id', current.id)
+                        }
+                    }
+                }
+            } catch (autoCloseErr) {
+                console.error('Error in auto-close logic:', autoCloseErr)
+                // Non-blocking: experiences already saved
+            }
         }
 
         // ── Response ──

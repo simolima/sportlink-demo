@@ -138,10 +138,19 @@ export default function ClubDetailPage() {
 
     // Controlla se l'utente è admin del club
     useEffect(() => {
-        if (!currentUserId || !members.length) return
-        const admin = members.find(m => m.userId?.toString() === currentUserId && m.role === 'Admin' && m.isActive)
-        setIsAdmin(!!admin)
-    }, [currentUserId, members])
+        if (!currentUserId) return
+        // 1. Controlla la membership (caso normale)
+        const hasMembership = members.some(
+            m => m.userId?.toString() === currentUserId && m.role === 'Admin' && m.isActive
+        )
+        // 2. Fallback: se è il creatore/owner del club (gestisce società create prima del fix)
+        const isOwner = club
+            ? (club as any).created_by?.toString() === currentUserId ||
+              (club as any).owner_id?.toString() === currentUserId ||
+              (club as any).createdBy?.toString() === currentUserId
+            : false
+        setIsAdmin(hasMembership || isOwner)
+    }, [currentUserId, members, club])
 
     useEffect(() => {
         const loadUsers = async () => {

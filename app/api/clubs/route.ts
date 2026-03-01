@@ -225,7 +225,8 @@ export async function POST(request: Request) {
                 .select('id')
                 .eq('club_id', createdClub.id)
                 .eq('user_id', creatorId)
-                .eq('is_active', true)
+                .eq('status', 'active')
+                .is('deleted_at', null)
                 .maybeSingle()
 
             if (!existingMembership) {
@@ -234,9 +235,9 @@ export async function POST(request: Request) {
                     .insert([{
                         club_id: createdClub.id,
                         user_id: creatorId,
-                        role: 'Admin',
+                        club_role: 'Admin',           // ← colonna corretta
                         permissions: ['create_opportunities', 'manage_applications', 'manage_members', 'edit_club_info'],
-                        is_active: true,
+                        status: 'active',             // ← colonna corretta (non is_active)
                     }])
                 if (membershipError) console.error('Membership creation error:', membershipError)
             }

@@ -9,54 +9,68 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// GET /api/sports-organizations?q=search&sport=Calcio&country=Italia
+// GET /api/sports-organizations?q=search&sport=Calcio
+// Se `q` è presente usa la ricerca per similarità (pg_trgm), altrimenti lista completa
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const query = searchParams.get('q') || ''
         const sport = searchParams.get('sport')
 
+        // ── Ricerca fuzzy tramite pg_trgm (RPC) ──────────────────────────────
+        if (query && query.trim().length >= 2) {
+            const { data: rpcData, error: rpcError } = await supabase
+                .rpc('search_organizations_similar', {
+                    search_name: query.trim(),
+                    threshold: 0.2,   // soglia bassa: cattura anche "AC Milan" → "AC Milano"
+                    max_results: 8,
+                })
+
+            if (rpcError) {
+                console.error('RPC search error:', rpcError)
+                // Fallback a ilike se la RPC non è ancora disponibile (migration non ancora applicata)
+                const { data: fallback } = await supabase
+                    .from('sports_organizations')
+                    .select('id, name, country, city, sport_id')
+                    .is('deleted_at', null)
+                    .ilike('name', `%${query.trim()}%`)
+                    .limit(8)
+                return withCors(NextResponse.json(fallback || []))
+            }
+
+            // Se richiesto, filtra anche per sport
+            let results = rpcData || []
+            if (sport) {
+                const { data: sportRow } = await supabase
+                    .from('lookup_sports').select('id').ilike('name', sport).maybeSingle()
+                if (sportRow) {
+                    results = results.filter((o: any) => String(o.sport_id) === String(sportRow.id))
+                }
+            }
+
+            return withCors(NextResponse.json(results))
+        }
+
+        // ── Lista completa (senza query) ──────────────────────────────────────
         let dbQuery = supabase
             .from('sports_organizations')
-            .select('id, name, country, city, sport_id, lookup_sports(name)')
+            .select('id, name, country, city, sport_id')
             .is('deleted_at', null)
             .order('name')
 
-        if (query) {
-            dbQuery = dbQuery.ilike('name', `%${query}%`)
-        }
-
         if (sport) {
-            // Risolve il nome sport → sport_id tramite join
             const { data: sportRow } = await supabase
-                .from('lookup_sports')
-                .select('id')
-                .ilike('name', sport)
-                .maybeSingle()
-
-            if (sportRow) {
-                dbQuery = dbQuery.eq('sport_id', sportRow.id)
-            }
+                .from('lookup_sports').select('id').ilike('name', sport).maybeSingle()
+            if (sportRow) dbQuery = dbQuery.eq('sport_id', sportRow.id)
         }
 
         const { data, error } = await dbQuery.limit(20)
-
         if (error) {
             console.error('Error fetching organizations:', error)
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
-        // Normalizza la risposta: aggiunge `sport` come stringa per compatibilità col frontend
-        const normalized = (data || []).map((org: any) => ({
-            id: org.id,
-            name: org.name,
-            country: org.country,
-            city: org.city,
-            sport_id: org.sport_id,
-            sport: org.lookup_sports?.name ?? null,
-        }))
-
-        return withCors(NextResponse.json(normalized))
+        return withCors(NextResponse.json(data || []))
     } catch (error) {
         console.error('Unexpected error:', error)
         return withCors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))
@@ -64,33 +78,36 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/sports-organizations
-// ⚠️ DISABLED: Only admins should create organizations via database
-// Uncomment and add auth check if needed for admin panel
-/*
+// Crea una nuova organizzazione (chiamata dall'API clubs quando l'utente rifiuta il collegamento)
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { name, country, city, sport } = body
+        const { name, country, city, sportId } = body
 
-        if (!name || !country || !sport) {
+        if (!name || !country) {
             return withCors(NextResponse.json(
-                { error: 'Missing required fields: name, country, sport' },
+                { error: 'Missing required fields: name, country' },
                 { status: 400 }
             ))
         }
 
         const { data, error } = await supabase
             .from('sports_organizations')
-            .insert({
-                name,
-                country,
-                city,
-                sport
-            })
-            .select()
+            .insert({ name, country, city: city || null, sport_id: sportId || null })
+            .select('id, name, country, city, sport_id')
             .single()
 
         if (error) {
+            // Conflict: esiste già (unique constraint) → restituisce l'esistente
+            if (error.code === '23505') {
+                const { data: existing } = await supabase
+                    .from('sports_organizations')
+                    .select('id, name, country, city, sport_id')
+                    .eq('name', name)
+                    .eq('country', country)
+                    .maybeSingle()
+                if (existing) return withCors(NextResponse.json(existing, { status: 200 }))
+            }
             console.error('Error creating organization:', error)
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
@@ -101,7 +118,6 @@ export async function POST(request: NextRequest) {
         return withCors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))
     }
 }
-*/
 
 // OPTIONS handler per CORS preflight
 export async function OPTIONS(request: NextRequest) {

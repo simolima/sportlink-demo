@@ -504,6 +504,57 @@ export default function ClubDetailPage() {
                         </div>
                         {/* Right Column - Contact & Info */}
                         <div className="space-y-6">
+                            {/* Google Maps - Dove siamo */}
+                            {(club as any).address && (
+                                <div className="bg-white rounded-lg shadow-sm p-6">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <MapPinIcon className="h-5 w-5 text-green-600" />
+                                        Dove siamo
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-3">{(club as any).address}</p>
+                                    {/* Mappa embed Google Maps */}
+                                    {(club as any).addressLat && (club as any).addressLng ? (
+                                        <div className="rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                            <iframe
+                                                title="Posizione sede"
+                                                width="100%"
+                                                height="200"
+                                                style={{ border: 0 }}
+                                                loading="lazy"
+                                                allowFullScreen
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${(club as any).addressLat},${(club as any).addressLng}&zoom=15`}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                            <iframe
+                                                title="Posizione sede"
+                                                width="100%"
+                                                height="200"
+                                                style={{ border: 0 }}
+                                                loading="lazy"
+                                                allowFullScreen
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent((club as any).address)}&zoom=15`}
+                                            />
+                                        </div>
+                                    )}
+                                    <a
+                                        href={
+                                            (club as any).addressLat && (club as any).addressLng
+                                                ? `https://www.google.com/maps/dir/?api=1&destination=${(club as any).addressLat},${(club as any).addressLng}`
+                                                : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent((club as any).address)}`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        <MapPinIcon className="h-4 w-4" />
+                                        Ottieni indicazioni
+                                    </a>
+                                </div>
+                            )}
                             {/* Contact Info */}
                             <div className="bg-white rounded-lg shadow-sm p-6">
                                 <h2 className="text-xl font-bold text-gray-900 mb-4">Contatti</h2>

@@ -474,6 +474,9 @@ export type Club = {
   country: string;
   region?: string;
   description: string;
+  address?: string;
+  addressLat?: number;
+  addressLng?: number;
   logoUrl?: string;
   coverUrl?: string;
   founded?: number;

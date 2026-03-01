@@ -146,8 +146,8 @@ export default function ClubDetailPage() {
         // 2. Fallback: se è il creatore/owner del club (gestisce società create prima del fix)
         const isOwner = club
             ? (club as any).created_by?.toString() === currentUserId ||
-              (club as any).owner_id?.toString() === currentUserId ||
-              (club as any).createdBy?.toString() === currentUserId
+            (club as any).owner_id?.toString() === currentUserId ||
+            (club as any).createdBy?.toString() === currentUserId
             : false
         setIsAdmin(hasMembership || isOwner)
     }, [currentUserId, members, club])

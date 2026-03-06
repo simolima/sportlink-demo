@@ -10,6 +10,9 @@ node_modules/
 
 .expo/
 
+# TypeScript cache
+*.tsbuildinfo
+
 # Mobile (already has its own .gitignore in mobile/ folder)
 mobile/node_modules/
 mobile/.expo/

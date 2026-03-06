@@ -8,7 +8,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase-server'
+import { supabaseServer, validateUserIdFromBody } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
 export async function OPTIONS() {
@@ -103,6 +103,17 @@ export async function POST(req: Request) {
             return withCors(NextResponse.json({ error: 'senderId, receiverId, text required' }, { status: 400 }))
         }
 
+        // ✅ Valida senderId e receiverId
+        const senderValidation = validateUserIdFromBody({ userId: senderId })
+        if (!senderValidation.valid) {
+            return withCors(NextResponse.json({ error: 'invalid_sender_id' }, { status: 400 }))
+        }
+
+        const receiverValidation = validateUserIdFromBody({ userId: receiverId })
+        if (!receiverValidation.valid) {
+            return withCors(NextResponse.json({ error: 'invalid_receiver_id' }, { status: 400 }))
+        }
+
         const { data: newMsg, error } = await supabaseServer
             .from('messages')
             .insert({
@@ -162,6 +173,13 @@ export async function PATCH(req: Request) {
     try {
         const body = await req.json()
         const ids: string[] = Array.isArray(body.ids) ? body.ids : []
+
+        // ✅ Valida userId se presentes
+        if (!ids.length && body.userId) {
+            const validation = validateUserIdFromBody(body)
+            if (!validation.valid) return withCors(validation.error)
+        }
+
         const userId = body.userId?.toString() || null
         const peerId = body.peerId?.toString() || null
 

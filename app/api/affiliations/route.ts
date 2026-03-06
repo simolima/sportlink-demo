@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
-import { supabaseServer } from '@/lib/supabase-server'
+import { supabaseServer, validateUserIdFromBody } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
@@ -118,6 +118,17 @@ export async function POST(request: Request) {
 
         if (!agentId || !playerId) {
             return withCors(NextResponse.json({ error: 'agentId and playerId required' }, { status: 400 }))
+        }
+
+        // ✅ Valida agentId e playerId
+        const agentValidation = validateUserIdFromBody({ userId: agentId })
+        if (!agentValidation.valid) {
+            return withCors(NextResponse.json({ error: 'invalid_agent_id' }, { status: 400 }))
+        }
+
+        const playerValidation = validateUserIdFromBody({ userId: playerId })
+        if (!playerValidation.valid) {
+            return withCors(NextResponse.json({ error: 'invalid_player_id' }, { status: 400 }))
         }
 
         // Check if player has blocked this agent

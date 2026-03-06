@@ -1,4 +1,7 @@
 {
   "editor.formatOnSave": true,
-  "chat.mcp.autostart": "newAndOutdated"
+  "chat.mcp.autostart": "newAndOutdated",
+  "files.exclude": {
+    "_archive_storico/": true
+  }
 }

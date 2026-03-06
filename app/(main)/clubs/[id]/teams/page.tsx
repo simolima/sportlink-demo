@@ -1,13 +1,13 @@
-// Server Component — nessuna direttiva 'use client'
-import { Suspense } from 'react'
+"use client"
+
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase-server'
 import TeamManagementWidget from '@/components/club-admin/TeamManagementWidget'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Skeleton — mostrato da Suspense mentre TeamManagementWidget carica
+// Skeleton di caricamento
 // ─────────────────────────────────────────────────────────────────────────────
 function TeamManagementSkeleton() {
     return (
@@ -26,62 +26,79 @@ function TeamManagementSkeleton() {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Verifica server-side se l'utente loggato è Admin/DS del club
-// ─────────────────────────────────────────────────────────────────────────────
-async function checkAdminAccess(clubId: string): Promise<boolean> {
-    const supabase = await createServerClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+export default function ClubTeamsPage() {
+    const router = useRouter()
+    const params = useParams()
+    const clubId = params?.id as string
 
-    if (!user) return false
+    const [userId, setUserId] = useState<string | null>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [loading, setLoading] = useState(true)
 
-    // 1. È il proprietario del club?
-    const { data: ownedClub } = await supabase
-        .from('clubs')
-        .select('id')
-        .eq('id', clubId)
-        .eq('owner_id', user.id)
-        .is('deleted_at', null)
-        .maybeSingle()
+    useEffect(() => {
+        if (!clubId) return
 
-    if (ownedClub) return true
+        const id = localStorage.getItem('currentUserId')
+        if (!id) {
+            router.push('/login')
+            return
+        }
+        setUserId(id)
 
-    // 2. Ha membership Admin?
-    const { data: membership } = await supabase
-        .from('club_memberships')
-        .select('club_role, profiles!club_memberships_user_id_fkey(role_id)')
-        .eq('club_id', clubId)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .is('deleted_at', null)
-        .maybeSingle()
+        // Verifica accesso admin client-side (stessa logica della pagina club)
+        async function checkAccess() {
+            try {
+                // 1. Verifica ownership del club
+                const clubRes = await fetch('/api/clubs')
+                const clubs = await clubRes.json()
+                const club = clubs.find((c: any) => String(c.id) === String(clubId))
 
-    if (!membership) return false
-    if (membership.club_role === 'Admin') return true
+                const isOwner = club && (
+                    String(club.created_by) === id ||
+                    String(club.owner_id) === id ||
+                    String(club.createdBy) === id
+                )
 
-    // 3. È Staff con ruolo sporting_director?
-    const profile = Array.isArray(membership.profiles)
-        ? membership.profiles[0]
-        : membership.profiles
-    return (profile as any)?.role_id === 'sporting_director'
-}
+                if (isOwner) {
+                    setIsAdmin(true)
+                    setLoading(false)
+                    return
+                }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE
-// ─────────────────────────────────────────────────────────────────────────────
-interface Props {
-    params: { id: string }
-}
+                // 2. Verifica membership Admin
+                const membersRes = await fetch(`/api/club-memberships?clubId=${clubId}`)
+                const members = await membersRes.json()
+                const hasAdminMembership = members.some(
+                    (m: any) => String(m.userId) === id && m.role === 'Admin' && m.isActive
+                )
 
-export default async function ClubTeamsPage({ params }: Props) {
-    const clubId = params.id
+                if (hasAdminMembership) {
+                    setIsAdmin(true)
+                    setLoading(false)
+                    return
+                }
 
-    const hasAccess = await checkAdminAccess(clubId)
-    if (!hasAccess) {
-        redirect(`/clubs/${clubId}`)
+                // Non è admin → redirect alla pagina club
+                router.push(`/clubs/${clubId}`)
+            } catch {
+                router.push(`/clubs/${clubId}`)
+            }
+        }
+
+        checkAccess()
+    }, [clubId, router])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="mx-auto max-w-5xl px-4 py-8">
+                    <TeamManagementSkeleton />
+                </div>
+            </div>
+        )
     }
+
+    if (!isAdmin || !userId) return null
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -109,9 +126,7 @@ export default async function ClubTeamsPage({ params }: Props) {
                 </div>
 
                 {/* ── Widget principale ── */}
-                <Suspense fallback={<TeamManagementSkeleton />}>
-                    <TeamManagementWidget clubId={clubId} />
-                </Suspense>
+                <TeamManagementWidget clubId={clubId} userId={userId} />
             </div>
         </div>
     )

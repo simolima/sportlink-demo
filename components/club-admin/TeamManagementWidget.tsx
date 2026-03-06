@@ -1,6 +1,8 @@
-// Server Component — nessuna direttiva 'use client'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
 import { UserGroupIcon } from '@heroicons/react/24/outline'
-import { createServerClient } from '@/lib/supabase-server'
+import { supabase } from '@/lib/supabase-browser'
 import CreateTeamModal from '@/components/club-admin/CreateTeamModal'
 import TeamRosterCard from '@/components/club-admin/TeamRosterCard'
 import type { TeamMemberRole } from '@/app/actions/team-management-actions'
@@ -41,75 +43,103 @@ interface DbClubMember {
 
 interface Props {
     clubId: string
+    userId: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Fetch multiplo (tre query parallele dopo aver ottenuto i teamIds)
+// Widget principale (Client Component)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function fetchData(clubId: string): Promise<{
-    teams: DbTeam[]
-    teamMembers: DbTeamMember[]
-    clubMembers: DbClubMember[]
-}> {
-    const supabase = await createServerClient()
+export default function TeamManagementWidget({ clubId, userId }: Props) {
+    const [teams, setTeams] = useState<DbTeam[]>([])
+    const [teamMembers, setTeamMembers] = useState<DbTeamMember[]>([])
+    const [allClubMembers, setAllClubMembers] = useState<AvailableClubMember[]>([])
+    const [loading, setLoading] = useState(true)
 
-    // 1. Squadre del club
-    const { data: teamsRaw, error: teamsError } = await supabase
-        .from('club_teams')
-        .select('id, name, category, season')
-        .eq('club_id', clubId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: true })
+    const fetchData = useCallback(async () => {
+        setLoading(true)
 
-    if (teamsError) {
-        console.error('[TeamManagementWidget] teams query error:', teamsError)
-        return { teams: [], teamMembers: [], clubMembers: [] }
-    }
-
-    const teams = (teamsRaw as DbTeam[]) ?? []
-    const teamIds = teams.map((t) => t.id)
-
-    // 2. Membri delle squadre + profilo e tesserati del club — in parallelo
-    const [membersResult, clubMembersResult] = await Promise.all([
-        // Membri delle squadre (solo se esistono squadre)
-        teamIds.length > 0
-            ? supabase
-                .from('team_members')
-                .select('id, club_team_id, profile_id, role, profiles(first_name, last_name, avatar_url)')
-                .in('club_team_id', teamIds)
-                .is('deleted_at', null)
-            : Promise.resolve({ data: [], error: null }),
-
-        // Tutti i tesserati attivi del club
-        supabase
-            .from('club_memberships')
-            .select('user_id, club_role, profiles(first_name, last_name, avatar_url)')
+        // 1. Squadre del club
+        const { data: teamsRaw, error: teamsError } = await supabase
+            .from('club_teams')
+            .select('id, name, category, season')
             .eq('club_id', clubId)
-            .eq('status', 'active')
-            .is('deleted_at', null),
-    ])
+            .is('deleted_at', null)
+            .order('created_at', { ascending: true })
 
-    if (membersResult.error) {
-        console.error('[TeamManagementWidget] team_members query error:', membersResult.error)
+        if (teamsError) {
+            console.error('[TeamManagementWidget] teams query error:', teamsError)
+            setLoading(false)
+            return
+        }
+
+        const fetchedTeams = (teamsRaw as DbTeam[]) ?? []
+        const teamIds = fetchedTeams.map((t) => t.id)
+
+        // 2. Membri delle squadre + tesserati del club — in parallelo
+        const [membersResult, clubMembersResult] = await Promise.all([
+            teamIds.length > 0
+                ? supabase
+                    .from('team_members')
+                    .select('id, club_team_id, profile_id, role, profiles(first_name, last_name, avatar_url)')
+                    .in('club_team_id', teamIds)
+                    .is('deleted_at', null)
+                : Promise.resolve({ data: [], error: null }),
+            supabase
+                .from('club_memberships')
+                .select('user_id, club_role, profiles(first_name, last_name, avatar_url)')
+                .eq('club_id', clubId)
+                .eq('status', 'active')
+                .is('deleted_at', null),
+        ])
+
+        if (membersResult.error) {
+            console.error('[TeamManagementWidget] team_members query error:', membersResult.error)
+        }
+        if (clubMembersResult.error) {
+            console.error('[TeamManagementWidget] club_memberships query error:', clubMembersResult.error)
+        }
+
+        const fetchedTeamMembers = (membersResult.data as unknown as DbTeamMember[]) ?? []
+        const clubMembersRaw = (clubMembersResult.data as unknown as DbClubMember[]) ?? []
+
+        const mappedClubMembers: AvailableClubMember[] = clubMembersRaw
+            .filter((cm) => cm.profiles)
+            .map((cm) => ({
+                profileId: cm.user_id,
+                firstName: cm.profiles?.first_name ?? '',
+                lastName: cm.profiles?.last_name ?? '',
+                avatarUrl: cm.profiles?.avatar_url ?? null,
+                clubRole: cm.club_role,
+            }))
+
+        setTeams(fetchedTeams)
+        setTeamMembers(fetchedTeamMembers)
+        setAllClubMembers(mappedClubMembers)
+        setLoading(false)
+    }, [clubId])
+
+    useEffect(() => {
+        fetchData()
+    }, [fetchData])
+
+    // ─── Loading skeleton ───
+    if (loading) {
+        return (
+            <div className="space-y-4 animate-pulse">
+                <div className="h-6 w-40 rounded bg-gray-200" />
+                {[1, 2].map((i) => (
+                    <div key={i} className="card bg-white border border-base-200 shadow-sm p-5">
+                        <div className="h-5 w-32 rounded bg-gray-200 mb-4" />
+                        <div className="space-y-2">
+                            <div className="h-4 w-full rounded bg-gray-100" />
+                            <div className="h-4 w-3/4 rounded bg-gray-100" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
     }
-    if (clubMembersResult.error) {
-        console.error('[TeamManagementWidget] club_memberships query error:', clubMembersResult.error)
-    }
-
-    return {
-        teams,
-        teamMembers: (membersResult.data as unknown as DbTeamMember[]) ?? [],
-        clubMembers: (clubMembersResult.data as unknown as DbClubMember[]) ?? [],
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widget principale (Server Component async)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export default async function TeamManagementWidget({ clubId }: Props) {
-    const { teams, teamMembers, clubMembers } = await fetchData(clubId)
 
     // Mappa profileId → set di teamIds in cui è già assegnato (evita duplicati)
     const assignedByTeam = new Map<string, Set<string>>()
@@ -119,17 +149,6 @@ export default async function TeamManagementWidget({ clubId }: Props) {
         }
         assignedByTeam.get(m.club_team_id)!.add(m.profile_id)
     }
-
-    // Tutti i profili tesserati nel club (per il dropdown "Aggiungi Membro")
-    const allClubMembers: AvailableClubMember[] = clubMembers
-        .filter((cm) => cm.profiles)
-        .map((cm) => ({
-            profileId: cm.user_id,
-            firstName: cm.profiles?.first_name ?? '',
-            lastName: cm.profiles?.last_name ?? '',
-            avatarUrl: cm.profiles?.avatar_url ?? null,
-            clubRole: cm.club_role,
-        }))
 
     return (
         <div className="space-y-5">
@@ -144,8 +163,7 @@ export default async function TeamManagementWidget({ clubId }: Props) {
                         </span>
                     )}
                 </div>
-                {/* Client Component che apre il modal di creazione */}
-                <CreateTeamModal clubId={clubId} />
+                <CreateTeamModal clubId={clubId} userId={userId} onCreated={fetchData} />
             </div>
 
             {/* ── Stato vuoto ── */}
@@ -162,7 +180,7 @@ export default async function TeamManagementWidget({ clubId }: Props) {
                                 in rosa.
                             </p>
                         </div>
-                        <CreateTeamModal clubId={clubId} />
+                        <CreateTeamModal clubId={clubId} userId={userId} onCreated={fetchData} />
                     </div>
                 </div>
             )}
@@ -171,7 +189,6 @@ export default async function TeamManagementWidget({ clubId }: Props) {
             {teams.length > 0 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                     {teams.map((team) => {
-                        // Mappa camelCase per TeamRosterCard
                         const teamInfo: TeamInfo = {
                             id: team.id,
                             name: team.name,
@@ -179,7 +196,6 @@ export default async function TeamManagementWidget({ clubId }: Props) {
                             season: team.season,
                         }
 
-                        // Membri già assegnati a questa squadra
                         const members: TeamMember[] = teamMembers
                             .filter((m) => m.club_team_id === team.id)
                             .map((m) => ({
@@ -191,7 +207,6 @@ export default async function TeamManagementWidget({ clubId }: Props) {
                                 role: m.role,
                             }))
 
-                        // Tesserati del club NON ancora in questa squadra
                         const alreadyInThisTeam = assignedByTeam.get(team.id) ?? new Set<string>()
                         const availableMembers: AvailableClubMember[] = allClubMembers.filter(
                             (cm) => !alreadyInThisTeam.has(cm.profileId),
@@ -203,6 +218,8 @@ export default async function TeamManagementWidget({ clubId }: Props) {
                                 team={teamInfo}
                                 members={members}
                                 availableMembers={availableMembers}
+                                userId={userId}
+                                onMemberChanged={fetchData}
                             />
                         )
                     })}

@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase-server'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Costanti & Tipi
@@ -68,12 +68,11 @@ export type AssignMemberInput = z.infer<typeof assignMemberSchema>
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function checkAdminOrDS(
-    supabase: Awaited<ReturnType<typeof createServerClient>>,
     userId: string,
     clubId: string,
 ): Promise<boolean> {
     // 1. È il proprietario del club?
-    const { data: ownedClub } = await supabase
+    const { data: ownedClub } = await supabaseServer
         .from('clubs')
         .select('id')
         .eq('id', clubId)
@@ -84,7 +83,7 @@ async function checkAdminOrDS(
     if (ownedClub) return true
 
     // 2. Ha un ruolo Admin nel club?
-    const { data: membership } = await supabase
+    const { data: membership } = await supabaseServer
         .from('club_memberships')
         .select('club_role')
         .eq('club_id', clubId)
@@ -98,7 +97,7 @@ async function checkAdminOrDS(
     if (membership.club_role === 'Admin') return true
 
     // 3. È Staff con ruolo DS (sporting_director)?
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseServer
         .from('profiles')
         .select('role_id')
         .eq('id', userId)
@@ -113,15 +112,10 @@ async function checkAdminOrDS(
 
 export async function createTeam(
     input: CreateTeamInput,
+    userId: string,
 ): Promise<TeamActionResult<{ teamId: string }>> {
     try {
-        const supabase = await createServerClient()
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser()
-
-        if (authError || !user) {
+        if (!userId) {
             return { success: false, error: 'Non autenticato. Effettua il login.' }
         }
 
@@ -133,7 +127,7 @@ export async function createTeam(
 
         const { clubId, name, category, season } = parsed.data
 
-        const hasAccess = await checkAdminOrDS(supabase, user.id, clubId)
+        const hasAccess = await checkAdminOrDS(userId, clubId)
         if (!hasAccess) {
             return {
                 success: false,
@@ -141,14 +135,14 @@ export async function createTeam(
             }
         }
 
-        const { data: team, error: insertError } = await supabase
+        const { data: team, error: insertError } = await supabaseServer
             .from('club_teams')
             .insert({
                 club_id: clubId,
                 name: name.trim(),
                 category: category?.trim() || null,
                 season: season?.trim() || null,
-                created_by: user.id,
+                created_by: userId,
             })
             .select('id')
             .single()
@@ -173,15 +167,10 @@ export async function createTeam(
 
 export async function assignMemberToTeam(
     input: AssignMemberInput,
+    userId: string,
 ): Promise<TeamActionResult> {
     try {
-        const supabase = await createServerClient()
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser()
-
-        if (authError || !user) {
+        if (!userId) {
             return { success: false, error: 'Non autenticato. Effettua il login.' }
         }
 
@@ -194,7 +183,7 @@ export async function assignMemberToTeam(
         const { teamId, profileId, role } = parsed.data
 
         // Recupera la squadra per ottenere il clubId
-        const { data: team, error: teamError } = await supabase
+        const { data: team, error: teamError } = await supabaseServer
             .from('club_teams')
             .select('id, club_id')
             .eq('id', teamId)
@@ -205,7 +194,7 @@ export async function assignMemberToTeam(
             return { success: false, error: 'Squadra non trovata.' }
         }
 
-        const hasAccess = await checkAdminOrDS(supabase, user.id, team.club_id)
+        const hasAccess = await checkAdminOrDS(userId, team.club_id)
         if (!hasAccess) {
             return {
                 success: false,
@@ -214,7 +203,7 @@ export async function assignMemberToTeam(
         }
 
         // Verifica che il profilo sia un tesserato attivo del club
-        const { data: clubMember } = await supabase
+        const { data: clubMember } = await supabaseServer
             .from('club_memberships')
             .select('id')
             .eq('club_id', team.club_id)
@@ -232,7 +221,7 @@ export async function assignMemberToTeam(
 
         // Cerca un record esistente (anche soft-deleted) per evitare duplicati
         // e gestire il restore correttamente
-        const { data: latestRow } = await supabase
+        const { data: latestRow } = await supabaseServer
             .from('team_members')
             .select('id')
             .eq('club_team_id', teamId)
@@ -243,7 +232,7 @@ export async function assignMemberToTeam(
 
         if (latestRow) {
             // Restore (se soft-deleted) e aggiorna ruolo
-            const { error: updateError } = await supabase
+            const { error: updateError } = await supabaseServer
                 .from('team_members')
                 .update({ deleted_at: null, role, status: 'active' })
                 .eq('id', latestRow.id)
@@ -254,7 +243,7 @@ export async function assignMemberToTeam(
             }
         } else {
             // Prima volta: inserimento
-            const { error: insertError } = await supabase
+            const { error: insertError } = await supabaseServer
                 .from('team_members')
                 .insert({
                     club_team_id: teamId,
@@ -285,15 +274,10 @@ export async function assignMemberToTeam(
 export async function removeMemberFromTeam(
     teamId: string,
     profileId: string,
+    userId: string,
 ): Promise<TeamActionResult> {
     try {
-        const supabase = await createServerClient()
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser()
-
-        if (authError || !user) {
+        if (!userId) {
             return { success: false, error: 'Non autenticato. Effettua il login.' }
         }
 
@@ -302,7 +286,7 @@ export async function removeMemberFromTeam(
         }
 
         // Recupera la squadra per il controllo permessi
-        const { data: team, error: teamError } = await supabase
+        const { data: team, error: teamError } = await supabaseServer
             .from('club_teams')
             .select('id, club_id')
             .eq('id', teamId)
@@ -313,7 +297,7 @@ export async function removeMemberFromTeam(
             return { success: false, error: 'Squadra non trovata.' }
         }
 
-        const hasAccess = await checkAdminOrDS(supabase, user.id, team.club_id)
+        const hasAccess = await checkAdminOrDS(userId, team.club_id)
         if (!hasAccess) {
             return {
                 success: false,
@@ -321,7 +305,7 @@ export async function removeMemberFromTeam(
             }
         }
 
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseServer
             .from('team_members')
             .update({ deleted_at: new Date().toISOString() })
             .eq('club_team_id', teamId)

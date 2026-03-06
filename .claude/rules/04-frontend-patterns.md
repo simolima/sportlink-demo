@@ -242,7 +242,7 @@ components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
     ReportInjuryModal.tsx         → Client Component: modal segnalazione infortunio
     ResolveInjuryButton.tsx       → Client Component: bottone "Segna Guarito"
   club-admin/ → ⭐ Componenti Area Club Admin
-    TeamManagementWidget.tsx  → SERVER Component: gestione roster squadre
+    TeamManagementWidget.tsx  → Client Component: gestione roster squadre
     CreateTeamModal.tsx       → Client Component: modal creazione squadra
     TeamRosterCard.tsx        → Client Component: card squadra con roster interattivo
     CreateTeamModal.tsx       → Client Component: modal creazione squadra

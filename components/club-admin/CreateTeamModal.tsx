@@ -12,9 +12,11 @@ import {
 
 interface Props {
     clubId: string
+    userId: string
+    onCreated?: () => void
 }
 
-export default function CreateTeamModal({ clubId }: Props) {
+export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
     const dialogRef = useRef<HTMLDialogElement>(null)
     const [isPending, startTransition] = useTransition()
 
@@ -40,9 +42,10 @@ export default function CreateTeamModal({ clubId }: Props) {
 
     function onSubmit(data: CreateTeamInput) {
         startTransition(async () => {
-            const result = await createTeam(data)
+            const result = await createTeam(data, userId)
             if (result.success) {
                 closeModal()
+                onCreated?.()
             } else {
                 setError('root', { message: result.error })
             }

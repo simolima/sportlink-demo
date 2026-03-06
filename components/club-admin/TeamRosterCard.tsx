@@ -42,6 +42,8 @@ interface Props {
     team: TeamInfo
     members: TeamMember[]
     availableMembers: AvailableClubMember[]
+    userId: string
+    onMemberChanged?: () => void
 }
 
 // Ruoli considerati "staff" — tutto ciò che non è "player"
@@ -59,7 +61,7 @@ const STAFF_ROLES: TeamMemberRole[] = [
 // TeamRosterCard — card per ogni squadra, con interazoni client-side
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function TeamRosterCard({ team, members, availableMembers }: Props) {
+export default function TeamRosterCard({ team, members, availableMembers, userId, onMemberChanged }: Props) {
     const [isExpanded, setIsExpanded] = useState(true)
     const [showAddForm, setShowAddForm] = useState(false)
     const [selectedProfileId, setSelectedProfileId] = useState('')
@@ -77,9 +79,11 @@ export default function TeamRosterCard({ team, members, availableMembers }: Prop
         setErrorMsg(null)
         setRemovingId(profileId)
         startRemoveTransition(async () => {
-            const result = await removeMemberFromTeam(team.id, profileId)
+            const result = await removeMemberFromTeam(team.id, profileId, userId)
             if (!result.success) {
                 setErrorMsg(result.error)
+            } else {
+                onMemberChanged?.()
             }
             setRemovingId(null)
         })
@@ -97,11 +101,12 @@ export default function TeamRosterCard({ team, members, availableMembers }: Prop
                 profileId: selectedProfileId,
                 role: selectedRole,
             }
-            const result = await assignMemberToTeam(input)
+            const result = await assignMemberToTeam(input, userId)
             if (result.success) {
                 setSelectedProfileId('')
                 setSelectedRole('player')
                 setShowAddForm(false)
+                onMemberChanged?.()
             } else {
                 setErrorMsg(result.error)
             }

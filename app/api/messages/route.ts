@@ -195,7 +195,7 @@ export async function PATCH(req: Request) {
         if (!ids.length && body.userId) {
             const validation = validateUserIdFromBody(body)
             if (!validation.valid) return withCors(validation.error)
-            
+
             // ✅ Verify userId matches authenticated user
             if (body.userId !== authenticatedUserId) {
                 return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
@@ -211,12 +211,12 @@ export async function PATCH(req: Request) {
                 .from('messages')
                 .select('id, receiver_id')
                 .in('id', ids)
-            
+
             if (fetchError) {
                 console.error('PATCH fetch messages error:', fetchError)
                 return withCors(NextResponse.json({ error: fetchError.message }, { status: 500 }))
             }
-            
+
             // Check if all messages belong to authenticated user
             const allBelongToUser = messagesToUpdate?.every(msg => msg.receiver_id === authenticatedUserId)
             if (!allBelongToUser) {

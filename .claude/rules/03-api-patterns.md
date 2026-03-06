@@ -169,7 +169,7 @@ const fallbackPoll = setInterval(async () => {
 }, 30_000) // ogni 30 secondi
 ```
 
-## Lista Endpoint Esistenti (29 routes)
+## Lista Endpoint Esistenti (27 routes)
 
 | Endpoint | Note |
 |----------|------|

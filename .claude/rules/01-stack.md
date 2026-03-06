@@ -13,7 +13,7 @@
 
 - **Supabase PostgreSQL** — unico database attivo
 - **Supabase Storage** — per avatar e immagini
-- **Prisma**: installato come devDep (`prisma@5.19.0`, `@prisma/client@5.19.0`) ma **NON usato**. `lib/prisma.ts` è un file vuoto (`export { }`). Non generare mai query Prisma.
+- **Prisma**: **NON installato e NON presente** nel progetto. Non generare mai query Prisma.
 - Tutte le operazioni DB passano per `lib/supabase-server.ts` o `lib/supabase-browser.ts`.
 
 ## Frontend & Styling
@@ -21,15 +21,17 @@
 - **Tailwind CSS** + **DaisyUI** — sistema di design
 - **TanStack React Query v5** (`@tanstack/react-query`) — attivo nel progetto
 - **react-hook-form** + **zod** — per form e validazione
+- **framer-motion** — installato come dipendenza di produzione (animazioni)
 
 ## Icone — Sistema Ibrido
 
-**Entrambe le librerie sono installate e attive**. Non aggiungerne altre.
+**Tre librerie sono installate e attive**. Non aggiungerne altre.
 
 | Libreria | Import | Uso |
 |----------|--------|-----|
 | `@heroicons/react` | `@heroicons/react/24/outline` o `/solid` | Componenti principali |
 | `lucide-react` | `lucide-react` | Alcuni componenti più recenti |
+| `react-icons` | `react-icons/fa` (ecc.) | Usata in `social-links.tsx` per brand icons |
 
 Quando aggiungi icone: usa quella già presente nel file/contesto circostante. In caso di dubbio, preferisci `@heroicons/react`.
 

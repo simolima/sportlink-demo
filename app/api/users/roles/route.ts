@@ -24,10 +24,35 @@ export async function GET(req: Request) {
             .eq('is_active', true)
 
         if (!error && roleRows && roleRows.length > 0) {
-            return withCors(NextResponse.json(roleRows))
+            // Arricchisci ogni ruolo con lo sport associato (se presente)
+            const { data: sportRows } = await supabaseServer
+                .from('profile_sports')
+                .select('role_id, is_main_sport, lookup_sports(name)')
+                .eq('user_id', userId)
+                .is('deleted_at', null)
+
+            const sportByRole: Record<string, string> = {}
+            if (sportRows) {
+                for (const row of sportRows) {
+                    const sportName = (row as any).lookup_sports?.name
+                    if (sportName && row.role_id) {
+                        // Preferisci lo sport principale
+                        if (!sportByRole[row.role_id] || row.is_main_sport) {
+                            sportByRole[row.role_id] = sportName
+                        }
+                    }
+                }
+            }
+
+            const enriched = roleRows.map(r => ({
+                ...r,
+                sport_name: sportByRole[r.role_id] ?? null,
+            }))
+
+            return withCors(NextResponse.json(enriched))
         }
 
-        // Fallback: leggi da profiles.role_id
+        // Fallback: leggi da profiles.role_id + sport dal vecchio profile_sports
         const { data: profile } = await supabaseServer
             .from('profiles')
             .select('role_id')
@@ -36,8 +61,21 @@ export async function GET(req: Request) {
             .single()
 
         if (profile?.role_id) {
+            // Cerca lo sport principale per il fallback
+            const { data: mainSport } = await supabaseServer
+                .from('profile_sports')
+                .select('lookup_sports(name)')
+                .eq('user_id', userId)
+                .eq('is_main_sport', true)
+                .is('deleted_at', null)
+                .maybeSingle()
+
             return withCors(NextResponse.json([
-                { role_id: profile.role_id, is_primary: true },
+                {
+                    role_id: profile.role_id,
+                    is_primary: true,
+                    sport_name: (mainSport as any)?.lookup_sports?.name ?? null,
+                },
             ]))
         }
 

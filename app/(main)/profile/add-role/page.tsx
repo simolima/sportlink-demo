@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
 import { switchActiveRole } from '@/app/actions/role-actions'
+import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
 import {
     PROFESSIONAL_ROLES,
     ROLE_TRANSLATIONS,
@@ -20,8 +21,10 @@ import {
     HeartIcon,
     MagnifyingGlassCircleIcon,
     CheckCircleIcon,
+    ArrowLeftIcon,
 } from '@heroicons/react/24/outline'
 
+// ── Costanti ───────────────────────────────────────────────────────────────
 const ROLE_ICONS: Record<ProfessionalRole, React.ComponentType<{ className?: string }>> = {
     player: UserIcon,
     coach: ShieldCheckIcon,
@@ -33,39 +36,165 @@ const ROLE_ICONS: Record<ProfessionalRole, React.ComponentType<{ className?: str
     talent_scout: MagnifyingGlassCircleIcon,
 }
 
+const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
+    player: 'Candidati e connettiti con i club',
+    coach: 'Cerca opportunità e networking',
+    agent: 'Gestisci e rappresenta atleti',
+    sporting_director: 'Coordina strategie sportive',
+    athletic_trainer: 'Prepara atleti al massimo livello',
+    nutritionist: 'Ottimizza le performance alimentari',
+    physio: 'Cura e recupero degli atleti',
+    talent_scout: 'Scopri e valuta nuovi talenti',
+}
+
+const SPORT_EMOJI: Record<string, string> = {
+    Calcio: '⚽',
+    Basket: '🏀',
+    Pallavolo: '🏐',
+}
+
+/** Ruoli che hanno posizioni in lookup_positions */
+const ROLES_WITH_POSITIONS = ['player', 'coach']
+
+interface LookupPosition {
+    id: number
+    name: string
+    category: string | null
+}
+
+// ── Componente ─────────────────────────────────────────────────────────────
 export default function AddRolePage() {
     const router = useRouter()
     const { user, isLoading } = useAuth()
+
+    // State globale
+    const [step, setStep] = useState<1 | 2 | 3>(1)
     const [existingRoles, setExistingRoles] = useState<string[]>([])
-    const [selectedRole, setSelectedRole] = useState<ProfessionalRole | null>(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
 
+    // Step 1: ruolo
+    const [selectedRole, setSelectedRole] = useState<ProfessionalRole | null>(null)
+    // Step 2: sport
+    const [selectedSports, setSelectedSports] = useState<string[]>([])
+    // Step 3: posizione (solo player/coach)
+    const [positions, setPositions] = useState<LookupPosition[]>([])
+    const [selectedPositionId, setSelectedPositionId] = useState<number | null>(null)
+    const [positionsLoading, setPositionsLoading] = useState(false)
+
+    // ── Auth guard ──────────────────────────────────────────────────────────
     useEffect(() => {
-        if (!isLoading && !user) {
-            router.push('/login')
-        }
+        if (!isLoading && !user) router.push('/login')
     }, [user, isLoading, router])
 
-    // Fetch ruoli già attivi
+    // ── Fetch ruoli esistenti ───────────────────────────────────────────────
     useEffect(() => {
         if (!user?.id) return
         fetch(`/api/users/roles?userId=${user.id}`)
             .then(res => res.ok ? res.json() : [])
-            .then((data: { role_id: string }[]) => {
-                setExistingRoles(data.map(r => r.role_id))
-            })
+            .then((data: { role_id: string }[]) => setExistingRoles(data.map(r => r.role_id)))
             .catch(() => { })
     }, [user?.id])
 
-    async function handleAddRole() {
-        if (!selectedRole || !user?.id) return
+    // ── Fetch posizioni quando si arriva allo step 3 ────────────────────────
+    useEffect(() => {
+        if (step !== 3 || !selectedRole || !selectedSports[0]) return
+        if (!ROLES_WITH_POSITIONS.includes(selectedRole)) return
+
+        setPositionsLoading(true)
+            ; (async () => {
+                // Recupera sport_id dal nome
+                const { data: sportRow } = await supabaseBrowser
+                    .from('lookup_sports')
+                    .select('id')
+                    .eq('name', selectedSports[0])
+                    .maybeSingle()
+
+                if (!sportRow) {
+                    // Prova con mapping alternativi (Pallavolo → Volley)
+                    const altName = selectedSports[0] === 'Pallavolo' ? 'Volley' : null
+                    if (altName) {
+                        const { data: altRow } = await supabaseBrowser
+                            .from('lookup_sports')
+                            .select('id')
+                            .eq('name', altName)
+                            .maybeSingle()
+                        if (altRow) {
+                            await fetchPositions(altRow.id, selectedRole)
+                            return
+                        }
+                    }
+                    setPositions([])
+                    setPositionsLoading(false)
+                    return
+                }
+                await fetchPositions(sportRow.id, selectedRole)
+            })()
+
+        async function fetchPositions(sportId: number, roleId: string) {
+            const { data } = await supabaseBrowser
+                .from('lookup_positions')
+                .select('id, name, category')
+                .eq('sport_id', sportId)
+                .eq('role_id', roleId)
+                .order('category')
+                .order('name')
+
+            setPositions(data ?? [])
+            setPositionsLoading(false)
+        }
+    }, [step, selectedRole, selectedSports])
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    const needsPositionStep = selectedRole ? ROLES_WITH_POSITIONS.includes(selectedRole) : false
+    const totalSteps = needsPositionStep ? 3 : 2
+    const availableRoles = PROFESSIONAL_ROLES.filter(r => !existingRoles.includes(r))
+
+    function handleSelectSport(sport: string) {
+        if (selectedRole && isMultiSportRole(selectedRole)) {
+            setSelectedSports(prev =>
+                prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]
+            )
+        } else {
+            setSelectedSports([sport])
+        }
+    }
+
+    function goNext() {
+        setError(null)
+        if (step === 1 && selectedRole) {
+            setStep(2)
+        } else if (step === 2 && selectedSports.length > 0) {
+            if (needsPositionStep) {
+                setStep(3)
+            } else {
+                handleSave()
+            }
+        }
+    }
+
+    function goBack() {
+        setError(null)
+        if (step === 2) {
+            setSelectedSports([])
+            setStep(1)
+        } else if (step === 3) {
+            setSelectedPositionId(null)
+            setPositions([])
+            setStep(2)
+        }
+    }
+
+    // ── Salvataggio finale ─────────────────────────────────────────────────
+    async function handleSave() {
+        if (!selectedRole || !user?.id || selectedSports.length === 0) return
         setSaving(true)
         setError(null)
 
         try {
-            const { error: insertError } = await supabaseBrowser
+            // 1. Insert in profile_roles
+            const { error: roleErr } = await supabaseBrowser
                 .from('profile_roles')
                 .insert({
                     user_id: user.id,
@@ -74,118 +203,350 @@ export default function AddRolePage() {
                     is_primary: false,
                 })
 
-            if (insertError) {
-                if (insertError.code === '23505') {
+            if (roleErr) {
+                if (roleErr.code === '23505') {
                     setError('Hai già questo ruolo attivo.')
                 } else {
-                    setError(insertError.message)
+                    setError(roleErr.message)
                 }
+                setSaving(false)
                 return
             }
 
-            // Cambia il ruolo attivo al nuovo profilo (cookie + revalidation)
+            // 2. Recupera sport_id per ciascun sport selezionato
+            const { data: sportsRows } = await supabaseBrowser
+                .from('lookup_sports')
+                .select('id, name')
+
+            if (!sportsRows) throw new Error('Errore nel recupero degli sport')
+
+            // Mappa nome → id (gestisce alias Pallavolo/Volley)
+            const sportNameToId: Record<string, number> = {}
+            for (const row of sportsRows) {
+                sportNameToId[row.name] = row.id
+            }
+
+            const sportRecords = selectedSports.map((sportName, idx) => {
+                const sportId =
+                    sportNameToId[sportName] ??
+                    sportNameToId[sportName === 'Pallavolo' ? 'Volley' : sportName]
+
+                return {
+                    user_id: user.id,
+                    sport_id: sportId,
+                    role_id: selectedRole,
+                    is_main_sport: idx === 0,
+                    primary_position_id: idx === 0 ? selectedPositionId : null,
+                }
+            }).filter(r => r.sport_id != null)
+
+            // 3. Insert in profile_sports
+            if (sportRecords.length > 0) {
+                const { error: sportErr } = await supabaseBrowser
+                    .from('profile_sports')
+                    .insert(sportRecords)
+
+                if (sportErr) {
+                    console.error('profile_sports insert error:', sportErr)
+                    // Non bloccare: il ruolo è già stato creato
+                }
+            }
+
+            // 4. Switch al nuovo ruolo
             await switchActiveRole(selectedRole)
-            // Aggiorna localStorage per compatibilità
             localStorage.setItem('currentUserRole', selectedRole)
+            localStorage.setItem(
+                'currentUserSports',
+                JSON.stringify(selectedSports)
+            )
 
             setSuccess(true)
-            // Navigazione hard per forzare il remount di tutti i componenti
-            // (il ProfileDropdown deve ri-fetchare i ruoli disponibili)
             setTimeout(() => { window.location.href = '/dashboard' }, 1500)
         } catch (e: any) {
             setError(e?.message ?? 'Errore imprevisto.')
-        } finally {
             setSaving(false)
         }
     }
 
+    // ── Loading / auth ─────────────────────────────────────────────────────
     if (isLoading || !user) return null
 
-    const availableRoles = PROFESSIONAL_ROLES.filter(r => !existingRoles.includes(r))
+    // ── Raggruppamento posizioni per categoria (Calcio ha categorie) ────────
+    const positionsByCategory: Record<string, LookupPosition[]> = {}
+    for (const p of positions) {
+        const cat = p.category ?? 'Altro'
+        if (!positionsByCategory[cat]) positionsByCategory[cat] = []
+        positionsByCategory[cat].push(p)
+    }
+    const hasCategories = Object.keys(positionsByCategory).length > 1
 
+    // ── Render ─────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="mx-auto max-w-2xl px-4 py-12">
+        <div className="min-h-screen bg-base-100 flex items-center justify-center px-4 py-12">
+            <div className="w-full max-w-4xl">
+                <div className="bg-base-200 rounded-2xl shadow-xl p-8 md:p-12 border border-base-300">
 
-                <button
-                    onClick={() => router.back()}
-                    className="text-sm text-gray-500 hover:text-gray-700 mb-6"
-                >
-                    ← Indietro
-                </button>
-
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    Aggiungi nuovo profilo
-                </h1>
-                <p className="text-sm text-gray-500 mb-8">
-                    Seleziona un nuovo ruolo professionale da aggiungere al tuo account.
-                    Potrai poi passare da un profilo all&apos;altro dal menu Profilo.
-                </p>
-
-                {success ? (
-                    <div className="flex flex-col items-center gap-4 py-12">
-                        <CheckCircleIcon className="w-16 h-16 text-brand-500" />
-                        <p className="text-lg font-semibold text-brand-700">
-                            Profilo aggiunto con successo!
-                        </p>
-                        <p className="text-sm text-gray-500">Reindirizzamento alla dashboard...</p>
-                    </div>
-                ) : (
-                    <>
-                        {availableRoles.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400">
-                                <p className="text-lg">Hai già tutti i ruoli disponibili.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {availableRoles.map((roleId) => {
-                                    const Icon = ROLE_ICONS[roleId]
-                                    const isSelected = selectedRole === roleId
-
-                                    return (
-                                        <button
-                                            key={roleId}
-                                            onClick={() => setSelectedRole(roleId)}
-                                            className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left
-                                                ${isSelected
-                                                    ? 'border-brand-500 bg-brand-50 shadow-sm'
-                                                    : 'border-base-200 bg-white hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <Icon className={`w-6 h-6 flex-shrink-0 ${isSelected ? 'text-brand-600' : 'text-gray-400'}`} />
-                                            <span className={`text-sm font-medium ${isSelected ? 'text-brand-700' : 'text-gray-700'}`}>
-                                                {ROLE_TRANSLATIONS[roleId]}
-                                            </span>
-                                            {isSelected && (
-                                                <CheckCircleIcon className="w-5 h-5 text-brand-500 ml-auto" />
-                                            )}
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        )}
-
-                        {error && (
-                            <p className="mt-4 text-sm text-red-600">{error}</p>
-                        )}
-
-                        <div className="mt-8 flex justify-end gap-3">
-                            <button
-                                onClick={() => router.back()}
-                                className="btn btn-ghost btn-sm"
-                            >
-                                Annulla
-                            </button>
-                            <button
-                                onClick={handleAddRole}
-                                disabled={!selectedRole || saving}
-                                className="btn btn-primary btn-sm bg-brand-600 hover:bg-brand-700 border-0 text-white disabled:opacity-50"
-                            >
-                                {saving ? 'Salvataggio...' : 'Aggiungi profilo'}
-                            </button>
+                    {/* ── Header + progress ────────────────────────── */}
+                    <div className="mb-10">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
+                                {step === 1 && 'Scegli il ruolo'}
+                                {step === 2 && 'Seleziona lo sport'}
+                                {step === 3 && 'Scegli la posizione'}
+                            </h1>
+                            <p className="text-secondary text-lg">
+                                {step === 1 && 'Aggiungi un nuovo profilo professionale al tuo account.'}
+                                {step === 2 && (
+                                    selectedRole && isMultiSportRole(selectedRole)
+                                        ? 'Seleziona uno o più sport per questo profilo.'
+                                        : 'Seleziona lo sport principale per questo profilo.'
+                                )}
+                                {step === 3 && 'Indica la posizione che ricopri in campo.'}
+                            </p>
                         </div>
-                    </>
-                )}
+
+                        {/* Progress bar */}
+                        <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
+                            {Array.from({ length: totalSteps }, (_, i) => (
+                                <div
+                                    key={i}
+                                    className={`flex-1 h-1.5 rounded-full transition-colors ${i + 1 <= step ? 'bg-primary' : 'bg-base-300'
+                                        }`}
+                                />
+                            ))}
+                            <span className="text-xs font-semibold text-secondary whitespace-nowrap px-2">
+                                Passo {step} di {totalSteps}
+                            </span>
+                            {Array.from({ length: totalSteps }, (_, i) => (
+                                <div
+                                    key={`r-${i}`}
+                                    className={`flex-1 h-1.5 rounded-full transition-colors ${i + 1 <= step ? 'bg-primary' : 'bg-base-300'
+                                        } hidden`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ── Error ─────────────────────────────────────── */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-error/20 border border-error/40 rounded-lg text-error text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* ── Success ───────────────────────────────────── */}
+                    {success ? (
+                        <div className="flex flex-col items-center gap-4 py-16">
+                            <CheckCircleIcon className="w-16 h-16 text-brand-400" />
+                            <p className="text-xl font-semibold text-white">
+                                Profilo aggiunto con successo!
+                            </p>
+                            <p className="text-secondary">Reindirizzamento alla dashboard...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* ═══════════ STEP 1: Ruolo ═══════════════════ */}
+                            {step === 1 && (
+                                <div className="space-y-8">
+                                    {availableRoles.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <p className="text-lg text-secondary">
+                                                Hai già tutti i ruoli disponibili.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <h2 className="text-xl font-semibold text-white mb-2">
+                                                    Seleziona un ruolo
+                                                </h2>
+                                                <p className="text-secondary text-sm">
+                                                    Scegli il ruolo professionale con cui vuoi operare.
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {availableRoles.map(roleId => {
+                                                    const Icon = ROLE_ICONS[roleId]
+                                                    const selected = selectedRole === roleId
+                                                    return (
+                                                        <button
+                                                            key={roleId}
+                                                            onClick={() => setSelectedRole(roleId)}
+                                                            className={`p-5 rounded-xl border-2 transition-all text-left h-full flex flex-col justify-between min-h-[100px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selected
+                                                                    ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                                    : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <Icon className={`w-5 h-5 flex-shrink-0 ${selected ? 'text-primary' : 'text-secondary'}`} />
+                                                                <span className="font-semibold text-white text-lg leading-tight">
+                                                                    {ROLE_TRANSLATIONS[roleId]}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-secondary">
+                                                                {ROLE_DESCRIPTIONS[roleId]}
+                                                            </p>
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ═══════════ STEP 2: Sport ═══════════════════ */}
+                            {step === 2 && (
+                                <div className="space-y-8">
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-white mb-2">
+                                            Seleziona {selectedRole && isMultiSportRole(selectedRole) ? 'gli sport' : 'uno sport'}
+                                        </h2>
+                                        <p className="text-secondary text-sm">
+                                            Potrai modificare la selezione in seguito dal profilo.
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {SUPPORTED_SPORTS.map(sport => {
+                                            const selected = selectedSports.includes(sport)
+                                            return (
+                                                <button
+                                                    key={sport}
+                                                    onClick={() => handleSelectSport(sport)}
+                                                    disabled={saving}
+                                                    className={`p-6 rounded-xl border-2 transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selected
+                                                            ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                            : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                        }`}
+                                                >
+                                                    <div className="text-4xl mb-3">
+                                                        {SPORT_EMOJI[sport] ?? '🏅'}
+                                                    </div>
+                                                    <div className="font-semibold text-white">{sport}</div>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ═══════════ STEP 3: Posizione ═══════════════ */}
+                            {step === 3 && (
+                                <div className="space-y-8">
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-white mb-2">
+                                            Scegli la tua posizione
+                                        </h2>
+                                        <p className="text-secondary text-sm">
+                                            La posizione principale per {selectedSports[0]}. Potrai modificarla in seguito.
+                                        </p>
+                                    </div>
+
+                                    {positionsLoading ? (
+                                        <div className="flex justify-center py-12">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+                                        </div>
+                                    ) : positions.length === 0 ? (
+                                        <div className="text-center py-12 text-secondary">
+                                            <p>Nessuna posizione disponibile per questo sport e ruolo.</p>
+                                            <p className="text-sm mt-2">Puoi procedere senza selezionarne una.</p>
+                                        </div>
+                                    ) : hasCategories ? (
+                                        /* Per Calcio: posizioni raggruppate per categoria */
+                                        <div className="space-y-6">
+                                            {Object.entries(positionsByCategory).map(([category, items]) => (
+                                                <div key={category}>
+                                                    <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">
+                                                        {category}
+                                                    </h3>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                        {items.map(pos => {
+                                                            const sel = selectedPositionId === pos.id
+                                                            return (
+                                                                <button
+                                                                    key={pos.id}
+                                                                    onClick={() => setSelectedPositionId(sel ? null : pos.id)}
+                                                                    className={`p-3 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
+                                                                            ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
+                                                                            : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
+                                                                        }`}
+                                                                >
+                                                                    {pos.name}
+                                                                </button>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* Per Basket/Volley: lista semplice */
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            {positions.map(pos => {
+                                                const sel = selectedPositionId === pos.id
+                                                return (
+                                                    <button
+                                                        key={pos.id}
+                                                        onClick={() => setSelectedPositionId(sel ? null : pos.id)}
+                                                        className={`p-4 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
+                                                                ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
+                                                                : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
+                                                            }`}
+                                                    >
+                                                        {pos.name}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ── Bottoni navigazione ──────────────────── */}
+                            <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4">
+                                {step === 1 ? (
+                                    <button
+                                        onClick={() => router.back()}
+                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-white font-semibold py-3 px-8 order-2 sm:order-1"
+                                    >
+                                        <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                                        Indietro
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={goBack}
+                                        disabled={saving}
+                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-white font-semibold py-3 px-8 order-2 sm:order-1"
+                                    >
+                                        <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                                        Indietro
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={step === 3 ? handleSave : goNext}
+                                    disabled={
+                                        saving ||
+                                        (step === 1 && !selectedRole) ||
+                                        (step === 2 && selectedSports.length === 0)
+                                    }
+                                    className="btn btn-primary font-semibold py-3 px-10 order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {saving ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                            Creazione profilo...
+                                        </span>
+                                    ) : step === totalSteps ? (
+                                        'Crea profilo'
+                                    ) : (
+                                        'Continua'
+                                    )}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     )

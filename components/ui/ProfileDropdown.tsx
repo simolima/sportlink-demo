@@ -17,6 +17,7 @@ import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 interface ProfileRole {
     role_id: string
     is_primary: boolean
+    sport_name?: string | null
 }
 
 export default function ProfileDropdown() {
@@ -49,7 +50,9 @@ export default function ProfileDropdown() {
     if (!user) return null
 
     const currentRole = user.professionalRole?.toLowerCase() as ProfessionalRole
+    const currentRoleEntry = roles.find(r => r.role_id === currentRole)
     const currentRoleLabel = ROLE_TRANSLATIONS[currentRole] ?? currentRole
+    const currentSportLabel = currentRoleEntry?.sport_name ?? null
     const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`
     const otherRoles = roles.filter(r => r.role_id !== currentRole)
 
@@ -93,7 +96,9 @@ export default function ProfileDropdown() {
                         <p className="text-sm font-semibold text-gray-900 truncate">
                             {user.firstName} {user.lastName}
                         </p>
-                        <p className="text-xs text-brand-600 font-medium">{currentRoleLabel}</p>
+                        <p className="text-xs text-brand-600 font-medium">
+                            {currentRoleLabel}{currentSportLabel ? ` · ${currentSportLabel}` : ''}
+                        </p>
                     </div>
 
                     {/* Visualizza profilo */}
@@ -121,7 +126,12 @@ export default function ProfileDropdown() {
                                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
                                 >
                                     <ArrowsRightLeftIcon className="w-4 h-4 text-gray-400" />
-                                    {ROLE_TRANSLATIONS[r.role_id as ProfessionalRole] ?? r.role_id}
+                                    <span>
+                                        {ROLE_TRANSLATIONS[r.role_id as ProfessionalRole] ?? r.role_id}
+                                        {r.sport_name && (
+                                            <span className="text-gray-400 font-normal"> · {r.sport_name}</span>
+                                        )}
+                                    </span>
                                 </button>
                             ))}
                         </>

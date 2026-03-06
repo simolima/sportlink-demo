@@ -111,11 +111,13 @@ physical_stats        — Dati fisici (1:1 con profiles, opzionale)
   ├── dominant_foot, dominant_hand
   └── additional_metrics (JSONB)
 
-profile_sports        — Sport praticati (M:N profiles ↔ lookup_sports)
-  ├── user_id FK, sport_id FK (UNIQUE together)
+profile_sports        — Sport praticati per ruolo (M:N profiles ↔ lookup_sports ↔ lookup_roles)
+  ├── user_id FK, sport_id FK, role_id FK (nullable, UNIQUE together via index)
   ├── level_id FK, primary_position_id FK
   ├── is_main_sport (boolean)
   └── deleted_at
+  NOTE: role_id aggiunto per supportare sport diversi per ogni ruolo (es. player=Calcio, coach=Basket).
+        NULL per righe legacy (pre-migrazione). Unique index usa COALESCE(role_id, '').
 
 profile_secondary_positions  — Posizioni secondarie per profilo_sport
   ├── profile_sport_id FK, position_id FK

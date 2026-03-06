@@ -159,7 +159,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: redirectUrl
+                    redirectTo: redirectUrl,
+                    queryParams: {
+                        prompt: 'select_account',   // Forza la selezione dell'account Google
+                    },
+                    skipBrowserRedirect: false,     // Assicura redirect immediato
                 }
             })
 
@@ -168,6 +172,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (error) {
                 console.error('❌ Google login error:', error)
                 throw error
+            }
+
+            // Se signInWithOAuth non ha fatto redirect automatico, forziamo noi
+            if (data?.url) {
+                window.location.href = data.url
             }
         } catch (error) {
             console.error('❌ Google login failed:', error)

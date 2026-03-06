@@ -2,6 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { User } from '@/lib/types'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface AthletesWidgetProps {
     athletes: User[]
@@ -40,7 +41,7 @@ export default function AthletesWidget({
                             href={`/profile/${athlete.id}`}
                             className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-primary/30 hover:bg-primary/5 transition"
                         >
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${getAvatarColorClass(athlete.firstName)}`}>
                                 {athlete.firstName.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">

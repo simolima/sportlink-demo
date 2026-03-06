@@ -2,6 +2,7 @@
 
 import { ConversationSummary } from '@/lib/types'
 import clsx from 'clsx'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface Props {
     conversation: ConversationSummary
@@ -74,7 +75,7 @@ export default function ConversationListItem({
                         className="w-12 h-12 rounded-full object-cover"
                     />
                 ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-semibold text-lg">
+                    <div className={clsx('w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg', getAvatarColorClass(displayName))}>
                         {initial}
                     </div>
                 )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { UsersIcon, UserPlusIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface Athlete {
     id: number | string
@@ -153,8 +154,8 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                                             className="w-10 h-10 rounded-full border-2 border-white object-cover"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-                                            {athlete.name.charAt(0)}
+                                        <div className={`w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-white text-sm font-semibold ${getAvatarColorClass(athlete.name)}`}>
+                                            {athlete.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                 </Link>

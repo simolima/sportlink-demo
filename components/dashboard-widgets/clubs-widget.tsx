@@ -2,6 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Club } from '@/lib/types'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface ClubsWidgetProps {
     clubs: (Club & { memberships?: any[] })[]
@@ -47,7 +48,7 @@ export default function ClubsWidget({
                             className="p-4 border border-gray-100 rounded-lg hover:border-primary/30 hover:bg-primary/5 transition"
                         >
                             <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${getAvatarColorClass(club.name)}`}>
                                     {club.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">

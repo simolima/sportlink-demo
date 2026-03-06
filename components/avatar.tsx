@@ -16,17 +16,37 @@ const sizeClasses = {
     xl: 'w-20 h-20 text-2xl'
 }
 
+// Palette di colori consistenti — stesso colore per lo stesso nome ovunque
+const AVATAR_COLORS = [
+    'bg-[#2341F0]',      // sprinta-blue
+    'bg-emerald-500',
+    'bg-violet-500',
+    'bg-rose-500',
+    'bg-amber-500',
+    'bg-cyan-500',
+    'bg-indigo-500',
+    'bg-teal-500',
+]
+
+/**
+ * Genera un indice colore deterministico dal testo (es. nome utente).
+ * Stesso input → stesso colore sempre, su tutti i componenti.
+ */
+export function getAvatarColorClass(text: string): string {
+    if (!text) return AVATAR_COLORS[0]
+    let hash = 0
+    for (let i = 0; i < text.length; i++) {
+        hash = text.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
 /**
  * Avatar Component
- * 
- * Displays user avatar with automatic fallback to initials
- * Supports multiple sizes and custom styling
- * 
- * @param src - Avatar image URL (from local /public or Supabase Storage)
- * @param alt - Alt text for image
- * @param size - Avatar size (xs, sm, md, lg, xl)
- * @param className - Additional CSS classes
- * @param fallbackText - Text to show when no image (e.g., user initials)
+ *
+ * Displays user avatar with automatic fallback to initials.
+ * The fallback background color is deterministic based on fallbackText
+ * so the same user always gets the same color everywhere.
  */
 export default function Avatar({
     src,
@@ -36,44 +56,46 @@ export default function Avatar({
     fallbackText = '?'
 }: AvatarProps) {
     const sizeClass = sizeClasses[size]
-
-    // Debug: log to see what src we're receiving
-    if (process.env.NODE_ENV === 'development') {
-        console.log('Avatar render:', { src, alt, fallbackText })
-    }
+    const colorClass = getAvatarColorClass(fallbackText)
+    const initials = fallbackText.slice(0, 2).toUpperCase()
 
     // Show fallback if no src
     if (!src) {
         return (
             <div className={clsx(
-                'rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold shrink-0',
+                'rounded-full flex items-center justify-center text-white font-semibold shrink-0',
+                colorClass,
                 className || sizeClass
             )}>
-                {fallbackText.slice(0, 2).toUpperCase()}
+                {initials}
             </div>
         )
     }
 
-    // Only add onError if running in browser (Client Component)
     const imgProps: any = {
         src,
         alt,
-        className: "w-full h-full object-cover"
+        className: 'w-full h-full object-cover'
     }
     if (typeof window !== 'undefined') {
         imgProps.onError = (e: any) => {
-            console.error('Avatar image failed to load:', src)
             const target = e.target as HTMLImageElement
             target.style.display = 'none'
             if (target.parentElement) {
-                target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-sprinta-blue text-white font-semibold">${fallbackText.slice(0, 2).toUpperCase()}</div>`
+                // Recupera la classe colore già applicata al wrapper
+                target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white font-semibold">${initials}</div>`
             }
         }
     }
 
     return (
-        <div className={clsx('relative rounded-full overflow-hidden shrink-0 bg-gray-200', className || sizeClass)}>
+        <div className={clsx(
+            'relative rounded-full overflow-hidden shrink-0',
+            colorClass,   // colore visibile durante il caricamento e come fallback
+            className || sizeClass
+        )}>
             <img {...imgProps} />
         </div>
     )
 }
+

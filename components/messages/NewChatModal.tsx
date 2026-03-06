@@ -2,6 +2,7 @@
 
 import { X, Search } from 'lucide-react'
 import { useState, useMemo } from 'react'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface User {
     id: string | number
@@ -104,7 +105,7 @@ export default function NewChatModal({
                                             className="w-11 h-11 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-semibold">
+                                        <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(name)}`}>
                                             {initial}
                                         </div>
                                     )}

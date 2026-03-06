@@ -18,6 +18,21 @@ export async function switchActiveRole(roleId: ProfessionalRole): Promise<void> 
         throw new Error(`Ruolo non valido: ${roleId}`)
     }
 
+    // Verifica che l'utente autenticato possieda effettivamente questo ruolo
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Non autenticato')
+
+    const { data: roleRow } = await supabase
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', user.id)
+        .eq('role_id', roleId)
+        .eq('is_active', true)
+        .maybeSingle()
+
+    if (!roleRow) throw new Error('Permesso negato: ruolo non disponibile')
+
     const cookieStore = await cookies()
     cookieStore.set(COOKIE_KEY, roleId, {
         maxAge: COOKIE_MAX_AGE,
@@ -93,4 +108,28 @@ export async function getActiveRole(): Promise<ProfessionalRole> {
     }
 
     return 'player'
+}
+
+/**
+ * Server Action: cancella il cookie del ruolo attivo (usato al logout).
+ */
+export async function clearActiveRole(): Promise<void> {
+    const cookieStore = await cookies()
+    cookieStore.delete(COOKIE_KEY)
+}
+
+/**
+ * Server Action: rimuove un ruolo dall'utente (rollback dopo errore).
+ * Usa il client server-side (bypassa RLS).
+ */
+export async function deleteProfileRole(roleId: string): Promise<void> {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Non autenticato')
+
+    await supabase
+        .from('profile_roles')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('role_id', roleId)
 }

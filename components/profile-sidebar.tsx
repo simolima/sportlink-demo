@@ -5,6 +5,7 @@ import Avatar from './avatar'
 import SocialLinks from './social-links'
 import { formatCountryWithFlag } from '@/lib/countries'
 import { supabase } from '@/lib/supabase-browser'
+import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 import {
     UserPlusIcon,
     EnvelopeIcon,
@@ -29,6 +30,8 @@ interface ProfileSidebarProps {
     isOwn?: boolean
     onApply?: () => void
     onAddPlayer?: () => void
+    profileRoles?: Array<{ role_id: string; is_primary: boolean; sport_name?: string | null }>
+    activeViewRole?: string
 }
 
 export default function ProfileSidebar({
@@ -44,6 +47,8 @@ export default function ProfileSidebar({
     isOwn = false,
     onApply,
     onAddPlayer,
+    profileRoles = [],
+    activeViewRole = '',
 }: ProfileSidebarProps) {
     const router = useRouter()
     const [isSelf, setIsSelf] = useState(isOwn)
@@ -69,10 +74,12 @@ export default function ProfileSidebar({
     const [loadingFavorites, setLoadingFavorites] = useState(false)
 
     const role = user?.professionalRole || 'Professionista'
-    const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
-    const isCoach = role.toLowerCase().includes('coach') || role.toLowerCase().includes('allenatore')
-    const isAgent = role.toLowerCase().includes('agent') || role.toLowerCase().includes('agente')
-    const isDS = role.toLowerCase().includes('director') || role.toLowerCase().includes('ds')
+    const roleLower = role.toLowerCase()
+    const roleLabel = ROLE_TRANSLATIONS[roleLower as ProfessionalRole] ?? role
+    const isPlayer = roleLower.includes('player') || roleLower.includes('giocatore')
+    const isCoach = roleLower.includes('coach') || roleLower.includes('allenatore')
+    const isAgent = roleLower.includes('agent') || roleLower.includes('agente')
+    const isDS = roleLower.includes('director') || roleLower.includes('ds')
 
     type StatItem = {
         label: string
@@ -479,7 +486,7 @@ export default function ProfileSidebar({
                     {user?.firstName} {user?.lastName}
                 </h1>
                 <p className="text-[#2341F0] font-semibold text-lg mb-2">
-                    {user?.currentRole || role}
+                    {roleLabel}
                 </p>
                 {clubName && (
                     <p className="text-gray-600 text-sm">
@@ -487,6 +494,41 @@ export default function ProfileSidebar({
                     </p>
                 )}
             </div>
+
+            {/* Switch ruolo (se l'utente ha più ruoli) */}
+            {profileRoles.length > 1 && (
+                <div className="mb-6">
+                    <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2 text-center">
+                        Vedi come
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {profileRoles.map((r) => {
+                            const isActive = r.role_id === activeViewRole
+                            const label = ROLE_TRANSLATIONS[r.role_id as ProfessionalRole] ?? r.role_id
+                            return (
+                                <button
+                                    key={r.role_id}
+                                    onClick={() => {
+                                        if (isActive) return
+                                        const url = new URL(window.location.href)
+                                        url.searchParams.set('viewRole', r.role_id)
+                                        router.push(url.pathname + url.search)
+                                    }}
+                                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${isActive
+                                            ? 'bg-[#2341F0] text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {label}
+                                    {r.sport_name && (
+                                        <span className={isActive ? 'text-white/70' : 'text-gray-400'}> · {r.sport_name}</span>
+                                    )}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Stato disponibilità o contrattuale */}
             {(isPlayer || isCoach || isDS) ? (

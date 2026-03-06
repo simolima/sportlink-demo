@@ -57,12 +57,16 @@ export default function ProfileDropdown() {
     const otherRoles = roles.filter(r => r.role_id !== currentRole)
 
     function handleSwitchRole(roleId: string) {
-        setOpen(false)
         startTransition(async () => {
-            await switchActiveRole(roleId as ProfessionalRole)
-            // Aggiorna localStorage per compatibilità
-            localStorage.setItem('currentUserRole', roleId)
-            window.location.reload()
+            try {
+                await switchActiveRole(roleId as ProfessionalRole)
+                localStorage.setItem('currentUserRole', roleId)
+                setOpen(false)
+                window.location.reload()
+            } catch (err: any) {
+                console.error('Switch role failed:', err)
+                alert(err?.message || 'Errore nel cambio ruolo')
+            }
         })
     }
 

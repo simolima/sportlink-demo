@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
-import { switchActiveRole } from '@/app/actions/role-actions'
+import { switchActiveRole, deleteProfileRole } from '@/app/actions/role-actions'
 import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
 import {
     PROFESSIONAL_ROLES,
@@ -188,7 +188,7 @@ export default function AddRolePage() {
 
     // ── Salvataggio finale ─────────────────────────────────────────────────
     async function handleSave() {
-        if (!selectedRole || !user?.id || selectedSports.length === 0) return
+        if (!selectedRole || !user?.id || selectedSports.length === 0 || saving) return
         setSaving(true)
         setError(null)
 
@@ -248,7 +248,11 @@ export default function AddRolePage() {
 
                 if (sportErr) {
                     console.error('profile_sports insert error:', sportErr)
-                    // Non bloccare: il ruolo è già stato creato
+                    // Rollback: rimuovi il ruolo appena creato (server action bypassa RLS)
+                    await deleteProfileRole(selectedRole)
+                    setError('Errore nel salvataggio degli sport. Riprova.')
+                    setSaving(false)
+                    return
                 }
             }
 
@@ -373,8 +377,8 @@ export default function AddRolePage() {
                                                             key={roleId}
                                                             onClick={() => setSelectedRole(roleId)}
                                                             className={`p-5 rounded-xl border-2 transition-all text-left h-full flex flex-col justify-between min-h-[100px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selected
-                                                                    ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
-                                                                    : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                                ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                                : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3 mb-2">
@@ -415,8 +419,8 @@ export default function AddRolePage() {
                                                     onClick={() => handleSelectSport(sport)}
                                                     disabled={saving}
                                                     className={`p-6 rounded-xl border-2 transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selected
-                                                            ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
-                                                            : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                        ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                        : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                                         }`}
                                                 >
                                                     <div className="text-4xl mb-3">
@@ -467,8 +471,8 @@ export default function AddRolePage() {
                                                                     key={pos.id}
                                                                     onClick={() => setSelectedPositionId(sel ? null : pos.id)}
                                                                     className={`p-3 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                                            ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                                            : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
+                                                                        ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
+                                                                        : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
                                                                         }`}
                                                                 >
                                                                     {pos.name}
@@ -489,8 +493,8 @@ export default function AddRolePage() {
                                                         key={pos.id}
                                                         onClick={() => setSelectedPositionId(sel ? null : pos.id)}
                                                         className={`p-4 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                                ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                                : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
+                                                            ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
+                                                            : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
                                                             }`}
                                                     >
                                                         {pos.name}

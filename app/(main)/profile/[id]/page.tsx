@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ProfileSidebar from '@/components/profile-sidebar'
 import ProfileSection from '@/components/profile-section'
 import ProfileRepresentationWrapper from '@/components/profile-representation-wrapper'
@@ -11,9 +11,26 @@ import ExperienceCard from '@/components/experience-card'
 import { SparklesIcon, XMarkIcon, ChevronRightIcon, BuildingOffice2Icon, MapPinIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase-browser'
 import BookVisitButton from '@/components/booking/BookVisitButton'
+import { PROFESSIONAL_ROLES } from '@/lib/types'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-gray-900 text-xl">Caricamento...</div>
+            </div>
+        }>
+            <ProfilePageContent params={params} />
+        </Suspense>
+    )
+}
+
+function ProfilePageContent({ params }: { params: { id: string } }) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const rawViewRole = searchParams.get('viewRole')
+    // Sanitizza viewRole: accetta solo ruoli validi
+    const viewRole = rawViewRole && (PROFESSIONAL_ROLES as readonly string[]).includes(rawViewRole) ? rawViewRole : null
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [followersCount, setFollowersCount] = useState(0)
@@ -26,10 +43,36 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     const [showCareerModal, setShowCareerModal] = useState(false)
     const [studioData, setStudioData] = useState<any>(null)
     const [loggedUserId, setLoggedUserId] = useState<string | null>(null)
+    const [profileRoles, setProfileRoles] = useState<Array<{ role_id: string; is_primary: boolean; sport_name?: string | null }>>([])
+    const [activeViewRole, setActiveViewRole] = useState<string>('')
     useEffect(() => {
-        setLoggedUserId(localStorage.getItem('currentUserId'))
+        const currentUserId = localStorage.getItem('currentUserId')
+        const activeRole = localStorage.getItem('currentUserRole') || ''
+        setLoggedUserId(currentUserId)
+        const isOwnProfile = currentUserId === params.id
+
+        // Se c'è un viewRole esplicito in URL, usalo sempre.
+        // Altrimenti, per il proprio profilo usa il ruolo attivo da localStorage.
+        // Per profili altrui, lascia vuoto (sarà risolto al primario sotto).
+        const roleForView = viewRole || (isOwnProfile ? activeRole : '')
+
         const fetchProfile = async () => {
+            setLoading(true)
             try {
+                // Fetch user roles (sempre, per mostrare i bottoni di switch)
+                const rolesRes = await fetch(`/api/users/roles?userId=${params.id}`)
+                const rolesData: Array<{ role_id: string; is_primary: boolean; sport_name?: string | null }> = rolesRes.ok ? await rolesRes.json() : []
+                setProfileRoles(rolesData)
+
+                // Determina il ruolo da visualizzare
+                let effectiveViewRole = roleForView
+                if (!isOwnProfile && !viewRole && rolesData.length > 0) {
+                    // Default: ruolo primario, o il primo disponibile
+                    const primary = rolesData.find(r => r.is_primary)
+                    effectiveViewRole = primary?.role_id || rolesData[0].role_id
+                }
+                setActiveViewRole(effectiveViewRole)
+
                 // Fetch user profile
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
@@ -43,12 +86,19 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     return
                 }
 
-                // Fetch user sports
-                const { data: userSports } = await supabase
+                // Fetch user sports — filter by active role when viewing own profile
+                let sportsQuery = supabase
                     .from('profile_sports')
-                    .select('sport_id, is_main_sport, lookup_sports(name)')
+                    .select('sport_id, is_main_sport, role_id, lookup_sports(name)')
                     .eq('user_id', params.id)
+                    .is('deleted_at', null)
 
+                // Filtra sport per il ruolo visualizzato (proprio o altrui)
+                if (effectiveViewRole) {
+                    sportsQuery = sportsQuery.eq('role_id', effectiveViewRole)
+                }
+
+                const { data: userSports } = await sportsQuery
                 const sportsNames = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
                 setSports(sportsNames)
 
@@ -73,9 +123,12 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     country: profile.country,
                     birthDate: profile.birth_date,
                     gender: profile.gender,
-                    professionalRole: profile.role_id ?
-                        profile.role_id.charAt(0).toUpperCase() + profile.role_id.slice(1) :
-                        null,
+                    professionalRole: (() => {
+                        // Usa il ruolo della vista corrente
+                        const role = effectiveViewRole || profile.role_id
+                        if (!role) return null
+                        return role.charAt(0).toUpperCase() + role.slice(1)
+                    })(),
                     sports: sportsNames,
                     height: physicalStats?.height_cm || null,
                     weight: physicalStats?.weight_kg || null,
@@ -205,16 +258,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     .maybeSingle()
 
                 if (studio) setStudioData(studio)
-
-                setLoading(false)
             } catch (err) {
                 console.error('Error fetching profile:', err)
+            } finally {
                 setLoading(false)
             }
         }
 
         fetchProfile()
-    }, [params.id])
+    }, [params.id, viewRole])
 
     if (loading) {
         return (
@@ -249,6 +301,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             followingCount={followingCount}
                             assistatiCount={assistatiCount}
                             isOwn={false}
+                            profileRoles={profileRoles}
+                            activeViewRole={activeViewRole}
                         />
                     </div>
 

@@ -114,6 +114,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
 
+            // Step 4: Determina il ruolo attivo.
+            // Leggiamo direttamente da profile_roles via browser client
+            // (il cookie di sessione potrebbe non essere ancora sincronizzato col server).
+            let activeRole: string = profile.role_id || ''
+            try {
+                const { data: primaryRole } = await supabase
+                    .from('profile_roles')
+                    .select('role_id')
+                    .eq('user_id', authData.user.id)
+                    .eq('is_active', true)
+                    .eq('is_primary', true)
+                    .maybeSingle()
+                if (primaryRole?.role_id) {
+                    activeRole = primaryRole.role_id
+                } else {
+                    // Fallback: primo ruolo attivo
+                    const { data: anyRole } = await supabase
+                        .from('profile_roles')
+                        .select('role_id')
+                        .eq('user_id', authData.user.id)
+                        .eq('is_active', true)
+                        .limit(1)
+                        .maybeSingle()
+                    if (anyRole?.role_id) activeRole = anyRole.role_id
+                }
+            } catch {
+                // Se profile_roles non è accessibile, usa profile.role_id (già assegnato)
+            }
+
+            // Persisti il ruolo nel cookie server-side (best-effort)
+            try {
+                const { switchActiveRole } = await import('@/app/actions/role-actions')
+                await switchActiveRole(activeRole as any)
+            } catch {
+                // Se il cookie non viene impostato ora, verrà impostato al prossimo getActiveRole()
+            }
+
             // Construct user object
             const user: User = {
                 id: profile.id,
@@ -121,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 firstName: profile.first_name || '',
                 lastName: profile.last_name || '',
                 sports: sports,
-                professionalRole: profile.role_id || 'Player',
+                professionalRole: activeRole || 'player',
                 verified: false,
                 password: '',
                 birthDate: profile.birth_date || '',
@@ -211,14 +248,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const logout = async () => {
-        localStorage.removeItem('currentUserId')
-        localStorage.removeItem('currentUserEmail')
-        localStorage.removeItem('currentUserName')
-        localStorage.removeItem('currentUserAvatar')
-        localStorage.removeItem('currentUserSport')
-        localStorage.removeItem('currentUserRole')
+        // Cancella cookie server-side
+        try {
+            const { clearActiveRole } = await import('@/app/actions/role-actions')
+            await clearActiveRole()
+        } catch { /* ignore */ }
+        // Cancella Supabase session
+        try {
+            const { supabase } = await import('@/lib/supabase-browser')
+            await supabase.auth.signOut()
+        } catch { /* ignore */ }
+        // Pulisci tutto localStorage
+        const keys = [
+            'currentUserId', 'currentUserName', 'currentUserEmail',
+            'currentUserAvatar', 'currentUserRole', 'currentUserSport',
+            'currentUserSports', 'onboarding_complete', 'selectedClubId',
+        ]
+        keys.forEach(k => localStorage.removeItem(k))
         setUser(null)
-        router.push('/login')
+        window.location.href = '/login'
     }
 
     const updateUser = async (updates: Partial<User>) => {

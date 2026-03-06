@@ -40,6 +40,31 @@ const userId = localStorage.getItem('currentUserId')  // NO!
 
 **⚠️ Attenzione**: Molte pagine esistenti leggono localStorage direttamente. **Non rimuovere** quei pattern senza prima migrare completamente la pagina a `useAuth()`. Il localStorage deve restare funzionante come layer di compatibilità.
 
+### Fetch verso endpoint protetti (POST/PATCH/DELETE)
+
+Gli endpoint che verificano il JWT richiedono che i **cookies** siano inviati con la richiesta. Usare sempre `credentials: 'include'`:
+
+```typescript
+// ✅ CORRETTO — invia i cookies con la sessione Supabase
+const res = await fetch('/api/messages', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senderId, receiverId, text }),
+})
+
+// Prima di chiamare un endpoint protetto, verifica la sessione
+const { data: { session } } = await supabaseBrowser.auth.getSession()
+if (!session) {
+    router.push('/login')
+    return
+}
+```
+
+Se il server risponde `401`, significa che la sessione è scaduta → redirect al login.
+
+---
+
 ### hasCompletedProfile
 
 ```typescript

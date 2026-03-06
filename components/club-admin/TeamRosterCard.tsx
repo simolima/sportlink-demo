@@ -5,10 +5,12 @@ import { XMarkIcon, PlusIcon, ArrowPathIcon, ChevronDownIcon, ChevronUpIcon } fr
 import {
     removeMemberFromTeam,
     assignMemberToTeam,
+} from '@/app/actions/team-management-actions'
+import {
     TEAM_MEMBER_ROLE_LABELS,
     type TeamMemberRole,
     type AssignMemberInput,
-} from '@/app/actions/team-management-actions'
+} from '@/lib/team-types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipi locali

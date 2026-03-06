@@ -5,7 +5,7 @@ import { UserGroupIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase-browser'
 import CreateTeamModal from '@/components/club-admin/CreateTeamModal'
 import TeamRosterCard from '@/components/club-admin/TeamRosterCard'
-import type { TeamMemberRole } from '@/app/actions/team-management-actions'
+import type { TeamMemberRole } from '@/lib/team-types'
 import type { TeamMember, AvailableClubMember, TeamInfo } from '@/components/club-admin/TeamRosterCard'
 
 // ─────────────────────────────────────────────────────────────────────────────

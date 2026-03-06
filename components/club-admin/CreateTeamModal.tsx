@@ -6,9 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import {
     createTeam,
+} from '@/app/actions/team-management-actions'
+import {
     createTeamSchema,
     type CreateTeamInput,
-} from '@/app/actions/team-management-actions'
+} from '@/lib/team-types'
 
 interface Props {
     clubId: string

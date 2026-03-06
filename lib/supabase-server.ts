@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -56,3 +57,75 @@ export const supabaseServer = supabaseServiceKey
             persistSession: false
         }
     })
+
+/**
+ * ⚠️ SECURITY VALIDATION
+ * Valida che un userId sia un UUID v4 valido.
+ * 
+ * In produzione con Supabase Auth reale, dovremmo verificare il token JWT
+ * al posto di affidarci al body della richiesta.
+ * Per ora è una protezione minima contro input non validi.
+ */
+export function isValidUserId(userId: any): userId is string {
+    if (!userId || typeof userId !== 'string') return false
+
+    // UUID v4 pattern: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    return uuidRegex.test(userId)
+}
+
+/**
+ * Estrae e valida userId dal body della richiesta.
+ * Ritorna un errore NextResponse se invalido, altrimenti ritorna userId.
+ * 
+ * Usage:
+ * const validation = validateUserIdFromBody(body)
+ * if (!validation.valid) return withCors(validation.error)
+ * const userId = validation.userId
+ */
+export function validateUserIdFromBody(body: any): { valid: false; error: any } | { valid: true; userId: string } {
+    const userId = body?.userId?.toString?.()
+
+    if (!userId) {
+        return {
+            valid: false,
+            error: NextResponse.json({ error: 'missing_user_id' }, { status: 400 })
+        }
+    }
+
+    if (!isValidUserId(userId)) {
+        return {
+            valid: false,
+            error: NextResponse.json({ error: 'invalid_user_id_format' }, { status: 400 })
+        }
+    }
+
+    return { valid: true, userId }
+}
+
+/**
+ * Estrae e verifica l'utente autenticato dal token JWT nelle cookies di Supabase
+ * 
+ * ✅ SECURITY: Verifica il token lato server — non si può falsificare
+ * Questo è il modo "giusto" per ottenere l'utente autenticato in produzione
+ * 
+ * Usage in API routes:
+ * const authenticatedUserId = await getUserIdFromAuthToken(req)
+ * if (!authenticatedUserId) return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+ */
+export async function getUserIdFromAuthToken(req: Request): Promise<string | null> {
+    try {
+        const client = await createServerClient()
+        const { data: { user }, error } = await client.auth.getUser()
+
+        if (error || !user) {
+            console.log('Auth token invalid or expired:', error?.message)
+            return null
+        }
+
+        return user.id
+    } catch (err) {
+        console.error('Error verifying auth token:', err)
+        return null
+    }
+}

@@ -20,6 +20,7 @@ import {
     getUnreadCount
 } from '@/lib/notifications-repository'
 import { withCors, handleOptions } from '@/lib/cors'
+import { getUserIdFromAuthToken } from '@/lib/supabase-server'
 
 // SSE dispatcher — may not work on Vercel serverless, imported conditionally
 let dispatchToUser: any = () => 0
@@ -95,38 +96,59 @@ export async function POST(request: Request) {
 
 // PUT /api/notifications — Mark as read
 export async function PUT(request: Request) {
-    const body = await request.json()
-    const { id, markAllAsRead: markAll, userId } = body
-
-    // Mark all as read
-    if (markAll && userId) {
-        const count = await markAllAsRead(String(userId))
-
-        try { dispatchUnreadCount(userId, 0) } catch { /* SSE */ }
-
-        return withCors(NextResponse.json({ success: true, markedCount: count }))
-    }
-
-    // Mark single notification as read
-    if (!id) {
-        return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
-    }
-
-    const notification = await markAsRead(id)
-
-    if (!notification) {
-        return withCors(NextResponse.json({ error: 'Notification not found' }, { status: 404 }))
-    }
-
-    // Update SSE badge
     try {
-        if (notification.userId) {
-            const count = await getUnreadCount(String(notification.userId))
-            dispatchUnreadCount(notification.userId, count)
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(request)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
         }
-    } catch { /* SSE */ }
 
-    return withCors(NextResponse.json(notification))
+        const body = await request.json()
+        const { id, markAllAsRead: markAll, userId } = body
+
+        // Mark all as read
+        if (markAll && userId) {
+            // ✅ Verify userId matches authenticated user
+            if (userId !== authenticatedUserId) {
+                return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
+            }
+
+            const count = await markAllAsRead(String(userId))
+
+            try { dispatchUnreadCount(userId, 0) } catch { /* SSE */ }
+
+            return withCors(NextResponse.json({ success: true, markedCount: count }))
+        }
+
+        // Mark single notification as read
+        if (!id) {
+            return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
+        }
+
+        const notification = await markAsRead(id)
+
+        if (!notification) {
+            return withCors(NextResponse.json({ error: 'Notification not found' }, { status: 404 }))
+        }
+
+        // ✅ Verify notification belongs to authenticated user
+        if (notification.userId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_not_your_notification' }, { status: 403 }))
+        }
+
+        // Update SSE badge
+        try {
+            if (notification.userId) {
+                const count = await getUnreadCount(String(notification.userId))
+                dispatchUnreadCount(notification.userId, count)
+            }
+        } catch { /* SSE */ }
+
+        return withCors(NextResponse.json(notification))
+    } catch (err) {
+        console.error('PUT /api/notifications error:', err)
+        return withCors(NextResponse.json({ error: 'internal_error' }, { status: 500 }))
+    }
 }
 
 // DELETE /api/notifications

@@ -29,6 +29,7 @@ vi.mock('@/lib/supabase-server', () => ({
     supabaseServer: {
         from: vi.fn(() => createChain()),
     },
+    getUserIdFromAuthToken: vi.fn(async () => '10'),
 }))
 
 vi.mock('@/lib/cors', () => ({
@@ -41,6 +42,7 @@ vi.mock('@/lib/cors', () => ({
 
 // Import AFTER mocking
 import { GET, POST, DELETE } from '@/app/api/follows/route'
+import { getUserIdFromAuthToken } from '@/lib/supabase-server'
 
 // ============================================================================
 // Helpers
@@ -64,6 +66,9 @@ beforeEach(() => {
     mockQueryResult = { data: [], error: null }
     mockSingleResult = { data: null, error: null }
     vi.clearAllMocks()
+
+    // Default authenticated user for protected endpoints.
+    vi.mocked(getUserIdFromAuthToken).mockResolvedValue('10')
 })
 
 // ============================================================================
@@ -161,7 +166,7 @@ describe('POST /api/follows', () => {
                 chain.single = vi.fn(() =>
                     Promise.resolve({
                         data: {
-                            follower_id: '20',
+                            follower_id: '10',
                             following_id: '30',
                             created_at: '2026-02-16T00:00:00Z',
                         },
@@ -171,7 +176,7 @@ describe('POST /api/follows', () => {
             } else {
                 chain.single = vi.fn(() =>
                     Promise.resolve({
-                        data: { id: '20', first_name: 'Mario', last_name: 'Rossi', avatar_url: null },
+                        data: { id: '10', first_name: 'Mario', last_name: 'Rossi', avatar_url: null },
                         error: null,
                     }),
                 )
@@ -182,13 +187,13 @@ describe('POST /api/follows', () => {
 
         const res = await POST(
             makeJsonRequest('http://localhost:3000/api/follows', {
-                followerId: '20',
+                followerId: '10',
                 followingId: '30',
             }),
         )
         expect(res.status).toBe(201)
         const data = await res.json()
-        expect(data.followerId).toBe('20')
+        expect(data.followerId).toBe('10')
         expect(data.followingId).toBe('30')
     })
 

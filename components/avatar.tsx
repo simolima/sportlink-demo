@@ -17,7 +17,7 @@ const sizeClasses = {
 }
 
 /** Colore unico per tutti gli avatar senza immagine — blu Sprinta */
-export const AVATAR_FALLBACK_COLOR = 'bg-[#2341F0]'
+export const AVATAR_FALLBACK_COLOR = 'bg-sprinta-blue'
 
 /** Manteniamo l'export per compatibilità con i file che già la importano */
 export function getAvatarColorClass(_text?: string): string {

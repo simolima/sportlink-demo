@@ -1,362 +1,161 @@
-# SportLink - Social Platform for Athletes
+# Sprinta — Social Platform for Athletes & Clubs
 
-![SportLink](public/logo.svg)
+**Sprinta** is a dual-platform social networking application for athletes, clubs, agents, and sports professionals. It lets users connect, share career experiences, manage rappresentations, discover opportunities, and message each other — all in one place.
 
-**SportLink** is a dual-platform social networking application designed for athletes, clubs, agents, and sports professionals to connect, share, and collaborate.
+- **Web App**: Next.js 14 (App Router) + React 18 + Tailwind CSS / DaisyUI
+- **Mobile App**: Expo + React Native (iOS & Android)
+- **Backend**: Supabase PostgreSQL + Supabase Storage + Supabase Auth
+- **Deploy**: Vercel (web) + Supabase (backend)
 
-## 🚀 Platform Overview
+---
 
-This project consists of **two separate applications** sharing the same backend:
+## Prerequisites
 
-- **🌐 Web App**: Next.js 14 with App Router (Tailwind CSS + DaisyUI)
-- **📱 Mobile App**: Expo/React Native (iOS & Android)
-- **🔌 Backend**: Shared Next.js API routes with JSON storage
+| Tool | Version | Notes |
+|------|---------|-------|
+| Node.js | 18+ | Required for Next.js and Expo CLI |
+| pnpm | Latest | `npm install -g pnpm` |
+| Supabase account | — | Create a project at [supabase.com](https://supabase.com) |
+| Expo Go | Latest | Install on your phone for mobile development |
 
-## 📋 Quick Start
+### Environment Variables
 
-### Prerequisites
-
-- Node.js 18+ 
-- pnpm (recommended) or npm
-- Expo Go app (for mobile development)
-
-### Installation
+Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
 
 ```bash
-# Clone repository
-git clone https://github.com/simolima/sportlink-demo.git
-cd sportlink-demo-template
+cp .env.example .env.local
+```
 
-# Install web dependencies
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # Required for admin API routes
+```
+
+---
+
+## Getting Started
+
+### Install Dependencies
+
+```bash
+# Web dependencies
 pnpm install
 
-# Install mobile dependencies
+# Mobile dependencies (isolated — must be done separately)
 cd mobile
 pnpm install
 cd ..
 ```
 
-### Development
+### Start the Web App
 
-**Web Only**:
 ```bash
 pnpm dev
-# → Open http://localhost:3000
+# → http://localhost:3000
 ```
 
-**Mobile + Web** (both servers required):
+### Start the Mobile App
+
+The mobile app requires the web server to be running (it calls the Next.js API routes).
+
 ```bash
-# Terminal 1 - Web Server (API)
+# Terminal 1 — Web server (API)
 pnpm dev
 
-# Terminal 2 - Mobile App
+# Terminal 2 — Expo Metro Bundler
 pnpm dev:mobile
-# → Scan QR code with Expo Go
+# → Scan QR code with Expo Go on your phone
 ```
 
-## 🏗️ Architecture
-
-### Project Structure
-
-```
-sportlink-demo-template/
-├── app/                    # Next.js App Router (Web)
-│   ├── api/               # API Routes (shared by web + mobile)
-│   ├── home/              # Feed page
-│   ├── profile/           # User profiles
-│   └── ...
-├── components/            # React components (Web only)
-├── lib/                   # Utilities (Web)
-│   ├── cors.ts           # CORS for mobile
-│   └── types.ts          # TypeScript types
-├── mobile/                # Expo Mobile App (ISOLATED)
-│   ├── screens/          # Mobile screens
-│   │   ├── FeedScreen.tsx
-│   │   └── ProfileScreen.tsx
-│   ├── lib/              # Mobile utilities
-│   │   ├── api.ts        # API client
-│   │   └── services.ts   # Business logic
-│   ├── App.tsx           # Entry point
-│   └── package.json      # Mobile dependencies (separate!)
-├── data/                  # JSON Database (shared)
-│   ├── users.json
-│   ├── posts.json
-│   └── ...
-└── package.json           # Web dependencies
-```
-
-### Key Principle: Dependency Isolation
-
-**No monorepo workspace** - Dependencies are completely isolated:
-- Web: `package.json` (React 18)
-- Mobile: `mobile/package.json` (React 19)
-- Shared: API routes via HTTP
-
-This prevents dependency conflicts and allows independent versioning.
-
-## 🎨 Design System
-
-**Color Theme**: Navy & Blu Scuro (Dark Mode)
-- Primary: `#2341F0` (Blu Primario)
-- Base: `#0A0F32` (Navy)
-- Text: `#A7B0FF` (Azzurro Pallido)
-
-**Framework**: Tailwind CSS + DaisyUI Theme "sprinta"
-
-### 📖 Design Documentation
-
-👉 **[Brand Guide v2.0](./design/README.md)** - Complete design system documentation
-
-- Palette colori con hex codes
-- Tipografia (Inter font hierarchy)
-- Componenti UI (bottoni, card, form)
-- Varianti di logo
-- WCAG accessibilità
-- Developer & Designer guidelines
-
-**For Designers**: Import `design/BRAND_GUIDE.md` - Contains color palette, font specs, and component examples  
-**For Developers**: Use DaisyUI classes: `btn btn-primary`, `bg-base-200`, `text-secondary`, etc.
-
----- Hover: `green-700` (#15803d)
-- Light: `green-50` (#f0fdf4)
-
-**Styling**:
-- Web: Tailwind CSS + DaisyUI
-- Mobile: React Native StyleSheet with same color palette
-
-## 🔌 API Architecture
-
-All API routes in `app/api/` are **shared** between web and mobile:
-
-```typescript
-// Example: app/api/posts/route.ts
-export const runtime = 'nodejs'
-import { withCors } from '@/lib/cors'
-
-export async function GET() {
-    const posts = readPosts()
-    return withCors(NextResponse.json(posts))  // CORS for mobile
-}
-
-export async function OPTIONS() {
-    return withCors(new NextResponse(null, { status: 204 }))
-}
-```
-
-**Endpoints**:
-- `/api/users` - User management
-- `/api/posts` - Feed posts
-- `/api/likes` - Post likes
-- `/api/comments` - Comments
-- `/api/follows` - Follow relationships
-- `/api/messages` - Direct messages
-
-## 📱 Mobile Development
-
-### Network Configuration
-
-Mobile app connects to web server via local IP address.
-
-**Configure in `mobile/lib/api.ts`**:
-```typescript
-const BASE_URL = 'http://192.168.1.37:3000'  // Use YOUR PC IP
-```
-
-**Find your IP** (Windows):
-```powershell
-ipconfig
-# Look for "IPv4 Address" under your WiFi/Ethernet adapter
-```
-
-**Requirements**:
-- PC and phone on same WiFi network
-- Web server running (`pnpm dev`)
-- Firewall allows port 3000
-
-### Mobile Features
-
-- ✅ Feed with banner header
-- ✅ Create post composer
-- ✅ User profiles with stats
-- ✅ Pull-to-refresh
-- ✅ Tab navigation (Feed/Profile)
-- ✅ Logout functionality
-
-## 🛠️ Available Scripts
-
-### Web
-
-```bash
-pnpm dev          # Start dev server (port 3000)
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm lint         # Run ESLint
-```
-
-### Mobile
-
-```bash
-pnpm dev:mobile   # Start Expo (from root)
-cd mobile         # Enter mobile directory
-pnpm start        # Start Expo (alternative)
-npx expo start -c # Clear cache and start
-```
-
-## 📚 Documentation
-
-- **[MOBILE_DEV_GUIDE.md](MOBILE_DEV_GUIDE.md)** - Complete mobile setup guide for developers
-- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - AI agent instructions and architecture details
-
-## 🚀 Deployment
-
-### Web (Vercel)
-
-```bash
-# Push to main branch - auto-deploys to Vercel
-git push origin main
-```
-
-Vercel auto-detects Next.js and deploys automatically.
-
-### Mobile (EAS Build)
-
-```bash
-cd mobile
-
-# Install EAS CLI
-npm install -g eas-cli
-
-# Login to Expo
-eas login
-
-# Configure project
-eas build:configure
-
-# Build for Android
-eas build --platform android
-
-# Build for iOS (requires Apple Developer account)
-eas build --platform ios
-
-# Submit to stores
-eas submit --platform all
-```
-
-## 🔐 Authentication (Demo)
-
-**Current**: localStorage-based (demo only)
-- No real authentication
-- Email-based login without password
-- Session stored in localStorage
-
-**Future**: Migrate to Supabase Auth or NextAuth.js
-
-## 💾 Data Storage
-
-**Current**: JSON files in `data/` directory
-- Simple file-based storage
-- Shared between web and mobile via API
-- Perfect for MVP/demo
-
-**Future**: Migrate to Supabase PostgreSQL or similar
-
-## 🧪 Testing
-
-```bash
-# Web
-pnpm test
-
-# Mobile
-cd mobile
-pnpm test
-```
-
-## 🤝 Contributing
-
-### Team Workflow
-
-1. Clone repository
-2. Install dependencies (web + mobile)
-3. Configure mobile IP in `mobile/lib/api.ts`
-4. Create feature branch
-5. Test both platforms
-6. Submit PR
-
-### Best Practices
-
-✅ **DO**:
-- Work on one platform at a time
-- Install mobile packages from `mobile/` directory
-- Test on real devices via Expo Go
-- Use CORS wrapper in API routes
-
-❌ **DON'T**:
-- Create `pnpm-workspace.yaml` (causes conflicts)
-- Install mobile packages from root
-- Use `localhost` in mobile API calls
-- Mix web/mobile dependencies
-
-## 📦 Tech Stack
-
-### Web
-- Next.js 14.2.5
-- React 18.3.1
-- Tailwind CSS 3.4.1
-- DaisyUI 4.12.14
-- TypeScript
-
-### Mobile
-- Expo ~54.0.25
-- React Native 0.78.6
-- React 19.1.0
-- TypeScript
-
-### Backend
-- Next.js API Routes
-- Node.js filesystem (JSON)
-- CORS middleware
-
-## 🗺️ Roadmap
-
-### Phase 1: MVP ✅
-- [x] Web app with feed, profiles, messages
-- [x] Mobile app with feed and profiles
-- [x] Shared API backend
-- [x] CORS-enabled endpoints
-
-### Phase 2: Database Migration (In Progress)
-- [ ] Supabase integration
-- [ ] PostgreSQL database
-- [ ] Real authentication
-- [ ] File uploads to Supabase Storage
-
-### Phase 3: Mobile Features
-- [ ] Post creation from mobile
-- [ ] Image upload (camera/gallery)
-- [ ] Push notifications
-- [ ] Offline support
-
-### Phase 4: Production
-- [ ] Input validation
-- [ ] Rate limiting
-- [ ] Error tracking (Sentry)
-- [ ] Analytics
-- [ ] Performance optimization
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 👥 Team
-
-
-
-## 🆘 Support
-
-- 📖 Read [MOBILE_DEV_GUIDE.md](MOBILE_DEV_GUIDE.md) for setup help
-- 🐛 Report issues on GitHub
-- 💬 Contact team on Slack/Discord
+The mobile app auto-detects the local server IP via Expo SDK (`Constants.expoConfig?.hostUri`) — no manual IP configuration needed.
 
 ---
 
-**Built with ❤️ by SportLink Team** | November 2025
+## Available Scripts
+
+```bash
+# Development
+pnpm dev              # Start Next.js dev server (port 3000)
+pnpm dev:mobile       # Start Expo Metro Bundler
+
+# Build & Production
+pnpm build            # Build Next.js for production
+pnpm start            # Start Next.js production server
+
+# Quality
+pnpm lint             # Run ESLint
+
+# Testing
+pnpm test             # Run all tests (once)
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage    # Run tests with coverage report
+```
+
+---
+
+## Project Structure
+
+```
+sprinta/
+├── app/
+│   ├── (auth)/           # Login, signup
+│   ├── (landing)/        # Public landing page
+│   ├── (main)/           # Core app (requires auth)
+│   ├── (onboarding)/     # New user onboarding
+│   └── api/              # Next.js API routes (CORS-enabled, shared with mobile)
+├── components/           # React components (all "use client")
+├── lib/
+│   ├── hooks/useAuth.tsx  # Primary auth hook
+│   ├── supabase-server.ts # Server-side Supabase client
+│   ├── supabase-browser.ts# Browser-side Supabase client
+│   ├── cors.ts            # withCors() + handleOptions() middleware
+│   └── types.ts           # Shared TypeScript types
+├── mobile/               # Expo app (completely isolated dependencies)
+│   ├── screens/
+│   ├── lib/
+│   └── package.json      # Separate from root package.json
+├── supabase/
+│   ├── migrations/       # Versioned schema migrations
+│   └── scripts/          # Admin/diagnostic SQL scripts
+└── CLAUDE.md             # AI agent instructions (see below)
+```
+
+---
+
+## Deployment
+
+### Web — Vercel
+
+Push to `main` and Vercel auto-deploys. Set the environment variables in the Vercel dashboard.
+
+### Mobile — EAS Build
+
+```bash
+cd mobile
+npx eas build --platform android   # Android APK/AAB
+npx eas build --platform ios       # iOS IPA (requires Apple Developer account)
+npx eas submit --platform all      # Submit to app stores
+```
+
+---
+
+## Note per gli Sviluppatori AI
+
+> This repository is **AI-Friendly**.
+
+If you are using an AI coding agent (GitHub Copilot, Cursor, Claude, or similar), **do not write code before reading the architecture documentation**. The source of truth for all conventions and patterns is:
+
+- **[CLAUDE.md](./CLAUDE.md)** — Top-level entry point: rules, checklist, and file index
+- **[.claude/rules/](./.claude/rules/)** — Detailed rule files by domain:
+  - `01-stack.md` — Tech stack, active libraries, deploy commands
+  - `02-database.md` — Supabase schema, snake_case↔camelCase mapping, soft-delete
+  - `03-api-patterns.md` — API route templates, CORS, SSE limitations
+  - `04-frontend-patterns.md` — Auth system, `useAuth()`, color theme, hydration
+  - `05-testing.md` — Test runner, conventions, folder structure
+
+These files are kept up-to-date with every architectural change and take priority over any assumption or external knowledge the AI may have about the codebase.
+
+---
+
+*Built with ❤️ by the Sprinta team.*

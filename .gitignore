@@ -8,6 +8,16 @@ node_modules/
 /out/
 /build/
 
+# TypeScript build info
+*.tsbuildinfo
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# npm lock file (project uses pnpm)
+package-lock.json
+
 .expo/
 
 # Mobile (already has its own .gitignore in mobile/ folder)

@@ -68,7 +68,7 @@ export const supabaseServer = supabaseServiceKey
  */
 export function isValidUserId(userId: any): userId is string {
     if (!userId || typeof userId !== 'string') return false
-    
+
     // UUID v4 pattern: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     return uuidRegex.test(userId)
@@ -85,20 +85,47 @@ export function isValidUserId(userId: any): userId is string {
  */
 export function validateUserIdFromBody(body: any): { valid: false; error: any } | { valid: true; userId: string } {
     const userId = body?.userId?.toString?.()
-    
+
     if (!userId) {
         return {
             valid: false,
             error: NextResponse.json({ error: 'missing_user_id' }, { status: 400 })
         }
     }
-    
+
     if (!isValidUserId(userId)) {
         return {
             valid: false,
             error: NextResponse.json({ error: 'invalid_user_id_format' }, { status: 400 })
         }
     }
-    
+
     return { valid: true, userId }
+}
+
+/**
+ * Estrae e verifica l'utente autenticato dal token JWT nelle cookies di Supabase
+ * 
+ * ✅ SECURITY: Verifica il token lato server — non si può falsificare
+ * Questo è il modo "giusto" per ottenere l'utente autenticato in produzione
+ * 
+ * Usage in API routes:
+ * const authenticatedUserId = await getUserIdFromAuthToken(req)
+ * if (!authenticatedUserId) return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+ */
+export async function getUserIdFromAuthToken(req: Request): Promise<string | null> {
+    try {
+        const client = await createServerClient()
+        const { data: { user }, error } = await client.auth.getUser()
+
+        if (error || !user) {
+            console.log('Auth token invalid or expired:', error?.message)
+            return null
+        }
+
+        return user.id
+    } catch (err) {
+        console.error('Error verifying auth token:', err)
+        return null
+    }
 }

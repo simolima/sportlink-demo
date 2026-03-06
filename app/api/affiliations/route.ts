@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
-import { supabaseServer, validateUserIdFromBody } from '@/lib/supabase-server'
+import { supabaseServer, validateUserIdFromBody, getUserIdFromAuthToken } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
@@ -113,11 +113,22 @@ export async function GET(request: Request) {
 // POST /api/affiliations - Create affiliation request
 export async function POST(request: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(request)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await request.json()
         const { agentId, playerId, notes } = body
 
         if (!agentId || !playerId) {
             return withCors(NextResponse.json({ error: 'agentId and playerId required' }, { status: 400 }))
+        }
+
+        // ✅ Verify agentId matches authenticated user (agent can only create on own behalf)
+        if (agentId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_agent_mismatch' }, { status: 403 }))
         }
 
         // ✅ Valida agentId e playerId

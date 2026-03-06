@@ -8,7 +8,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { supabaseServer, validateUserIdFromBody } from '@/lib/supabase-server'
+import { supabaseServer, validateUserIdFromBody, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
 export async function OPTIONS() {
@@ -94,6 +94,12 @@ export async function GET(req: Request) {
 // Body: { senderId, receiverId, text }
 export async function POST(req: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await req.json()
         const senderId = body.senderId?.toString().trim()
         const receiverId = body.receiverId?.toString().trim()
@@ -101,6 +107,11 @@ export async function POST(req: Request) {
 
         if (!senderId || !receiverId || !text) {
             return withCors(NextResponse.json({ error: 'senderId, receiverId, text required' }, { status: 400 }))
+        }
+
+        // ✅ Verify senderId matches authenticated user
+        if (senderId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_sender_mismatch' }, { status: 403 }))
         }
 
         // ✅ Valida senderId e receiverId
@@ -171,6 +182,12 @@ export async function POST(req: Request) {
 // or    { ids: [...] }     → mark specific messages
 export async function PATCH(req: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await req.json()
         const ids: string[] = Array.isArray(body.ids) ? body.ids : []
 
@@ -178,12 +195,34 @@ export async function PATCH(req: Request) {
         if (!ids.length && body.userId) {
             const validation = validateUserIdFromBody(body)
             if (!validation.valid) return withCors(validation.error)
+            
+            // ✅ Verify userId matches authenticated user
+            if (body.userId !== authenticatedUserId) {
+                return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
+            }
         }
 
         const userId = body.userId?.toString() || null
         const peerId = body.peerId?.toString() || null
 
         if (ids.length > 0) {
+            // ✅ For ids[], verify that all messages are addressed to authenticated user
+            const { data: messagesToUpdate, error: fetchError } = await supabaseServer
+                .from('messages')
+                .select('id, receiver_id')
+                .in('id', ids)
+            
+            if (fetchError) {
+                console.error('PATCH fetch messages error:', fetchError)
+                return withCors(NextResponse.json({ error: fetchError.message }, { status: 500 }))
+            }
+            
+            // Check if all messages belong to authenticated user
+            const allBelongToUser = messagesToUpdate?.every(msg => msg.receiver_id === authenticatedUserId)
+            if (!allBelongToUser) {
+                return withCors(NextResponse.json({ error: 'forbidden_cannot_mark_others_messages' }, { status: 403 }))
+            }
+
             const { data, error } = await supabaseServer
                 .from('messages')
                 .update({ is_read: true })

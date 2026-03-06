@@ -6,13 +6,35 @@ import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function LoginPage() {
     const router = useRouter()
-    const { login, loginWithGoogle } = useAuth()
+    const { login, loginWithGoogle, isAuthenticated, isLoading: authLoading } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [googleLoading, setGoogleLoading] = useState(false)
+
+    // Se l'utente ha già una sessione valida, redirect a home
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            router.replace('/home')
+            return
+        }
+        // Anche se useAuth non vede la sessione (localStorage vuoto),
+        // controlla Supabase direttamente (caso: OAuth completato ma localStorage non scritto)
+        if (!authLoading && !isAuthenticated) {
+            import('@/lib/supabase-browser').then(({ supabase }) => {
+                supabase.auth.getSession().then(({ data: { session } }: any) => {
+                    if (session?.user) {
+                        // Sessione valida ma localStorage non sincronizzato → redirect
+                        localStorage.setItem('currentUserId', session.user.id)
+                        localStorage.setItem('currentUserEmail', session.user.email || '')
+                        window.location.href = '/home'
+                    }
+                })
+            })
+        }
+    }, [authLoading, isAuthenticated, router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

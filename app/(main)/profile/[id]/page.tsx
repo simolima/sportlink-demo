@@ -142,11 +142,11 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
                     experiences: [], // populated below
                 }
 
-                // Fetch career experiences
+                // Fetch career experiences (filtra per ruolo attivo se presente)
                 const expRes = await fetch(`/api/career-experiences?userId=${params.id}`)
                 if (expRes.ok) {
                     const rawExps = await expRes.json()
-                    userData.experiences = (rawExps || []).map((exp: any) => ({
+                    const allExps = (rawExps || []).map((exp: any) => ({
                         id: exp.id,
                         team: exp.organization?.name || '',
                         role: exp.role || '',
@@ -194,6 +194,10 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
                         losses: exp.losses ?? undefined,
                         trophies: exp.trophies ?? undefined,
                     }))
+                    // Filtra le esperienze per il ruolo visualizzato
+                    userData.experiences = effectiveViewRole
+                        ? allExps.filter((e: any) => e.profileType === effectiveViewRole)
+                        : allExps
                 }
 
                 console.log('🔍 Profile Data Loaded:', {

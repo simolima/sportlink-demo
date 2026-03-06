@@ -14,7 +14,6 @@ import {
     MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 
-const LogoutButton = dynamic(() => import('./logout-button'), { ssr: false })
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 const ProfileDropdown = dynamic(() => import('./ui/ProfileDropdown'), { ssr: false })
 
@@ -141,7 +140,6 @@ export default function Navbar() {
                         <>
                             <NotificationBell userId={Number(user.id)} />
                             <ProfileDropdown />
-                            <LogoutButton />
                         </>
                     ) : (
                         <>

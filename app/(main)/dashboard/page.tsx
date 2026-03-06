@@ -96,11 +96,16 @@ export default async function DashboardPage() {
         return null
     }
 
-    // 2. Ruolo attivo dal cookie (o fallback 'player')
-    const activeRole = await getActiveRole()
-
-    // 3. Ruoli disponibili per l'utente (per popolare il RoleSwitcher)
+    // 2. Ruoli disponibili per l'utente (per popolare il RoleSwitcher)
     const availableRoles = await fetchAvailableRoles(user.id)
+
+    // 3. Ruolo attivo dal cookie (o fallback 'player')
+    //    Se il cookie non è impostato (o contiene un ruolo non tra quelli disponibili),
+    //    usiamo il primo ruolo disponibile dell'utente per mostrare i widget corretti.
+    let activeRole = await getActiveRole()
+    if (!availableRoles.includes(activeRole) && availableRoles.length > 0) {
+        activeRole = availableRoles[0]
+    }
 
     // 4. Determina quali widget mostrare
     const showTeamEvents =

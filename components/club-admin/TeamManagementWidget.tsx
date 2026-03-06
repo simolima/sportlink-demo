@@ -31,16 +31,6 @@ interface DbTeamMember {
     } | null
 }
 
-interface DbClubMember {
-    user_id: string
-    club_role: string
-    profiles: {
-        first_name: string | null
-        last_name: string | null
-        avatar_url: string | null
-    } | null
-}
-
 interface Props {
     clubId: string
     userId: string
@@ -77,7 +67,9 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
         const teamIds = fetchedTeams.map((t) => t.id)
 
         // 2. Membri delle squadre + tesserati del club — in parallelo
-        const [membersResult, clubMembersResult] = await Promise.all([
+        // club_memberships usa API route (supabaseServer) perché la tabella
+        // ha RLS abilitato senza policy SELECT per il browser client.
+        const [membersResult, clubMembersRes] = await Promise.all([
             teamIds.length > 0
                 ? supabase
                     .from('team_members')
@@ -85,32 +77,24 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
                     .in('club_team_id', teamIds)
                     .is('deleted_at', null)
                 : Promise.resolve({ data: [], error: null }),
-            supabase
-                .from('club_memberships')
-                .select('user_id, club_role, profiles(first_name, last_name, avatar_url)')
-                .eq('club_id', clubId)
-                .eq('status', 'active')
-                .is('deleted_at', null),
+            fetch(`/api/club-memberships?clubId=${encodeURIComponent(clubId)}`).then(r => r.json()).catch(() => []),
         ])
 
         if (membersResult.error) {
             console.error('[TeamManagementWidget] team_members query error:', membersResult.error)
         }
-        if (clubMembersResult.error) {
-            console.error('[TeamManagementWidget] club_memberships query error:', clubMembersResult.error)
-        }
 
         const fetchedTeamMembers = (membersResult.data as unknown as DbTeamMember[]) ?? []
-        const clubMembersRaw = (clubMembersResult.data as unknown as DbClubMember[]) ?? []
+        const clubMembersRaw: any[] = Array.isArray(clubMembersRes) ? clubMembersRes : []
 
         const mappedClubMembers: AvailableClubMember[] = clubMembersRaw
-            .filter((cm) => cm.profiles)
-            .map((cm) => ({
-                profileId: cm.user_id,
-                firstName: cm.profiles?.first_name ?? '',
-                lastName: cm.profiles?.last_name ?? '',
-                avatarUrl: cm.profiles?.avatar_url ?? null,
-                clubRole: cm.club_role,
+            .filter((cm: any) => cm.user)
+            .map((cm: any) => ({
+                profileId: cm.userId,
+                firstName: cm.user?.firstName ?? '',
+                lastName: cm.user?.lastName ?? '',
+                avatarUrl: cm.user?.avatarUrl ?? null,
+                clubRole: cm.role,
             }))
 
         setTeams(fetchedTeams)

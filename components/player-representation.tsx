@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Shield, Check, X, Ban, UserCircle } from 'lucide-react'
 import { useToast } from '@/lib/toast-context'
-import { getAvatarColorClass } from '@/components/avatar'
 import Link from 'next/link'
 
 interface Affiliation {
@@ -169,7 +168,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                         ) : (
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${acceptedAffiliations[0].agent?.firstName} ${acceptedAffiliations[0].agent?.lastName}`)}`}>
+                            <div className="w-12 h-12 rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold">
                                 {acceptedAffiliations[0].agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                         )}
@@ -228,7 +227,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`)}`}>
+                                                <div className="w-10 h-10 rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold">
                                                     {affiliation.agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                                                 </div>
                                             )}
@@ -297,7 +296,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                 className="w-12 h-12 rounded-full object-cover"
                                             />
                                         ) : (
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`)}`}>
+                                            <div className="w-12 h-12 rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold">
                                                 {affiliation.agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                                             </div>
                                         )}

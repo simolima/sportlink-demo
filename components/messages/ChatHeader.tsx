@@ -2,7 +2,6 @@
 
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 import Link from 'next/link'
-import { getAvatarColorClass } from '@/components/avatar'
 
 interface Props {
     peerId: string
@@ -55,7 +54,7 @@ export default function ChatHeader({
                             className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100"
                         />
                     ) : (
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-lg ${getAvatarColorClass(displayName)}`}>
+                        <div className="w-10 h-10 rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold text-lg">
                             {initial}
                         </div>
                     )}

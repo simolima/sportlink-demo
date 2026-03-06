@@ -9,7 +9,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase-server'
+import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
 export async function OPTIONS() {
@@ -59,6 +59,12 @@ export async function GET(req: Request) {
 // POST body: { followerId, followingId }
 export async function POST(req: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await req.json()
         const followerId = body.followerId?.toString().trim()
         const followingId = body.followingId?.toString().trim()
@@ -68,6 +74,11 @@ export async function POST(req: Request) {
         }
         if (followerId === followingId) {
             return withCors(NextResponse.json({ error: 'cannot_follow_self' }, { status: 400 }))
+        }
+
+        // ✅ Verify followerId matches authenticated user
+        if (followerId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_follower_mismatch' }, { status: 403 }))
         }
 
         // Check if already following
@@ -140,12 +151,23 @@ export async function POST(req: Request) {
 // DELETE body: { followerId, followingId }
 export async function DELETE(req: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await req.json()
         const followerId = body.followerId?.toString().trim()
         const followingId = body.followingId?.toString().trim()
 
         if (!followerId || !followingId) {
             return withCors(NextResponse.json({ error: 'followerId_and_followingId_required' }, { status: 400 }))
+        }
+
+        // ✅ Verify followerId matches authenticated user
+        if (followerId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_follower_mismatch' }, { status: 403 }))
         }
 
         // Hard delete (follows PK is composite, re-follow is upsert above)

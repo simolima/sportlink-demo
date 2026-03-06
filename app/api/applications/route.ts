@@ -8,7 +8,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase-server'
+import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
 export async function OPTIONS() {
@@ -120,11 +120,22 @@ export async function GET(request: Request) {
 // POST /api/applications — Create new application
 export async function POST(request: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(request)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await request.json()
         const { opportunityId, applicantId, agentId, message } = body
 
         if (!opportunityId || !applicantId) {
             return withCors(NextResponse.json({ error: 'opportunityId and applicantId required' }, { status: 400 }))
+        }
+
+        // ✅ Verify applicantId matches authenticated user (users apply on their own behalf)
+        if (applicantId !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_applicant_mismatch' }, { status: 403 }))
         }
 
         // Check if already applied

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
-import { createServerClient, supabaseServer } from '@/lib/supabase-server'
+import { createServerClient, supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 
 export const runtime = 'nodejs'
 
@@ -226,6 +226,12 @@ export async function POST(req: Request) {
 // PATCH /api/users - Update existing profile
 export async function PATCH(req: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const env = ensureSupabaseEnv()
         if (!env.ok) {
             return withCors(NextResponse.json({
@@ -242,6 +248,11 @@ export async function PATCH(req: Request) {
 
         if (!id) {
             return withCors(NextResponse.json({ error: 'id_required' }, { status: 400 }))
+        }
+
+        // ✅ Verify id matches authenticated user (users can only update themselves)
+        if (id !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
         }
 
         // Use service role client to bypass RLS

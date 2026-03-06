@@ -8,7 +8,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase-server'
+import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
 export async function OPTIONS() {
@@ -121,6 +121,12 @@ export async function GET(request: Request) {
 // POST /api/opportunities — Create new
 export async function POST(request: Request) {
     try {
+        // ✅ Verify authenticated user from JWT token
+        const authenticatedUserId = await getUserIdFromAuthToken(request)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await request.json()
 
         const required = ['clubId', 'title', 'description', 'expiryDate', 'createdBy']
@@ -128,6 +134,11 @@ export async function POST(request: Request) {
             if (!body[field]) {
                 return withCors(NextResponse.json({ error: `${field} is required` }, { status: 400 }))
             }
+        }
+
+        // ✅ Verify createdBy matches authenticated user
+        if (body.createdBy !== authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'forbidden_creator_mismatch' }, { status: 403 }))
         }
 
         const { data, error } = await supabaseServer

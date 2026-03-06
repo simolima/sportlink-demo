@@ -16,17 +16,18 @@ const sizeClasses = {
     xl: 'w-20 h-20 text-2xl'
 }
 
+/** Colore unico per tutti gli avatar senza immagine — blu Sprinta */
+export const AVATAR_FALLBACK_COLOR = 'bg-[#2341F0]'
+
+/** Manteniamo l'export per compatibilità con i file che già la importano */
+export function getAvatarColorClass(_text?: string): string {
+    return AVATAR_FALLBACK_COLOR
+}
+
 /**
  * Avatar Component
- * 
- * Displays user avatar with automatic fallback to initials
- * Supports multiple sizes and custom styling
- * 
- * @param src - Avatar image URL (from local /public or Supabase Storage)
- * @param alt - Alt text for image
- * @param size - Avatar size (xs, sm, md, lg, xl)
- * @param className - Additional CSS classes
- * @param fallbackText - Text to show when no image (e.g., user initials)
+ *
+ * Fallback uniforme: bg-[#2341F0] (blu Sprinta) per tutti gli utenti.
  */
 export default function Avatar({
     src,
@@ -36,44 +37,43 @@ export default function Avatar({
     fallbackText = '?'
 }: AvatarProps) {
     const sizeClass = sizeClasses[size]
+    const initials = fallbackText.slice(0, 2).toUpperCase()
 
-    // Debug: log to see what src we're receiving
-    if (process.env.NODE_ENV === 'development') {
-        console.log('Avatar render:', { src, alt, fallbackText })
-    }
-
-    // Show fallback if no src
     if (!src) {
         return (
             <div className={clsx(
-                'rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold shrink-0',
+                'rounded-full flex items-center justify-center text-white font-semibold shrink-0',
+                AVATAR_FALLBACK_COLOR,
                 className || sizeClass
             )}>
-                {fallbackText.slice(0, 2).toUpperCase()}
+                {initials}
             </div>
         )
     }
 
-    // Only add onError if running in browser (Client Component)
     const imgProps: any = {
         src,
         alt,
-        className: "w-full h-full object-cover"
+        className: 'w-full h-full object-cover'
     }
     if (typeof window !== 'undefined') {
         imgProps.onError = (e: any) => {
-            console.error('Avatar image failed to load:', src)
             const target = e.target as HTMLImageElement
             target.style.display = 'none'
             if (target.parentElement) {
-                target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-sprinta-blue text-white font-semibold">${fallbackText.slice(0, 2).toUpperCase()}</div>`
+                target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white font-semibold">${initials}</div>`
             }
         }
     }
 
     return (
-        <div className={clsx('relative rounded-full overflow-hidden shrink-0 bg-gray-200', className || sizeClass)}>
+        <div className={clsx(
+            'relative rounded-full overflow-hidden shrink-0',
+            AVATAR_FALLBACK_COLOR,
+            className || sizeClass
+        )}>
             <img {...imgProps} />
         </div>
     )
 }
+

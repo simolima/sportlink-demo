@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Shield, Check, X, Ban, UserCircle } from 'lucide-react'
 import { useToast } from '@/lib/toast-context'
+import { getAvatarColorClass } from '@/components/avatar'
 import Link from 'next/link'
 
 interface Affiliation {
@@ -168,8 +169,8 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2341F0] to-blue-600 flex items-center justify-center">
-                                <UserCircle size={24} className="text-white" />
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${acceptedAffiliations[0].agent?.firstName} ${acceptedAffiliations[0].agent?.lastName}`)}`}>
+                                {acceptedAffiliations[0].agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                         )}
                     </Link>
@@ -227,8 +228,8 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2341F0] to-blue-600 flex items-center justify-center">
-                                                    <UserCircle size={20} className="text-white" />
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`)}`}>
+                                                    {affiliation.agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                                                 </div>
                                             )}
                                         </Link>
@@ -296,8 +297,8 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                                                 className="w-12 h-12 rounded-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2341F0] to-blue-600 flex items-center justify-center">
-                                                <UserCircle size={24} className="text-white" />
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColorClass(`${affiliation.agent?.firstName} ${affiliation.agent?.lastName}`)}`}>
+                                                {affiliation.agent?.firstName?.charAt(0)?.toUpperCase() || '?'}
                                             </div>
                                         )}
                                     </Link>

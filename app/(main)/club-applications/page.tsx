@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MegaphoneIcon, InboxIcon, BuildingOfficeIcon, CalendarIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useToast } from '@/lib/toast-context'
+import { getAvatarColorClass } from '@/components/avatar'
 
 interface Opportunity {
     id: string | number
@@ -320,7 +321,7 @@ export default function ClubApplicationsPage() {
                                                                         className="w-10 h-10 rounded-full object-cover"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-sm font-bold">
+                                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAvatarColorClass(`${app.player?.firstName} ${app.player?.lastName}`)}`}>
                                                                         {app.player?.firstName?.charAt(0) || '?'}{app.player?.lastName?.charAt(0) || ''}
                                                                     </div>
                                                                 )}

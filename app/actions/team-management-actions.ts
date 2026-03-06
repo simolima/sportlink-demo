@@ -208,6 +208,40 @@ export async function assignMemberToTeam(
             }
         }
 
+        // Sincronizza club_memberships.club_role in base al ruolo nel team:
+        // ruoli staff (head_coach, assistant_coach, …) → 'Staff', player → 'Player'
+        const STAFF_TEAM_ROLES: readonly string[] = [
+            'head_coach',
+            'assistant_coach',
+            'athletic_trainer',
+            'physio',
+            'nutritionist',
+            'team_manager',
+            'goalkeeper_coach',
+        ]
+        const newClubRole = STAFF_TEAM_ROLES.includes(role) ? 'Staff' : 'Player'
+
+        // Aggiorna solo se il club_role attuale è diverso (e non è Admin)
+        const { data: currentMembership } = await supabaseServer
+            .from('club_memberships')
+            .select('id, club_role')
+            .eq('club_id', team.club_id)
+            .eq('user_id', profileId)
+            .eq('status', 'active')
+            .is('deleted_at', null)
+            .maybeSingle()
+
+        if (
+            currentMembership &&
+            currentMembership.club_role !== 'Admin' &&
+            currentMembership.club_role !== newClubRole
+        ) {
+            await supabaseServer
+                .from('club_memberships')
+                .update({ club_role: newClubRole })
+                .eq('id', currentMembership.id)
+        }
+
         revalidatePath('/dashboard')
         revalidatePath(`/clubs/${team.club_id}`)
 

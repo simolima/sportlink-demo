@@ -73,7 +73,7 @@ export default function ProfileDropdown() {
                 aria-expanded={open}
             >
                 {isPending ? (
-                    <ArrowPathIcon className="w-5 h-5 animate-spin text-green-600" />
+                    <ArrowPathIcon className="w-5 h-5 animate-spin text-brand-600" />
                 ) : user.avatarUrl ? (
                     <Avatar src={user.avatarUrl} alt={user.firstName} size="xs" />
                 ) : (
@@ -93,7 +93,7 @@ export default function ProfileDropdown() {
                         <p className="text-sm font-semibold text-gray-900 truncate">
                             {user.firstName} {user.lastName}
                         </p>
-                        <p className="text-xs text-green-600 font-medium">{currentRoleLabel}</p>
+                        <p className="text-xs text-brand-600 font-medium">{currentRoleLabel}</p>
                     </div>
 
                     {/* Visualizza profilo */}
@@ -132,9 +132,9 @@ export default function ProfileDropdown() {
                     <Link
                         href="/profile/add-role"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50 transition-colors font-medium"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-700 hover:bg-brand-50 transition-colors font-medium"
                     >
-                        <PlusCircleIcon className="w-4 h-4 text-green-600" />
+                        <PlusCircleIcon className="w-4 h-4 text-brand-600" />
                         Aggiungi nuovo profilo
                     </Link>
                 </div>

@@ -91,7 +91,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
             <button
                 type="button"
                 onClick={openModal}
-                className="btn btn-sm gap-1.5 bg-green-600 text-white hover:bg-green-700 border-0"
+                className="btn btn-sm gap-1.5 bg-brand-600 text-white hover:bg-brand-700 border-0"
             >
                 <PlusIcon className="h-4 w-4" />
                 Nuovo evento
@@ -129,8 +129,8 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                                         key={type}
                                         className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 py-2.5 text-sm font-medium transition-colors
                                             ${eventType === type
-                                                ? 'border-green-500 bg-green-50 text-green-700'
-                                                : 'border-base-300 bg-white text-gray-600 hover:border-green-300'
+                                                ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                                : 'border-base-300 bg-white text-gray-600 hover:border-brand-300'
                                             }`}
                                     >
                                         <input
@@ -157,7 +157,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                             <input
                                 type="text"
                                 placeholder={eventType === 'match' ? 'Es. Semifinale Coppa Italia' : 'Es. Tattica difensiva'}
-                                className={`input input-bordered w-full focus:border-green-500 focus:outline-none text-sm
+                                className={`input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm
                                     ${errors.title ? 'input-error' : ''}`}
                                 {...register('title')}
                             />
@@ -174,7 +174,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                             <input
                                 type="datetime-local"
                                 min={minDateTime}
-                                className={`input input-bordered w-full focus:border-green-500 focus:outline-none text-sm
+                                className={`input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm
                                     ${errors.dateTime ? 'input-error' : ''}`}
                                 {...register('dateTime')}
                             />
@@ -192,7 +192,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                             <input
                                 type="text"
                                 placeholder="Es. Campo Centrale, Via Roma 1"
-                                className="input input-bordered w-full focus:border-green-500 focus:outline-none text-sm"
+                                className="input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm"
                                 {...register('location')}
                             />
                         </div>
@@ -212,7 +212,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                                     <input
                                         type="text"
                                         placeholder="Nome squadra avversaria"
-                                        className="input input-bordered bg-white w-full focus:border-green-500 focus:outline-none text-sm"
+                                        className="input input-bordered bg-white w-full focus:border-brand-500 focus:outline-none text-sm"
                                         {...register('opponent')}
                                     />
                                 </div>
@@ -233,8 +233,8 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                                                     key={label}
                                                     className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 py-2 text-sm font-medium transition-colors
                                                         ${isHome === value
-                                                            ? 'border-green-500 bg-green-50 text-green-700'
-                                                            : 'border-base-300 bg-white text-gray-600 hover:border-green-300'
+                                                            ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                                            : 'border-base-300 bg-white text-gray-600 hover:border-brand-300'
                                                         }`}
                                                 >
                                                     <input
@@ -263,7 +263,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                             <textarea
                                 rows={3}
                                 placeholder="Indicazioni tattiche, materiale necessario, ecc."
-                                className="textarea textarea-bordered w-full focus:border-green-500 focus:outline-none text-sm resize-none"
+                                className="textarea textarea-bordered w-full focus:border-brand-500 focus:outline-none text-sm resize-none"
                                 {...register('description')}
                             />
                             {errors.description && (
@@ -291,7 +291,7 @@ function ModalInner({ teamId, activeRole }: CreateEventModalProps) {
                             <button
                                 type="submit"
                                 disabled={isPending}
-                                className="btn flex-1 bg-green-600 text-white hover:bg-green-700 border-0 gap-2"
+                                className="btn flex-1 bg-brand-600 text-white hover:bg-brand-700 border-0 gap-2"
                             >
                                 {isPending && (
                                     <ArrowPathIcon className="h-4 w-4 animate-spin" />

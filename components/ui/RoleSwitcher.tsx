@@ -55,14 +55,14 @@ export default function RoleSwitcher({ activeRole, availableRoles }: RoleSwitche
                 tabIndex={0}
                 role="button"
                 disabled={isPending}
-                className="btn btn-ghost btn-sm gap-2 border border-base-300 hover:border-green-500 hover:bg-green-50 transition-colors"
+                className="btn btn-ghost btn-sm gap-2 border border-base-300 hover:border-brand-500 hover:bg-brand-50 transition-colors"
                 aria-label="Cambia ruolo attivo"
                 aria-haspopup="true"
             >
                 {isPending ? (
-                    <ArrowPathIcon className="h-4 w-4 animate-spin text-green-600" />
+                    <ArrowPathIcon className="h-4 w-4 animate-spin text-brand-600" />
                 ) : (
-                    <ActiveIcon className="h-4 w-4 text-green-600" />
+                    <ActiveIcon className="h-4 w-4 text-brand-600" />
                 )}
                 <span className="text-sm font-medium text-gray-700">{activeLabel}</span>
                 <ChevronDownIcon className="h-3 w-3 text-gray-400" />
@@ -84,14 +84,14 @@ export default function RoleSwitcher({ activeRole, availableRoles }: RoleSwitche
                                 disabled={isPending}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors w-full text-left
                                     ${isActive
-                                        ? 'bg-green-50 font-semibold text-green-700'
+                                        ? 'bg-brand-50 font-semibold text-brand-700'
                                         : 'text-gray-700 hover:bg-gray-50'
                                     }`}
                             >
-                                <Icon className={`h-4 w-4 ${isActive ? 'text-green-600' : 'text-gray-400'}`} />
+                                <Icon className={`h-4 w-4 ${isActive ? 'text-brand-600' : 'text-gray-400'}`} />
                                 {ROLE_TRANSLATIONS[roleId] ?? roleId}
                                 {isActive && (
-                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-500" />
                                 )}
                             </button>
                         </li>

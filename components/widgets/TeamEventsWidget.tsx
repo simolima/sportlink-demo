@@ -162,7 +162,7 @@ async function fetchUpcomingTeamEvents(
 
 function EventTypeLabel({ type }: { type: 'training' | 'match' }) {
     return type === 'match' ? (
-        <span className="badge badge-sm bg-green-100 text-green-700 border-0">Partita</span>
+        <span className="badge badge-sm bg-brand-100 text-brand-700 border-0">Partita</span>
     ) : (
         <span className="badge badge-sm bg-gray-100 text-gray-600 border-0">Allenamento</span>
     )
@@ -180,7 +180,7 @@ export default async function TeamEventsWidget({ userId, activeRole }: Props) {
             <div className="card-body p-5">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="card-title text-base font-semibold text-gray-800 gap-2">
-                        <CalendarDaysIcon className="h-5 w-5 text-green-600" />
+                        <CalendarDaysIcon className="h-5 w-5 text-brand-600" />
                         Prossimi Allenamenti &amp; Partite
                     </h2>
                     {/* Il modal è un Client Component: appare solo per i ruoli con permesso */}
@@ -205,7 +205,7 @@ export default async function TeamEventsWidget({ userId, activeRole }: Props) {
                                     className="flex items-start gap-3 rounded-lg border border-base-100 bg-gray-50 px-3 py-2.5"
                                 >
                                     <div className="flex-shrink-0 text-center min-w-[2.5rem]">
-                                        <p className="text-xs font-bold uppercase text-green-600">
+                                        <p className="text-xs font-bold uppercase text-brand-600">
                                             {date.toLocaleDateString('it-IT', { weekday: 'short' })}
                                         </p>
                                         <p className="text-lg font-bold leading-none text-gray-800">

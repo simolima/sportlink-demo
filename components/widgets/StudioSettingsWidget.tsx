@@ -68,8 +68,8 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
         return (
             <div className="card bg-white border border-base-200 shadow-sm">
                 <div className="card-body items-center py-10 text-center gap-3">
-                    <div className="rounded-full bg-green-50 p-4">
-                        <BuildingStorefrontIcon className="h-8 w-8 text-green-500" />
+                    <div className="rounded-full bg-brand-50 p-4">
+                        <BuildingStorefrontIcon className="h-8 w-8 text-brand-500" />
                     </div>
                     <div>
                         <h2 className="font-semibold text-gray-800">Nessuno studio configurato</h2>
@@ -91,7 +91,7 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4 gap-2">
                     <div className="flex items-center gap-2">
-                        <BuildingStorefrontIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+                        <BuildingStorefrontIcon className="h-5 w-5 text-brand-600 flex-shrink-0" />
                         <h2 className="card-title text-base font-semibold text-gray-800">
                             {studio.name}
                         </h2>
@@ -131,7 +131,7 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
                             {studio.services_offered.map((s) => (
                                 <span
                                     key={s}
-                                    className="badge badge-sm bg-green-50 text-green-700 border-0"
+                                    className="badge badge-sm bg-brand-50 text-brand-700 border-0"
                                 >
                                     {s}
                                 </span>

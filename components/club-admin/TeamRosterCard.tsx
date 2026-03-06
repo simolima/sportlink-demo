@@ -212,7 +212,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                     setErrorMsg(null)
                                 }}
                                 disabled={availableMembers.length === 0}
-                                className="btn btn-sm btn-outline border-green-600 text-green-600 hover:bg-green-50 hover:border-green-600 w-full gap-1.5 disabled:opacity-50"
+                                className="btn btn-sm btn-outline border-brand-600 text-brand-600 hover:bg-brand-50 hover:border-brand-600 w-full gap-1.5 disabled:opacity-50"
                             >
                                 <PlusIcon className="h-4 w-4" />
                                 {availableMembers.length === 0
@@ -227,7 +227,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                     <select
                                         value={selectedProfileId}
                                         onChange={(e) => setSelectedProfileId(e.target.value)}
-                                        className="select select-bordered select-sm flex-1 focus:border-green-500 focus:outline-none text-sm"
+                                        className="select select-bordered select-sm flex-1 focus:border-brand-500 focus:outline-none text-sm"
                                         aria-label="Seleziona membro"
                                     >
                                         <option value="">-- Seleziona membro --</option>
@@ -244,7 +244,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                         onChange={(e) =>
                                             setSelectedRole(e.target.value as TeamMemberRole)
                                         }
-                                        className="select select-bordered select-sm focus:border-green-500 focus:outline-none text-sm"
+                                        className="select select-bordered select-sm focus:border-brand-500 focus:outline-none text-sm"
                                         aria-label="Ruolo in squadra"
                                     >
                                         {(
@@ -278,7 +278,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                         type="button"
                                         onClick={handleAdd}
                                         disabled={isPendingAdd || !selectedProfileId}
-                                        className="btn btn-sm bg-green-600 text-white hover:bg-green-700 border-0 flex-1 gap-1.5"
+                                        className="btn btn-sm bg-brand-600 text-white hover:bg-brand-700 border-0 flex-1 gap-1.5"
                                     >
                                         {isPendingAdd && (
                                             <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
@@ -325,7 +325,7 @@ function MemberRow({
                 </div>
             ) : (
                 <div className="avatar placeholder flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                         <span className="text-white text-[10px] font-bold">{initials}</span>
                     </div>
                 </div>

@@ -218,7 +218,7 @@ export default function NotificationSettingsPage() {
                 </button>
 
                 {saved && (
-                    <span className="text-green-600 font-medium animate-in fade-in duration-300">
+                    <span className="text-brand-600 font-medium animate-in fade-in duration-300">
                         ✓ Preferenze salvate
                     </span>
                 )}

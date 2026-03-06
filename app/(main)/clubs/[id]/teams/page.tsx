@@ -114,8 +114,8 @@ export default function ClubTeamsPage() {
 
                 {/* ── Header ── */}
                 <div className="mb-6 flex items-center gap-3">
-                    <div className="rounded-full bg-green-100 p-2">
-                        <UserGroupIcon className="h-6 w-6 text-green-600" />
+                    <div className="rounded-full bg-brand-100 p-2">
+                        <UserGroupIcon className="h-6 w-6 text-brand-600" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Gestione Squadre</h1>

@@ -36,7 +36,7 @@ Il progetto Sprinta utilizza un **tema scuro moderno** con palette navy e blu pr
 <div className="bg-base-200 text-secondary">Contenuto</div>
 
 // ❌ SBAGLIATO - Non usare colori hardcoded
-<button className="bg-green-600 text-white">Accedi</button>
+<button className="bg-blue-600 text-white">Accedi</button>
 <div className="bg-white text-gray-900">Contenuto</div>
 ```
 

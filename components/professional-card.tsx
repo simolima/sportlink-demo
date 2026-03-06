@@ -42,11 +42,11 @@ export default function ProfessionalCard({ professional, currentUserId }: Profes
                     />
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-green-700 transition-colors">
+                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-brand-700 transition-colors">
                                 {fullName}
                             </h3>
                             {isVerified && (
-                                <CheckBadgeIcon className="w-4.5 h-4.5 text-green-500 flex-shrink-0" />
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-brand-500 flex-shrink-0" />
                             )}
                         </div>
                         <p className="text-sm text-gray-500 mt-0.5">{roleLabel}</p>
@@ -68,7 +68,7 @@ export default function ProfessionalCard({ professional, currentUserId }: Profes
                 {/* Tags row */}
                 <div className="flex flex-wrap items-center gap-2 mt-auto">
                     {mainSport && (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100">
                             {mainSport}
                         </span>
                     )}
@@ -78,7 +78,7 @@ export default function ProfessionalCard({ professional, currentUserId }: Profes
                         </span>
                     ))}
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${professional.availability === 'Disponibile'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        ? 'bg-brand-50 text-brand-700 border border-brand-100'
                         : professional.availability === 'Valuta proposte'
                             ? 'bg-amber-50 text-amber-700 border border-amber-100'
                             : 'bg-gray-50 text-gray-500 border border-gray-200'

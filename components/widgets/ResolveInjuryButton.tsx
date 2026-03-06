@@ -23,7 +23,7 @@ export default function ResolveInjuryButton({ injuryId }: Props) {
             type="button"
             onClick={handleResolve}
             disabled={isPending}
-            className="btn btn-xs btn-outline border-green-500 text-green-600 hover:bg-green-50 hover:border-green-600 gap-1"
+            className="btn btn-xs btn-outline border-brand-500 text-brand-600 hover:bg-brand-50 hover:border-brand-600 gap-1"
             title="Segna come Guarito"
         >
             {isPending ? (

@@ -139,7 +139,7 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
             {/* ── Intestazione widget ── */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <UserGroupIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <UserGroupIcon className="h-5 w-5 text-brand-600 flex-shrink-0" />
                     <h2 className="font-semibold text-gray-800 text-base">Gestione Squadre</h2>
                     {teams.length > 0 && (
                         <span className="badge badge-ghost badge-sm text-gray-500">
@@ -154,8 +154,8 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
             {teams.length === 0 && (
                 <div className="card bg-white border border-base-200">
                     <div className="card-body items-center py-12 text-center gap-3">
-                        <div className="rounded-full bg-green-50 p-4">
-                            <UserGroupIcon className="h-8 w-8 text-green-500" />
+                        <div className="rounded-full bg-brand-50 p-4">
+                            <UserGroupIcon className="h-8 w-8 text-brand-500" />
                         </div>
                         <div>
                             <h3 className="font-semibold text-gray-800">Nessuna squadra</h3>

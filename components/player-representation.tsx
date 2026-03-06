@@ -284,7 +284,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
                     {acceptedAffiliations.map((affiliation) => (
                         <div
                             key={affiliation.id}
-                            className="p-4 bg-green-50 border border-green-200 rounded-lg"
+                            className="p-4 bg-brand-50 border border-brand-200 rounded-lg"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">

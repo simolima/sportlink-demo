@@ -425,7 +425,7 @@ export default function ClubDetailPage() {
                             {isAdmin && (
                                 <button
                                     onClick={() => router.push(`/clubs/${clubId}/teams`)}
-                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                                    className="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors flex items-center gap-2"
                                 >
                                     <UserGroupIcon className="h-5 w-5" />
                                     Squadre
@@ -526,7 +526,7 @@ export default function ClubDetailPage() {
                             {(club as any).address && (
                                 <div className="bg-white rounded-lg shadow-sm p-6">
                                     <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <MapPinIcon className="h-5 w-5 text-green-600" />
+                                        <MapPinIcon className="h-5 w-5 text-brand-600" />
                                         Dove siamo
                                     </h2>
                                     <p className="text-sm text-gray-600 mb-3">{(club as any).address}</p>
@@ -566,7 +566,7 @@ export default function ClubDetailPage() {
                                         }
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                        className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium transition-colors"
                                     >
                                         <MapPinIcon className="h-4 w-4" />
                                         Ottieni indicazioni

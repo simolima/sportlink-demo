@@ -95,7 +95,7 @@ export default function AthletesSearchPage() {
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <SparklesIcon className="w-8 h-8 text-green-600" />
+                        <SparklesIcon className="w-8 h-8 text-brand-600" />
                         <h1 className="text-3xl font-extrabold text-gray-900">
                             Trova Atleti
                         </h1>
@@ -151,7 +151,7 @@ export default function AthletesSearchPage() {
                         {loading && athletes.length === 0 && (
                             <div className="flex items-center justify-center h-64">
                                 <div className="animate-spin">
-                                    <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full" />
+                                    <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full" />
                                 </div>
                             </div>
                         )}
@@ -187,7 +187,7 @@ export default function AthletesSearchPage() {
                                     <button
                                         onClick={() => fetchAthletes(Math.max(0, offset - limit))}
                                         disabled={offset === 0 || loading}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Precedenti
                                     </button>
@@ -199,7 +199,7 @@ export default function AthletesSearchPage() {
                                     <button
                                         onClick={() => fetchAthletes(offset + limit)}
                                         disabled={!hasMore || loading}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Successivi
                                     </button>

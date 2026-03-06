@@ -75,7 +75,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
             <button
                 type="button"
                 onClick={openModal}
-                className="btn btn-sm gap-1.5 bg-green-600 text-white hover:bg-green-700 border-0"
+                className="btn btn-sm gap-1.5 bg-brand-600 text-white hover:bg-brand-700 border-0"
             >
                 <PlusIcon className="h-4 w-4" />
                 {isEditing ? 'Modifica Studio' : 'Crea il tuo Studio'}
@@ -111,7 +111,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                             <input
                                 type="text"
                                 placeholder="Es. Studio Fisio Milano"
-                                className={`input input-bordered w-full focus:border-green-500 focus:outline-none text-sm ${errors.name ? 'input-error' : ''}`}
+                                className={`input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm ${errors.name ? 'input-error' : ''}`}
                                 {...register('name')}
                             />
                             {errors.name && <p className="mt-1 text-xs text-error">{errors.name.message}</p>}
@@ -125,7 +125,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                             <input
                                 type="text"
                                 placeholder="Es. Milano"
-                                className={`input input-bordered w-full focus:border-green-500 focus:outline-none text-sm ${errors.city ? 'input-error' : ''}`}
+                                className={`input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm ${errors.city ? 'input-error' : ''}`}
                                 {...register('city')}
                             />
                             {errors.city && <p className="mt-1 text-xs text-error">{errors.city.message}</p>}
@@ -140,7 +140,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                             <input
                                 type="text"
                                 placeholder="Es. Via Roma 1, 20121"
-                                className="input input-bordered w-full focus:border-green-500 focus:outline-none text-sm"
+                                className="input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm"
                                 {...register('address')}
                             />
                         </div>
@@ -154,7 +154,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                                 <input
                                     type="tel"
                                     placeholder="+39 02 1234567"
-                                    className="input input-bordered w-full focus:border-green-500 focus:outline-none text-sm"
+                                    className="input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm"
                                     {...register('phone')}
                                 />
                             </div>
@@ -165,7 +165,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                                 <input
                                     type="url"
                                     placeholder="https://…"
-                                    className={`input input-bordered w-full focus:border-green-500 focus:outline-none text-sm ${errors.website ? 'input-error' : ''}`}
+                                    className={`input input-bordered w-full focus:border-brand-500 focus:outline-none text-sm ${errors.website ? 'input-error' : ''}`}
                                     {...register('website')}
                                 />
                                 {errors.website && <p className="mt-1 text-xs text-error">{errors.website.message}</p>}
@@ -183,7 +183,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                                         <input
                                             type="text"
                                             placeholder={`Es. ${['Fisioterapia', 'Massoterapia', 'Tecar', 'Osteopatia'][index] ?? 'Servizio'}`}
-                                            className="input input-bordered flex-1 focus:border-green-500 focus:outline-none text-sm"
+                                            className="input input-bordered flex-1 focus:border-brand-500 focus:outline-none text-sm"
                                             {...register(`services_offered.${index}` as const)}
                                         />
                                         {fields.length > 1 && (
@@ -208,7 +208,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                                 <button
                                     type="button"
                                     onClick={() => append('' as any)}
-                                    className="btn btn-ghost btn-xs mt-2 gap-1 text-green-600 hover:text-green-700 w-fit"
+                                    className="btn btn-ghost btn-xs mt-2 gap-1 text-brand-600 hover:text-brand-700 w-fit"
                                 >
                                     <PlusIcon className="h-3.5 w-3.5" />
                                     Aggiungi servizio
@@ -225,7 +225,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                             <textarea
                                 rows={3}
                                 placeholder="Presenta il tuo studio, metodologie, specializzazioni…"
-                                className="textarea textarea-bordered w-full focus:border-green-500 focus:outline-none text-sm resize-none"
+                                className="textarea textarea-bordered w-full focus:border-brand-500 focus:outline-none text-sm resize-none"
                                 {...register('description')}
                             />
                         </div>
@@ -249,7 +249,7 @@ export default function CreateStudioModal({ existing }: CreateStudioModalProps) 
                             <button
                                 type="submit"
                                 disabled={isPending}
-                                className="btn flex-1 bg-green-600 text-white hover:bg-green-700 border-0 gap-2"
+                                className="btn flex-1 bg-brand-600 text-white hover:bg-brand-700 border-0 gap-2"
                             >
                                 {isPending && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
                                 {isPending ? 'Salvataggio…' : isEditing ? 'Salva modifiche' : 'Crea Studio'}

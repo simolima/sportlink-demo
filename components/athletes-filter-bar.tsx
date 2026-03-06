@@ -58,7 +58,7 @@ export default function FilterBar({
         <aside className="bg-white rounded-lg border border-gray-200 p-6 h-fit sticky top-20">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6">
-                <FunnelIcon className="w-5 h-5 text-green-600" />
+                <FunnelIcon className="w-5 h-5 text-brand-600" />
                 <h2 className="font-bold text-lg text-gray-900">Filtra Ricerca</h2>
             </div>
 
@@ -72,7 +72,7 @@ export default function FilterBar({
                     placeholder="Nome, email, ruolo..."
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -87,7 +87,7 @@ export default function FilterBar({
                         onSportChange(e.target.value)
                         onPositionChange('all') // Reset position when sport changes
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutti gli Sport</option>
                     {SUPPORTED_SPORTS.map((sport) => (
@@ -107,7 +107,7 @@ export default function FilterBar({
                     <select
                         value={selectedPosition}
                         onChange={(e) => onPositionChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                     >
                         <option value="all">Tutti i Ruoli</option>
                         {positions.map((pos) => (
@@ -129,7 +129,7 @@ export default function FilterBar({
                     placeholder="Es. Milano"
                     value={selectedCity}
                     onChange={(e) => onCityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -143,7 +143,7 @@ export default function FilterBar({
                     placeholder="Es. Italia"
                     value={selectedCountry}
                     onChange={(e) => onCountryChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -155,7 +155,7 @@ export default function FilterBar({
                 <select
                     value={selectedAvailability}
                     onChange={(e) => onAvailabilityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutte</option>
                     {AVAILABILITY_OPTIONS.map((opt) => (
@@ -174,7 +174,7 @@ export default function FilterBar({
                 <select
                     value={selectedLevel}
                     onChange={(e) => onLevelChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutti i Livelli</option>
                     {LEVEL_OPTIONS.map((opt) => (
@@ -192,7 +192,7 @@ export default function FilterBar({
                         type="checkbox"
                         checked={verified}
                         onChange={(e) => onVerifiedChange(e.target.checked)}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
+                        className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Solo Profili Verificati</span>
                 </label>

@@ -47,7 +47,7 @@ const STATUS_CONFIG: Record<
     Resolved: {
         label: 'Guarito',
         badgeClass: 'badge-success',
-        rowClass: 'border-l-2 border-green-400',
+        rowClass: 'border-l-2 border-brand-400',
     },
 }
 
@@ -119,7 +119,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                 {/* ── Stato attuale ── */}
                 <div
                     className={`rounded-xl p-4 flex items-center gap-4 ${isAvailable
-                            ? 'bg-green-50 border border-green-100'
+                            ? 'bg-brand-50 border border-brand-100'
                             : currentInjury?.status === 'Recovering'
                                 ? 'bg-yellow-50 border border-yellow-100'
                                 : 'bg-red-50 border border-red-100'
@@ -128,14 +128,14 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                     {/* Icona grande */}
                     <div
                         className={`rounded-full p-3 flex-shrink-0 ${isAvailable
-                                ? 'bg-green-100'
+                                ? 'bg-brand-100'
                                 : currentInjury?.status === 'Recovering'
                                     ? 'bg-yellow-100'
                                     : 'bg-red-100'
                             }`}
                     >
                         {isAvailable ? (
-                            <CheckCircleIcon className="h-7 w-7 text-green-600" />
+                            <CheckCircleIcon className="h-7 w-7 text-brand-600" />
                         ) : currentInjury?.status === 'Recovering' ? (
                             <ClockIcon className="h-7 w-7 text-yellow-600" />
                         ) : (
@@ -149,7 +149,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                             Stato Attuale
                         </p>
                         {isAvailable ? (
-                            <p className="text-lg font-bold text-green-700">DISPONIBILE</p>
+                            <p className="text-lg font-bold text-brand-700">DISPONIBILE</p>
                         ) : (
                             <>
                                 <p

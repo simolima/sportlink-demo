@@ -183,7 +183,7 @@ export default function DynamicFilterBar({
         <aside className="bg-white rounded-lg border border-gray-200 p-6 h-fit sticky top-20">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6">
-                <FunnelIcon className="w-5 h-5 text-green-600" />
+                <FunnelIcon className="w-5 h-5 text-brand-600" />
                 <h2 className="font-bold text-lg text-gray-900">Filtra Ricerca</h2>
             </div>
 
@@ -197,7 +197,7 @@ export default function DynamicFilterBar({
                     placeholder="Nome, email, ruolo..."
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -218,7 +218,7 @@ export default function DynamicFilterBar({
                         onHasUEFALicenseChange('all')
                         onHasFIFALicenseChange('all')
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutti i Professionisti</option>
                     {PROFESSIONAL_ROLES.map((role) => (
@@ -240,7 +240,7 @@ export default function DynamicFilterBar({
                         onSportChange(e.target.value)
                         onPositionChange('all')
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutti gli Sport</option>
                     {SUPPORTED_SPORTS.map((sport) => (
@@ -260,7 +260,7 @@ export default function DynamicFilterBar({
                     <select
                         value={selectedPosition}
                         onChange={(e) => onPositionChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                     >
                         <option value="all">Tutti i Ruoli</option>
                         {positions.map((pos) => (
@@ -282,7 +282,7 @@ export default function DynamicFilterBar({
                     placeholder="Es. Milano"
                     value={selectedCity}
                     onChange={(e) => onCityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -296,7 +296,7 @@ export default function DynamicFilterBar({
                     placeholder="Es. Italia"
                     value={selectedCountry}
                     onChange={(e) => onCountryChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 />
             </div>
 
@@ -308,7 +308,7 @@ export default function DynamicFilterBar({
                 <select
                     value={selectedAvailability}
                     onChange={(e) => onAvailabilityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                 >
                     <option value="all">Tutte</option>
                     {AVAILABILITY_OPTIONS.map((opt) => (
@@ -332,7 +332,7 @@ export default function DynamicFilterBar({
                                 onLevelChange(e.target.value)
                                 onDetailedCategoryChange('all')
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                         >
                             <option value="all">Tutte le Categorie</option>
                             {(CATEGORY_OPTIONS_BY_SPORT[selectedSport] || []).map((opt) => (
@@ -352,7 +352,7 @@ export default function DynamicFilterBar({
                             <select
                                 value={selectedDetailedCategory}
                                 onChange={(e) => onDetailedCategoryChange(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                             >
                                 <option value="all">Tutte le opzioni</option>
                                 {(DETAILED_CATEGORIES[selectedSport]?.[selectedLevel] || []).map((opt) => (
@@ -377,7 +377,7 @@ export default function DynamicFilterBar({
                         <select
                             value={selectedSeason}
                             onChange={(e) => onSeasonChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                         >
                             <option value="all">Tutte le stagioni</option>
                             <option value="2025/2026">2025/2026</option>
@@ -401,7 +401,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 5"
                                     value={minGoals ?? ''}
                                     onChange={(e) => onMinGoalsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
 
@@ -415,7 +415,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 3"
                                     value={minCleanSheets ?? ''}
                                     onChange={(e) => onMinCleanSheetsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
                         </>
@@ -435,7 +435,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 10.5"
                                     value={minPoints ?? ''}
                                     onChange={(e) => onMinPointsChange(e.target.value ? parseFloat(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
 
@@ -449,7 +449,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 5"
                                     value={minAssists ?? ''}
                                     onChange={(e) => onMinAssistsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
 
@@ -463,7 +463,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 8"
                                     value={minRebounds ?? ''}
                                     onChange={(e) => onMinReboundsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
                         </>
@@ -482,7 +482,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 15"
                                     value={minAces ?? ''}
                                     onChange={(e) => onMinAcesChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
 
@@ -496,7 +496,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 10"
                                     value={minBlocks ?? ''}
                                     onChange={(e) => onMinBlocksChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
 
@@ -510,7 +510,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 20"
                                     value={minDigs ?? ''}
                                     onChange={(e) => onMinDigsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                                 />
                             </div>
                         </>
@@ -529,7 +529,7 @@ export default function DynamicFilterBar({
                         <select
                             value={uefaLicense}
                             onChange={(e) => onUefaLicenseChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                         >
                             <option value="all">Tutte le Licenze</option>
                             {UEFA_LICENSES.map((license) => (
@@ -550,7 +550,7 @@ export default function DynamicFilterBar({
                             placeholder="Es. Difesa, Attacco..."
                             value={specialization}
                             onChange={(e) => onSpecializationChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
                         />
                     </div>
                 </>
@@ -566,7 +566,7 @@ export default function DynamicFilterBar({
                                 type="checkbox"
                                 checked={hasUEFALicense === 'true'}
                                 onChange={(e) => onHasUEFALicenseChange(e.target.checked ? 'true' : 'all')}
-                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
+                                className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
                             />
                             <span className="text-sm font-medium text-gray-700">Possiede Licenza UEFA</span>
                         </label>
@@ -579,7 +579,7 @@ export default function DynamicFilterBar({
                                 type="checkbox"
                                 checked={hasFIFALicense === 'true'}
                                 onChange={(e) => onHasFIFALicenseChange(e.target.checked ? 'true' : 'all')}
-                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
+                                className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
                             />
                             <span className="text-sm font-medium text-gray-700">Possiede Licenza FIFA</span>
                         </label>
@@ -594,7 +594,7 @@ export default function DynamicFilterBar({
                         type="checkbox"
                         checked={verified}
                         onChange={(e) => onVerifiedChange(e.target.checked)}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
+                        className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Solo Profili Verificati</span>
                 </label>

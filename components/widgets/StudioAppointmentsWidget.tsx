@@ -144,7 +144,7 @@ export default async function StudioAppointmentsWidget({ userId, activeRole }: P
         <div className="card bg-white border border-base-200 shadow-sm">
             <div className="card-body p-5">
                 <div className="flex items-center gap-2 mb-4">
-                    <ClockIcon className="h-5 w-5 text-green-600" />
+                    <ClockIcon className="h-5 w-5 text-brand-600" />
                     <h2 className="card-title text-base font-semibold text-gray-800">{title}</h2>
                 </div>
 
@@ -163,7 +163,7 @@ export default async function StudioAppointmentsWidget({ userId, activeRole }: P
                                     className="flex items-start gap-3 rounded-lg border border-base-100 bg-gray-50 px-3 py-2.5"
                                 >
                                     <div className="flex-shrink-0 text-center min-w-[2.5rem]">
-                                        <p className="text-xs font-bold uppercase text-green-600">
+                                        <p className="text-xs font-bold uppercase text-brand-600">
                                             {start.toLocaleDateString('it-IT', { weekday: 'short' })}
                                         </p>
                                         <p className="text-lg font-bold leading-none text-gray-800">

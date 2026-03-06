@@ -1865,7 +1865,7 @@ export default function EditProfilePage() {
                                         type="checkbox"
                                         checked={form.hasFifaLicense || false}
                                         onChange={(e) => updateField("hasFifaLicense", e.target.checked)}
-                                        className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                        className="w-5 h-5 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
                                     />
                                     <div>
                                         <span className="block text-sm font-semibold text-gray-900">Licenza FIFA</span>
@@ -1884,7 +1884,7 @@ export default function EditProfilePage() {
                                             value={form.fifaLicenseNumber || ""}
                                             onChange={(e) => updateField("fifaLicenseNumber", e.target.value)}
                                             placeholder="Es: 123456789"
-                                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                         />
                                     </div>
                                 )}
@@ -1899,7 +1899,7 @@ export default function EditProfilePage() {
                                         onChange={(e) => updateField("agentNotes", e.target.value)}
                                         rows={3}
                                         placeholder="Es: Specializzazione in trasferimenti internazionali, focus su giovani talenti..."
-                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                     />
                                 </div>
                             </div>
@@ -1917,7 +1917,7 @@ export default function EditProfilePage() {
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -1933,7 +1933,7 @@ export default function EditProfilePage() {
                                                 key={cert}
                                                 type="button"
                                                 onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
-                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                                className="text-left p-2 text-sm border border-brand-300 rounded-lg bg-brand-50 hover:bg-brand-100 transition"
                                             >
                                                 + {cert}
                                             </button>
@@ -2006,7 +2006,7 @@ export default function EditProfilePage() {
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2022,7 +2022,7 @@ export default function EditProfilePage() {
                                                 key={cert}
                                                 type="button"
                                                 onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
-                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                                className="text-left p-2 text-sm border border-brand-300 rounded-lg bg-brand-50 hover:bg-brand-100 transition"
                                             >
                                                 + {cert}
                                             </button>
@@ -2095,7 +2095,7 @@ export default function EditProfilePage() {
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2111,7 +2111,7 @@ export default function EditProfilePage() {
                                                 key={cert}
                                                 type="button"
                                                 onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
-                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                                className="text-left p-2 text-sm border border-brand-300 rounded-lg bg-brand-50 hover:bg-brand-100 transition"
                                             >
                                                 + {cert}
                                             </button>
@@ -2184,7 +2184,7 @@ export default function EditProfilePage() {
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2200,7 +2200,7 @@ export default function EditProfilePage() {
                                                 key={cert}
                                                 type="button"
                                                 onClick={() => setForm(prev => ({ ...prev, certifications: [...(prev.certifications || []), { ...emptyCertification(), name: cert }] }))}
-                                                className="text-left p-2 text-sm border border-green-300 rounded-lg bg-green-50 hover:bg-green-100 transition"
+                                                className="text-left p-2 text-sm border border-brand-300 rounded-lg bg-brand-50 hover:bg-brand-100 transition"
                                             >
                                                 + {cert}
                                             </button>
@@ -2273,7 +2273,7 @@ export default function EditProfilePage() {
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2416,7 +2416,7 @@ export default function EditProfilePage() {
                                             onClick={() => toggleExpAccordion(exp.id)}
                                         >
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className={`flex-shrink-0 w-2 h-2 rounded-full ${exp.isCurrentlyPlaying ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                                <div className={`flex-shrink-0 w-2 h-2 rounded-full ${exp.isCurrentlyPlaying ? 'bg-brand-500' : 'bg-gray-300'}`} />
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-semibold text-gray-900 truncate">
                                                         {exp.team || <span className="text-gray-400 italic">Nuova esperienza</span>}
@@ -2428,7 +2428,7 @@ export default function EditProfilePage() {
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                 {exp.isCurrentlyPlaying && (
-                                                    <span className="hidden sm:inline-flex text-[10px] font-semibold uppercase tracking-wider bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                                    <span className="hidden sm:inline-flex text-[10px] font-semibold uppercase tracking-wider bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full">
                                                         Attuale
                                                     </span>
                                                 )}
@@ -2902,7 +2902,7 @@ export default function EditProfilePage() {
                                                                         type="checkbox"
                                                                         checked={showDatesForExp[exp.id] || false}
                                                                         onChange={() => toggleDatesForExp(exp.id)}
-                                                                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                                        className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
                                                                     />
                                                                     <span className="text-sm text-gray-700">
                                                                         Specifica periodo esatto (opzionale)
@@ -2945,7 +2945,7 @@ export default function EditProfilePage() {
                                                                                         handleExperienceChange(exp.id, "to", "")
                                                                                     }
                                                                                 }}
-                                                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                                                className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
                                                                             />
                                                                             <span className="text-sm text-gray-700">
                                                                                 {isCoach ? "Alleno ancora qui" : "Gioco ancora qui"}

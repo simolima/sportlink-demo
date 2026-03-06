@@ -201,8 +201,8 @@ describe('getNotificationColor', () => {
         expect(getNotificationColor('new_follower')).toBe('bg-blue-100 text-blue-800')
     })
 
-    it('returns green for candidacy_accepted', () => {
-        expect(getNotificationColor('candidacy_accepted')).toBe('bg-green-100 text-green-800')
+    it('returns brand color for candidacy_accepted', () => {
+        expect(getNotificationColor('candidacy_accepted')).toBe('bg-brand-100 text-brand-800')
     })
 
     it('returns red for candidacy_rejected', () => {

@@ -327,7 +327,7 @@ export default function SelfEvaluationDisplay({
                     )}
 
                     {mainSport === 'Calcio' && evaluation.football && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
+                        <div className="space-y-3 pl-4 border-l-4 border-brand-400">
                             <h4 className="font-semibold text-gray-800">Abilità Calcio</h4>
                             {evaluation.football.imposizioneDifensiva !== undefined && (
                                 <AbilityBar label="Imposizione Difensiva" value={evaluation.football.imposizioneDifensiva} />
@@ -342,7 +342,7 @@ export default function SelfEvaluationDisplay({
                     )}
 
                     {mainSport === 'Pallavolo' && evaluation.volleyball && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
+                        <div className="space-y-3 pl-4 border-l-4 border-brand-400">
                             <h4 className="font-semibold text-gray-800">Abilità Pallavolo</h4>
                             {evaluation.volleyball.organizzazioneDifensiva !== undefined && (
                                 <AbilityBar label="Organizzazione Difensiva" value={evaluation.volleyball.organizzazioneDifensiva} />
@@ -357,7 +357,7 @@ export default function SelfEvaluationDisplay({
                     )}
 
                     {mainSport === 'Basket' && evaluation.basketball && (
-                        <div className="space-y-3 pl-4 border-l-4 border-green-400">
+                        <div className="space-y-3 pl-4 border-l-4 border-brand-400">
                             <h4 className="font-semibold text-gray-800">Abilità Basketball</h4>
                             {evaluation.basketball.offensiva !== undefined && (
                                 <AbilityBar label="Offensiva" value={evaluation.basketball.offensiva} />

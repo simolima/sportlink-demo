@@ -59,7 +59,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
             <button
                 type="button"
                 onClick={openModal}
-                className="btn btn-sm gap-1.5 bg-green-600 text-white hover:bg-green-700 border-0"
+                className="btn btn-sm gap-1.5 bg-brand-600 text-white hover:bg-brand-700 border-0"
             >
                 <PlusIcon className="h-4 w-4" />
                 Crea Squadra
@@ -95,7 +95,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                             <input
                                 {...register('name')}
                                 placeholder="es. Prima Squadra, Under 19, Femminile..."
-                                className="input input-bordered w-full focus:border-green-500 focus:outline-none"
+                                className="input input-bordered w-full focus:border-brand-500 focus:outline-none"
                                 autoFocus
                             />
                             {errors.name && (
@@ -112,7 +112,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                             <input
                                 {...register('category')}
                                 placeholder="es. Eccellenza, Serie C, Promozione..."
-                                className="input input-bordered w-full focus:border-green-500 focus:outline-none"
+                                className="input input-bordered w-full focus:border-brand-500 focus:outline-none"
                             />
                         </div>
 
@@ -125,7 +125,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                             <input
                                 {...register('season')}
                                 placeholder="es. 2025/2026"
-                                className="input input-bordered w-full focus:border-green-500 focus:outline-none"
+                                className="input input-bordered w-full focus:border-brand-500 focus:outline-none"
                             />
                         </div>
 
@@ -148,7 +148,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                             <button
                                 type="submit"
                                 disabled={isPending}
-                                className="btn bg-green-600 text-white hover:bg-green-700 border-0 gap-1.5"
+                                className="btn bg-brand-600 text-white hover:bg-brand-700 border-0 gap-1.5"
                             >
                                 {isPending && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
                                 Crea Squadra

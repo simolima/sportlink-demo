@@ -160,30 +160,68 @@ useEffect(() => {
 
 ---
 
-## Tema Colori (Green Theme)
+## Tema Colori — Brand Navy & Blu
+
+Il progetto usa un **tema scuro** con palette navy/blu. I colori principali sono:
+
+- **Navy** `#0A0F32` — background principale
+- **Blu Primario** `#2341F0` — bottoni, link, accenti
+
+### Font: Neulis Sans (Adobe Typekit) + Inter (fallback)
+
+Configurato in `globals.css` (import Typekit) e `tailwind.config.ts` (fontFamily).
+
+### Palette `brand-*` (Tailwind custom)
+
+Definita in `tailwind.config.ts` sotto `theme.extend.colors.brand`:
+
+```
+brand-50:  #eff1fe   — sfondi leggerissimi
+brand-100: #e0e4fd   — sfondi badge, stati attivi
+brand-200: #c7ccfb   — bordi leggeri
+brand-300: #a5acf8   — bordi, hover leggeri
+brand-400: #8186f3   — accent secondari
+brand-500: #5f64ec   — accent medi
+brand-600: #2341f0   — ⭐ PRIMARIO (bottoni, icone, link)
+brand-700: #1c37cf   — hover bottoni primari
+brand-800: #1d2ea8   — testo scuro su badge chiari
+brand-900: #1e2b83   — testo molto scuro
+brand-950: #0a0f32   — ⭐ Navy background
+```
+
+### Classi DaisyUI (tema `sprinta`)
 
 ```tsx
-// Pulsanti primari
-"bg-green-600 hover:bg-green-700 text-white"
+// Bottoni
+"btn btn-primary"                          // bg #2341F0, testo bianco
+"btn btn-ghost"                            // trasparente, testo secondario
 
-// Pulsanti outline
-"border-2 border-green-600 text-green-600 hover:bg-green-50"
+// Sfondo e testo
+"bg-base-100"                              // Navy #0A0F32
+"bg-base-200"                              // Navy dark #11152F
+"bg-base-300"                              // Navy darker #141A3A
+"text-secondary"                           // #A7B0FF (testo principale su scuro)
+"text-primary"                             // #2341F0
 
 // Input focus
-"focus:border-green-500 focus:outline-none"
+"focus:border-brand-500 focus:outline-none"
 
 // Link e accenti
-"text-green-600 hover:text-green-700"
+"text-brand-600 hover:text-brand-700"
 
-// Info box
-"bg-green-50 border-green-100 text-green-900"
+// Info box / badge
+"bg-brand-50 border-brand-100 text-brand-900"
 
 // Gradients (header, badge)
-"bg-gradient-to-br from-green-400 to-green-600"
+"bg-gradient-to-br from-brand-400 to-brand-600"
 
 // Avatar fallback
-"bg-gradient-to-br from-green-500 to-emerald-600"
+"bg-gradient-to-br from-brand-500 to-brand-600"
 ```
+
+### ⚠️ Colori VIETATI
+
+**Non usare MAI** le classi Tailwind `green-*` o `emerald-*` nel progetto. Tutto il verde è stato migrato a `brand-*`. I colori semantici DaisyUI (`success`, `warning`, `error`, `info`) restano invariati.
 
 ---
 
@@ -230,7 +268,7 @@ app/
 
 components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo
-  navbar.tsx  → navigazione (green theme, dinamica in base a auth)
+  navbar.tsx  → navigazione (brand theme navy/blu, dinamica in base a auth)
   avatar.tsx  → componente avatar riutilizzabile
   ui/
     RoleSwitcher.tsx  → ⭐ Client Component: dropdown ruolo attivo (DaisyUI)

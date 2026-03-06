@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
+import { switchActiveRole } from '@/app/actions/role-actions'
 import {
     PROFESSIONAL_ROLES,
     ROLE_TRANSLATIONS,
@@ -82,8 +83,15 @@ export default function AddRolePage() {
                 return
             }
 
+            // Cambia il ruolo attivo al nuovo profilo (cookie + revalidation)
+            await switchActiveRole(selectedRole)
+            // Aggiorna localStorage per compatibilità
+            localStorage.setItem('currentUserRole', selectedRole)
+
             setSuccess(true)
-            setTimeout(() => router.push('/dashboard'), 1500)
+            // Navigazione hard per forzare il remount di tutti i componenti
+            // (il ProfileDropdown deve ri-fetchare i ruoli disponibili)
+            setTimeout(() => { window.location.href = '/dashboard' }, 1500)
         } catch (e: any) {
             setError(e?.message ?? 'Errore imprevisto.')
         } finally {
@@ -116,8 +124,8 @@ export default function AddRolePage() {
 
                 {success ? (
                     <div className="flex flex-col items-center gap-4 py-12">
-                        <CheckCircleIcon className="w-16 h-16 text-green-500" />
-                        <p className="text-lg font-semibold text-green-700">
+                        <CheckCircleIcon className="w-16 h-16 text-brand-500" />
+                        <p className="text-lg font-semibold text-brand-700">
                             Profilo aggiunto con successo!
                         </p>
                         <p className="text-sm text-gray-500">Reindirizzamento alla dashboard...</p>
@@ -140,16 +148,16 @@ export default function AddRolePage() {
                                             onClick={() => setSelectedRole(roleId)}
                                             className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left
                                                 ${isSelected
-                                                    ? 'border-green-500 bg-green-50 shadow-sm'
+                                                    ? 'border-brand-500 bg-brand-50 shadow-sm'
                                                     : 'border-base-200 bg-white hover:border-gray-300'
                                                 }`}
                                         >
-                                            <Icon className={`w-6 h-6 flex-shrink-0 ${isSelected ? 'text-green-600' : 'text-gray-400'}`} />
-                                            <span className={`text-sm font-medium ${isSelected ? 'text-green-700' : 'text-gray-700'}`}>
+                                            <Icon className={`w-6 h-6 flex-shrink-0 ${isSelected ? 'text-brand-600' : 'text-gray-400'}`} />
+                                            <span className={`text-sm font-medium ${isSelected ? 'text-brand-700' : 'text-gray-700'}`}>
                                                 {ROLE_TRANSLATIONS[roleId]}
                                             </span>
                                             {isSelected && (
-                                                <CheckCircleIcon className="w-5 h-5 text-green-500 ml-auto" />
+                                                <CheckCircleIcon className="w-5 h-5 text-brand-500 ml-auto" />
                                             )}
                                         </button>
                                     )
@@ -171,7 +179,7 @@ export default function AddRolePage() {
                             <button
                                 onClick={handleAddRole}
                                 disabled={!selectedRole || saving}
-                                className="btn btn-primary btn-sm bg-green-600 hover:bg-green-700 border-0 text-white disabled:opacity-50"
+                                className="btn btn-primary btn-sm bg-brand-600 hover:bg-brand-700 border-0 text-white disabled:opacity-50"
                             >
                                 {saving ? 'Salvataggio...' : 'Aggiungi profilo'}
                             </button>

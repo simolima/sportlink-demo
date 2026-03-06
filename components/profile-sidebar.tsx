@@ -428,9 +428,9 @@ export default function ProfileSidebar({
         if (status === 'svincolato') {
             // Verde - disponibile
             return {
-                bg: 'bg-green-50',
-                border: 'border-green-200',
-                text: 'text-green-700'
+                bg: 'bg-brand-50',
+                border: 'border-brand-200',
+                text: 'text-brand-700'
             }
         }
         if (status === 'sotto contratto' && endDate) {
@@ -674,7 +674,7 @@ export default function ProfileSidebar({
                                 </div>
                             )}
                             {affiliationStatus === 'active' && (
-                                <div className="w-full px-4 py-3 bg-green-100 text-green-700 rounded-lg font-semibold border border-green-300 text-center">
+                                <div className="w-full px-4 py-3 bg-brand-100 text-brand-700 rounded-lg font-semibold border border-brand-300 text-center">
                                     <div className="flex items-center justify-center gap-2">
                                         <CheckIcon className="w-5 h-5" />
                                         Affiliato

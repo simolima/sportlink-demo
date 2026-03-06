@@ -8,8 +8,9 @@ import ProfileRepresentationWrapper from '@/components/profile-representation-wr
 import SelfEvaluationDisplay from '@/components/self-evaluation-display'
 import SocialLinks from '@/components/social-links'
 import ExperienceCard from '@/components/experience-card'
-import { SparklesIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, XMarkIcon, ChevronRightIcon, BuildingOffice2Icon, MapPinIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase-browser'
+import BookVisitButton from '@/components/booking/BookVisitButton'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
     const router = useRouter()
@@ -23,7 +24,10 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     const [userClub, setUserClub] = useState<string | null>(null)
     const [sports, setSports] = useState<string[]>([])
     const [showCareerModal, setShowCareerModal] = useState(false)
+    const [studioData, setStudioData] = useState<any>(null)
+    const [loggedUserId, setLoggedUserId] = useState<string | null>(null)
     useEffect(() => {
+        setLoggedUserId(localStorage.getItem('currentUserId'))
         const fetchProfile = async () => {
             try {
                 // Fetch user profile
@@ -191,6 +195,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
                 // Fetch club info (TODO: implement club membership query)
                 // For now, leaving as null
+
+                // Fetch studio data (for physio, nutritionist, etc.)
+                const { data: studio } = await supabase
+                    .from('professional_studios')
+                    .select('*')
+                    .eq('owner_id', params.id)
+                    .is('deleted_at', null)
+                    .maybeSingle()
+
+                if (studio) setStudioData(studio)
 
                 setLoading(false)
             } catch (err) {
@@ -480,6 +494,48 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                     professionalRole={user.professionalRole}
                                     sports={sports}
                                 />
+                            </ProfileSection>
+                        )}
+
+                        {/* Lo Studio */}
+                        {studioData && (
+                            <ProfileSection
+                                title="Lo Studio"
+                                subtitle="Sede e servizi"
+                            >
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-2">
+                                        <BuildingOffice2Icon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                                        <p className="text-gray-900 font-semibold">{studioData.name}</p>
+                                    </div>
+
+                                    {studioData.address && (
+                                        <div className="flex items-start gap-2">
+                                            <MapPinIcon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                                            <p className="text-gray-700 text-sm">{studioData.address}</p>
+                                        </div>
+                                    )}
+
+                                    {Array.isArray(studioData.services_offered) && studioData.services_offered.length > 0 && (
+                                        <div>
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Servizi offerti</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {studioData.services_offered.map((service: string, idx: number) => (
+                                                    <span key={idx} className="badge badge-outline badge-sm">{service}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {loggedUserId && loggedUserId !== params.id && (
+                                        <BookVisitButton
+                                            studioId={studioData.id}
+                                            professionalId={params.id}
+                                            services={studioData.services_offered || []}
+                                            clientProfileId={loggedUserId}
+                                        />
+                                    )}
+                                </div>
                             </ProfileSection>
                         )}
 

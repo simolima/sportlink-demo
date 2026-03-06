@@ -20,7 +20,7 @@
 
 - **Tailwind CSS** + **DaisyUI** — sistema di design
 - **TanStack React Query v5** (`@tanstack/react-query`) — attivo nel progetto
-- **react-hook-form** + **zod** — per form e validazione
+- **react-hook-form** + **zod** + **@hookform/resolvers** — per form e validazione (zodResolver disponibile)
 - **framer-motion** — installato come dipendenza di produzione (animazioni)
 
 ## Icone — Sistema Ibrido

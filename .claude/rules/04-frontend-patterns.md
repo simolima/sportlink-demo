@@ -219,18 +219,79 @@ app/
   (auth)/     → login, signup (pagine senza navbar)
   (landing)/  → landing page pubblica
   (main)/     → app principale (richiede auth)
+    dashboard/page.tsx  → ⭐ Dashboard Server Component (Fase 2 SaaS)
   (onboarding)/ → onboarding nuovi utenti
+  actions/
+    role-actions.ts            → ⭐ Server Actions: switchActiveRole(), getActiveRole()
+    team-events-actions.ts     → createTeamEvent()
+    team-management-actions.ts → ⭐ createTeam(), assignMemberToTeam(), removeMemberFromTeam()
+    appointment-actions.ts     → bookAppointment()
+    studio-actions.ts          → createOrUpdateStudio()
 
-components/   → tutti "use client"
+components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo
   navbar.tsx  → navigazione (green theme, dinamica in base a auth)
   avatar.tsx  → componente avatar riutilizzabile
-  ...
+  ui/
+    RoleSwitcher.tsx  → ⭐ Client Component: dropdown ruolo attivo (DaisyUI)
+  widgets/    → ⭐ SERVER Components (async, nessuna direttiva 'use client')
+    TeamEventsWidget.tsx
+    StudioAppointmentsWidget.tsx
+    StudioSettingsWidget.tsx
+    PhysicalStatusWidget.tsx      → ⭐ Stato fisico atleta + cronologia infortuni
+    ReportInjuryModal.tsx         → Client Component: modal segnalazione infortunio
+    ResolveInjuryButton.tsx       → Client Component: bottone "Segna Guarito"
+  club-admin/ → ⭐ Componenti Area Club Admin
+    TeamManagementWidget.tsx  → SERVER Component: gestione roster squadre
+    CreateTeamModal.tsx       → Client Component: modal creazione squadra
+    TeamRosterCard.tsx        → Client Component: card squadra con roster interattivo
+    CreateTeamModal.tsx       → Client Component: modal creazione squadra
+    TeamRosterCard.tsx        → Client Component: card squadra con roster interattivo
 
 lib/
   hooks/
     useAuth.tsx  → ⭐ hook auth principale
   supabase-browser.ts  → client lato browser
-  types.ts     → TypeScript types condivisi
+  types.ts     → TypeScript types condivisi (ProfessionalRole, ROLE_TRANSLATIONS, ecc.)
   countries.ts → dati paesi + flag emoji
 ```
+
+---
+
+## Dashboard SaaS — Pattern (Marzo 2026)
+
+### Context Switcher via Cookie (no Zustand, no Redux)
+Il ruolo attivo dell'utente è salvato in un **cookie HTTP-only** `sprinta_active_role`.
+
+- **Scrittura**: Server Action `switchActiveRole(roleId)` in `app/actions/role-actions.ts` — imposta il cookie e chiama `revalidatePath('/', 'layout')`.
+- **Lettura**: helper `getActiveRole()` importato direttamente nei Server Components — nessun fetching client-side.
+- **UI**: `RoleSwitcher.tsx` usa `useTransition` per chiamare `switchActiveRole` con stato di pending inline.
+
+```typescript
+// ✅ In un Server Component (es. dashboard/page.tsx)
+import { getActiveRole } from '@/app/actions/role-actions'
+const activeRole = await getActiveRole() // legge il cookie server-side
+
+// ✅ In un Client Component che chiama la action
+import { useTransition } from 'react'
+import { switchActiveRole } from '@/app/actions/role-actions'
+const [isPending, startTransition] = useTransition()
+const handleSwitch = (role) => startTransition(async () => await switchActiveRole(role))
+```
+
+### Widget Server Components con Suspense Streaming
+
+I widget in `components/widgets/` sono **Server Components async** (NO 'use client').  
+Vengono wrappati in `<Suspense fallback={<Skeleton />}>` nella pagina madre, che streamma immediatamente il skeleton mentre il fetch DB è in corso.
+
+```tsx
+// ✅ Pattern nella dashboard page (Server Component)
+<Suspense fallback={<WidgetSkeleton />}>
+    <TeamEventsWidget userId={user.id} activeRole={activeRole} />
+</Suspense>
+```
+
+**Regola**: i widget sono selezionati condizionalmente in base all'`activeRole` prima di essere montati — non viene renderizzato un widget se il ruolo non è pertinente:</p>
+- `TEAM_ROLES` (`player`, `coach`, `sporting_director`, `athletic_trainer`) → `TeamEventsWidget`
+- `STUDIO_ROLES` (`physio`, `nutritionist`) → `StudioAppointmentsWidget`
+- `DUAL_ROLES` (`athletic_trainer`, `talent_scout`, `agent`) → entrambi i widget

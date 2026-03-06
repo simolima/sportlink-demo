@@ -424,6 +424,15 @@ export default function ClubDetailPage() {
                         <div className="flex flex-wrap gap-3">
                             {isAdmin && (
                                 <button
+                                    onClick={() => router.push(`/clubs/${clubId}/teams`)}
+                                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                                >
+                                    <UserGroupIcon className="h-5 w-5" />
+                                    Squadre
+                                </button>
+                            )}
+                            {isAdmin && (
+                                <button
                                     onClick={() => router.push(`/clubs/${clubId}/applications`)}
                                     className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
                                 >

@@ -16,6 +16,7 @@ import {
 
 const LogoutButton = dynamic(() => import('./logout-button'), { ssr: false })
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
+const ProfileDropdown = dynamic(() => import('./ui/ProfileDropdown'), { ssr: false })
 
 export default function Navbar() {
     const router = useRouter()
@@ -139,10 +140,7 @@ export default function Navbar() {
                     {isAuthenticated && user ? (
                         <>
                             <NotificationBell userId={Number(user.id)} />
-                            <Link href={`/profile/${user.id}`} className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <UserCircleIcon className="w-5 h-5" />
-                                <span className="mt-1">Profilo</span>
-                            </Link>
+                            <ProfileDropdown />
                             <LogoutButton />
                         </>
                     ) : (

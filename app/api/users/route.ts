@@ -157,6 +157,9 @@ export async function POST(req: Request) {
             // Non blocchiamo se l'update fallisce, l'utente auth è stato creato
         }
 
+        // profile_roles è sincronizzato automaticamente dal trigger
+        // trg_sync_profile_roles su profiles (AFTER INSERT OR UPDATE OF role_id)
+
         // Step 3: Insert sports in profile_sports (if provided)
         console.log('🔍 Step 3: Checking sports data')
         console.log('body.sports:', body.sports)

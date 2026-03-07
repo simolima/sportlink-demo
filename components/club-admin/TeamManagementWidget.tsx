@@ -24,6 +24,7 @@ interface DbTeamMember {
     club_team_id: string
     profile_id: string
     role: TeamMemberRole
+    jersey_number: number | null
     profiles: {
         first_name: string | null
         last_name: string | null
@@ -73,7 +74,7 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
             teamIds.length > 0
                 ? supabase
                     .from('team_members')
-                    .select('id, club_team_id, profile_id, role, profiles(first_name, last_name, avatar_url)')
+                    .select('id, club_team_id, profile_id, role, jersey_number, profiles(first_name, last_name, avatar_url)')
                     .in('club_team_id', teamIds)
                     .is('deleted_at', null)
                 : Promise.resolve({ data: [], error: null }),
@@ -189,6 +190,7 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
                                 lastName: m.profiles?.last_name ?? '',
                                 avatarUrl: m.profiles?.avatar_url ?? null,
                                 role: m.role,
+                                jerseyNumber: m.jersey_number ?? null,
                             }))
 
                         const alreadyInThisTeam = assignedByTeam.get(team.id) ?? new Set<string>()

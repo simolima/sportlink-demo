@@ -1,19 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import Link from 'next/link'
 import { Notification } from '@/lib/types'
+import { supabase } from '@/lib/supabase-browser'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 import { getNotificationDestination, getNotificationDotColor, isMessageNotification, filterSystemNotifications } from '@/lib/notification-utils'
 
 interface NotificationBellProps {
-  userId: number
+  userId: string
 }
-
-// Configurazione SSE
-const SSE_RECONNECT_DELAY = 3000
-const POLLING_INTERVAL = 30000
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
   const router = useRouter()
@@ -21,11 +19,6 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [hasNewNotification, setHasNewNotification] = useState(false)
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'fallback'>('connecting')
-
-  const eventSourceRef = useRef<EventSource | null>(null)
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Fetch iniziale notifiche (esclude messaggi)
   const fetchNotifications = useCallback(async () => {
@@ -43,108 +36,53 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     }
   }, [userId])
 
-  // Connessione SSE
-  const connectSSE = useCallback(() => {
-    // Cleanup precedente connessione
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-    }
+  // Supabase Realtime subscription + fetch iniziale
+  useEffect(() => {
+    fetchNotifications()
 
-    try {
-      const es = new EventSource(`/api/notifications/stream?userId=${userId}`)
-      eventSourceRef.current = es
-
-      es.addEventListener('connected', () => {
-        console.log('[SSE] Connected')
-        setConnectionStatus('connected')
-        // Cancella polling fallback se attivo
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current)
-          pollingIntervalRef.current = null
-        }
-      })
-
-      es.addEventListener('unread_count', (e) => {
-        const data = JSON.parse(e.data)
-        const newCount = data.count
-        // Pulse animation se aumenta
-        if (newCount > unreadCount) {
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: { new: Record<string, any> }) => {
+          const raw = payload.new
+          const notification: Notification = {
+            id: raw.id,
+            userId: raw.user_id,
+            type: raw.type,
+            title: raw.title,
+            message: raw.message,
+            metadata: raw.metadata,
+            read: raw.is_read,
+            createdAt: raw.created_at,
+          }
+          if (isMessageNotification(notification)) return
+          setNotifications(prev => [notification, ...prev].slice(0, 10))
+          setUnreadCount(prev => prev + 1)
           setHasNewNotification(true)
           setTimeout(() => setHasNewNotification(false), 2000)
         }
-        setUnreadCount(newCount)
-      })
-
-      es.addEventListener('notification', (e) => {
-        const notification = JSON.parse(e.data)
-        // Ignora le notifiche messaggi - vanno mostrate solo nell'area chat
-        if (isMessageNotification(notification)) {
-          return
-        }
-        setNotifications(prev => [notification, ...prev].slice(0, 10))
-        setHasNewNotification(true)
-        setTimeout(() => setHasNewNotification(false), 2000)
-      })
-
-      es.addEventListener('heartbeat', () => {
-        // Connessione ancora attiva
-      })
-
-      es.onerror = () => {
-        console.log('[SSE] Connection error, reconnecting...')
-        es.close()
-        eventSourceRef.current = null
-        setConnectionStatus('connecting')
-
-        // Tentativo riconnessione
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connectSSE()
-        }, SSE_RECONNECT_DELAY)
-
-        // Fallback a polling
-        if (!pollingIntervalRef.current) {
-          setConnectionStatus('fallback')
-          pollingIntervalRef.current = setInterval(fetchNotifications, POLLING_INTERVAL)
-        }
-      }
-    } catch (error) {
-      console.error('[SSE] Failed to create EventSource:', error)
-      setConnectionStatus('fallback')
-      // Fallback a polling
-      if (!pollingIntervalRef.current) {
-        pollingIntervalRef.current = setInterval(fetchNotifications, POLLING_INTERVAL)
-      }
-    }
-  }, [userId, fetchNotifications, unreadCount])
-
-  // Inizializzazione: fetch + connessione SSE
-  useEffect(() => {
-    fetchNotifications()
-    connectSSE()
+      )
+      .subscribe()
 
     return () => {
-      // Cleanup
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close()
-        eventSourceRef.current = null
-      }
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
-        reconnectTimeoutRef.current = null
-      }
+      supabase.removeChannel(channel)
     }
-  }, [fetchNotifications, connectSSE])
+  }, [userId, fetchNotifications])
 
   const markAsRead = async (id: number) => {
     try {
+      const authHeaders = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, read: true }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ id }),
       })
       fetchNotifications()
     } catch (error) {
@@ -157,7 +95,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className={`relative p-2 hover:bg-white/10 rounded-full transition-colors text-white ${hasNewNotification ? 'animate-pulse' : ''}`}
-        title={connectionStatus === 'connected' ? 'Real-time' : connectionStatus === 'fallback' ? 'Polling' : 'Connecting...'}
+        title="Notifiche"
       >
         <Bell size={20} />
         {unreadCount > 0 && (

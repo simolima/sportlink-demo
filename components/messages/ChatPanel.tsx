@@ -6,6 +6,7 @@ import ChatHeader from './ChatHeader'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import { MessageSquare } from 'lucide-react'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface User {
     id: string | number
@@ -62,14 +63,17 @@ export default function ChatPanel({
             setLoading(true)
             setError(null)
             try {
-                const res = await fetch(`/api/messages?userId=${currentUserId}&peerId=${peerId}`)
+                const authHeaders = await getAuthHeaders()
+                const res = await fetch(`/api/messages?userId=${currentUserId}&peerId=${peerId}`, {
+                    headers: authHeaders
+                })
                 const data = await res.json()
                 setMessages(Array.isArray(data) ? data : [])
 
                 // Marca come letti
                 await fetch('/api/messages', {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify({ userId: currentUserId, peerId })
                 })
             } catch (e) {
@@ -92,9 +96,10 @@ export default function ChatPanel({
         if (!peerId || !currentUserId) return
 
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/messages', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ senderId: currentUserId, receiverId: peerId, text })
             })
             const newMsg = await res.json()

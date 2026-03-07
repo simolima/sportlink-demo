@@ -95,14 +95,12 @@ export default function AuthCallbackPage() {
             const fullName = user.user_metadata?.full_name || ''
             const firstName = user.user_metadata?.given_name || fullName.split(' ')[0] || ''
             const lastName = user.user_metadata?.family_name || fullName.split(' ').slice(1).join(' ') || ''
-            const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
 
             localStorage.setItem('currentUserId', user.id)
             localStorage.setItem('currentUserEmail', user.email || '')
             localStorage.setItem('currentUserName', fullName || `${firstName} ${lastName}`.trim() || user.email?.split('@')[0] || 'User')
             if (firstName) localStorage.setItem('oauth_firstName', firstName)
             if (lastName) localStorage.setItem('oauth_lastName', lastName)
-            if (avatarUrl) localStorage.setItem('oauth_avatarUrl', avatarUrl)
 
             if (mounted) setStatus('Caricamento profilo...')
 

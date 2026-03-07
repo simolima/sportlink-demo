@@ -133,9 +133,8 @@ export default function SelectSportPage() {
                 const lastName = localStorage.getItem('oauth_lastName') || ''
                 const birthDate = localStorage.getItem('oauth_birthDate') || ''
                 const email = localStorage.getItem('currentUserEmail') || ''
-                const avatarUrl = localStorage.getItem('oauth_avatarUrl') || ''
 
-                console.log('📝 OAuth user data:', { firstName, lastName, birthDate, email, avatarUrl })
+                console.log('📝 OAuth user data:', { firstName, lastName, birthDate, email })
 
                 // Validate required fields
                 if (!firstName || !lastName) {
@@ -156,10 +155,6 @@ export default function SelectSportPage() {
                 // Add birth_date if provided
                 if (birthDate) {
                     profileUpdate.birth_date = birthDate
-                }
-
-                if (avatarUrl) {
-                    profileUpdate.avatar_url = avatarUrl
                 }
 
                 // Ensure profile row exists (some projects may miss auth trigger)
@@ -185,7 +180,6 @@ export default function SelectSportPage() {
                             last_name: lastName,
                             role_id: mapRoleToDatabase(professionalRole),
                             birth_date: birthDate || null,
-                            avatar_url: avatarUrl || null,
                         })
 
                     if (insertProfileError) {

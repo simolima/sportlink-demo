@@ -300,6 +300,29 @@ lib/
 
 ---
 
+## Dashboard Studio — Pattern (Marzo 2026)
+
+La dashboard studio usa ora route annidate con sidebar fissa:
+
+```text
+app/(main)/studios/[id]/dashboard/
+  layout.tsx                 → sidebar e navigazione sezioni
+  page.tsx                   → redirect compatibilità (`?tab=...` → nuova route)
+  overview/page.tsx          → KPI + quick actions
+  calendar/page.tsx          → OAuth Google + selezione calendario + sync/disconnect
+  availability/page.tsx      → regole settimanali + blackout dates
+  services/page.tsx          → CRUD tipi appuntamento
+  bookings/page.tsx          → lista prenotazioni + cambio stato
+  settings/page.tsx          → dati studio + booking settings
+```
+
+Regole:
+- I fetch autenticati in dashboard studio usano sempre `getAuthHeaders()`.
+- Link legacy `?tab=edit|appointments|clients` devono continuare a funzionare via redirect in `dashboard/page.tsx`.
+- Le callback OAuth Google reindirizzano a `/studios/[id]/dashboard/calendar?connected=true`.
+
+---
+
 ## Dashboard SaaS — Pattern (Marzo 2026)
 
 ### Context Switcher via Cookie (no Zustand, no Redux)

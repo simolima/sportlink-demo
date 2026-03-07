@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { ConversationSummary } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 import { ConversationList, ChatPanel, NewChatModal } from '@/components/messages'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface User {
     id: string | number
@@ -46,7 +47,8 @@ export default function MessagesPage() {
         if (!currentUserId) return
         setLoading(true)
         try {
-            const res = await fetch(`/api/messages?userId=${currentUserId}`)
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/messages?userId=${currentUserId}`, { headers: authHeaders })
             const data = await res.json()
             setConversations(Array.isArray(data) ? data : [])
         } catch (e) {

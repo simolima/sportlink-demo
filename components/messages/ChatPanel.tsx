@@ -6,6 +6,8 @@ import ChatHeader from './ChatHeader'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import { MessageSquare } from 'lucide-react'
+import { getAuthHeaders } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase-browser'
 
 interface User {
     id: string | number
@@ -51,7 +53,7 @@ export default function ChatPanel({
     const peerAvatar = peer?.avatarUrl || null
     const peerRole = peer?.currentRole || null
 
-    // Fetch messaggi
+    // Fetch messaggi iniziale
     useEffect(() => {
         if (!peerId || !currentUserId) {
             setMessages([])
@@ -62,14 +64,17 @@ export default function ChatPanel({
             setLoading(true)
             setError(null)
             try {
-                const res = await fetch(`/api/messages?userId=${currentUserId}&peerId=${peerId}`)
+                const authHeaders = await getAuthHeaders()
+                const res = await fetch(`/api/messages?userId=${currentUserId}&peerId=${peerId}`, {
+                    headers: authHeaders
+                })
                 const data = await res.json()
                 setMessages(Array.isArray(data) ? data : [])
 
                 // Marca come letti
                 await fetch('/api/messages', {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify({ userId: currentUserId, peerId })
                 })
             } catch (e) {
@@ -82,6 +87,76 @@ export default function ChatPanel({
         fetchMessages()
     }, [peerId, currentUserId])
 
+    // Realtime: messaggi istantanei in ingresso
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const channel = supabase
+            .channel(`chat:${currentUserId}:${peerId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `receiver_id=eq.${currentUserId}`,
+                },
+                (payload: { new: Record<string, any> }) => {
+                    const raw = payload.new
+                    // Mostra solo i messaggi della conversazione attiva
+                    if (String(raw.sender_id) !== String(peerId)) return
+                    const incoming: Message = {
+                        id: raw.id,
+                        senderId: raw.sender_id,
+                        receiverId: raw.receiver_id,
+                        text: raw.content,
+                        timestamp: raw.created_at,
+                        read: raw.is_read,
+                    }
+                    setMessages(prev => {
+                        // Evita duplicati (nel caso il mittente riceva il proprio messaggio)
+                        if (prev.some(m => String(m.id) === String(incoming.id))) return prev
+                        return [...prev, incoming]
+                    })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [peerId, currentUserId])
+
+    // Realtime: doppia spunta istantanea quando il peer legge i nostri messaggi
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const channel = supabase
+            .channel(`read-receipts:${currentUserId}:${peerId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `sender_id=eq.${currentUserId}`,
+                },
+                (payload: { new: Record<string, any> }) => {
+                    const raw = payload.new
+                    if (String(raw.receiver_id) !== String(peerId)) return
+                    if (!raw.is_read) return
+                    setMessages(prev =>
+                        prev.map(m => String(m.id) === String(raw.id) ? { ...m, read: true } : m)
+                    )
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [peerId, currentUserId])
+
     // Auto-scroll
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -92,9 +167,10 @@ export default function ChatPanel({
         if (!peerId || !currentUserId) return
 
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/messages', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ senderId: currentUserId, receiverId: peerId, text })
             })
             const newMsg = await res.json()

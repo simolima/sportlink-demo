@@ -140,7 +140,7 @@ export async function assignMemberToTeam(
             return { success: false, error: firstIssue }
         }
 
-        const { teamId, profileId, role } = parsed.data
+        const { teamId, profileId, role, jerseyNumber } = parsed.data
 
         // Recupera la squadra per ottenere il clubId
         const { data: team, error: teamError } = await supabaseServer
@@ -194,7 +194,7 @@ export async function assignMemberToTeam(
             // Restore (se soft-deleted) e aggiorna ruolo
             const { error: updateError } = await supabaseServer
                 .from('team_members')
-                .update({ deleted_at: null, role, status: 'active' })
+                .update({ deleted_at: null, role, status: 'active', jersey_number: jerseyNumber ?? null })
                 .eq('id', latestRow.id)
 
             if (updateError) {
@@ -210,6 +210,7 @@ export async function assignMemberToTeam(
                     profile_id: profileId,
                     role,
                     status: 'active',
+                    jersey_number: jerseyNumber ?? null,
                 })
 
             if (insertError) {

@@ -192,6 +192,13 @@ const fallbackPoll = setInterval(async () => {
 
 ## Lista Endpoint Esistenti (35 routes)
 
+### `/api/club-memberships` — Role Scope (Marzo 2026)
+
+- GET supporta il filtro `professionalRoleId`:
+    - `/api/club-memberships?userId=<uuid>&professionalRoleId=coach`
+- La risposta include `professionalRoleId` (camelCase) derivato da `professional_role_id`.
+- In POST/flow di creazione membership (`/api/clubs`, `/api/club-join-requests/accept`) il backend valorizza sempre `professional_role_id` per evitare leakage cross-profilo.
+
 | Endpoint | Note |
 |----------|------|
 | `/api/users` | GET all / POST create / PATCH update |

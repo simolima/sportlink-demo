@@ -10,6 +10,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
+import { resolveMembershipProfessionalRoleId } from '@/lib/club-membership-scope'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -68,6 +69,17 @@ export async function POST(request: Request) {
             return withCors(NextResponse.json({ success: true, alreadyMember: true }))
         }
 
+        const { data: profile } = await supabaseServer
+            .from('profiles')
+            .select('role_id')
+            .eq('id', joinReq.user_id)
+            .maybeSingle()
+
+        const resolvedProfessionalRoleId = resolveMembershipProfessionalRoleId({
+            profileRoleId: profile?.role_id,
+            clubRole: joinReq.requested_role,
+        })
+
         // Create membership
         const { data: membership, error: memberErr } = await supabaseServer
             .from('club_memberships')
@@ -75,6 +87,7 @@ export async function POST(request: Request) {
                 club_id: joinReq.club_id,
                 user_id: joinReq.user_id,
                 club_role: joinReq.requested_role || 'Player',
+                professional_role_id: resolvedProfessionalRoleId,
                 position_id: joinReq.requested_position_id || null,
                 permissions: [],
                 status: 'active',
@@ -94,6 +107,7 @@ export async function POST(request: Request) {
                 clubId: membership.club_id,
                 userId: membership.user_id,
                 role: membership.club_role,
+                professionalRoleId: membership.professional_role_id || null,
                 joinedAt: membership.joined_at,
             },
         }))

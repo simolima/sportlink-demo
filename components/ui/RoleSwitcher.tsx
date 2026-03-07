@@ -14,6 +14,8 @@ import {
     ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { switchActiveRole } from '@/app/actions/role-actions'
+import { getAuthHeaders } from '@/lib/auth-fetch'
+import { syncLegacySelectedClubIdForRole } from '@/lib/club-membership-scope'
 import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 
 // Mappa ogni ruolo alla sua icona Heroicons
@@ -45,7 +47,12 @@ export default function RoleSwitcher({ activeRole, availableRoles }: RoleSwitche
         if (roleId === activeRole || isPending) return
         startTransition(async () => {
             try {
-                await switchActiveRole(roleId)
+                const authHeaders = await getAuthHeaders()
+                const bearer = authHeaders.Authorization || (authHeaders as any).authorization
+                const authToken = bearer?.startsWith('Bearer ') ? bearer.slice(7) : undefined
+                await switchActiveRole(roleId, authToken)
+                localStorage.setItem('currentUserRole', roleId)
+                syncLegacySelectedClubIdForRole(roleId)
             } catch (err: any) {
                 console.error('Switch role failed:', err)
             }

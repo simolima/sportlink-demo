@@ -182,6 +182,7 @@ club_join_requests    — Richieste di adesione al club
 club_memberships      — Roster attuale del club
   ├── id (UUID), club_id FK, user_id FK
   ├── club_role ('Admin'|'Staff'|'Player'), status ('active'|'past'|'suspended')
+  ├── professional_role_id FK → lookup_roles.id  ← contesto profilo (player/coach/...) della membership
   ├── permissions (JSONB), position_id FK
   └── deleted_at
 

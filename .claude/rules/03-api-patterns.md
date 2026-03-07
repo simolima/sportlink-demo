@@ -165,6 +165,7 @@ export async function POST(req: Request) {
 - `/api/messages` POST — verifica `senderId`
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
+- `/api/affiliations` PUT — verifica JWT + ownership `player_id` (accept/reject solo dal player autenticato)
 - `/api/studios/[id]/reviews` POST — cliente attivo può creare la propria recensione
 - `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna rating/commento, owner modera `isPublished`
 - `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)

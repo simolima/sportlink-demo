@@ -4,17 +4,18 @@ import { useEffect, useState } from 'react'
 import { Shield, Check, X, Ban, UserCircle } from 'lucide-react'
 import { useToast } from '@/lib/toast-context'
 import Link from 'next/link'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface Affiliation {
-    id: number
-    agentId: number
-    playerId: number
+    id: string | number
+    agentId: string | number
+    playerId: string | number
     status: 'pending' | 'active' | 'rejected'
     requestedAt: string
     affiliatedAt?: string
     message?: string
     agent?: {
-        id: number
+        id: string | number
         firstName: string
         lastName: string
         avatarUrl?: string
@@ -55,47 +56,75 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         }
     }
 
-    const handleAccept = async (affiliationId: number) => {
+    const handleAccept = async (affiliationId: string | number) => {
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/affiliations', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
                 body: JSON.stringify({
                     id: affiliationId,
                     status: 'active',
+                    playerId,
                 }),
             })
 
             if (res.ok) {
                 showToast('success', 'Affiliazione accettata!', "Hai accettato l'affiliazione con successo")
                 fetchAffiliations()
+            } else {
+                const error = await res.json().catch(() => null)
+                if (res.status === 401) {
+                    showToast('error', 'Sessione scaduta', 'Effettua nuovamente il login per completare l\'azione')
+                } else if (res.status === 403) {
+                    showToast('error', 'Accesso negato', 'Puoi gestire solo le richieste legate al tuo account player attivo')
+                } else {
+                    showToast('error', 'Errore', error?.error || "Impossibile accettare l'affiliazione")
+                }
             }
         } catch (error) {
             showToast('error', 'Errore', "Impossibile accettare l'affiliazione")
         }
     }
 
-    const handleReject = async (affiliationId: number) => {
+    const handleReject = async (affiliationId: string | number) => {
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/affiliations', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
                 body: JSON.stringify({
                     id: affiliationId,
                     status: 'rejected',
+                    playerId,
                 }),
             })
 
             if (res.ok) {
                 showToast('success', 'Richiesta rifiutata', 'La richiesta è stata rifiutata')
                 fetchAffiliations()
+            } else {
+                const error = await res.json().catch(() => null)
+                if (res.status === 401) {
+                    showToast('error', 'Sessione scaduta', 'Effettua nuovamente il login per completare l\'azione')
+                } else if (res.status === 403) {
+                    showToast('error', 'Accesso negato', 'Puoi gestire solo le richieste legate al tuo account player attivo')
+                } else {
+                    showToast('error', 'Errore', error?.error || 'Impossibile rifiutare la richiesta')
+                }
             }
         } catch (error) {
             showToast('error', 'Errore', 'Impossibile rifiutare la richiesta')
         }
     }
 
-    const handleBlock = async (affiliationId: number) => {
+    const handleBlock = async (affiliationId: string | number) => {
         if (!confirm("Sei sicuro di voler bloccare questo agente? Non potrà più inviarti richieste.")) {
             return
         }
@@ -114,7 +143,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         }
     }
 
-    const handleRemove = async (affiliationId: number) => {
+    const handleRemove = async (affiliationId: string | number) => {
         if (!confirm('Sei sicuro di voler rimuovere questa affiliazione?')) {
             return
         }

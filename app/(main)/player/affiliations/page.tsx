@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { Shield, Check, X, Ban } from 'lucide-react'
 import { Affiliation } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface AffiliationWithDetails extends Affiliation {
-  agent?: { id: number; firstName: string; lastName: string; avatarUrl?: string }
+  agent?: { id: string | number; firstName: string; lastName: string; avatarUrl?: string }
 }
 
 export default function PlayerAffiliationsPage() {
@@ -57,7 +58,7 @@ export default function PlayerAffiliationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fetchAffiliations = async (playerId: number) => {
+  const fetchAffiliations = async (playerId: string | number) => {
     setLoading(true)
     try {
       const res = await fetch(`/api/affiliations?playerId=${playerId}`)
@@ -83,47 +84,75 @@ export default function PlayerAffiliationsPage() {
     }
   }
 
-  const handleAccept = async (affiliationId: number) => {
+  const handleAccept = async (affiliationId: string | number) => {
     try {
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/affiliations', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
         body: JSON.stringify({
           id: affiliationId,
           status: 'active',
+          playerId: currentUser.id,
         }),
       })
 
       if (res.ok) {
         showToast('success', 'Affiliazione accettata!', 'Hai accettato l\'affiliazione con successo')
         fetchAffiliations(currentUser.id)
+      } else {
+        const error = await res.json().catch(() => null)
+        if (res.status === 401) {
+          showToast('error', 'Sessione scaduta', 'Effettua nuovamente il login per completare l\'azione')
+        } else if (res.status === 403) {
+          showToast('error', 'Accesso negato', 'Puoi gestire solo le richieste legate al tuo account player attivo')
+        } else {
+          showToast('error', 'Errore', error?.error || 'Impossibile accettare l\'affiliazione')
+        }
       }
     } catch (error) {
       showToast('error', 'Errore', 'Impossibile accettare l\'affiliazione')
     }
   }
 
-  const handleReject = async (affiliationId: number) => {
+  const handleReject = async (affiliationId: string | number) => {
     try {
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/affiliations', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
         body: JSON.stringify({
           id: affiliationId,
           status: 'rejected',
+          playerId: currentUser.id,
         }),
       })
 
       if (res.ok) {
         showToast('success', 'Affiliazione rifiutata', 'Hai rifiutato l\'affiliazione')
         fetchAffiliations(currentUser.id)
+      } else {
+        const error = await res.json().catch(() => null)
+        if (res.status === 401) {
+          showToast('error', 'Sessione scaduta', 'Effettua nuovamente il login per completare l\'azione')
+        } else if (res.status === 403) {
+          showToast('error', 'Accesso negato', 'Puoi gestire solo le richieste legate al tuo account player attivo')
+        } else {
+          showToast('error', 'Errore', error?.error || 'Impossibile rifiutare l\'affiliazione')
+        }
       }
     } catch (error) {
       showToast('error', 'Errore', 'Impossibile rifiutare l\'affiliazione')
     }
   }
 
-  const handleBlock = async (affiliationId: number, agentId: number) => {
+  const handleBlock = async (affiliationId: string | number, agentId: string | number) => {
     if (!confirm('Sei sicuro di voler bloccare questo agente? Non potrà più inviarti richieste.')) {
       return
     }
@@ -143,7 +172,7 @@ export default function PlayerAffiliationsPage() {
     }
   }
 
-  const handleRemove = async (affiliationId: number) => {
+  const handleRemove = async (affiliationId: string | number) => {
     if (!confirm('Sei sicuro di voler rimuovere questa affiliazione?')) {
       return
     }
@@ -278,7 +307,7 @@ export default function PlayerAffiliationsPage() {
                       <button
                         onClick={() => {
                           if (confirm('Vuoi accettare questa richiesta di affiliazione?')) {
-                            handleAccept(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                            handleAccept(affiliation.id)
                           }
                         }}
                         className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 w-full"
@@ -289,7 +318,7 @@ export default function PlayerAffiliationsPage() {
                       <button
                         onClick={() => {
                           if (confirm('Vuoi rifiutare questa richiesta?')) {
-                            handleReject(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                            handleReject(affiliation.id)
                           }
                         }}
                         className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2 w-full"
@@ -301,8 +330,8 @@ export default function PlayerAffiliationsPage() {
                         onClick={() => {
                           if (confirm('Bloccare questo agente significa che non potrà più inviarti richieste. Confermi?')) {
                             handleBlock(
-                              typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id),
-                              typeof affiliation.agentId === 'number' ? affiliation.agentId : parseInt(affiliation.agentId)
+                              affiliation.id,
+                              affiliation.agentId
                             )
                           }
                         }}
@@ -325,7 +354,7 @@ export default function PlayerAffiliationsPage() {
                       <button
                         onClick={() => {
                           if (confirm('Vuoi rimuovere questa affiliazione?')) {
-                            handleRemove(typeof affiliation.id === 'number' ? affiliation.id : parseInt(affiliation.id))
+                            handleRemove(affiliation.id)
                           }
                         }}
                         className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"

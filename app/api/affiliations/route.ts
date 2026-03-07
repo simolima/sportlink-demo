@@ -210,11 +210,24 @@ export async function POST(request: Request) {
 // PUT /api/affiliations - Update affiliation status (accept/reject)
 export async function PUT(request: Request) {
     try {
+        const authenticatedUserId = await getUserIdFromAuthToken(request)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
         const body = await request.json()
         const { id, status, playerId } = body
 
         if (!id || !status) {
             return withCors(NextResponse.json({ error: 'id and status required' }, { status: 400 }))
+        }
+
+        if (!['active', 'rejected'].includes(status)) {
+            return withCors(NextResponse.json({ error: 'invalid_status' }, { status: 400 }))
+        }
+
+        if (playerId && String(playerId) !== String(authenticatedUserId)) {
+            return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
         }
 
         // Get affiliation
@@ -228,9 +241,9 @@ export async function PUT(request: Request) {
             return withCors(NextResponse.json({ error: 'Affiliation not found' }, { status: 404 }))
         }
 
-        // Check if requester is the player
-        if (playerId && affiliation.player_id !== playerId) {
-            return withCors(NextResponse.json({ error: 'Unauthorized' }, { status: 403 }))
+        // Check if requester is the player owner of this affiliation
+        if (String(affiliation.player_id) !== String(authenticatedUserId)) {
+            return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
         }
 
         // Update affiliation

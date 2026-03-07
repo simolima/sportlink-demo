@@ -31,23 +31,34 @@ export interface EncryptedTokenPair {
 // CONFIGURATION
 // ============================================================================
 
-const GOOGLE_OAUTH_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID!
-const GOOGLE_OAUTH_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+const GOOGLE_OAUTH_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID
+const GOOGLE_OAUTH_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET
 // Must be static URI (no dynamic [id] segments) - Google OAuth requirement
 // Example: https://sportlink-demo-ejj2.vercel.app/api/google-auth/callback
-const GOOGLE_OAUTH_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI!
-const GOOGLE_TOKEN_ENCRYPTION_KEY = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY! // 64-char hex string
+const GOOGLE_OAUTH_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI
+const GOOGLE_TOKEN_ENCRYPTION_KEY = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY // 64-char hex string
 
-// Validate required env vars on module load
-if (!GOOGLE_OAUTH_CLIENT_ID || !GOOGLE_OAUTH_CLIENT_SECRET || !GOOGLE_OAUTH_REDIRECT_URI) {
-    throw new Error('Missing required Google OAuth environment variables')
+/**
+ * Lazy validation of OAuth environment variables.
+ * Only throws at runtime when functions are actually called, not at module load.
+ * This allows the module to be imported during build without failing CI.
+ */
+function validateOAuthConfig() {
+    if (!GOOGLE_OAUTH_CLIENT_ID || !GOOGLE_OAUTH_CLIENT_SECRET || !GOOGLE_OAUTH_REDIRECT_URI) {
+        throw new Error('Missing required Google OAuth environment variables')
+    }
 }
 
-if (!GOOGLE_TOKEN_ENCRYPTION_KEY || GOOGLE_TOKEN_ENCRYPTION_KEY.length !== 64) {
-    throw new Error('GOOGLE_TOKEN_ENCRYPTION_KEY must be a 64-character hex string (32 bytes)')
+/**
+ * Lazy validation of encryption key.
+ * Only throws at runtime when encryption functions are called.
+ */
+function validateEncryptionKey(): Buffer {
+    if (!GOOGLE_TOKEN_ENCRYPTION_KEY || GOOGLE_TOKEN_ENCRYPTION_KEY.length !== 64) {
+        throw new Error('GOOGLE_TOKEN_ENCRYPTION_KEY must be a 64-character hex string (32 bytes)')
+    }
+    return Buffer.from(GOOGLE_TOKEN_ENCRYPTION_KEY, 'hex')
 }
-
-const ENCRYPTION_KEY = Buffer.from(GOOGLE_TOKEN_ENCRYPTION_KEY, 'hex')
 
 // OAuth 2.0 scopes
 const CALENDAR_SCOPES = [
@@ -62,6 +73,7 @@ const CALENDAR_SCOPES = [
  * Create OAuth2 client instance
  */
 function createOAuth2Client() {
+    validateOAuthConfig()
     return new google.auth.OAuth2(
         GOOGLE_OAUTH_CLIENT_ID,
         GOOGLE_OAUTH_CLIENT_SECRET,
@@ -182,11 +194,13 @@ export async function revokeAccess(refreshToken: string): Promise<void> {
  * @returns Encrypted token string (format: iv:authTag:encryptedData)
  */
 export function encryptToken(token: string): string {
+    const encryptionKey = validateEncryptionKey()
+
     // Generate random 12-byte IV (recommended for GCM)
     const iv = crypto.randomBytes(12)
 
     // Create cipher
-    const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv)
+    const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKey, iv)
 
     // Encrypt token
     let encrypted = cipher.update(token, 'utf8', 'hex')
@@ -207,6 +221,8 @@ export function encryptToken(token: string): string {
  * @throws Error if decryption fails (wrong key, tampered data, invalid format)
  */
 export function decryptToken(encryptedToken: string): string {
+    const encryptionKey = validateEncryptionKey()
+
     try {
         // Parse format: iv:authTag:encryptedData
         const parts = encryptedToken.split(':')
@@ -219,7 +235,7 @@ export function decryptToken(encryptedToken: string): string {
         const encrypted = parts[2]
 
         // Create decipher
-        const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY, iv)
+        const decipher = crypto.createDecipheriv('aes-256-gcm', encryptionKey, iv)
         decipher.setAuthTag(authTag)
 
         // Decrypt token

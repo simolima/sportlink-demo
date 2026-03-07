@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 
         const body = await req.json()
         const roleId = body?.roleId?.toString?.().toLowerCase() as ProfessionalRole | undefined
-        const sports = Array.isArray(body?.sports)
+        const sports: string[] = Array.isArray(body?.sports)
             ? body.sports.map((sport: any) => sport?.toString?.()).filter(Boolean)
             : []
         const primaryPositionId = body?.primaryPositionId != null
@@ -151,8 +151,16 @@ export async function POST(req: Request) {
             sportNameToId[row.name] = row.id
         }
 
+        type SportRecordInsert = {
+            user_id: string
+            sport_id: number | undefined
+            role_id: ProfessionalRole
+            is_main_sport: boolean
+            primary_position_id: number | null
+        }
+
         const sportRecords = sports
-            .map((sportName: string, idx: number) => {
+            .map((sportName: string, idx: number): SportRecordInsert => {
                 const normalizedSportId =
                     sportNameToId[sportName] ??
                     sportNameToId[sportName === 'Pallavolo' ? 'Volley' : sportName]
@@ -165,7 +173,7 @@ export async function POST(req: Request) {
                     primary_position_id: idx === 0 ? primaryPositionId : null,
                 }
             })
-            .filter(record => record.sport_id != null)
+            .filter((record): record is SportRecordInsert & { sport_id: number } => record.sport_id != null)
 
         if (sportRecords.length === 0) {
             await supabaseServer

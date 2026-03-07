@@ -95,8 +95,8 @@ describe('GET /api/users/roles', () => {
 
         expect(res.status).toBe(200)
         expect(data).toEqual([
-            { role_id: 'coach', is_primary: false, sport_name: 'Pallavolo' },
-            { role_id: 'player', is_primary: true, sport_name: 'Calcio' },
+            { role_id: 'coach', is_primary: false, sport_names: ['Pallavolo'] },
+            { role_id: 'player', is_primary: true, sport_names: ['Calcio'] },
         ])
     })
 
@@ -132,7 +132,7 @@ describe('GET /api/users/roles', () => {
             {
                 role_id: 'coach',
                 is_primary: true,
-                sport_name: 'Volley',
+                sport_names: ['Volley'],
             },
         ])
     })

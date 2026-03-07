@@ -17,9 +17,9 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-    try {
-        const studioId = params.id
+    const studioId = params.id
 
+    try {
         const authenticatedUserId = await getUserIdFromAuthToken(req)
         if (!authenticatedUserId) {
             return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))

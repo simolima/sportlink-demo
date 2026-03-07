@@ -88,46 +88,52 @@ export default function StudioDashboardSettingsPage() {
 
             const data = await res.json()
             if (!res.ok) {
-                setMessage(data.error || 'Unable to save studio settings')
+                setMessage(data.error || 'Impossibile salvare le impostazioni dello studio')
                 return
             }
 
-            setMessage('Settings saved successfully.')
+            setMessage('Impostazioni salvate con successo.')
         } finally {
             setSaving(false)
         }
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-base-300 bg-base-200 p-6">Loading settings...</div>
+        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento impostazioni...</div>
     }
 
     return (
-        <section className="space-y-5 rounded-2xl border border-base-300 bg-base-200 p-6">
+        <section className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div>
-                <h1 className="text-2xl font-bold text-secondary">Settings</h1>
-                <p className="mt-1 text-sm text-secondary/70">Studio profile and booking configuration.</p>
+                <h1 className="text-2xl font-bold text-gray-900">Impostazioni</h1>
+                <p className="mt-1 text-sm text-gray-600">Profilo studio e configurazione prenotazioni.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-base-300 bg-base-100 p-4">
+            <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input
-                        className="input input-bordered"
-                        placeholder="Studio name"
-                        value={settings.name}
-                        onChange={(e) => setSettings((prev) => ({ ...prev, name: e.target.value }))}
-                        required
-                    />
-                    <input
-                        className="input input-bordered"
-                        placeholder="City"
-                        value={settings.city}
-                        onChange={(e) => setSettings((prev) => ({ ...prev, city: e.target.value }))}
-                    />
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Nome studio</span>
+                        <input
+                            className="input input-bordered bg-white"
+                            placeholder="Nome studio"
+                            value={settings.name}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, name: e.target.value }))}
+                            required
+                        />
+                    </label>
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Citta</span>
+                        <input
+                            className="input input-bordered bg-white"
+                            placeholder="Citta"
+                            value={settings.city}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, city: e.target.value }))}
+                        />
+                    </label>
                 </div>
 
                 <div>
-                    <label className="mb-1 block text-sm text-secondary/80">Address</label>
+                    <label className="mb-1 block text-sm text-gray-600">Indirizzo</label>
                     <AddressAutocomplete
                         value={settings.address}
                         onChange={({ address, city }) => {
@@ -141,29 +147,38 @@ export default function StudioDashboardSettingsPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input
-                        className="input input-bordered"
-                        placeholder="Phone"
-                        value={settings.phone}
-                        onChange={(e) => setSettings((prev) => ({ ...prev, phone: e.target.value }))}
-                    />
-                    <input
-                        className="input input-bordered"
-                        placeholder="Website"
-                        value={settings.website}
-                        onChange={(e) => setSettings((prev) => ({ ...prev, website: e.target.value }))}
-                    />
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Telefono</span>
+                        <input
+                            className="input input-bordered bg-white"
+                            placeholder="Telefono"
+                            value={settings.phone}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, phone: e.target.value }))}
+                        />
+                    </label>
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Sito web</span>
+                        <input
+                            className="input input-bordered bg-white"
+                            placeholder="Sito web"
+                            value={settings.website}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, website: e.target.value }))}
+                        />
+                    </label>
                 </div>
 
-                <textarea
-                    className="textarea textarea-bordered w-full"
-                    rows={4}
-                    placeholder="Description"
-                    value={settings.description}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, description: e.target.value }))}
-                />
+                <label className="form-control">
+                    <span className="label-text mb-1 block text-sm text-gray-600">Descrizione</span>
+                    <textarea
+                        className="textarea textarea-bordered bg-white w-full"
+                        rows={4}
+                        placeholder="Descrizione"
+                        value={settings.description}
+                        onChange={(e) => setSettings((prev) => ({ ...prev, description: e.target.value }))}
+                    />
+                </label>
 
-                <div className="grid gap-3 rounded-lg border border-base-300 p-3 md:grid-cols-2">
+                <div className="grid gap-3 rounded-lg border border-gray-200 bg-white p-3 md:grid-cols-2">
                     <label className="label cursor-pointer justify-start gap-3">
                         <input
                             type="checkbox"
@@ -171,7 +186,17 @@ export default function StudioDashboardSettingsPage() {
                             checked={settings.bookingEnabled}
                             onChange={(e) => setSettings((prev) => ({ ...prev, bookingEnabled: e.target.checked }))}
                         />
-                        <span className="label-text">Enable online booking</span>
+                        <span className="label-text inline-flex items-center gap-2">
+                            Abilita prenotazioni online
+                            <span
+                                className="tooltip tooltip-top"
+                                data-tip="Quando attivo, i clienti possono vedere gli slot disponibili e inviare nuove richieste di prenotazione online."
+                            >
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-xs font-semibold text-gray-600">
+                                    ?
+                                </span>
+                            </span>
+                        </span>
                     </label>
 
                     <label className="label cursor-pointer justify-start gap-3">
@@ -181,13 +206,23 @@ export default function StudioDashboardSettingsPage() {
                             checked={settings.autoConfirmBookings}
                             onChange={(e) => setSettings((prev) => ({ ...prev, autoConfirmBookings: e.target.checked }))}
                         />
-                        <span className="label-text">Auto-confirm bookings</span>
+                        <span className="label-text inline-flex items-center gap-2">
+                            Conferma automatica prenotazioni
+                            <span
+                                className="tooltip tooltip-top"
+                                data-tip="Quando attivo, le nuove prenotazioni vengono confermate subito senza approvazione manuale. Se disattivo, restano in attesa."
+                            >
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-xs font-semibold text-gray-600">
+                                    ?
+                                </span>
+                            </span>
+                        </span>
                     </label>
 
                     <label className="form-control">
-                        <span className="label-text mb-1 block text-sm text-secondary/80">Slot increment</span>
+                        <span className="label-text mb-1 block text-sm text-gray-600">Intervallo slot</span>
                         <select
-                            className="select select-bordered"
+                            className="select select-bordered bg-white"
                             value={settings.slotIncrementMinutes}
                             onChange={(e) =>
                                 setSettings((prev) => ({
@@ -196,17 +231,17 @@ export default function StudioDashboardSettingsPage() {
                                 }))
                             }
                         >
-                            <option value={15}>15 minutes</option>
-                            <option value={30}>30 minutes</option>
-                            <option value={60}>60 minutes</option>
+                            <option value={15}>15 minuti</option>
+                            <option value={30}>30 minuti</option>
+                            <option value={60}>60 minuti</option>
                         </select>
                     </label>
 
                     <label className="form-control">
-                        <span className="label-text mb-1 block text-sm text-secondary/80">Default buffer (min)</span>
+                        <span className="label-text mb-1 block text-sm text-gray-600">Buffer predefinito (min)</span>
                         <input
                             type="number"
-                            className="input input-bordered"
+                            className="input input-bordered bg-white"
                             min={0}
                             max={60}
                             value={settings.defaultBufferBetweenAppointments}
@@ -221,11 +256,11 @@ export default function StudioDashboardSettingsPage() {
                 </div>
 
                 <button className="btn btn-primary" type="submit" disabled={saving}>
-                    Save settings
+                    Salva impostazioni
                 </button>
             </form>
 
-            {message && <p className="text-sm text-secondary/80">{message}</p>}
+            {message && <p className="text-sm text-gray-600">{message}</p>}
         </section>
     )
 }

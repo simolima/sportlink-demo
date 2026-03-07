@@ -87,48 +87,57 @@ export default function StudioDashboardOverviewPage() {
     }, [appointments])
 
     if (loading) {
-        return <div className="rounded-2xl border border-base-300 bg-base-200 p-6">Loading overview...</div>
+        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento panoramica...</div>
     }
 
     return (
         <section className="space-y-6">
-            <header className="rounded-2xl border border-base-300 bg-base-200 p-6">
-                <h1 className="text-2xl font-bold text-secondary">{studio?.name || 'Studio'}</h1>
-                <p className="mt-1 text-sm text-secondary/70">Panoramica operativa della settimana</p>
+            <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h1 className="text-2xl font-bold text-gray-900">{studio?.name || 'Studio'}</h1>
+                <p className="mt-1 text-sm text-gray-600">Panoramica operativa della settimana</p>
             </header>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <MetricCard label="Today" value={metrics.today} />
-                <MetricCard label="Next 7 days" value={metrics.week} />
-                <MetricCard label="Next 30 days" value={metrics.month} />
-                <MetricCard label="Pending" value={metrics.pending} />
+                <MetricCard label="Oggi" value={metrics.today} />
+                <MetricCard label="Prossimi 7 giorni" value={metrics.week} />
+                <MetricCard label="Prossimi 30 giorni" value={metrics.month} />
+                <MetricCard label="In attesa" value={metrics.pending} />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-2xl border border-base-300 bg-base-200 p-5">
-                    <p className="text-sm font-semibold text-secondary">Google Calendar</p>
-                    <p className="mt-2 text-sm text-secondary/80">
-                        Stato connessione: {calendarConnected ? 'Connected' : 'Not connected'}
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-semibold text-gray-900">Google Calendar</p>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Stato connessione: {calendarConnected ? 'Connesso' : 'Non connesso'}
                     </p>
                     <Link
                         href={`/studios/${studioId}/dashboard/calendar`}
                         className="btn btn-primary btn-sm mt-4"
                     >
-                        Manage connection
+                        Gestisci connessione
                     </Link>
                 </div>
 
-                <div className="rounded-2xl border border-base-300 bg-base-200 p-5">
-                    <p className="text-sm font-semibold text-secondary">Quick actions</p>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-semibold text-gray-900">Azioni rapide</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                        <Link href={`/studios/${studioId}/dashboard/bookings`} className="btn btn-sm btn-ghost">
-                            Manage bookings
+                        <Link
+                            href={`/studios/${studioId}/dashboard/bookings`}
+                            className="inline-flex items-center rounded-full border border-brand-600 bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700"
+                        >
+                            Gestisci prenotazioni
                         </Link>
-                        <Link href={`/studios/${studioId}/dashboard/availability`} className="btn btn-sm btn-ghost">
-                            Edit availability
+                        <Link
+                            href={`/studios/${studioId}/dashboard/availability`}
+                            className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                        >
+                            Modifica disponibilità
                         </Link>
-                        <Link href={`/studios/${studioId}/dashboard/services`} className="btn btn-sm btn-ghost">
-                            Service catalog
+                        <Link
+                            href={`/studios/${studioId}/dashboard/services`}
+                            className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                        >
+                            Catalogo servizi
                         </Link>
                     </div>
                 </div>
@@ -139,9 +148,9 @@ export default function StudioDashboardOverviewPage() {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
     return (
-        <div className="rounded-2xl border border-base-300 bg-base-200 p-5">
-            <p className="text-xs uppercase tracking-wide text-secondary/60">{label}</p>
-            <p className="mt-2 text-3xl font-bold text-secondary">{value}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
         </div>
     )
 }

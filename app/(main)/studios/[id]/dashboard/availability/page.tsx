@@ -15,6 +15,15 @@ type BlackoutDate = {
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 const TIMEZONES = ['Europe/Rome', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Los_Angeles']
+const DAY_LABELS: Record<string, string> = {
+    monday: 'Lunedi',
+    tuesday: 'Martedi',
+    wednesday: 'Mercoledi',
+    thursday: 'Giovedi',
+    friday: 'Venerdi',
+    saturday: 'Sabato',
+    sunday: 'Domenica',
+}
 
 export default function StudioDashboardAvailabilityPage() {
     const params = useParams()
@@ -92,10 +101,10 @@ export default function StudioDashboardAvailabilityPage() {
 
             const data = await res.json()
             if (!res.ok) {
-                setMessage(data.error || 'Unable to save schedule')
+                setMessage(data.error || 'Impossibile salvare la disponibilità')
                 return
             }
-            setMessage('Availability rules saved successfully.')
+            setMessage('Disponibilità salvata con successo.')
         } finally {
             setSaving(false)
         }
@@ -121,13 +130,13 @@ export default function StudioDashboardAvailabilityPage() {
 
             const data = await res.json()
             if (!res.ok) {
-                setMessage(data.error || 'Unable to create blackout period')
+                setMessage(data.error || 'Impossibile creare il periodo di indisponibilità')
                 return
             }
 
             setBlackouts((prev) => [...prev, data])
             setNewBlackout({ startDate: '', endDate: '', reason: '' })
-            setMessage('Blackout period created.')
+            setMessage('Periodo di indisponibilità creato.')
         } finally {
             setSaving(false)
         }
@@ -147,32 +156,32 @@ export default function StudioDashboardAvailabilityPage() {
 
             const data = await res.json()
             if (!res.ok) {
-                setMessage(data.error || 'Unable to delete blackout period')
+                setMessage(data.error || 'Impossibile eliminare il periodo di indisponibilità')
                 return
             }
 
             setBlackouts((prev) => prev.filter((b) => b.id !== blackoutId))
-            setMessage('Blackout period deleted.')
+            setMessage('Periodo di indisponibilità eliminato.')
         } finally {
             setSaving(false)
         }
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-base-300 bg-base-200 p-6">Loading availability...</div>
+        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento disponibilità...</div>
     }
 
     return (
-        <section className="space-y-6 rounded-2xl border border-base-300 bg-base-200 p-6">
+        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div>
-                <h1 className="text-2xl font-bold text-secondary">Availability</h1>
-                <p className="mt-1 text-sm text-secondary/70">Manage weekly work hours and blackout dates.</p>
+                <h1 className="text-2xl font-bold text-gray-900">Disponibilità</h1>
+                <p className="mt-1 text-sm text-gray-600">Gestisci orari settimanali e periodi di indisponibilità.</p>
             </div>
 
-            <div className="rounded-xl border border-base-300 bg-base-100 p-4">
-                <label className="mb-2 block text-sm font-semibold">Timezone</label>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Fuso orario</label>
                 <select
-                    className="select select-bordered w-full max-w-sm"
+                    className="select select-bordered bg-white w-full max-w-sm"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                 >
@@ -182,92 +191,114 @@ export default function StudioDashboardAvailabilityPage() {
                 </select>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-base-300 bg-base-100 p-4">
-                <p className="text-sm font-semibold">Weekly schedule</p>
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-900">Programmazione settimanale</p>
                 {DAYS.map((day) => (
-                    <div key={day} className="rounded-lg border border-base-300 p-3">
+                    <div key={day} className="rounded-lg border border-gray-200 bg-white p-3">
                         <div className="mb-2 flex items-center justify-between">
-                            <p className="text-sm font-medium capitalize">{day}</p>
-                            <button className="btn btn-xs btn-ghost" onClick={() => addRange(day)}>
-                                Add range
+                            <p className="text-sm font-medium text-gray-900">{DAY_LABELS[day]}</p>
+                            <button
+                                className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                                onClick={() => addRange(day)}
+                                type="button"
+                            >
+                                <span className="text-sm leading-none">+</span>
+                                <span>Aggiungi fascia</span>
                             </button>
                         </div>
                         <div className="space-y-2">
                             {(weeklySchedule[day] || []).map((range, index) => (
                                 <div key={`${day}-${index}`} className="grid gap-2 sm:grid-cols-[1fr,1fr,auto]">
-                                    <input
-                                        type="time"
-                                        className="input input-bordered"
-                                        value={range.start}
-                                        onChange={(e) => updateRange(day, index, 'start', e.target.value)}
-                                    />
-                                    <input
-                                        type="time"
-                                        className="input input-bordered"
-                                        value={range.end}
-                                        onChange={(e) => updateRange(day, index, 'end', e.target.value)}
-                                    />
+                                    <label className="form-control">
+                                        <span className="label-text mb-1 block text-xs text-gray-600">Da</span>
+                                        <input
+                                            type="time"
+                                            className="input input-bordered bg-white"
+                                            value={range.start}
+                                            onChange={(e) => updateRange(day, index, 'start', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="form-control">
+                                        <span className="label-text mb-1 block text-xs text-gray-600">A</span>
+                                        <input
+                                            type="time"
+                                            className="input input-bordered bg-white"
+                                            value={range.end}
+                                            onChange={(e) => updateRange(day, index, 'end', e.target.value)}
+                                        />
+                                    </label>
                                     <button className="btn btn-xs btn-error btn-outline" onClick={() => removeRange(day, index)}>
-                                        Remove
+                                        Rimuovi
                                     </button>
                                 </div>
                             ))}
                             {(weeklySchedule[day] || []).length === 0 && (
-                                <p className="text-xs text-secondary/60">No ranges configured.</p>
+                                <p className="text-xs text-gray-500">Nessuna fascia configurata.</p>
                             )}
                         </div>
                     </div>
                 ))}
 
                 <button className="btn btn-primary" onClick={saveSchedule} disabled={saving}>
-                    Save availability
+                    Salva disponibilità
                 </button>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-base-300 bg-base-100 p-4">
-                <p className="text-sm font-semibold">Blackout dates</p>
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-900">Periodi di indisponibilità</p>
                 <div className="grid gap-2 md:grid-cols-4">
-                    <input
-                        type="date"
-                        className="input input-bordered"
-                        value={newBlackout.startDate}
-                        onChange={(e) => setNewBlackout((prev) => ({ ...prev, startDate: e.target.value }))}
-                    />
-                    <input
-                        type="date"
-                        className="input input-bordered"
-                        value={newBlackout.endDate}
-                        onChange={(e) => setNewBlackout((prev) => ({ ...prev, endDate: e.target.value }))}
-                    />
-                    <input
-                        type="text"
-                        className="input input-bordered"
-                        placeholder="Reason (optional)"
-                        value={newBlackout.reason}
-                        onChange={(e) => setNewBlackout((prev) => ({ ...prev, reason: e.target.value }))}
-                    />
-                    <button className="btn btn-primary" onClick={createBlackout} disabled={saving}>
-                        Add blackout
-                    </button>
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Data inizio</span>
+                        <input
+                            type="date"
+                            className="input input-bordered bg-white"
+                            value={newBlackout.startDate}
+                            onChange={(e) => setNewBlackout((prev) => ({ ...prev, startDate: e.target.value }))}
+                        />
+                    </label>
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Data fine</span>
+                        <input
+                            type="date"
+                            className="input input-bordered bg-white"
+                            value={newBlackout.endDate}
+                            onChange={(e) => setNewBlackout((prev) => ({ ...prev, endDate: e.target.value }))}
+                        />
+                    </label>
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Motivo</span>
+                        <input
+                            type="text"
+                            className="input input-bordered bg-white"
+                            placeholder="Motivo (opzionale)"
+                            value={newBlackout.reason}
+                            onChange={(e) => setNewBlackout((prev) => ({ ...prev, reason: e.target.value }))}
+                        />
+                    </label>
+                    <div className="flex items-end">
+                        <button className="btn btn-primary w-full" onClick={createBlackout} disabled={saving}>
+                            Aggiungi indisponibilità
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
-                    {blackouts.length === 0 && <p className="text-sm text-secondary/70">No blackout dates yet.</p>}
+                    {blackouts.length === 0 && <p className="text-sm text-gray-600">Nessun periodo di indisponibilità.</p>}
                     {blackouts.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-base-300 px-3 py-2">
+                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
                             <div>
-                                <p className="text-sm font-medium">{item.start_date} - {item.end_date}</p>
-                                {item.reason && <p className="text-xs text-secondary/70">{item.reason}</p>}
+                                <p className="text-sm font-medium text-gray-900">{item.start_date} - {item.end_date}</p>
+                                {item.reason && <p className="text-xs text-gray-600">{item.reason}</p>}
                             </div>
                             <button className="btn btn-xs btn-error btn-outline" onClick={() => deleteBlackout(item.id)}>
-                                Delete
+                                Elimina
                             </button>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {message && <p className="text-sm text-secondary/80">{message}</p>}
+            {message && <p className="text-sm text-gray-600">{message}</p>}
         </section>
     )
 }

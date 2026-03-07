@@ -17,13 +17,11 @@ const effectiveSupabaseAnonKey = supabaseAnonKey || 'public-anon-key-placeholder
 export async function createServerClient() {
     const cookieStore = await cookies()
 
-    // Il nome del cookie generato dal client browser è sb-<project-ref>-auth-token
-    const projectRef = (supabaseUrl || '').match(/\/\/([^.]+)\./)?.[1] || ''
-    const storageKey = projectRef ? `sb-${projectRef}-auth-token` : 'sb-auth-token'
-
     return createClient(effectiveSupabaseUrl, effectiveSupabaseAnonKey, {
         auth: {
-            storageKey,
+            // Must match the hardcoded storageKey in supabase-browser.ts ('sb-auth-token')
+            // so Server Actions and Server Components can read the session cookie set by the browser.
+            storageKey: 'sb-auth-token',
             storage: {
                 getItem: (key: string) => {
                     return cookieStore.get(key)?.value ?? null

@@ -42,23 +42,27 @@ const userId = localStorage.getItem('currentUserId')  // NO!
 
 ### Fetch verso endpoint protetti (POST/PATCH/DELETE)
 
-Gli endpoint che verificano il JWT richiedono che i **cookies** siano inviati con la richiesta. Usare sempre `credentials: 'include'`:
+Gli endpoint che verificano il JWT richiedono l'**Authorization header** con il Bearer token.
+Il browser Supabase client salva i token in **localStorage**, non in cookie.
+Usare sempre `getAuthHeaders()` da `lib/auth-fetch.ts`:
 
 ```typescript
-// ✅ CORRETTO — invia i cookies con la sessione Supabase
+import { getAuthHeaders } from '@/lib/auth-fetch'
+
+// ✅ CORRETTO — invia il Bearer token con la sessione Supabase
 const res = await fetch('/api/messages', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'Content-Type': 'application/json',
+        ...(await getAuthHeaders()),
+    },
     body: JSON.stringify({ senderId, receiverId, text }),
 })
 
-// Prima di chiamare un endpoint protetto, verifica la sessione
-const { data: { session } } = await supabaseBrowser.auth.getSession()
-if (!session) {
-    router.push('/login')
-    return
-}
+// Per GET autenticate
+const authHeaders = await getAuthHeaders()
+const res = await fetch('/api/resource', { headers: authHeaders })
 ```
 
 Se il server risponde `401`, significa che la sessione è scaduta → redirect al login.

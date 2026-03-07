@@ -8,6 +8,7 @@ import {
     HomeIcon,
     UserGroupIcon,
     BuildingOfficeIcon,
+    BuildingOffice2Icon,
     BriefcaseIcon,
     ChatBubbleLeftRightIcon,
     UserCircleIcon,
@@ -88,6 +89,10 @@ export default function Navbar() {
                                 <BuildingOfficeIcon className="w-5 h-5" />
                                 <span className="mt-1">Società</span>
                             </Link>
+                            <Link href="/studios" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
+                                <BuildingOffice2Icon className="w-5 h-5" />
+                                <span className="mt-1">Studi</span>
+                            </Link>
                             <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BriefcaseIcon className="w-5 h-5" />
                                 <span className="mt-1">Opportunità</span>
@@ -125,6 +130,10 @@ export default function Navbar() {
                             <Link href="/clubs" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BuildingOfficeIcon className="w-5 h-5" />
                                 <span className="mt-1">Società</span>
+                            </Link>
+                            <Link href="/studios" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
+                                <BuildingOffice2Icon className="w-5 h-5" />
+                                <span className="mt-1">Studi</span>
                             </Link>
                             <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
                                 <BriefcaseIcon className="w-5 h-5" />

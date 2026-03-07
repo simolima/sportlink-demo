@@ -17,9 +17,13 @@ const effectiveSupabaseAnonKey = supabaseAnonKey || 'public-anon-key-placeholder
 export async function createServerClient() {
     const cookieStore = await cookies()
 
+    // Il nome del cookie generato dal client browser è sb-<project-ref>-auth-token
+    const projectRef = (supabaseUrl || '').match(/\/\/([^.]+)\./)?.[1] || ''
+    const storageKey = projectRef ? `sb-${projectRef}-auth-token` : 'sb-auth-token'
+
     return createClient(effectiveSupabaseUrl, effectiveSupabaseAnonKey, {
         auth: {
-            storageKey: 'sb-auth-token',
+            storageKey,
             storage: {
                 getItem: (key: string) => {
                     return cookieStore.get(key)?.value ?? null
@@ -115,15 +119,21 @@ export function validateUserIdFromBody(body: any): { valid: false; error: any } 
  */
 export async function getUserIdFromAuthToken(req: Request): Promise<string | null> {
     try {
-        const client = await createServerClient()
-        const { data: { user }, error } = await client.auth.getUser()
-
-        if (error || !user) {
-            console.log('Auth token invalid or expired:', error?.message)
-            return null
+        // 1. Try Authorization: Bearer <token> header (primary method)
+        const authHeader = req.headers.get('authorization')
+        if (authHeader?.startsWith('Bearer ')) {
+            const token = authHeader.slice(7)
+            const { data: { user }, error } = await supabaseServer.auth.getUser(token)
+            if (!error && user) return user.id
         }
 
-        return user.id
+        // 2. Fallback: cookie-based session (for future @supabase/ssr migration)
+        const client = await createServerClient()
+        const { data: { user }, error } = await client.auth.getUser()
+        if (!error && user) return user.id
+
+        console.log('Auth token invalid or expired')
+        return null
     } catch (err) {
         console.error('Error verifying auth token:', err)
         return null

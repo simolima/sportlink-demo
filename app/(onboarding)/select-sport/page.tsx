@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SUPPORTED_SPORTS, isMultiSportRole, mapRoleToDatabase } from '@/utils/roleHelpers'
+import { SportIcon } from '@/lib/sport-icons'
+import { Layers } from 'lucide-react'
 import { ROLE_TRANSLATIONS, ProfessionalRole } from '@/lib/types'
 import OnboardingHeader from '@/components/onboarding/OnboardingHeader'
 import { createUser } from '@/lib/services/auth-service'
@@ -361,10 +363,8 @@ export default function SelectSportPage() {
                                         : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <div className="text-4xl mb-3">
-                                        {sport === 'Calcio' && '⚽'}
-                                        {sport === 'Basket' && '🏀'}
-                                        {sport === 'Pallavolo' && '🏐'}
+                                    <div className="flex justify-center mb-3">
+                                        <SportIcon sport={sport} className="w-10 h-10 text-white/80" />
                                     </div>
                                     <div className="font-semibold text-white">{sport}</div>
                                 </button>
@@ -386,7 +386,9 @@ export default function SelectSportPage() {
                                         : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <div className="text-4xl mb-3">🌐</div>
+                                    <div className="flex justify-center mb-3">
+                                        <Layers className="w-10 h-10 text-white/80" />
+                                    </div>
                                     <div className="font-semibold text-white">Multi-sport</div>
                                     <div className="text-xs text-secondary mt-1">Lavoro su più discipline sportive</div>
                                 </button>

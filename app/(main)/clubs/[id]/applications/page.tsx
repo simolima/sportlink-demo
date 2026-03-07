@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { getSelectedClubStorageKey } from '@/lib/club-membership-scope'
 
 export default function ClubApplicationsRedirectPage() {
   const params = useParams()
@@ -11,6 +12,9 @@ export default function ClubApplicationsRedirectPage() {
   useEffect(() => {
     // Preserve the selected club for the unified applications page
     if (clubId) {
+      const activeRole = localStorage.getItem('currentUserRole')
+      const selectedClubStorageKey = getSelectedClubStorageKey(activeRole)
+      localStorage.setItem(selectedClubStorageKey, clubId)
       localStorage.setItem('selectedClubId', clubId)
     }
     router.replace('/club-applications')

@@ -13,6 +13,11 @@ import {
     MyAnnouncementsWidget
 } from '@/components/dashboard-widgets'
 import ClubJoinRequestsWidget from '@/components/dashboard-widgets/club-join-requests-widget'
+import {
+    getSelectedClubStorageKey,
+    isClubAdminProfessionalRole,
+    membershipMatchesActiveProfessionalRole,
+} from '@/lib/club-membership-scope'
 
 // Ruoli che vedono la dashboard Player (valori dal DB: lowercase con underscore)
 const PLAYER_ROLES = ['player']
@@ -74,7 +79,7 @@ export default function HomePage() {
             setUserId(id)
             setUserRole(role)
             setUserName(name)
-            if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id)
+            if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id, role)
             else setLoading(false)
             return
         }
@@ -97,7 +102,7 @@ export default function HomePage() {
                     setUserRole(localStorage.getItem('currentUserRole') || '')
                     setUserName(localStorage.getItem('currentUserName') || name)
                     const fetchedRole = localStorage.getItem('currentUserRole') || ''
-                    if (CLUB_ADMIN_ROLES.includes(fetchedRole)) checkClubAdmin(id)
+                    if (CLUB_ADMIN_ROLES.includes(fetchedRole)) checkClubAdmin(id, fetchedRole)
                     else setLoading(false)
                 }
             })
@@ -109,7 +114,7 @@ export default function HomePage() {
         setUserName(name)
 
         // Verifica club admin solo per ruoli pertinenti
-        if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id)
+        if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id, role)
         else setLoading(false)
     }, [router])
 
@@ -165,12 +170,22 @@ export default function HomePage() {
         }
     }
 
-    const checkClubAdmin = async (id: string) => {
+    const checkClubAdmin = async (id: string, activeRole: string) => {
         try {
-            const res = await fetch(`/api/club-memberships?userId=${id}`)
+            if (!isClubAdminProfessionalRole(activeRole)) {
+                setAdminClubs([])
+                setIsClubAdmin(false)
+                setSelectedClubId(null)
+                return
+            }
+
+            const selectedClubStorageKey = getSelectedClubStorageKey(activeRole)
+            const roleParam = encodeURIComponent(activeRole.toLowerCase())
+            const res = await fetch(`/api/club-memberships?userId=${id}&professionalRoleId=${roleParam}`)
             if (res.ok) {
                 const memberships = await res.json()
                 const adminMemberships = memberships.filter((m: any) =>
+                    membershipMatchesActiveProfessionalRole(m, activeRole) &&
                     (m.userId === id || m.userId === String(id)) && m.role === 'Admin' && m.isActive !== false
                 )
 
@@ -182,12 +197,17 @@ export default function HomePage() {
                 setAdminClubs(clubs)
                 setIsClubAdmin(clubs.length > 0)
 
-                // Restore last selection or default to first
-                const stored = typeof window !== 'undefined' ? localStorage.getItem('selectedClubId') : null
+                // Restore last selection for active role, fallback to legacy key
+                const stored = typeof window !== 'undefined'
+                    ? (localStorage.getItem(selectedClubStorageKey) || localStorage.getItem('selectedClubId'))
+                    : null
                 const fallbackId = stored && clubs.find((c: any) => c.id === stored) ? stored : (clubs[0]?.id || null)
                 setSelectedClubId(fallbackId)
                 if (fallbackId) {
+                    localStorage.setItem(selectedClubStorageKey, fallbackId)
                     localStorage.setItem('selectedClubId', fallbackId)
+                } else {
+                    localStorage.removeItem(selectedClubStorageKey)
                 }
             }
         } catch (error) {
@@ -211,6 +231,7 @@ export default function HomePage() {
     const isDS = DS_ROLES.includes(userRole)
     const isStaff = STAFF_ROLES.includes(userRole)
     const isMedical = MEDICAL_ROLES.includes(userRole)
+    const selectedClubStorageKey = getSelectedClubStorageKey(userRole)
     // Mostra "Gestione Società" solo se il ruolo attivo è pertinente al club
     const showClubAdminSection = (isClubAdmin || isDS) && CLUB_ADMIN_ROLES.includes(userRole)
 
@@ -237,7 +258,7 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
                             <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} clubId={selectedClubId || undefined} />
+                            <YourClubWidget userId={userId!} clubId={selectedClubId || undefined} professionalRoleId={userRole} />
                         </div>
                     </div>
                 )}
@@ -270,7 +291,10 @@ export default function HomePage() {
                                     onChange={(e) => {
                                         const value = e.target.value || null
                                         setSelectedClubId(value)
-                                        if (value) localStorage.setItem('selectedClubId', value)
+                                        if (value) {
+                                            localStorage.setItem(selectedClubStorageKey, value)
+                                            localStorage.setItem('selectedClubId', value)
+                                        }
                                     }}
                                     className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm"
                                 >
@@ -287,7 +311,7 @@ export default function HomePage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <YourClubWidget userId={userId!} clubId={selectedClubId} />
+                                <YourClubWidget userId={userId!} clubId={selectedClubId} professionalRoleId={userRole} />
                                 <ReceivedApplicationsWidget userId={userId!} clubId={selectedClubId} />
                                 <MyAnnouncementsWidget userId={userId!} clubId={selectedClubId} />
                                 <ClubJoinRequestsWidget clubId={selectedClubId} />
@@ -306,7 +330,7 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
                             <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} />
+                            <YourClubWidget userId={userId!} professionalRoleId={userRole} />
                         </div>
                     </div>
                 )}

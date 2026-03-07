@@ -15,6 +15,8 @@ import {
 import Avatar from '@/components/avatar'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { switchActiveRole } from '@/app/actions/role-actions'
+import { getAuthHeaders } from '@/lib/auth-fetch'
+import { syncLegacySelectedClubIdForRole } from '@/lib/club-membership-scope'
 import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 
 interface ProfileRole {
@@ -52,10 +54,15 @@ export default function ProfileDropdown() {
     // Fetch dei ruoli disponibili dall'API
     useEffect(() => {
         if (!user?.id) return
-        fetch(`/api/users/roles?userId=${user.id}`)
-            .then(res => res.ok ? res.json() : [])
-            .then((data: ProfileRole[]) => setRoles(data))
-            .catch(() => { })
+
+            ; (async () => {
+                const authHeaders = await getAuthHeaders()
+                const response = await fetch(`/api/users/roles?userId=${user.id}`, {
+                    headers: authHeaders,
+                })
+                const data = response.ok ? await response.json() : []
+                setRoles(data as ProfileRole[])
+            })().catch(() => { })
     }, [user?.id])
 
     if (!user) return null
@@ -69,8 +76,13 @@ export default function ProfileDropdown() {
     function handleSwitchRole(roleId: string) {
         startTransition(async () => {
             try {
-                await switchActiveRole(roleId as ProfessionalRole)
+                const authHeaders = await getAuthHeaders()
+                const bearer = authHeaders.Authorization || (authHeaders as any).authorization
+                const authToken = bearer?.startsWith('Bearer ') ? bearer.slice(7) : undefined
+
+                await switchActiveRole(roleId as ProfessionalRole, authToken)
                 localStorage.setItem('currentUserRole', roleId)
+                syncLegacySelectedClubIdForRole(roleId)
                 setOpen(false)
                 // Naviga a /home per aggiornare il contesto completo
                 window.location.href = '/home'

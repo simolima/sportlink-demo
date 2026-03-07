@@ -21,7 +21,14 @@ currentUserEmail
 currentUserName
 currentUserRole      — "player" | "coach" | "agent" | ...
 currentUserSports    — JSON array di sport
+selectedClubId:<role> — club selezionato scoped per ruolo attivo (es. selectedClubId:coach)
 ```
+
+### Club context scoped per ruolo (Home)
+
+- In Home/Club widgets, il contesto club deve essere filtrato per `professionalRoleId`.
+- Non usare una singola chiave globale `selectedClubId` come fonte primaria quando l'utente ha profili multipli.
+- La chiave globale `selectedClubId` resta solo come fallback compatibilità legacy.
 
 ### Regola: Nei Nuovi Componenti
 

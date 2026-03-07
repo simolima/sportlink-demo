@@ -98,17 +98,47 @@ Le API route che eseguono **operazioni di scrittura** (POST/PATCH/DELETE) per co
 ### Funzione `getUserIdFromAuthToken()` — `lib/supabase-server.ts`
 
 ```typescript
-// Estrae e verifica l'utente autenticato dal JWT in cookies
+// Estrae e verifica l'utente autenticato dal JWT
+// 1. Legge il token dall'header Authorization: Bearer <token> (metodo primario)
+// 2. Fallback: tenta session via cookies (per futura migrazione @supabase/ssr)
 export async function getUserIdFromAuthToken(req: Request): Promise<string | null> {
     try {
+        const authHeader = req.headers.get('authorization')
+        if (authHeader?.startsWith('Bearer ')) {
+            const token = authHeader.slice(7)
+            const { data: { user }, error } = await supabaseServer.auth.getUser(token)
+            if (!error && user) return user.id
+        }
+        // Fallback cookie-based
         const client = await createServerClient()
         const { data: { user }, error } = await client.auth.getUser()
-        if (error || !user) return null
-        return user.id
+        if (!error && user) return user.id
+        return null
     } catch {
         return null
     }
 }
+```
+
+### Client-side: `getAuthHeaders()` — `lib/auth-fetch.ts`
+
+Il browser Supabase client salva i token in **localStorage** (default), non in cookie.
+Per inviare il token al server, usare `getAuthHeaders()` che legge la sessione corrente:
+
+```typescript
+import { getAuthHeaders } from '@/lib/auth-fetch'
+
+// GET autenticata
+const authHeaders = await getAuthHeaders()
+const res = await fetch('/api/resource', { headers: authHeaders })
+
+// POST/PUT/PATCH autenticata
+const res = await fetch('/api/resource', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+    body: JSON.stringify(payload),
+})
 ```
 
 ### Pattern da seguire nelle route protette

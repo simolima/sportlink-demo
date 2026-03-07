@@ -25,6 +25,7 @@
 - **react-hook-form** + **zod** + **@hookform/resolvers** — per form e validazione (zodResolver disponibile)
 - **framer-motion** — installato come dipendenza di produzione (animazioni)
 - **clsx** — utility per classi condizionali
+- **FullCalendar v6** (`@fullcalendar/react`, `@fullcalendar/core`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction`) — usato nella dashboard studio per vista mese/settimana/giorno
 
 ## Icone — Sistema Ibrido
 

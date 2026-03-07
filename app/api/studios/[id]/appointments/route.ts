@@ -3,6 +3,59 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supabase-server'
+import { validateBookingSlot } from '@/lib/booking-engine'
+import { createEvent } from '@/lib/google-calendar-service'
+import { createNotification } from '@/lib/notifications-repository'
+import { dispatchToUser } from '@/lib/notification-dispatcher'
+
+async function getSelectedCalendarId(studioId: string): Promise<string | null> {
+    const { data: connection } = await supabase
+        .from('google_calendar_connections')
+        .select('selected_calendar_id')
+        .eq('professional_studio_id', studioId)
+        .is('deleted_at', null)
+        .single()
+
+    return connection?.selected_calendar_id || null
+}
+
+async function trySyncAppointmentToGoogle(input: {
+    studioId: string
+    appointmentId: string
+    startTime: string
+    endTime: string
+    serviceType?: string | null
+    clientName?: string | null
+    notes?: string | null
+}) {
+    try {
+        const selectedCalendarId = await getSelectedCalendarId(input.studioId)
+        if (!selectedCalendarId) {
+            return
+        }
+
+        const googleEventId = await createEvent(input.studioId, selectedCalendarId, {
+            summary: input.serviceType || 'Prenotazione Sprinta',
+            description: `Prenotazione da Sprinta${input.clientName ? `\nCliente: ${input.clientName}` : ''}${input.notes ? `\nNote: ${input.notes}` : ''}`,
+            start: input.startTime,
+            end: input.endTime,
+        })
+
+        await supabase
+            .from('studio_appointments')
+            .update({
+                google_event_id: googleEventId,
+                google_sync_status: 'synced',
+            })
+            .eq('id', input.appointmentId)
+    } catch (error: any) {
+        console.error('Failed to sync appointment to Google Calendar:', error)
+        await supabase
+            .from('studio_appointments')
+            .update({ google_sync_status: 'sync_failed' })
+            .eq('id', input.appointmentId)
+    }
+}
 
 export async function OPTIONS() {
     return handleOptions()
@@ -60,6 +113,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             endTime: a.end_time,
             status: a.status,
             serviceType: a.service_type,
+            appointmentTypeId: a.appointment_type_id,
+            googleEventId: a.google_event_id,
+            googleSyncStatus: a.google_sync_status,
             notes: a.notes,
             isExternalBlocker: a.is_external_blocker,
             createdAt: a.created_at,
@@ -97,11 +153,42 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         }
 
         const body = await req.json()
-        const { startTime, endTime, serviceType, notes } = body
+        const { startTime, endTime, serviceType, notes, appointmentTypeId } = body
 
         if (!startTime || !endTime) {
             return withCors(NextResponse.json({ error: 'startTime and endTime are required' }, { status: 400 }))
         }
+
+        const slotIsValid = await validateBookingSlot(params.id, startTime, endTime)
+        if (!slotIsValid) {
+            return withCors(NextResponse.json({ error: 'slot_not_available' }, { status: 409 }))
+        }
+
+        let resolvedServiceType = serviceType || null
+        if (appointmentTypeId) {
+            const { data: appointmentType } = await supabase
+                .from('studio_appointment_types')
+                .select('id, name')
+                .eq('id', appointmentTypeId)
+                .eq('professional_studio_id', params.id)
+                .is('deleted_at', null)
+                .eq('is_active', true)
+                .single()
+
+            if (!appointmentType) {
+                return withCors(NextResponse.json({ error: 'appointment_type_not_found' }, { status: 400 }))
+            }
+
+            resolvedServiceType = appointmentType.name
+        }
+
+        const { data: clientProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', authenticatedUserId)
+            .single()
+
+        const clientName = [clientProfile?.first_name, clientProfile?.last_name].filter(Boolean).join(' ').trim() || 'Utente'
 
         const { data: appointment, error } = await supabase
             .from('studio_appointments')
@@ -112,7 +199,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 start_time: startTime,
                 end_time: endTime,
                 status: 'pending',
-                service_type: serviceType || null,
+                service_type: resolvedServiceType,
+                appointment_type_id: appointmentTypeId || null,
                 notes: notes || null,
                 is_external_blocker: false,
             })
@@ -130,6 +218,36 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 status: 'pending',
             }, { onConflict: 'studio_id,client_profile_id' })
 
+        await trySyncAppointmentToGoogle({
+            studioId: params.id,
+            appointmentId: appointment.id,
+            startTime: appointment.start_time,
+            endTime: appointment.end_time,
+            serviceType: appointment.service_type,
+            clientName,
+            notes: appointment.notes,
+        })
+
+        if (String(studio.owner_id) !== String(authenticatedUserId)) {
+            const ownerNotification = await createNotification({
+                userId: studio.owner_id,
+                type: 'studio_booking_request',
+                title: 'Nuova prenotazione',
+                message: `${clientName} ha richiesto una prenotazione${resolvedServiceType ? ` per ${resolvedServiceType}` : ''}`,
+                metadata: { studioId: params.id, appointmentId: appointment.id },
+            })
+            if (ownerNotification) dispatchToUser(studio.owner_id, ownerNotification)
+        }
+
+        const clientNotification = await createNotification({
+            userId: authenticatedUserId,
+            type: 'studio_booking_created',
+            title: 'Prenotazione inviata',
+            message: `La tua prenotazione${resolvedServiceType ? ` per ${resolvedServiceType}` : ''} è stata inviata con stato ${appointment.status}`,
+            metadata: { studioId: params.id, appointmentId: appointment.id },
+        })
+        if (clientNotification) dispatchToUser(authenticatedUserId, clientNotification)
+
         return withCors(NextResponse.json({
             id: appointment.id,
             studioId: appointment.studio_id,
@@ -139,6 +257,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             endTime: appointment.end_time,
             status: appointment.status,
             serviceType: appointment.service_type,
+            appointmentTypeId: appointment.appointment_type_id,
             notes: appointment.notes,
             isExternalBlocker: appointment.is_external_blocker,
             createdAt: appointment.created_at,

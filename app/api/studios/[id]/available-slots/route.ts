@@ -28,18 +28,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         const url = new URL(req.url)
         const date = url.searchParams.get('date')
         const appointmentTypeId = url.searchParams.get('appointmentTypeId')
+        const daysAheadParam = url.searchParams.get('daysAhead')
+        const daysAhead = Math.max(1, Math.min(60, Number(daysAheadParam || '14')))
 
         // 1. Validation
-        if (!date) {
-            return withCors(NextResponse.json({ error: 'date_required' }, { status: 400 }))
-        }
-
         if (!appointmentTypeId) {
             return withCors(NextResponse.json({ error: 'appointment_type_id_required' }, { status: 400 }))
         }
 
-        // Validate date format (YYYY-MM-DD)
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        // Validate date format (YYYY-MM-DD) if provided
+        if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
             return withCors(NextResponse.json({ error: 'invalid_date_format' }, { status: 400 }))
         }
 
@@ -64,15 +62,44 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             )
         }
 
-        // 3. Compute available slots
-        const availableSlots = await computeAvailableSlots(studioId, appointmentTypeId, date)
+        // 3. Compute available slots (single date or multi-day search)
+        if (date) {
+            const availableSlots = await computeAvailableSlots(studioId, appointmentTypeId, date)
+            return withCors(
+                NextResponse.json({
+                    date,
+                    appointmentTypeId,
+                    slots: availableSlots,
+                    count: availableSlots.length,
+                })
+            )
+        }
+
+        const byDay: Record<string, any[]> = {}
+        let firstAvailable: { date: string; slot: any } | null = null
+
+        for (let i = 0; i < daysAhead; i++) {
+            const targetDate = new Date()
+            targetDate.setDate(targetDate.getDate() + i)
+            const dateIso = targetDate.toISOString().slice(0, 10)
+
+            const daySlots = await computeAvailableSlots(studioId, appointmentTypeId, dateIso)
+            byDay[dateIso] = daySlots
+
+            if (!firstAvailable && daySlots.length > 0) {
+                firstAvailable = {
+                    date: dateIso,
+                    slot: daySlots[0],
+                }
+            }
+        }
 
         return withCors(
             NextResponse.json({
-                date,
                 appointmentTypeId,
-                slots: availableSlots,
-                count: availableSlots.length,
+                daysAhead,
+                firstAvailable,
+                byDay,
             })
         )
     } catch (error: any) {

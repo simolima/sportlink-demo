@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getAuthHeaders } from '@/lib/auth-fetch'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import type { DateSelectArg } from '@fullcalendar/core'
+import type { EventInput } from '@fullcalendar/core/index.js'
 
 type CalendarItem = {
     id: string
@@ -17,6 +23,11 @@ type ConnectionStatus = {
     watchChannelExpires: string | null
 }
 
+type CalendarEvent = EventInput & {
+    type?: 'appointment' | 'external' | 'blocker'
+    status?: string
+}
+
 export default function StudioDashboardCalendarPage() {
     const params = useParams()
     const searchParams = useSearchParams()
@@ -28,6 +39,30 @@ export default function StudioDashboardCalendarPage() {
     const [loading, setLoading] = useState(true)
     const [working, setWorking] = useState(false)
     const [message, setMessage] = useState('')
+    const [events, setEvents] = useState<CalendarEvent[]>([])
+    const [eventsLoading, setEventsLoading] = useState(false)
+
+    const loadCalendarEvents = async () => {
+        setEventsLoading(true)
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/studios/${studioId}/calendar-events`, {
+                credentials: 'include',
+                headers: authHeaders,
+            })
+
+            if (!res.ok) {
+                const error = await res.json()
+                setMessage(error.error || 'Errore nel caricamento eventi calendario')
+                return
+            }
+
+            const data = await res.json()
+            setEvents(data.events || [])
+        } finally {
+            setEventsLoading(false)
+        }
+    }
 
     useEffect(() => {
         async function loadStatus() {
@@ -46,6 +81,7 @@ export default function StudioDashboardCalendarPage() {
         }
 
         loadStatus()
+        loadCalendarEvents()
     }, [studioId])
 
     useEffect(() => {
@@ -152,6 +188,44 @@ export default function StudioDashboardCalendarPage() {
                 return
             }
             setMessage(`Sincronizzazione completata: +${data.result.added} ~${data.result.updated} -${data.result.deleted}`)
+            await loadCalendarEvents()
+        } finally {
+            setWorking(false)
+        }
+    }
+
+    const handleCreateManualBlocker = async (selection: DateSelectArg) => {
+        const confirmed = confirm('Vuoi marcare questo slot come "Occupato personale"?')
+        if (!confirmed) {
+            return
+        }
+
+        setWorking(true)
+        setMessage('')
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/studios/${studioId}/external-blockers`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    startTime: selection.startStr,
+                    endTime: selection.endStr,
+                    summary: 'Occupato personale',
+                }),
+            })
+
+            const data = await res.json()
+            if (!res.ok) {
+                setMessage(data.error || 'Impossibile creare il blocco orario')
+                return
+            }
+
+            setMessage('Slot marcato come occupato personale.')
+            await loadCalendarEvents()
         } finally {
             setWorking(false)
         }
@@ -254,6 +328,41 @@ export default function StudioDashboardCalendarPage() {
                     {message}
                 </div>
             )}
+
+            <div className="rounded-xl border border-gray-200 bg-white p-2">
+                <div className="mb-3 flex items-center justify-between px-2">
+                    <p className="text-sm text-gray-600">
+                        Vista unificata appuntamenti e impegni esterni. Seleziona uno slot per marcarlo come occupato personale.
+                    </p>
+                    {eventsLoading && <span className="text-xs text-gray-500">Aggiornamento...</span>}
+                </div>
+
+                <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    initialView="timeGridWeek"
+                    headerToolbar={{
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    }}
+                    buttonText={{
+                        today: 'Oggi',
+                        month: 'Mese',
+                        week: 'Settimana',
+                        day: 'Giorno',
+                    }}
+                    locale="it"
+                    selectable
+                    selectMirror
+                    select={handleCreateManualBlocker}
+                    slotMinTime="06:00:00"
+                    slotMaxTime="23:00:00"
+                    allDaySlot={false}
+                    eventTimeFormat={{ hour: '2-digit', minute: '2-digit', meridiem: false }}
+                    events={events}
+                    height="auto"
+                />
+            </div>
         </section>
     )
 }

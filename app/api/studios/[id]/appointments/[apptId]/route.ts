@@ -3,6 +3,18 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supabase-server'
+import { deleteEvent } from '@/lib/google-calendar-service'
+
+async function getSelectedCalendarId(studioId: string): Promise<string | null> {
+    const { data: connection } = await supabase
+        .from('google_calendar_connections')
+        .select('selected_calendar_id')
+        .eq('professional_studio_id', studioId)
+        .is('deleted_at', null)
+        .single()
+
+    return connection?.selected_calendar_id || null
+}
 
 export async function OPTIONS() {
     return handleOptions()
@@ -23,7 +35,7 @@ export async function PATCH(
 
         const { data: appointment } = await supabase
             .from('studio_appointments')
-            .select('id, client_id, professional_id, studio_id, status')
+            .select('id, client_id, professional_id, studio_id, status, google_event_id')
             .eq('id', params.apptId)
             .eq('studio_id', params.id)
             .is('deleted_at', null)
@@ -65,6 +77,17 @@ export async function PATCH(
 
         if (error) throw error
 
+        if (status === 'cancelled' && appointment.google_event_id) {
+            try {
+                const selectedCalendarId = await getSelectedCalendarId(params.id)
+                if (selectedCalendarId) {
+                    await deleteEvent(params.id, selectedCalendarId, appointment.google_event_id)
+                }
+            } catch (syncError) {
+                console.error('Failed to delete Google event on cancellation:', syncError)
+            }
+        }
+
         return withCors(NextResponse.json({
             id: updated.id,
             studioId: updated.studio_id,
@@ -74,6 +97,7 @@ export async function PATCH(
             endTime: updated.end_time,
             status: updated.status,
             serviceType: updated.service_type,
+            appointmentTypeId: updated.appointment_type_id,
             notes: updated.notes,
             updatedAt: updated.updated_at,
         }))
@@ -95,7 +119,7 @@ export async function DELETE(
 
         const { data: appointment } = await supabase
             .from('studio_appointments')
-            .select('professional_id, studio_id')
+            .select('professional_id, studio_id, google_event_id')
             .eq('id', params.apptId)
             .eq('studio_id', params.id)
             .is('deleted_at', null)
@@ -114,6 +138,17 @@ export async function DELETE(
             .eq('id', params.apptId)
 
         if (error) throw error
+
+        if (appointment.google_event_id) {
+            try {
+                const selectedCalendarId = await getSelectedCalendarId(params.id)
+                if (selectedCalendarId) {
+                    await deleteEvent(params.id, selectedCalendarId, appointment.google_event_id)
+                }
+            } catch (syncError) {
+                console.error('Failed to delete Google event on appointment delete:', syncError)
+            }
+        }
 
         return withCors(NextResponse.json({ success: true }))
     } catch (err: any) {

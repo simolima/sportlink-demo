@@ -20,6 +20,19 @@ import StudioLocationContact from '@/components/studio-public/StudioLocationCont
 import StudioFaqSection from '@/components/studio-public/StudioFaqSection'
 import StudioFinalCta from '@/components/studio-public/StudioFinalCta'
 
+type AppointmentTypeOption = {
+    id: string
+    name: string
+    durationMinutes: number
+    bufferBeforeMinutes?: number
+    bufferAfterMinutes?: number
+}
+
+type AvailableSlot = {
+    startTime: string
+    endTime: string
+}
+
 export default function StudioDetailPage() {
     const params = useParams()
     const router = useRouter()
@@ -37,9 +50,15 @@ export default function StudioDetailPage() {
         startTime: '',
         endTime: '',
         serviceType: '',
+        appointmentTypeId: '',
+        selectedDate: '',
         notes: '',
     })
     const [bookingLoading, setBookingLoading] = useState(false)
+    const [appointmentTypes, setAppointmentTypes] = useState<AppointmentTypeOption[]>([])
+    const [availableByDay, setAvailableByDay] = useState<Record<string, AvailableSlot[]>>({})
+    const [slotsLoading, setSlotsLoading] = useState(false)
+    const [firstAvailableLabel, setFirstAvailableLabel] = useState('')
 
     useEffect(() => {
         fetch(`/api/studios/${studioId}`)
@@ -81,12 +100,83 @@ export default function StudioDetailPage() {
             }
             showToast('success', 'Prenotazione inviata!', 'Attendi la conferma del professionista')
             setShowBookingForm(false)
-            setBookingData({ startTime: '', endTime: '', serviceType: '', notes: '' })
+            setBookingData({ startTime: '', endTime: '', serviceType: '', appointmentTypeId: '', selectedDate: '', notes: '' })
+            setAvailableByDay({})
+            setFirstAvailableLabel('')
         } catch {
             showToast('error', 'Errore', 'Si è verificato un errore imprevisto')
         } finally {
             setBookingLoading(false)
         }
+    }
+
+    const openBookingModal = async () => {
+        if (!user) {
+            router.push('/login')
+            return
+        }
+
+        setShowBookingForm(true)
+        setBookingData({ startTime: '', endTime: '', serviceType: '', appointmentTypeId: '', selectedDate: '', notes: '' })
+        setAvailableByDay({})
+        setFirstAvailableLabel('')
+
+        try {
+            const res = await fetch(`/api/studios/${studioId}/appointment-types`)
+            if (!res.ok) return
+            const data = await res.json()
+            const mapped = (data || []).map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                durationMinutes: item.duration_minutes,
+                bufferBeforeMinutes: item.buffer_before_minutes,
+                bufferAfterMinutes: item.buffer_after_minutes,
+            }))
+            setAppointmentTypes(mapped)
+        } catch {
+            setAppointmentTypes([])
+        }
+    }
+
+    const loadSlotsForAppointmentType = async (appointmentTypeId: string) => {
+        if (!appointmentTypeId) {
+            setAvailableByDay({})
+            setFirstAvailableLabel('')
+            return
+        }
+
+        setSlotsLoading(true)
+        try {
+            const res = await fetch(`/api/studios/${studioId}/available-slots?appointmentTypeId=${appointmentTypeId}&daysAhead=14`)
+            const data = await res.json()
+            if (!res.ok) {
+                showToast('error', 'Slot non disponibili', data.error || 'Impossibile caricare gli slot')
+                setAvailableByDay({})
+                setFirstAvailableLabel('')
+                return
+            }
+
+            setAvailableByDay(data.byDay || {})
+
+            if (data.firstAvailable?.date && data.firstAvailable?.slot?.startTime) {
+                setFirstAvailableLabel(`${data.firstAvailable.date} alle ${data.firstAvailable.slot.startTime}`)
+            } else {
+                setFirstAvailableLabel('')
+            }
+        } finally {
+            setSlotsLoading(false)
+        }
+    }
+
+    const handleSelectSlot = (date: string, slot: AvailableSlot) => {
+        const start = `${date}T${slot.startTime}:00`
+        const end = `${date}T${slot.endTime}:00`
+        setBookingData((prev) => ({
+            ...prev,
+            selectedDate: date,
+            startTime: start,
+            endTime: end,
+        }))
     }
 
     if (loading) {
@@ -163,7 +253,7 @@ export default function StudioDetailPage() {
             <StudioPublicHero
                 studio={studio}
                 mockData={mergedMockData}
-                onBookingClick={() => setShowBookingForm(true)}
+                onBookingClick={openBookingModal}
                 onCallClick={studio.phone ? () => window.location.href = `tel:${studio.phone}` : undefined}
                 isAuthenticated={!!user}
             />
@@ -193,7 +283,7 @@ export default function StudioDetailPage() {
             {mergedMockData && <StudioFaqSection mockData={mergedMockData} />}
 
             {/* Final CTA */}
-            <StudioFinalCta onBookingClick={() => setShowBookingForm(true)} />
+            <StudioFinalCta onBookingClick={openBookingModal} />
 
             {/* Modal prenotazione */}
             {showBookingForm && (
@@ -202,48 +292,77 @@ export default function StudioDetailPage() {
                         <h2 className="text-xl font-bold text-gray-900 mb-4">Prenota una visita</h2>
                         <form onSubmit={handleBook} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Data e ora inizio <span className="text-red-500">*</span></label>
-                                <input
-                                    type="datetime-local"
-                                    value={bookingData.startTime}
-                                    onChange={e => setBookingData(p => ({ ...p, startTime: e.target.value }))}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Data e ora fine <span className="text-red-500">*</span></label>
-                                <input
-                                    type="datetime-local"
-                                    value={bookingData.endTime}
-                                    onChange={e => setBookingData(p => ({ ...p, endTime: e.target.value }))}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo di servizio</label>
-                                {studio.servicesOffered.length > 0 ? (
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Servizio <span className="text-red-500">*</span></label>
+                                {appointmentTypes.length > 0 ? (
                                     <select
-                                        value={bookingData.serviceType}
-                                        onChange={e => setBookingData(p => ({ ...p, serviceType: e.target.value }))}
+                                        value={bookingData.appointmentTypeId}
+                                        onChange={(e) => {
+                                            const selectedId = e.target.value
+                                            const selectedType = appointmentTypes.find(t => t.id === selectedId)
+                                            setBookingData(p => ({
+                                                ...p,
+                                                appointmentTypeId: selectedId,
+                                                serviceType: selectedType?.name || '',
+                                                startTime: '',
+                                                endTime: '',
+                                                selectedDate: '',
+                                            }))
+                                            loadSlotsForAppointmentType(selectedId)
+                                        }}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
+                                        required
                                     >
                                         <option value="">Seleziona servizio...</option>
-                                        {studio.servicesOffered.map((s, i) => (
-                                            <option key={i} value={s}>{s}</option>
+                                        {appointmentTypes.map((type) => (
+                                            <option key={type.id} value={type.id}>{type.name} - {type.durationMinutes} min</option>
                                         ))}
                                     </select>
                                 ) : (
-                                    <input
-                                        type="text"
-                                        value={bookingData.serviceType}
-                                        onChange={e => setBookingData(p => ({ ...p, serviceType: e.target.value }))}
-                                        placeholder="Es: Fisioterapia, Consulenza..."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
-                                    />
+                                    <p className="text-sm text-gray-500">Nessun servizio disponibile al momento.</p>
                                 )}
                             </div>
+
+                            {bookingData.appointmentTypeId && (
+                                <div className="space-y-2 rounded-lg border border-gray-200 p-3">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-semibold text-gray-800">Slot disponibili (14 giorni)</p>
+                                        {slotsLoading && <span className="text-xs text-gray-500">Caricamento...</span>}
+                                    </div>
+                                    {firstAvailableLabel && (
+                                        <p className="text-xs text-brand-700">Prima disponibilità: {firstAvailableLabel}</p>
+                                    )}
+                                    <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                                        {Object.entries(availableByDay).map(([date, slots]) => (
+                                            <div key={date}>
+                                                <p className="text-xs font-semibold text-gray-600 mb-1">{date}</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {slots.length === 0 ? (
+                                                        <span className="text-xs text-gray-400">Nessuno slot</span>
+                                                    ) : slots.map((slot, index) => {
+                                                        const isSelected = bookingData.selectedDate === date && bookingData.startTime.endsWith(`${slot.startTime}:00`)
+                                                        return (
+                                                            <button
+                                                                key={`${date}-${slot.startTime}-${index}`}
+                                                                type="button"
+                                                                onClick={() => handleSelectSlot(date, slot)}
+                                                                className={`px-2 py-1 rounded-md text-xs border transition ${isSelected
+                                                                    ? 'bg-brand-600 border-brand-600 text-white'
+                                                                    : 'border-gray-300 text-gray-700 hover:border-brand-500 hover:text-brand-700'}`}
+                                                            >
+                                                                {slot.startTime}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {Object.keys(availableByDay).length === 0 && !slotsLoading && (
+                                            <p className="text-xs text-gray-500">Seleziona un servizio per vedere gli slot.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
                                 <textarea
@@ -264,7 +383,7 @@ export default function StudioDetailPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={bookingLoading}
+                                    disabled={bookingLoading || !bookingData.startTime || !bookingData.endTime || !bookingData.appointmentTypeId}
                                     className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-semibold disabled:opacity-60"
                                 >
                                     {bookingLoading ? 'Invio...' : 'Invia richiesta'}

@@ -83,7 +83,7 @@ if (!prefs || prefs.some_type_enabled) {
 lookup_roles          — 8 ruoli applicativi (id text PK, label, capability flags)
                         values: 'player','coach','agent','sporting_director',
                                 'athletic_trainer','nutritionist','physio','talent_scout'
-lookup_sports         — Sport (id bigint, name unique): Calcio, Basket, Volley
+lookup_sports         — Sport (id bigint, name unique): Calcio, Basket, Volley, Multi-sport
 lookup_levels         — Livelli competizione (id bigint, name, rank_order)
 lookup_positions      — Posizioni per sport+ruolo (id bigint, sport_id FK, role_id FK, name)
 

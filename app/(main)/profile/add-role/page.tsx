@@ -51,6 +51,7 @@ const SPORT_EMOJI: Record<string, string> = {
     Calcio: '⚽',
     Basket: '🏀',
     Pallavolo: '🏐',
+    'Multi-sport': '🌐',
 }
 
 /** Ruoli che hanno posizioni in lookup_positions */
@@ -136,10 +137,17 @@ export default function AddRolePage() {
     const availableRoles = PROFESSIONAL_ROLES.filter(r => !existingRoles.includes(r))
 
     function handleSelectSport(sport: string) {
+        if (sport === 'Multi-sport') {
+            setSelectedSports(['Multi-sport'])
+            return
+        }
         if (selectedRole && isMultiSportRole(selectedRole)) {
-            setSelectedSports(prev =>
-                prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]
-            )
+            setSelectedSports(prev => {
+                const withoutMulti = prev.filter(s => s !== 'Multi-sport')
+                return withoutMulti.includes(sport)
+                    ? withoutMulti.filter(s => s !== sport)
+                    : [...withoutMulti, sport]
+            })
         } else {
             setSelectedSports([sport])
         }
@@ -380,6 +388,29 @@ export default function AddRolePage() {
                                             )
                                         })}
                                     </div>
+
+                                    {/* Opzione Multi-sport (non disponibile per player e coach) */}
+                                    {selectedRole && isMultiSportRole(selectedRole) && (
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="flex items-center gap-3 w-full">
+                                                <div className="flex-1 h-px bg-base-300" />
+                                                <span className="text-sm text-secondary px-2">Oppure:</span>
+                                                <div className="flex-1 h-px bg-base-300" />
+                                            </div>
+                                            <button
+                                                onClick={() => handleSelectSport('Multi-sport')}
+                                                disabled={saving}
+                                                className={`w-full p-6 rounded-xl border-2 transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selectedSports.includes('Multi-sport')
+                                                    ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                    : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                    }`}
+                                            >
+                                                <div className="text-4xl mb-3">🌐</div>
+                                                <div className="font-semibold text-white">Multi-sport</div>
+                                                <div className="text-xs text-secondary mt-1">Lavoro su più discipline sportive</div>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

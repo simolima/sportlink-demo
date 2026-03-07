@@ -20,7 +20,14 @@ import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 interface ProfileRole {
     role_id: string
     is_primary: boolean
-    sport_name?: string | null
+    sport_names?: string[]
+}
+
+/** Format sport list for display in the dropdown row */
+function formatSports(names: string[] | undefined): string {
+    if (!names || names.length === 0) return ''
+    if (names.length <= 2) return names.join(', ')
+    return `${names.length} sport`
 }
 
 export default function ProfileDropdown() {
@@ -56,7 +63,7 @@ export default function ProfileDropdown() {
     const currentRole = user.professionalRole?.toLowerCase() as ProfessionalRole
     const currentRoleEntry = roles.find(r => r.role_id === currentRole)
     const currentRoleLabel = ROLE_TRANSLATIONS[currentRole] ?? currentRole
-    const currentSportLabel = currentRoleEntry?.sport_name ?? null
+    const currentSportLabel = formatSports(currentRoleEntry?.sport_names)
     const otherRoles = roles.filter(r => r.role_id !== currentRole)
 
     function handleSwitchRole(roleId: string) {
@@ -152,8 +159,8 @@ export default function ProfileDropdown() {
                                         )}
                                         <span className="truncate">
                                             {label}
-                                            {r.sport_name && (
-                                                <span className={isActive ? 'text-brand-500' : 'text-gray-400'}> · {r.sport_name}</span>
+                                            {formatSports(r.sport_names) && (
+                                                <span className={isActive ? 'text-brand-500' : 'text-gray-400'}> · {formatSports(r.sport_names)}</span>
                                             )}
                                         </span>
                                         {isPending && !isActive && (

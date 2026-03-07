@@ -31,14 +31,18 @@ export async function GET(req: Request) {
                 .eq('user_id', userId)
                 .is('deleted_at', null)
 
-            const sportByRole: Record<string, string> = {}
+            const sportsByRole: Record<string, string[]> = {}
             if (sportRows) {
-                for (const row of sportRows) {
+                // Sort so is_main_sport comes first, then push all sport names per role
+                const sorted = [...sportRows].sort((a, b) =>
+                    (b.is_main_sport ? 1 : 0) - (a.is_main_sport ? 1 : 0)
+                )
+                for (const row of sorted) {
                     const sportName = (row as any).lookup_sports?.name
                     if (sportName && row.role_id) {
-                        // Preferisci lo sport principale
-                        if (!sportByRole[row.role_id] || row.is_main_sport) {
-                            sportByRole[row.role_id] = sportName
+                        if (!sportsByRole[row.role_id]) sportsByRole[row.role_id] = []
+                        if (!sportsByRole[row.role_id].includes(sportName)) {
+                            sportsByRole[row.role_id].push(sportName)
                         }
                     }
                 }
@@ -46,7 +50,7 @@ export async function GET(req: Request) {
 
             const enriched = roleRows.map(r => ({
                 ...r,
-                sport_name: sportByRole[r.role_id] ?? null,
+                sport_names: sportsByRole[r.role_id] ?? [],
             }))
 
             return withCors(NextResponse.json(enriched))
@@ -70,11 +74,12 @@ export async function GET(req: Request) {
                 .is('deleted_at', null)
                 .maybeSingle()
 
+            const mainSportName = (mainSport as any)?.lookup_sports?.name
             return withCors(NextResponse.json([
                 {
                     role_id: profile.role_id,
                     is_primary: true,
-                    sport_name: (mainSport as any)?.lookup_sports?.name ?? null,
+                    sport_names: mainSportName ? [mainSportName] : [],
                 },
             ]))
         }

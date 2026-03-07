@@ -305,7 +305,8 @@ lib/
 ### Context Switcher via Cookie (no Zustand, no Redux)
 Il ruolo attivo dell'utente è salvato in un **cookie HTTP-only** `sprinta_active_role`.
 
-- **Scrittura**: Server Action `switchActiveRole(roleId)` in `app/actions/role-actions.ts` — imposta il cookie e chiama `revalidatePath('/', 'layout')`.
+- **Scrittura**: Server Action `switchActiveRole(roleId, authToken?)` in `app/actions/role-actions.ts` — imposta il cookie e chiama `revalidatePath('/', 'layout')`.
+  - Se la sessione cookie server-side non è disponibile, può verificare l'utente tramite Bearer token (`authToken`) inviato dal client.
 - **Lettura**: helper `getActiveRole()` importato direttamente nei Server Components — nessun fetching client-side.
 - **UI**: `RoleSwitcher.tsx` usa `useTransition` per chiamare `switchActiveRole` con stato di pending inline.
 

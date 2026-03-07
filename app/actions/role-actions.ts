@@ -2,31 +2,41 @@
 
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase-server'
+import { createServerClient, supabaseServer } from '@/lib/supabase-server'
 import { PROFESSIONAL_ROLES, type ProfessionalRole } from '@/lib/types'
 
 const COOKIE_KEY = 'sprinta_active_role'
 // 30 giorni
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30
 
+async function resolveAuthenticatedUserId(authToken?: string): Promise<string | null> {
+    if (authToken) {
+        const { data: { user }, error } = await supabaseServer.auth.getUser(authToken)
+        if (!error && user) return user.id
+    }
+
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.id ?? null
+}
+
 /**
  * Server Action: salva il ruolo attivo nel cookie e invalida la cache
  * dell'intera applicazione in modo che i Server Components ricarichino i dati.
  */
-export async function switchActiveRole(roleId: ProfessionalRole): Promise<void> {
+export async function switchActiveRole(roleId: ProfessionalRole, authToken?: string): Promise<void> {
     if (!PROFESSIONAL_ROLES.includes(roleId)) {
         throw new Error(`Ruolo non valido: ${roleId}`)
     }
 
     // Verifica che l'utente autenticato possieda effettivamente questo ruolo
-    const supabase = await createServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Non autenticato')
+    const userId = await resolveAuthenticatedUserId(authToken)
+    if (!userId) throw new Error('Non autenticato')
 
-    const { data: roleRow } = await supabase
+    const { data: roleRow } = await supabaseServer
         .from('profile_roles')
         .select('role_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('role_id', roleId)
         .eq('is_active', true)
         .maybeSingle()
@@ -122,14 +132,13 @@ export async function clearActiveRole(): Promise<void> {
  * Server Action: rimuove un ruolo dall'utente (rollback dopo errore).
  * Usa il client server-side (bypassa RLS).
  */
-export async function deleteProfileRole(roleId: string): Promise<void> {
-    const supabase = await createServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Non autenticato')
+export async function deleteProfileRole(roleId: string, authToken?: string): Promise<void> {
+    const userId = await resolveAuthenticatedUserId(authToken)
+    if (!userId) throw new Error('Non autenticato')
 
-    await supabase
+    await supabaseServer
         .from('profile_roles')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('role_id', roleId)
 }

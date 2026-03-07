@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline'
+import { ClipboardDocumentListIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 export interface YourApplicationsWidgetProps {
     userId: string
@@ -36,8 +36,8 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
             <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <ClipboardDocumentListIcon className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
+                            <ClipboardDocumentListIcon className="w-5 h-5 text-brand-600" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">Le Tue Candidature</h3>
@@ -46,9 +46,10 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                     </div>
                     <Link
                         href="/my-applications"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline transition"
                     >
-                        Dettagli →
+                        Dettagli
+                        <ChevronRightIcon className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

@@ -354,7 +354,7 @@ export default function ExperienceCard({ exp, sportName, showStats = true }: Exp
                             )}
                             {exp.positionName && (
                                 <span className="inline-flex items-center gap-1">
-                                    <MapPinIcon className="w-3.5 h-3.5" />
+                                    <Shirt className="w-3.5 h-3.5" />
                                     {exp.positionName}
                                     {exp.positionCategory && (
                                         <span className="text-gray-400">({exp.positionCategory})</span>
@@ -376,7 +376,7 @@ export default function ExperienceCard({ exp, sportName, showStats = true }: Exp
                                 </span>
                             )}
                             {kindLabel && (
-                                <span className="px-2 py-0.5 bg-purple-50 text-purple-700 text-[11px] rounded-full font-medium border border-purple-200">
+                                <span className="px-2 py-0.5 bg-brand-50 text-brand-700 text-[11px] rounded-full font-medium border border-brand-200">
                                     {kindLabel}
                                 </span>
                             )}
@@ -391,7 +391,7 @@ export default function ExperienceCard({ exp, sportName, showStats = true }: Exp
                                 </span>
                             )}
                             {profileLabel && (
-                                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[11px] rounded-full font-medium border border-indigo-200">
+                                <span className="px-2 py-0.5 bg-slate-50 text-slate-700 text-[11px] rounded-full font-medium border border-slate-200">
                                     {profileLabel}
                                 </span>
                             )}

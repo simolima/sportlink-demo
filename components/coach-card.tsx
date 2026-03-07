@@ -2,7 +2,8 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
-import FollowButton from '@/components/follow-button'
+import FavoriteButton from '@/components/favorite-button'
+import VerifyButton from '@/components/verify-button'
 import { MapPinIcon, CheckBadgeIcon, AcademicCapIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 import { SportIcon } from '@/lib/sport-icons'
 
@@ -47,7 +48,7 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
                                 {fullName}
                             </h3>
                             {isVerified && (
-                                <CheckBadgeIcon className="w-4.5 h-4.5 text-purple-500 flex-shrink-0" />
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-brand-500 flex-shrink-0" />
                             )}
                         </div>
                         <p className="text-sm text-gray-500 mt-0.5">
@@ -55,8 +56,9 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
                         </p>
                     </div>
                     {currentUserId && currentUserId !== coach.id && (
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <FollowButton targetId={coach.id} />
+                        <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton targetId={coach.id} currentUserId={currentUserId} />
+                            <VerifyButton targetId={coach.id} currentUserId={currentUserId} />
                         </div>
                     )}
                 </div>
@@ -77,7 +79,7 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
                         </span>
                     )}
                     {uefaLicenses.length > 0 && uefaLicenses.slice(0, 2).map((license: string, idx: number) => (
-                        <span key={idx} className="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                        <span key={idx} className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100">
                             <AcademicCapIcon className="w-3 h-3 inline mr-0.5 -mt-0.5" />
                             {license}
                         </span>

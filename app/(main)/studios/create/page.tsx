@@ -104,8 +104,8 @@ export default function CreateStudioPage() {
             <div className="max-w-2xl mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                        <BuildingOffice2Icon className="h-6 w-6 text-green-600" />
+                    <div className="p-2 bg-brand-50 rounded-lg">
+                        <BuildingOffice2Icon className="h-6 w-6 text-brand-600" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Crea il tuo Studio</h1>

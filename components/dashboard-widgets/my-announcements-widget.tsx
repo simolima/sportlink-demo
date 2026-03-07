@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { MegaphoneIcon, CalendarIcon, PlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { MegaphoneIcon, CalendarIcon, PlusIcon, ExclamationTriangleIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 interface Announcement {
     id: number | string
@@ -53,7 +53,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="px-6 py-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                 </div>
             </div>
         )
@@ -89,8 +89,8 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
             <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <MegaphoneIcon className="w-5 h-5 text-orange-600" />
+                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
+                            <MegaphoneIcon className="w-5 h-5 text-brand-600" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">I Miei Annunci</h3>
@@ -101,13 +101,14 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
                         <div className="flex items-center gap-2">
                             <Link
                                 href={`/club-applications?clubId=${clubId}`}
-                                className="text-sm font-medium text-gray-600 hover:text-gray-800"
+                                className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline transition"
                             >
-                                Vai a tutti
+                                Tutti
+                                <ChevronRightIcon className="w-4 h-4" />
                             </Link>
                             <Link
                                 href={`/opportunities/new?clubId=${clubId}`}
-                                className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+                                className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 transition"
                             >
                                 <PlusIcon className="w-4 h-4" />
                                 Nuovo
@@ -151,7 +152,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
                                         {expiringSoon && !expired && <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />}
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                                        <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">{announcement.roleRequired}</span>
+                                        <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full">{announcement.roleRequired}</span>
                                         {announcement.applicationsCount !== undefined && (
                                             <span className="text-gray-500">{announcement.applicationsCount} candidature</span>
                                         )}

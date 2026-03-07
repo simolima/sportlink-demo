@@ -762,7 +762,7 @@ export default function ProfileSidebar({
             {isMedical && (
                 <a
                     href={`/studios?ownerId=${user.id}`}
-                    className="w-full block text-center px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
+                    className="w-full block text-center px-4 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg"
                 >
                     {isSelf ? 'Il tuo Studio →' : 'Visita lo Studio'}
                 </a>

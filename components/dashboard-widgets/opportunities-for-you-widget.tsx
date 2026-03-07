@@ -144,9 +144,10 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                     </div>
                     <Link
                         href="/opportunities"
-                        className="text-sm font-medium text-primary hover:text-primary/80"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline transition"
                     >
-                        Vedi tutte →
+                        Vedi tutte
+                        <ChevronRightIcon className="w-4 h-4" />
                     </Link>
                 </div>
             </div>
@@ -192,7 +193,7 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                                             </span>
                                         )}
                                         {opp.position && (
-                                            <span className="px-2 py-0.5 bg-success/20 text-success rounded-full">
+                                            <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full">
                                                 {opp.position}
                                             </span>
                                         )}

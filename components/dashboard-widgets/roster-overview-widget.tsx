@@ -68,7 +68,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="px-6 py-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                 </div>
             </div>
         )
@@ -77,11 +77,11 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-brand-50 to-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <UsersIcon className="w-5 h-5 text-indigo-600" />
+                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
+                            <UsersIcon className="w-5 h-5 text-brand-600" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900">Panoramica Roster</h3>
@@ -90,7 +90,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                     </div>
                     <Link
                         href="/agent/affiliations"
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                        className="text-sm font-medium text-brand-600 hover:text-brand-700"
                     >
                         Gestisci →
                     </Link>
@@ -101,10 +101,10 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
             <div className="p-6">
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     {/* Total Athletes */}
-                    <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                        <UsersIcon className="w-6 h-6 text-indigo-600 mx-auto mb-2" />
-                        <div className="text-3xl font-bold text-indigo-700">{totalAthletes}</div>
-                        <div className="text-xs text-indigo-600">Atleti Assistiti</div>
+                    <div className="text-center p-4 bg-brand-50 rounded-lg">
+                        <UsersIcon className="w-6 h-6 text-brand-600 mx-auto mb-2" />
+                        <div className="text-3xl font-bold text-brand-700">{totalAthletes}</div>
+                        <div className="text-xs text-brand-600">Atleti Assistiti</div>
                     </div>
 
                     {/* Pending Requests */}
@@ -153,7 +153,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                                             className="w-10 h-10 rounded-full border-2 border-white object-cover"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-sprinta-blue flex items-center justify-center text-white text-sm font-semibold">
+                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-brand-600 flex items-center justify-center text-white text-sm font-semibold">
                                             {athlete.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}

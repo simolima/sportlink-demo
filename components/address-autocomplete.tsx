@@ -139,7 +139,7 @@ export default function AddressAutocomplete({ value, onChange, placeholder = 'es
                         <li
                             key={s.placeId || i}
                             onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}
-                            className="flex items-start gap-2 px-4 py-2.5 cursor-pointer hover:bg-green-50 transition-colors border-b border-gray-50 last:border-0"
+                            className="flex items-start gap-2 px-4 py-2.5 cursor-pointer hover:bg-brand-50 transition-colors border-b border-gray-50 last:border-0"
                         >
                             <MapPinIcon className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-800">

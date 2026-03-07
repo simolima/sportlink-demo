@@ -54,22 +54,13 @@ const SPORT_EMOJI: Record<string, string> = {
     'Multi-sport': '🌐',
 }
 
-/** Ruoli che hanno posizioni in lookup_positions */
-const ROLES_WITH_POSITIONS = ['player', 'coach']
-
-interface LookupPosition {
-    id: number
-    name: string
-    category: string | null
-}
-
 // ── Componente ─────────────────────────────────────────────────────────────
 export default function AddRolePage() {
     const router = useRouter()
     const { user, isLoading } = useAuth()
 
     // State globale
-    const [step, setStep] = useState<1 | 2 | 3>(1)
+    const [step, setStep] = useState<1 | 2>(1)
     const [existingRoles, setExistingRoles] = useState<string[]>([])
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -79,10 +70,6 @@ export default function AddRolePage() {
     const [selectedRole, setSelectedRole] = useState<ProfessionalRole | null>(null)
     // Step 2: sport
     const [selectedSports, setSelectedSports] = useState<string[]>([])
-    // Step 3: posizione (solo player/coach)
-    const [positions, setPositions] = useState<LookupPosition[]>([])
-    const [selectedPositionId, setSelectedPositionId] = useState<number | null>(null)
-    const [positionsLoading, setPositionsLoading] = useState(false)
 
     // ── Auth guard ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -100,40 +87,11 @@ export default function AddRolePage() {
                 })
                 const data = response.ok ? await response.json() : []
                 setExistingRoles((data as { role_id: string }[]).map(r => r.role_id))
-            })()
-                .catch(() => { })
+            })().catch(() => { })
     }, [user?.id])
 
-    // ── Fetch posizioni quando si arriva allo step 3 ────────────────────────
-    useEffect(() => {
-        if (step !== 3 || !selectedRole || !selectedSports[0]) return
-        if (!ROLES_WITH_POSITIONS.includes(selectedRole)) return
-
-        setPositionsLoading(true)
-            ; (async () => {
-                const response = await fetch(
-                    `/api/lookup/positions?sportName=${encodeURIComponent(selectedSports[0])}&roleId=${encodeURIComponent(selectedRole)}`
-                )
-
-                if (!response.ok) {
-                    setPositions([])
-                    setPositionsLoading(false)
-                    return
-                }
-
-                const data = await response.json()
-                setPositions(Array.isArray(data) ? data : [])
-                setPositionsLoading(false)
-            })()
-                .catch(() => {
-                    setPositions([])
-                    setPositionsLoading(false)
-                })
-    }, [step, selectedRole, selectedSports])
-
     // ── Helpers ────────────────────────────────────────────────────────────
-    const needsPositionStep = selectedRole ? ROLES_WITH_POSITIONS.includes(selectedRole) : false
-    const totalSteps = needsPositionStep ? 3 : 2
+    const totalSteps = 2
     const availableRoles = PROFESSIONAL_ROLES.filter(r => !existingRoles.includes(r))
 
     function handleSelectSport(sport: string) {
@@ -158,11 +116,7 @@ export default function AddRolePage() {
         if (step === 1 && selectedRole) {
             setStep(2)
         } else if (step === 2 && selectedSports.length > 0) {
-            if (needsPositionStep) {
-                setStep(3)
-            } else {
-                handleSave()
-            }
+            handleSave()
         }
     }
 
@@ -171,10 +125,6 @@ export default function AddRolePage() {
         if (step === 2) {
             setSelectedSports([])
             setStep(1)
-        } else if (step === 3) {
-            setSelectedPositionId(null)
-            setPositions([])
-            setStep(2)
         }
     }
 
@@ -186,6 +136,8 @@ export default function AddRolePage() {
 
         try {
             const authHeaders = await getAuthHeaders()
+            const bearer = authHeaders.Authorization || (authHeaders as any).authorization
+            const authToken = bearer?.startsWith('Bearer ') ? bearer.slice(7) : undefined
             const response = await fetch('/api/users/roles', {
                 method: 'POST',
                 credentials: 'include',
@@ -196,7 +148,6 @@ export default function AddRolePage() {
                 body: JSON.stringify({
                     roleId: selectedRole,
                     sports: selectedSports,
-                    primaryPositionId: selectedPositionId,
                 }),
             })
 
@@ -214,7 +165,7 @@ export default function AddRolePage() {
             }
 
             // 2. Switch al nuovo ruolo
-            await switchActiveRole(selectedRole)
+            await switchActiveRole(selectedRole, authToken)
             localStorage.setItem('currentUserRole', selectedRole)
             localStorage.setItem(
                 'currentUserSports',
@@ -232,15 +183,6 @@ export default function AddRolePage() {
     // ── Loading / auth ─────────────────────────────────────────────────────
     if (isLoading || !user) return null
 
-    // ── Raggruppamento posizioni per categoria (Calcio ha categorie) ────────
-    const positionsByCategory: Record<string, LookupPosition[]> = {}
-    for (const p of positions) {
-        const cat = p.category ?? 'Altro'
-        if (!positionsByCategory[cat]) positionsByCategory[cat] = []
-        positionsByCategory[cat].push(p)
-    }
-    const hasCategories = Object.keys(positionsByCategory).length > 1
-
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-base-100 flex items-center justify-center px-4 py-12">
@@ -253,7 +195,6 @@ export default function AddRolePage() {
                             <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
                                 {step === 1 && 'Scegli il ruolo'}
                                 {step === 2 && 'Seleziona lo sport'}
-                                {step === 3 && 'Scegli la posizione'}
                             </h1>
                             <p className="text-secondary text-lg">
                                 {step === 1 && 'Aggiungi un nuovo profilo professionale al tuo account.'}
@@ -262,7 +203,6 @@ export default function AddRolePage() {
                                         ? 'Seleziona uno o più sport per questo profilo.'
                                         : 'Seleziona lo sport principale per questo profilo.'
                                 )}
-                                {step === 3 && 'Indica la posizione che ricopri in campo.'}
                             </p>
                         </div>
 
@@ -414,78 +354,6 @@ export default function AddRolePage() {
                                 </div>
                             )}
 
-                            {/* ═══════════ STEP 3: Posizione ═══════════════ */}
-                            {step === 3 && (
-                                <div className="space-y-8">
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-white mb-2">
-                                            Scegli la tua posizione
-                                        </h2>
-                                        <p className="text-secondary text-sm">
-                                            La posizione principale per {selectedSports[0]}. Potrai modificarla in seguito.
-                                        </p>
-                                    </div>
-
-                                    {positionsLoading ? (
-                                        <div className="flex justify-center py-12">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
-                                        </div>
-                                    ) : positions.length === 0 ? (
-                                        <div className="text-center py-12 text-secondary">
-                                            <p>Nessuna posizione disponibile per questo sport e ruolo.</p>
-                                            <p className="text-sm mt-2">Puoi procedere senza selezionarne una.</p>
-                                        </div>
-                                    ) : hasCategories ? (
-                                        /* Per Calcio: posizioni raggruppate per categoria */
-                                        <div className="space-y-6">
-                                            {Object.entries(positionsByCategory).map(([category, items]) => (
-                                                <div key={category}>
-                                                    <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">
-                                                        {category}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        {items.map(pos => {
-                                                            const sel = selectedPositionId === pos.id
-                                                            return (
-                                                                <button
-                                                                    key={pos.id}
-                                                                    onClick={() => setSelectedPositionId(sel ? null : pos.id)}
-                                                                    className={`p-3 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                                        ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                                        : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
-                                                                        }`}
-                                                                >
-                                                                    {pos.name}
-                                                                </button>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        /* Per Basket/Volley: lista semplice */
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            {positions.map(pos => {
-                                                const sel = selectedPositionId === pos.id
-                                                return (
-                                                    <button
-                                                        key={pos.id}
-                                                        onClick={() => setSelectedPositionId(sel ? null : pos.id)}
-                                                        className={`p-4 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                            ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                            : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
-                                                            }`}
-                                                    >
-                                                        {pos.name}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
                             {/* ── Bottoni navigazione ──────────────────── */}
                             <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4">
                                 {step === 1 ? (
@@ -508,7 +376,7 @@ export default function AddRolePage() {
                                 )}
 
                                 <button
-                                    onClick={step === 3 ? handleSave : goNext}
+                                    onClick={goNext}
                                     disabled={
                                         saving ||
                                         (step === 1 && !selectedRole) ||

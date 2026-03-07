@@ -291,6 +291,9 @@ professional_studios  — Studi per fisio/nutrizionisti
   ├── id (UUID), owner_id FK, name
   ├── city, address, phone, website, logo_url, description
   ├── services_offered (JSONB array)
+  ├── timezone (varchar default 'Europe/Rome'), booking_enabled (boolean default false)
+  ├── auto_confirm_bookings (boolean default false), slot_increment_minutes (15|30|60, default 30)
+  ├── default_buffer_between_appointments (0-60 minutes, default 5)
   └── deleted_at, created_at, updated_at
 
 studio_clients        — Clienti di uno studio (atleti)
@@ -318,7 +321,52 @@ studio_appointments   — Appuntamenti studio professionista ↔ cliente
   ├── id (UUID), studio_id FK, client_id FK, professional_id FK
   ├── start_time, end_time (timestamptz), status (enum: pending|confirmed|completed|cancelled|no_show)
   ├── service_type, notes
+  ├── appointment_type_id FK (nullable → studio_appointment_types), buffer_before_minutes (0-60)
+  ├── buffer_after_minutes (0-60), google_event_id (varchar nullable)
+  ├── google_sync_status (enum: not_synced|synced|sync_failed, default 'not_synced')
   └── deleted_at, created_at, updated_at
+
+-- GOOGLE CALENDAR INTEGRATION (Marzo 2026)
+google_calendar_connections — OAuth tokens e stato sync Google Calendar
+  ├── id (UUID), professional_studio_id FK (unique WHERE deleted_at IS NULL)
+  ├── encrypted_access_token (text), encrypted_refresh_token (text)  ← AES-256-GCM encrypted
+  ├── token_expires_at (timestamptz), selected_calendar_id (text), selected_calendar_name (text)
+  ├── sync_token (text), last_synced_at (timestamptz)
+  ├── watch_channel_id (text), watch_resource_id (text), watch_expires_at (timestamptz)  ← 7-day expiration
+  └── deleted_at, created_at, updated_at
+  RLS: Owner-only read/write (tokens visibili solo al proprietario studio)
+
+studio_availability_rules — Orari disponibilità settimanali (source of truth slot booking)
+  ├── id (UUID), professional_studio_id FK (unique WHERE deleted_at IS NULL)
+  ├── weekly_schedule (JSONB: {monday: [{start:"09:00",end:"13:00"},...], tuesday: [...], ...})
+  ├── timezone (varchar default 'Europe/Rome')
+  └── deleted_at, created_at, updated_at
+  RLS: Public read, owner write
+
+studio_blackout_dates — Date non disponibili (ferie, chiusure)
+  ├── id (UUID), professional_studio_id FK
+  ├── start_date (date), end_date (date), reason (text nullable)
+  └── deleted_at, created_at, updated_at
+  Constraint: end_date >= start_date
+  RLS: Public read, owner write
+
+studio_appointment_types — Catalogo servizi (tipo appuntamento con durata/buffer/prezzo)
+  ├── id (UUID), professional_studio_id FK
+  ├── name (varchar 100), description (text), duration_minutes (15-480)
+  ├── buffer_before_minutes (0-60, default 0), buffer_after_minutes (0-60, default 0)
+  ├── price_amount (decimal nullable), color_hex (varchar 7, default '#2341F0')
+  ├── is_active (boolean default true)
+  └── deleted_at, created_at, updated_at
+  Constraint: color_hex formato #RRGGBB
+  RLS: Public read (solo is_active=true), owner read all + write
+
+studio_external_events — Cache eventi Google Calendar (conflict detection)
+  ├── id (UUID), professional_studio_id FK
+  ├── google_event_id (varchar 255, unique per studio WHERE deleted_at IS NULL), google_calendar_id (varchar 255)
+  ├── start_time (timestamptz), end_time (timestamptz), summary (text), is_all_day (boolean)
+  └── deleted_at, created_at, updated_at
+  Constraint: end_time > start_time
+  RLS: Owner-only read/write (event summaries privati)
 ```
 
 ## Migrations

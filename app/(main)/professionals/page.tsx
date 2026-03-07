@@ -7,10 +7,12 @@ import CoachCard from '@/components/coach-card'
 import AgentCard from '@/components/agent-card'
 import ProfessionalCard from '@/components/professional-card'
 import DynamicFilterBar from '@/components/dynamic-filter-bar'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 export default function ProfessionalsPage() {
     const router = useRouter()
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentUserRole, setCurrentUserRole] = useState<string>('')
 
     // Basic Filter states
     const [searchTerm, setSearchTerm] = useState('')
@@ -51,6 +53,8 @@ export default function ProfessionalsPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [total, setTotal] = useState(0)
+    const [requestingAffiliationPlayerId, setRequestingAffiliationPlayerId] = useState<string | null>(null)
+    const [affiliationStatusByPlayer, setAffiliationStatusByPlayer] = useState<Record<string, 'none' | 'pending' | 'active'>>({})
 
     // Pagination
     const [offset, setOffset] = useState(0)
@@ -62,11 +66,13 @@ export default function ProfessionalsPage() {
         if (typeof window === 'undefined') return
 
         const userId = localStorage.getItem('currentUserId')
+        const roleId = (localStorage.getItem('currentUserRole') || '').toLowerCase()
         if (!userId) {
             router.push('/login')
             return
         }
         setCurrentUserId(userId)
+        setCurrentUserRole(roleId)
     }, [router])
 
     // Fetch professionals based on filters
@@ -153,6 +159,75 @@ export default function ProfessionalsPage() {
         limit,
     ])
 
+    const fetchAgentAffiliationStatuses = useCallback(async () => {
+        if (!currentUserId || currentUserRole !== 'agent') {
+            setAffiliationStatusByPlayer({})
+            return
+        }
+
+        try {
+            const res = await fetch(`/api/affiliations?agentId=${currentUserId}`)
+            if (!res.ok) return
+
+            const data = await res.json()
+            const statusMap: Record<string, 'none' | 'pending' | 'active'> = {}
+
+            for (const affiliation of Array.isArray(data) ? data : []) {
+                if (affiliation?.status === 'pending' || affiliation?.status === 'active') {
+                    statusMap[String(affiliation.playerId)] = affiliation.status
+                }
+            }
+
+            setAffiliationStatusByPlayer(statusMap)
+        } catch (fetchError) {
+            console.error('Error fetching affiliation statuses:', fetchError)
+        }
+    }, [currentUserId, currentUserRole])
+
+    const handleRequestAffiliation = useCallback(async (playerId: string) => {
+        if (!currentUserId || currentUserRole !== 'agent' || requestingAffiliationPlayerId) return
+
+        setRequestingAffiliationPlayerId(playerId)
+
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch('/api/affiliations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    agentId: currentUserId,
+                    playerId,
+                    notes: 'Richiesta di affiliazione da Scopri Professionisti',
+                }),
+            })
+
+            if (res.ok) {
+                setAffiliationStatusByPlayer((prev) => ({
+                    ...prev,
+                    [String(playerId)]: 'pending',
+                }))
+                return
+            }
+
+            const payload = await res.json().catch(() => ({}))
+            if (res.status === 401) {
+                setError('Sessione scaduta: effettua nuovamente il login per inviare richieste di affiliazione.')
+            } else if (res.status === 403 && payload?.error === 'forbidden_agent_mismatch') {
+                setError('Mismatch account/sessione: rientra con il profilo agente corretto.')
+            } else {
+                setError(payload?.error || 'Errore durante l\'invio della richiesta di affiliazione.')
+            }
+        } catch (requestError) {
+            console.error('Error requesting affiliation:', requestError)
+            setError('Errore durante l\'invio della richiesta di affiliazione.')
+        } finally {
+            setRequestingAffiliationPlayerId(null)
+        }
+    }, [currentUserId, currentUserRole, requestingAffiliationPlayerId])
+
     // Fetch when filters change
     useEffect(() => {
         if (currentUserId) {
@@ -187,6 +262,92 @@ export default function ProfessionalsPage() {
         fetchProfessionals,
     ])
 
+    useEffect(() => {
+        fetchAgentAffiliationStatuses()
+    }, [fetchAgentAffiliationStatuses])
+
+    const hasActiveFilters = Boolean(
+        searchTerm ||
+        roleType !== 'all' ||
+        selectedSport !== 'all' ||
+        selectedPosition !== 'all' ||
+        selectedCity ||
+        selectedCountry ||
+        selectedAvailability !== 'all' ||
+        selectedLevel !== 'all' ||
+        selectedDetailedCategory !== 'all' ||
+        verified ||
+        minGoals !== null ||
+        minCleanSheets !== null ||
+        minPoints !== null ||
+        minAssists !== null ||
+        minRebounds !== null ||
+        minAces !== null ||
+        minBlocks !== null ||
+        minDigs !== null ||
+        category !== 'all' ||
+        selectedSeason !== 'all' ||
+        uefaLicense !== 'all' ||
+        specialization ||
+        hasUEFALicense !== 'all' ||
+        hasFIFALicense !== 'all'
+    )
+
+    const resetFilters = () => {
+        setSearchTerm('')
+        setRoleType('all')
+        setSelectedSport('all')
+        setSelectedPosition('all')
+        setSelectedCity('')
+        setSelectedCountry('')
+        setSelectedAvailability('all')
+        setSelectedLevel('all')
+        setSelectedDetailedCategory('all')
+        setVerified(false)
+        setMinGoals(null)
+        setMinCleanSheets(null)
+        setMinPoints(null)
+        setMinAssists(null)
+        setMinRebounds(null)
+        setMinAces(null)
+        setMinBlocks(null)
+        setMinDigs(null)
+        setCategory('all')
+        setSelectedSeason('all')
+        setUefaLicense('all')
+        setSpecialization('')
+        setHasUEFALicense('all')
+        setHasFIFALicense('all')
+        setError(null)
+    }
+
+    const activeFilterChips: Array<{ key: string; label: string; onRemove: () => void }> = [
+        ...(searchTerm ? [{ key: 'searchTerm', label: `Ricerca: ${searchTerm}`, onRemove: () => setSearchTerm('') }] : []),
+        ...(roleType !== 'all' ? [{ key: 'roleType', label: `Ruolo: ${roleType}`, onRemove: () => setRoleType('all') }] : []),
+        ...(selectedSport !== 'all' ? [{ key: 'sport', label: `Sport: ${selectedSport}`, onRemove: () => setSelectedSport('all') }] : []),
+        ...(selectedPosition !== 'all' ? [{ key: 'position', label: `Posizione: ${selectedPosition}`, onRemove: () => setSelectedPosition('all') }] : []),
+        ...(selectedCity ? [{ key: 'city', label: `Città: ${selectedCity}`, onRemove: () => setSelectedCity('') }] : []),
+        ...(selectedCountry ? [{ key: 'country', label: `Paese: ${selectedCountry}`, onRemove: () => setSelectedCountry('') }] : []),
+        ...(selectedAvailability !== 'all' ? [{ key: 'availability', label: `Disponibilità: ${selectedAvailability}`, onRemove: () => setSelectedAvailability('all') }] : []),
+        ...(selectedLevel !== 'all' ? [{ key: 'level', label: `Livello: ${selectedLevel}`, onRemove: () => setSelectedLevel('all') }] : []),
+        ...(selectedDetailedCategory !== 'all' ? [{ key: 'detailedCategory', label: `Categoria: ${selectedDetailedCategory}`, onRemove: () => setSelectedDetailedCategory('all') }] : []),
+        ...(verified ? [{ key: 'verified', label: 'Solo verificati', onRemove: () => setVerified(false) }] : []),
+        ...(minGoals !== null ? [{ key: 'minGoals', label: `Goal min: ${minGoals}`, onRemove: () => setMinGoals(null) }] : []),
+        ...(minCleanSheets !== null ? [{ key: 'minCleanSheets', label: `Clean sheet min: ${minCleanSheets}`, onRemove: () => setMinCleanSheets(null) }] : []),
+        ...(minPoints !== null ? [{ key: 'minPoints', label: `Punti min: ${minPoints}`, onRemove: () => setMinPoints(null) }] : []),
+        ...(minAssists !== null ? [{ key: 'minAssists', label: `Assist min: ${minAssists}`, onRemove: () => setMinAssists(null) }] : []),
+        ...(minRebounds !== null ? [{ key: 'minRebounds', label: `Rimbalzi min: ${minRebounds}`, onRemove: () => setMinRebounds(null) }] : []),
+        ...(minAces !== null ? [{ key: 'minAces', label: `Aces min: ${minAces}`, onRemove: () => setMinAces(null) }] : []),
+        ...(minBlocks !== null ? [{ key: 'minBlocks', label: `Blocchi min: ${minBlocks}`, onRemove: () => setMinBlocks(null) }] : []),
+        ...(minDigs !== null ? [{ key: 'minDigs', label: `Difese min: ${minDigs}`, onRemove: () => setMinDigs(null) }] : []),
+        ...(category !== 'all' ? [{ key: 'category', label: `Categoria stagione: ${category}`, onRemove: () => setCategory('all') }] : []),
+        ...(selectedSeason !== 'all' ? [{ key: 'season', label: `Stagione: ${selectedSeason}`, onRemove: () => setSelectedSeason('all') }] : []),
+        ...(uefaLicense !== 'all' ? [{ key: 'uefaLicense', label: `Licenza UEFA: ${uefaLicense}`, onRemove: () => setUefaLicense('all') }] : []),
+        ...(specialization ? [{ key: 'specialization', label: `Specializzazione: ${specialization}`, onRemove: () => setSpecialization('') }] : []),
+        ...(hasUEFALicense !== 'all' ? [{ key: 'hasUEFALicense', label: `UEFA agente: ${hasUEFALicense}`, onRemove: () => setHasUEFALicense('all') }] : []),
+        ...(hasFIFALicense !== 'all' ? [{ key: 'hasFIFALicense', label: `FIFA agente: ${hasFIFALicense}`, onRemove: () => setHasFIFALicense('all') }] : []),
+    ]
+
     if (!currentUserId) return null
 
     // Helper function to render the correct card based on role
@@ -198,6 +359,10 @@ export default function ProfessionalsPage() {
                         key={professional.id}
                         player={professional}
                         currentUserId={currentUserId}
+                        canRequestAffiliation={currentUserRole === 'agent'}
+                        affiliationStatus={affiliationStatusByPlayer[String(professional.id)] || 'none'}
+                        onRequestAffiliation={handleRequestAffiliation}
+                        requestingAffiliation={requestingAffiliationPlayerId === String(professional.id)}
                     />
                 )
             case 'Coach':
@@ -315,7 +480,48 @@ export default function ProfessionalsPage() {
                             <h2 className="text-lg font-semibold text-gray-900">
                                 {total} professionisti trovati
                             </h2>
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={resetFilters}
+                                    className="px-3 py-1.5 text-sm font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors"
+                                >
+                                    Reset filtri
+                                </button>
+                            )}
                         </div>
+
+                        {(activeFilterChips.length > 0 || currentUserRole === 'agent') && (
+                            <div className="mb-5 space-y-3">
+                                {activeFilterChips.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {activeFilterChips.map((chip) => (
+                                            <button
+                                                key={chip.key}
+                                                onClick={chip.onRemove}
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-full hover:bg-brand-100 transition-colors"
+                                            >
+                                                <span>{chip.label}</span>
+                                                <span aria-hidden="true">×</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {currentUserRole === 'agent' && (
+                                    <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <p className="text-sm text-brand-700 font-medium">
+                                            Modalità Agente attiva: puoi inviare richieste ai Player direttamente dalle card.
+                                        </p>
+                                        <button
+                                            onClick={() => router.push('/agent/affiliations')}
+                                            className="px-3 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
+                                        >
+                                            Le mie affiliazioni
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Error Message */}
                         {error && (
@@ -343,6 +549,14 @@ export default function ProfessionalsPage() {
                                 <p className="text-gray-600">
                                     Prova a cambiare i criteri di ricerca
                                 </p>
+                                {hasActiveFilters && (
+                                    <button
+                                        onClick={resetFilters}
+                                        className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                                    >
+                                        Rimuovi tutti i filtri
+                                    </button>
+                                )}
                             </div>
                         )}
 

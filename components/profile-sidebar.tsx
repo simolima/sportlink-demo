@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Avatar from './avatar'
 import SocialLinks from './social-links'
 import { getCountryCode } from '@/lib/countries'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase-browser'
 import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 import {
@@ -81,6 +82,8 @@ export default function ProfileSidebar({
     const isAgent = roleLower.includes('agent') || roleLower.includes('agente')
     const isDS = roleLower.includes('director') || roleLower.includes('ds')
     const isMedical = ['athletic_trainer', 'nutritionist', 'physio'].includes(roleLower)
+    const currentRoleLower = (currentUserRole || '').toLowerCase()
+    const canRequestAffiliation = currentRoleLower === 'agent' && isPlayer && !isSelf
 
     type StatItem = {
         label: string
@@ -158,7 +161,7 @@ export default function ProfileSidebar({
         const checkUserStatus = async () => {
             if (typeof window === 'undefined') return
             const storedUserId = localStorage.getItem('currentUserId')
-            const storedUserRole = localStorage.getItem('currentUserRole')
+            const storedUserRole = (localStorage.getItem('currentUserRole') || '').toLowerCase()
             setCurrentUserId(storedUserId)
             setCurrentUserRole(storedUserRole)
 
@@ -387,9 +390,13 @@ export default function ProfileSidebar({
         if (requestingAffiliation || !currentUserId || !user?.id) return
         setRequestingAffiliation(true)
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/affiliations', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
                 body: JSON.stringify({
                     agentId: currentUserId,
                     playerId: user.id,
@@ -398,11 +405,16 @@ export default function ProfileSidebar({
             })
             if (res.ok) {
                 setAffiliationStatus('pending')
-                // Optional: show success toast
                 alert('Richiesta di affiliazione inviata con successo!')
             } else {
                 const error = await res.json()
-                alert(error.error || 'Errore durante l\'invio della richiesta')
+                if (res.status === 401) {
+                    alert('Sessione scaduta: effettua nuovamente il login per inviare la richiesta.')
+                } else if (res.status === 403 && error?.error === 'forbidden_agent_mismatch') {
+                    alert('Mismatch account/sessione: riaccedi con il profilo agente corretto.')
+                } else {
+                    alert(error.error || 'Errore durante l\'invio della richiesta')
+                }
             }
         } catch (e) {
             console.error('Error requesting affiliation', e)
@@ -713,7 +725,7 @@ export default function ProfileSidebar({
                     )}
 
                     {/* Richiesta affiliazione: Agent guarda Player */}
-                    {currentUserRole === 'agent' && isPlayer && (
+                    {canRequestAffiliation && (
                         <>
                             {affiliationStatus === 'none' && (
                                 <button

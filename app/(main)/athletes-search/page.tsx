@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation'
 import { MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import AthleteCard from '@/components/athlete-card'
 import FilterBar from '@/components/athletes-filter-bar'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 export default function AthletesSearchPage() {
     const router = useRouter()
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentUserRole, setCurrentUserRole] = useState<string>('')
 
     // Filter states
     const [searchTerm, setSearchTerm] = useState('')
@@ -24,6 +26,8 @@ export default function AthletesSearchPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [total, setTotal] = useState(0)
+    const [requestingAffiliationPlayerId, setRequestingAffiliationPlayerId] = useState<string | null>(null)
+    const [affiliationStatusByPlayer, setAffiliationStatusByPlayer] = useState<Record<string, 'none' | 'pending' | 'active'>>({})
 
     // Pagination
     const [offset, setOffset] = useState(0)
@@ -35,11 +39,13 @@ export default function AthletesSearchPage() {
         if (typeof window === 'undefined') return
 
         const userId = localStorage.getItem('currentUserId')
+        const roleId = (localStorage.getItem('currentUserRole') || '').toLowerCase()
         if (!userId) {
             router.push('/login')
             return
         }
         setCurrentUserId(userId)
+        setCurrentUserRole(roleId)
     }, [router])
 
     // Fetch athletes based on filters
@@ -80,12 +86,119 @@ export default function AthletesSearchPage() {
         }
     }, [currentUserId, searchTerm, selectedSport, selectedPosition, selectedCity, selectedCountry, selectedAvailability, selectedLevel, verified, limit])
 
+    const fetchAgentAffiliationStatuses = useCallback(async () => {
+        if (!currentUserId || currentUserRole !== 'agent') {
+            setAffiliationStatusByPlayer({})
+            return
+        }
+
+        try {
+            const res = await fetch(`/api/affiliations?agentId=${currentUserId}`)
+            if (!res.ok) return
+
+            const data = await res.json()
+            const statusMap: Record<string, 'none' | 'pending' | 'active'> = {}
+
+            for (const affiliation of Array.isArray(data) ? data : []) {
+                if (affiliation?.status === 'pending' || affiliation?.status === 'active') {
+                    statusMap[String(affiliation.playerId)] = affiliation.status
+                }
+            }
+
+            setAffiliationStatusByPlayer(statusMap)
+        } catch (fetchError) {
+            console.error('Error fetching affiliation statuses:', fetchError)
+        }
+    }, [currentUserId, currentUserRole])
+
+    const handleRequestAffiliation = useCallback(async (playerId: string) => {
+        if (!currentUserId || currentUserRole !== 'agent' || requestingAffiliationPlayerId) return
+
+        setRequestingAffiliationPlayerId(playerId)
+
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch('/api/affiliations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    agentId: currentUserId,
+                    playerId,
+                    notes: 'Richiesta di affiliazione da Trova Atleti',
+                }),
+            })
+
+            if (res.ok) {
+                setAffiliationStatusByPlayer((prev) => ({
+                    ...prev,
+                    [String(playerId)]: 'pending',
+                }))
+                return
+            }
+
+            const payload = await res.json().catch(() => ({}))
+            if (res.status === 401) {
+                setError('Sessione scaduta: effettua nuovamente il login per inviare richieste di affiliazione.')
+            } else if (res.status === 403 && payload?.error === 'forbidden_agent_mismatch') {
+                setError('Mismatch account/sessione: rientra con il profilo agente corretto.')
+            } else {
+                setError(payload?.error || 'Errore durante l\'invio della richiesta di affiliazione.')
+            }
+        } catch (requestError) {
+            console.error('Error requesting affiliation:', requestError)
+            setError('Errore durante l\'invio della richiesta di affiliazione.')
+        } finally {
+            setRequestingAffiliationPlayerId(null)
+        }
+    }, [currentUserId, currentUserRole, requestingAffiliationPlayerId])
+
     // Fetch when filters change
     useEffect(() => {
         if (currentUserId) {
             fetchAthletes(0)
         }
     }, [searchTerm, selectedSport, selectedPosition, selectedCity, selectedCountry, selectedAvailability, selectedLevel, verified, currentUserId, fetchAthletes])
+
+    useEffect(() => {
+        fetchAgentAffiliationStatuses()
+    }, [fetchAgentAffiliationStatuses])
+
+    const hasActiveFilters = Boolean(
+        searchTerm ||
+        selectedSport !== 'all' ||
+        selectedPosition !== 'all' ||
+        selectedCity ||
+        selectedCountry ||
+        selectedAvailability !== 'all' ||
+        selectedLevel !== 'all' ||
+        verified
+    )
+
+    const resetFilters = () => {
+        setSearchTerm('')
+        setSelectedSport('all')
+        setSelectedPosition('all')
+        setSelectedCity('')
+        setSelectedCountry('')
+        setSelectedAvailability('all')
+        setSelectedLevel('all')
+        setVerified(false)
+        setError(null)
+    }
+
+    const activeFilterChips: Array<{ key: string; label: string; onRemove: () => void }> = [
+        ...(searchTerm ? [{ key: 'searchTerm', label: `Ricerca: ${searchTerm}`, onRemove: () => setSearchTerm('') }] : []),
+        ...(selectedSport !== 'all' ? [{ key: 'sport', label: `Sport: ${selectedSport}`, onRemove: () => setSelectedSport('all') }] : []),
+        ...(selectedPosition !== 'all' ? [{ key: 'position', label: `Posizione: ${selectedPosition}`, onRemove: () => setSelectedPosition('all') }] : []),
+        ...(selectedCity ? [{ key: 'city', label: `Città: ${selectedCity}`, onRemove: () => setSelectedCity('') }] : []),
+        ...(selectedCountry ? [{ key: 'country', label: `Paese: ${selectedCountry}`, onRemove: () => setSelectedCountry('') }] : []),
+        ...(selectedAvailability !== 'all' ? [{ key: 'availability', label: `Disponibilità: ${selectedAvailability}`, onRemove: () => setSelectedAvailability('all') }] : []),
+        ...(selectedLevel !== 'all' ? [{ key: 'level', label: `Livello: ${selectedLevel}`, onRemove: () => setSelectedLevel('all') }] : []),
+        ...(verified ? [{ key: 'verified', label: 'Solo verificati', onRemove: () => setVerified(false) }] : []),
+    ]
 
     if (!currentUserId) return null
 
@@ -138,7 +251,48 @@ export default function AthletesSearchPage() {
                             <h2 className="text-lg font-semibold text-gray-900">
                                 {total} atleti trovati
                             </h2>
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={resetFilters}
+                                    className="px-3 py-1.5 text-sm font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors"
+                                >
+                                    Reset filtri
+                                </button>
+                            )}
                         </div>
+
+                        {(activeFilterChips.length > 0 || currentUserRole === 'agent') && (
+                            <div className="mb-5 space-y-3">
+                                {activeFilterChips.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {activeFilterChips.map((chip) => (
+                                            <button
+                                                key={chip.key}
+                                                onClick={chip.onRemove}
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-full hover:bg-brand-100 transition-colors"
+                                            >
+                                                <span>{chip.label}</span>
+                                                <span aria-hidden="true">×</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {currentUserRole === 'agent' && (
+                                    <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <p className="text-sm text-brand-700 font-medium">
+                                            Modalità Agente attiva: puoi inviare richieste di affiliazione direttamente dalle card.
+                                        </p>
+                                        <button
+                                            onClick={() => router.push('/agent/affiliations')}
+                                            className="px-3 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
+                                        >
+                                            Le mie affiliazioni
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Error Message */}
                         {error && (
@@ -166,6 +320,14 @@ export default function AthletesSearchPage() {
                                 <p className="text-gray-600">
                                     Prova a cambiare i criteri di ricerca
                                 </p>
+                                {hasActiveFilters && (
+                                    <button
+                                        onClick={resetFilters}
+                                        className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                                    >
+                                        Rimuovi tutti i filtri
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -178,6 +340,10 @@ export default function AthletesSearchPage() {
                                             key={athlete.id}
                                             athlete={athlete}
                                             currentUserId={currentUserId}
+                                            canRequestAffiliation={currentUserRole === 'agent'}
+                                            affiliationStatus={affiliationStatusByPlayer[String(athlete.id)] || 'none'}
+                                            onRequestAffiliation={handleRequestAffiliation}
+                                            requestingAffiliation={requestingAffiliationPlayerId === String(athlete.id)}
                                         />
                                     ))}
                                 </div>

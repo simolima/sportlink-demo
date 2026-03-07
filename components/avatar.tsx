@@ -53,7 +53,6 @@ export default function Avatar({
 
     const imgProps: any = {
         src,
-        alt,
         className: 'w-full h-full object-cover'
     }
     if (typeof window !== 'undefined') {
@@ -72,7 +71,7 @@ export default function Avatar({
             AVATAR_FALLBACK_COLOR,
             className || sizeClass
         )}>
-            <img {...imgProps} />
+            <img alt={alt} {...imgProps} />
         </div>
     )
 }

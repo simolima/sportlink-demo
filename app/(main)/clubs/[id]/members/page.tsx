@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Users, Trash2, Shield } from 'lucide-react'
 import { ClubMembership, Club, User, CLUB_ROLES, CLUB_PERMISSIONS } from '@/lib/types'
@@ -22,17 +22,7 @@ export default function ClubMembersPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  useEffect(() => {
-    const userId = localStorage.getItem('currentUserId')
-    if (!userId) {
-      router.push('/login')
-      return
-    }
-    setCurrentUserId(parseInt(userId))
-    fetchData(parseInt(userId))
-  }, [clubId])
-
-  const fetchData = async (userId: number) => {
+  const fetchData = useCallback(async (userId: number) => {
     setLoading(true)
     try {
       // Fetch club
@@ -59,7 +49,17 @@ export default function ClubMembersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [clubId, router, showToast])
+
+  useEffect(() => {
+    const userId = localStorage.getItem('currentUserId')
+    if (!userId) {
+      router.push('/login')
+      return
+    }
+    setCurrentUserId(parseInt(userId))
+    fetchData(parseInt(userId))
+  }, [fetchData, router])
 
   const updateMemberPermissions = async (membershipId: number, newPermissions: string[]) => {
     try {

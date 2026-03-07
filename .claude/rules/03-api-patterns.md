@@ -78,18 +78,11 @@ return withCors(NextResponse.json({ error: 'not_found' }, { status: 404 }))
 return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
 ```
 
-## supabaseServer vs createServerClient()
+## Client Supabase — Quale Usare
 
-```typescript
-// supabaseServer — usa SERVICE ROLE KEY, bypassa tutte le RLS
-// Usare solo quando necessario (operazioni admin, cross-user)
-import { supabaseServer } from '@/lib/supabase-server'
+> Per la tabella completa dei 3 client (supabaseServer, createServerClient, browser) → vedi **02-database.md**.
 
-// createServerClient() — usa ANON KEY + cookies, rispetta RLS
-// Preferire per operazioni che devono rispettare i permessi utente
-import { createServerClient } from '@/lib/supabase-server'
-const supabase = await createServerClient()
-```
+Regola rapida: `supabaseServer` (Service Role Key, bypassa RLS) solo per operazioni admin. Preferire `createServerClient()` (Anon Key + cookies, rispetta RLS) nelle route normali.
 
 ## Sicurezza — Verifica JWT Server-Side (Feb 2026)
 
@@ -167,13 +160,20 @@ export async function POST(req: Request) {
 | `403` | `forbidden_agent_mismatch` | agentId ≠ utente autenticato |
 | `403` | `forbidden_cannot_mark_others_messages` | Tentativo di marcare messaggi altrui |
 
-### Endpoint già hardened (verifica JWT attiva)
+### Endpoint hardened (verifica JWT attiva)
 
 - `/api/messages` POST — verifica `senderId`
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
 - `/api/studios/[id]/reviews` POST — cliente attivo può creare la propria recensione
 - `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna rating/commento, owner modera `isPublished`
+- `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)
+- `/api/users` PATCH — verifica che `userId` corrisponda al token
+- `/api/follows` POST/DELETE — verifica `followerId`
+- `/api/notifications` PUT — verifica `userId`
+- `/api/opportunities` POST — verifica `creatorId`
+- `/api/studios` POST — verifica ruolo medico su `profile_roles` (fallback `profiles.role_id`)
+- `/api/clubs` POST — verifica ruolo `sporting_director` su `profile_roles` (fallback `profiles.role_id`)
 
 ### Endpoint da hardenare (priorità decrescente)
 
@@ -201,11 +201,19 @@ const fallbackPoll = setInterval(async () => {
 }, 30_000) // ogni 30 secondi
 ```
 
-## Lista Endpoint Esistenti (27 routes)
+## Lista Endpoint Esistenti (35 routes)
+
+### `/api/club-memberships` — Role Scope (Marzo 2026)
+
+- GET supporta il filtro `professionalRoleId`:
+    - `/api/club-memberships?userId=<uuid>&professionalRoleId=coach`
+- La risposta include `professionalRoleId` (camelCase) derivato da `professional_role_id`.
+- In POST/flow di creazione membership (`/api/clubs`, `/api/club-join-requests/accept`) il backend valorizza sempre `professional_role_id` per evitare leakage cross-profilo.
 
 | Endpoint | Note |
 |----------|------|
-| `/api/users` | GET all / POST create |
+| `/api/users` | GET all / POST create / PATCH update |
+| `/api/users/roles` | Lista ruoli utente + creazione ruolo multi-profile (POST autenticata) |
 | `/api/follows` | Follow/unfollow |
 | `/api/opportunities` | Annunci lavoro |
 | `/api/applications` | Candidature |
@@ -218,7 +226,7 @@ const fallbackPoll = setInterval(async () => {
 | `/api/club-memberships` | Iscrizioni |
 | `/api/club-join-requests` | Richieste join |
 | `/api/club-join-requests/accept` | Approvazione |
-| `/api/notifications` | CRUD notifiche |
+| `/api/notifications` | CRUD notifiche (GET/POST/PUT/DELETE) |
 | `/api/notifications/stream` | SSE real-time (dev only) |
 | `/api/notification-preferences` | Preferenze notifiche |
 | `/api/messages` | Chat 1-to-1 |
@@ -232,5 +240,6 @@ const fallbackPoll = setInterval(async () => {
 | `/api/sports-organizations` | Organizzazioni sportive |
 | `/api/organization-requests` | Richieste organizzazione |
 | `/api/organization-requests/[id]/approve` | Approvazione |
+| `/api/lookup/positions` | Lookup posizioni per sport+ruolo (supporta alias Pallavolo/Volley) |
 | `/api/studios/[id]/reviews` | Recensioni studio (GET/POST) |
 | `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH/DELETE) |

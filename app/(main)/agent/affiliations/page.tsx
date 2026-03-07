@@ -31,8 +31,16 @@ export default function AgentAffiliationsPage() {
         const loadData = async () => {
             if (typeof window === 'undefined') return
             const userId = localStorage.getItem('currentUserId')
+            const activeRole = localStorage.getItem('currentUserRole')
             if (!userId) {
                 router.push('/login')
+                return
+            }
+
+            if (activeRole !== 'agent') {
+                showToast('error', 'Accesso negato', 'Attiva il profilo Agente per accedere a questa pagina')
+                setLoading(false)
+                router.push('/home')
                 return
             }
 
@@ -44,14 +52,6 @@ export default function AgentAffiliationsPage() {
 
                 if (!user) {
                     router.push('/login')
-                    return
-                }
-
-                // Blocca immediatamente se non è un agente (use role_id from DB, not professionalRole)
-                if (user.role_id !== 'agent') {
-                    showToast('error', 'Accesso negato', 'Solo gli agenti possono accedere a questa pagina')
-                    setLoading(false)
-                    router.push('/home')
                     return
                 }
 
@@ -199,7 +199,7 @@ export default function AgentAffiliationsPage() {
     }
 
     // Se l'utente non è agente, non mostrare nulla (prevenzione flash contenuti)
-    if (currentUser && currentUser.role_id !== 'agent') {
+    if ((localStorage.getItem('currentUserRole') || '') !== 'agent') {
         return null
     }
 

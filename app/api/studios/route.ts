@@ -6,6 +6,27 @@ import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supaba
 
 const MEDICAL_ROLES = ['athletic_trainer', 'nutritionist', 'physio']
 
+async function userHasMedicalRole(userId: string): Promise<boolean> {
+    const { data: activeMedicalRole } = await supabase
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .in('role_id', MEDICAL_ROLES)
+        .limit(1)
+        .maybeSingle()
+
+    if (activeMedicalRole?.role_id) return true
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+    return !!profile?.role_id && MEDICAL_ROLES.includes(String(profile.role_id).toLowerCase())
+}
+
 export async function OPTIONS() {
     return handleOptions()
 }
@@ -72,17 +93,9 @@ export async function POST(req: Request) {
             return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
         }
 
-        // Verifica ruolo medico
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role_id')
-            .eq('id', authenticatedUserId)
-            .single()
-
-        if (profileError || !profile) {
-            return withCors(NextResponse.json({ error: 'profile not found' }, { status: 404 }))
-        }
-        if (!MEDICAL_ROLES.includes(profile.role_id)) {
+        // Verifica ruolo medico (multi-profile aware)
+        const hasMedicalRole = await userHasMedicalRole(authenticatedUserId)
+        if (!hasMedicalRole) {
             return withCors(NextResponse.json(
                 { error: 'Solo Preparatori Atletici, Nutrizionisti e Fisioterapisti possono creare uno studio' },
                 { status: 403 }

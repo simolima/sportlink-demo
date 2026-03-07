@@ -15,12 +15,21 @@ import {
 import Avatar from '@/components/avatar'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { switchActiveRole } from '@/app/actions/role-actions'
+import { getAuthHeaders } from '@/lib/auth-fetch'
+import { syncLegacySelectedClubIdForRole } from '@/lib/club-membership-scope'
 import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 
 interface ProfileRole {
     role_id: string
     is_primary: boolean
-    sport_name?: string | null
+    sport_names?: string[]
+}
+
+/** Format sport list for display in the dropdown row */
+function formatSports(names: string[] | undefined): string {
+    if (!names || names.length === 0) return ''
+    if (names.length <= 2) return names.join(', ')
+    return `${names.length} sport`
 }
 
 export default function ProfileDropdown() {
@@ -45,10 +54,15 @@ export default function ProfileDropdown() {
     // Fetch dei ruoli disponibili dall'API
     useEffect(() => {
         if (!user?.id) return
-        fetch(`/api/users/roles?userId=${user.id}`)
-            .then(res => res.ok ? res.json() : [])
-            .then((data: ProfileRole[]) => setRoles(data))
-            .catch(() => { })
+
+            ; (async () => {
+                const authHeaders = await getAuthHeaders()
+                const response = await fetch(`/api/users/roles?userId=${user.id}`, {
+                    headers: authHeaders,
+                })
+                const data = response.ok ? await response.json() : []
+                setRoles(data as ProfileRole[])
+            })().catch(() => { })
     }, [user?.id])
 
     if (!user) return null
@@ -56,14 +70,19 @@ export default function ProfileDropdown() {
     const currentRole = user.professionalRole?.toLowerCase() as ProfessionalRole
     const currentRoleEntry = roles.find(r => r.role_id === currentRole)
     const currentRoleLabel = ROLE_TRANSLATIONS[currentRole] ?? currentRole
-    const currentSportLabel = currentRoleEntry?.sport_name ?? null
+    const currentSportLabel = formatSports(currentRoleEntry?.sport_names)
     const otherRoles = roles.filter(r => r.role_id !== currentRole)
 
     function handleSwitchRole(roleId: string) {
         startTransition(async () => {
             try {
-                await switchActiveRole(roleId as ProfessionalRole)
+                const authHeaders = await getAuthHeaders()
+                const bearer = authHeaders.Authorization || (authHeaders as any).authorization
+                const authToken = bearer?.startsWith('Bearer ') ? bearer.slice(7) : undefined
+
+                await switchActiveRole(roleId as ProfessionalRole, authToken)
                 localStorage.setItem('currentUserRole', roleId)
+                syncLegacySelectedClubIdForRole(roleId)
                 setOpen(false)
                 // Naviga a /home per aggiornare il contesto completo
                 window.location.href = '/home'
@@ -152,8 +171,8 @@ export default function ProfileDropdown() {
                                         )}
                                         <span className="truncate">
                                             {label}
-                                            {r.sport_name && (
-                                                <span className={isActive ? 'text-brand-500' : 'text-gray-400'}> · {r.sport_name}</span>
+                                            {formatSports(r.sport_names) && (
+                                                <span className={isActive ? 'text-brand-500' : 'text-gray-400'}> · {formatSports(r.sport_names)}</span>
                                             )}
                                         </span>
                                         {isPending && !isActive && (

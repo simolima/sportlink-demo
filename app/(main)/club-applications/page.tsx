@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MegaphoneIcon, InboxIcon, BuildingOfficeIcon, CalendarIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useToast } from '@/lib/toast-context'
+import { getSelectedClubStorageKey } from '@/lib/club-membership-scope'
 
 interface Opportunity {
     id: string | number
@@ -48,13 +49,15 @@ export default function ClubApplicationsPage() {
 
     useEffect(() => {
         const id = localStorage.getItem('currentUserId')
+        const activeRole = localStorage.getItem('currentUserRole')
+        const selectedClubStorageKey = getSelectedClubStorageKey(activeRole)
 
         // Leggi i parametri dalla URL
         const urlParams = new URLSearchParams(window.location.search)
         const urlClubId = urlParams.get('clubId')
         const urlOpportunityId = urlParams.get('opportunityId')
 
-        const club = urlClubId || localStorage.getItem('selectedClubId')
+        const club = urlClubId || localStorage.getItem(selectedClubStorageKey) || localStorage.getItem('selectedClubId')
         if (!id || !club) {
             router.push('/home')
             return
@@ -64,6 +67,7 @@ export default function ClubApplicationsPage() {
 
         // Salva il club selezionato se arriva dalla URL
         if (urlClubId) {
+            localStorage.setItem(selectedClubStorageKey, urlClubId)
             localStorage.setItem('selectedClubId', urlClubId)
         }
 

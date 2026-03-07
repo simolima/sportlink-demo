@@ -4,8 +4,8 @@
 
 ## Framework & Runtime
 
-- **Next.js 14** (App Router) — tutte le pagine usano `"use client"` directive
-- **React 18** (web) / **React Native 0.78.6** (mobile)
+- **Next.js 14** (App Router) — la maggior parte delle pagine usa `"use client"`. Eccezioni: `dashboard/page.tsx` (Server Component), `components/widgets/` (Server Components async), `app/actions/` (`'use server'`)
+- **React 18** (web) / **React Native 0.81.5** (mobile)
 - **TypeScript** — loosely typed in molti punti, `any` usato di frequente
 - **Node.js** — tutte le API routes devono avere `export const runtime = 'nodejs'`
 
@@ -19,9 +19,12 @@
 ## Frontend & Styling
 
 - **Tailwind CSS** + **DaisyUI** — sistema di design
+- **@tailwindcss/forms** + **@tailwindcss/typography** — plugin Tailwind attivi
+- **@headlessui/react** — componenti UI accessibili (dialog, menu, switch, ecc.)
 - **TanStack React Query v5** (`@tanstack/react-query`) — attivo nel progetto
 - **react-hook-form** + **zod** + **@hookform/resolvers** — per form e validazione (zodResolver disponibile)
 - **framer-motion** — installato come dipendenza di produzione (animazioni)
+- **clsx** — utility per classi condizionali
 
 ## Icone — Sistema Ibrido
 
@@ -37,7 +40,7 @@ Quando aggiungi icone: usa quella già presente nel file/contesto circostante. I
 
 ## Mobile App
 
-- **Expo** con **React Native 0.78.6**
+- **Expo ~54.0** con **React Native 0.81.5**
 - Cartella `mobile/` con **dipendenze completamente isolate** (proprio `package.json`, no monorepo)
 - **IP auto-configurato via Expo SDK** (`Constants.expoConfig?.hostUri`) — nessuna configurazione manuale dell'indirizzo IP
 - In produzione punta a `https://sportlink-demo.vercel.app`
@@ -64,6 +67,15 @@ pnpm test:coverage
 
 ## Testing
 
-- **Vitest** — test runner
+- **Vitest** — test runner (`vitest.config.ts` + `vitest.setup.ts` nella root)
 - **@testing-library/react** + **jsdom** — per componenti
 - Test in cartelle `__tests__/` accanto ai file sorgente
+- Preferire `describe` + `it` per strutturare i test
+- Mock di Supabase e fetch con `vi.mock()` / `vi.fn()`
+- Scope: test di unità e API utilities (non logica di UI manuale)
+
+## Note Architetturali — Multi-sport (Marzo 2026)
+
+`isMultiSportRole()` in `utils/roleHelpers.ts` include ora anche `sporting_director` e `talent_scout` (prima erano single-sport only).
+`SUPPORTED_SPORTS` in `lib/types.ts` NON include 'Multi-sport' — questa costante serve solo per i filtri ricerca/club/opportunità.
+La card Multi-sport è visibile in onboarding/add-role solo per i ruoli `isMultiSportRole() === true` ed è **esclusiva** (non combinabile con sport specifici).

@@ -86,6 +86,11 @@ export async function POST(req: Request) {
         }
 
         // Step 1: Create user in Supabase Auth
+        // Calcola roleId qui (serve anche nei metadata per il trigger handle_new_user)
+        const roleIdForSignup = body.professionalRole
+            ? mapRoleToDatabase(body.professionalRole)
+            : (body.roleId ? mapRoleToDatabase(body.roleId) : 'player')
+
         const { data: authData, error: authError } = await supabaseServer.auth.signUp({
             email,
             password,
@@ -93,6 +98,10 @@ export async function POST(req: Request) {
                 data: {
                     first_name: body.firstName ?? '',
                     last_name: body.lastName ?? '',
+                    // Passare role nei metadata fa sì che handle_new_user crei il profilo
+                    // con il ruolo corretto, evitando il default 'player' e il conflitto
+                    // nel trigger sync_profile_roles (uniq_profile_roles_one_primary).
+                    role: roleIdForSignup,
                 }
             }
         })

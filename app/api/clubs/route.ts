@@ -3,6 +3,27 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase } from '@/lib/supabase-server'
+import { resolveMembershipProfessionalRoleId } from '@/lib/club-membership-scope'
+
+async function userHasRole(userId: string, roleId: string): Promise<boolean> {
+    const { data: roleRow } = await supabase
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('role_id', roleId)
+        .maybeSingle()
+
+    if (roleRow?.role_id) return true
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+    return profile?.role_id === roleId
+}
 
 // OPTIONS /api/clubs - CORS preflight
 export async function OPTIONS() {
@@ -124,6 +145,7 @@ export async function POST(request: Request) {
         }
 
         const creatorId = createdBy ? createdBy.toString() : null
+        let creatorProfileRoleId: string | null = null
 
         // Verifica che il creatore sia un Direttore Sportivo
         if (creatorId) {
@@ -133,7 +155,10 @@ export async function POST(request: Request) {
                 .eq('id', creatorId)
                 .single()
 
-            if (!profile || profile.role_id !== 'sporting_director') {
+            creatorProfileRoleId = profile?.role_id || null
+
+            const canCreateClub = await userHasRole(creatorId, 'sporting_director')
+            if (!canCreateClub) {
                 return withCors(NextResponse.json(
                     { error: 'Solo i Direttori Sportivi possono creare società' },
                     { status: 403 }
@@ -230,12 +255,18 @@ export async function POST(request: Request) {
                 .maybeSingle()
 
             if (!existingMembership) {
+                const creatorProfessionalRoleId = resolveMembershipProfessionalRoleId({
+                    profileRoleId: creatorProfileRoleId,
+                    clubRole: 'Admin',
+                })
+
                 const { error: membershipError } = await supabase
                     .from('club_memberships')
                     .insert([{
                         club_id: createdClub.id,
                         user_id: creatorId,
                         club_role: 'Admin',           // ← colonna corretta
+                        professional_role_id: creatorProfessionalRoleId,
                         permissions: ['create_opportunities', 'manage_applications', 'manage_members', 'edit_club_info'],
                         status: 'active',             // ← colonna corretta (non is_active)
                     }])

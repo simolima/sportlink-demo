@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
-import { switchActiveRole, deleteProfileRole } from '@/app/actions/role-actions'
+import { switchActiveRole } from '@/app/actions/role-actions'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
+import { SportIcon } from '@/lib/sport-icons'
+import { syncLegacySelectedClubIdForRole } from '@/lib/club-membership-scope'
 import {
     PROFESSIONAL_ROLES,
     ROLE_TRANSLATIONS,
@@ -47,12 +49,6 @@ const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
     talent_scout: 'Scopri e valuta nuovi talenti',
 }
 
-const SPORT_EMOJI: Record<string, string> = {
-    Calcio: '⚽',
-    Basket: '🏀',
-    Pallavolo: '🏐',
-}
-
 /** Ruoli che hanno posizioni in lookup_positions */
 const ROLES_WITH_POSITIONS = ['player', 'coach']
 
@@ -68,7 +64,7 @@ export default function AddRolePage() {
     const { user, isLoading } = useAuth()
 
     // State globale
-    const [step, setStep] = useState<1 | 2 | 3>(1)
+    const [step, setStep] = useState<1 | 2>(1)
     const [existingRoles, setExistingRoles] = useState<string[]>([])
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -78,10 +74,6 @@ export default function AddRolePage() {
     const [selectedRole, setSelectedRole] = useState<ProfessionalRole | null>(null)
     // Step 2: sport
     const [selectedSports, setSelectedSports] = useState<string[]>([])
-    // Step 3: posizione (solo player/coach)
-    const [positions, setPositions] = useState<LookupPosition[]>([])
-    const [selectedPositionId, setSelectedPositionId] = useState<number | null>(null)
-    const [positionsLoading, setPositionsLoading] = useState(false)
 
     // ── Auth guard ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -91,71 +83,33 @@ export default function AddRolePage() {
     // ── Fetch ruoli esistenti ───────────────────────────────────────────────
     useEffect(() => {
         if (!user?.id) return
-        fetch(`/api/users/roles?userId=${user.id}`)
-            .then(res => res.ok ? res.json() : [])
-            .then((data: { role_id: string }[]) => setExistingRoles(data.map(r => r.role_id)))
-            .catch(() => { })
+
+            ; (async () => {
+                const authHeaders = await getAuthHeaders()
+                const response = await fetch('/api/users/roles', {
+                    headers: authHeaders,
+                })
+                const data = response.ok ? await response.json() : []
+                setExistingRoles((data as { role_id: string }[]).map(r => r.role_id))
+            })().catch(() => { })
     }, [user?.id])
 
-    // ── Fetch posizioni quando si arriva allo step 3 ────────────────────────
-    useEffect(() => {
-        if (step !== 3 || !selectedRole || !selectedSports[0]) return
-        if (!ROLES_WITH_POSITIONS.includes(selectedRole)) return
-
-        setPositionsLoading(true)
-            ; (async () => {
-                // Recupera sport_id dal nome
-                const { data: sportRow } = await supabaseBrowser
-                    .from('lookup_sports')
-                    .select('id')
-                    .eq('name', selectedSports[0])
-                    .maybeSingle()
-
-                if (!sportRow) {
-                    // Prova con mapping alternativi (Pallavolo → Volley)
-                    const altName = selectedSports[0] === 'Pallavolo' ? 'Volley' : null
-                    if (altName) {
-                        const { data: altRow } = await supabaseBrowser
-                            .from('lookup_sports')
-                            .select('id')
-                            .eq('name', altName)
-                            .maybeSingle()
-                        if (altRow) {
-                            await fetchPositions(altRow.id, selectedRole)
-                            return
-                        }
-                    }
-                    setPositions([])
-                    setPositionsLoading(false)
-                    return
-                }
-                await fetchPositions(sportRow.id, selectedRole)
-            })()
-
-        async function fetchPositions(sportId: number, roleId: string) {
-            const { data } = await supabaseBrowser
-                .from('lookup_positions')
-                .select('id, name, category')
-                .eq('sport_id', sportId)
-                .eq('role_id', roleId)
-                .order('category')
-                .order('name')
-
-            setPositions(data ?? [])
-            setPositionsLoading(false)
-        }
-    }, [step, selectedRole, selectedSports])
-
     // ── Helpers ────────────────────────────────────────────────────────────
-    const needsPositionStep = selectedRole ? ROLES_WITH_POSITIONS.includes(selectedRole) : false
-    const totalSteps = needsPositionStep ? 3 : 2
+    const totalSteps = 2
     const availableRoles = PROFESSIONAL_ROLES.filter(r => !existingRoles.includes(r))
 
     function handleSelectSport(sport: string) {
+        if (sport === 'Multi-sport') {
+            setSelectedSports(['Multi-sport'])
+            return
+        }
         if (selectedRole && isMultiSportRole(selectedRole)) {
-            setSelectedSports(prev =>
-                prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]
-            )
+            setSelectedSports(prev => {
+                const withoutMulti = prev.filter(s => s !== 'Multi-sport')
+                return withoutMulti.includes(sport)
+                    ? withoutMulti.filter(s => s !== sport)
+                    : [...withoutMulti, sport]
+            })
         } else {
             setSelectedSports([sport])
         }
@@ -166,11 +120,7 @@ export default function AddRolePage() {
         if (step === 1 && selectedRole) {
             setStep(2)
         } else if (step === 2 && selectedSports.length > 0) {
-            if (needsPositionStep) {
-                setStep(3)
-            } else {
-                handleSave()
-            }
+            handleSave()
         }
     }
 
@@ -179,10 +129,6 @@ export default function AddRolePage() {
         if (step === 2) {
             setSelectedSports([])
             setStep(1)
-        } else if (step === 3) {
-            setSelectedPositionId(null)
-            setPositions([])
-            setStep(2)
         }
     }
 
@@ -193,72 +139,39 @@ export default function AddRolePage() {
         setError(null)
 
         try {
-            // 1. Insert in profile_roles
-            const { error: roleErr } = await supabaseBrowser
-                .from('profile_roles')
-                .insert({
-                    user_id: user.id,
-                    role_id: selectedRole,
-                    is_active: true,
-                    is_primary: false,
-                })
+            const authHeaders = await getAuthHeaders()
+            const bearer = authHeaders.Authorization || (authHeaders as any).authorization
+            const authToken = bearer?.startsWith('Bearer ') ? bearer.slice(7) : undefined
+            const response = await fetch('/api/users/roles', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    roleId: selectedRole,
+                    sports: selectedSports,
+                }),
+            })
 
-            if (roleErr) {
-                if (roleErr.code === '23505') {
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}))
+                if (response.status === 409 || payload?.error === 'role_already_exists') {
                     setError('Hai già questo ruolo attivo.')
+                } else if (response.status === 401) {
+                    setError('Sessione scaduta. Effettua di nuovo il login.')
                 } else {
-                    setError(roleErr.message)
+                    setError(payload?.error || 'Errore nel salvataggio. Riprova.')
                 }
                 setSaving(false)
                 return
             }
 
-            // 2. Recupera sport_id per ciascun sport selezionato
-            const { data: sportsRows } = await supabaseBrowser
-                .from('lookup_sports')
-                .select('id, name')
-
-            if (!sportsRows) throw new Error('Errore nel recupero degli sport')
-
-            // Mappa nome → id (gestisce alias Pallavolo/Volley)
-            const sportNameToId: Record<string, number> = {}
-            for (const row of sportsRows) {
-                sportNameToId[row.name] = row.id
-            }
-
-            const sportRecords = selectedSports.map((sportName, idx) => {
-                const sportId =
-                    sportNameToId[sportName] ??
-                    sportNameToId[sportName === 'Pallavolo' ? 'Volley' : sportName]
-
-                return {
-                    user_id: user.id,
-                    sport_id: sportId,
-                    role_id: selectedRole,
-                    is_main_sport: idx === 0,
-                    primary_position_id: idx === 0 ? selectedPositionId : null,
-                }
-            }).filter(r => r.sport_id != null)
-
-            // 3. Insert in profile_sports
-            if (sportRecords.length > 0) {
-                const { error: sportErr } = await supabaseBrowser
-                    .from('profile_sports')
-                    .insert(sportRecords)
-
-                if (sportErr) {
-                    console.error('profile_sports insert error:', sportErr)
-                    // Rollback: rimuovi il ruolo appena creato (server action bypassa RLS)
-                    await deleteProfileRole(selectedRole)
-                    setError('Errore nel salvataggio degli sport. Riprova.')
-                    setSaving(false)
-                    return
-                }
-            }
-
-            // 4. Switch al nuovo ruolo
-            await switchActiveRole(selectedRole)
+            // 2. Switch al nuovo ruolo
+            await switchActiveRole(selectedRole, authToken)
             localStorage.setItem('currentUserRole', selectedRole)
+            syncLegacySelectedClubIdForRole(selectedRole)
             localStorage.setItem(
                 'currentUserSports',
                 JSON.stringify(selectedSports)
@@ -275,15 +188,6 @@ export default function AddRolePage() {
     // ── Loading / auth ─────────────────────────────────────────────────────
     if (isLoading || !user) return null
 
-    // ── Raggruppamento posizioni per categoria (Calcio ha categorie) ────────
-    const positionsByCategory: Record<string, LookupPosition[]> = {}
-    for (const p of positions) {
-        const cat = p.category ?? 'Altro'
-        if (!positionsByCategory[cat]) positionsByCategory[cat] = []
-        positionsByCategory[cat].push(p)
-    }
-    const hasCategories = Object.keys(positionsByCategory).length > 1
-
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-base-100 flex items-center justify-center px-4 py-12">
@@ -296,7 +200,6 @@ export default function AddRolePage() {
                             <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
                                 {step === 1 && 'Scegli il ruolo'}
                                 {step === 2 && 'Seleziona lo sport'}
-                                {step === 3 && 'Scegli la posizione'}
                             </h1>
                             <p className="text-secondary text-lg">
                                 {step === 1 && 'Aggiungi un nuovo profilo professionale al tuo account.'}
@@ -305,7 +208,6 @@ export default function AddRolePage() {
                                         ? 'Seleziona uno o più sport per questo profilo.'
                                         : 'Seleziona lo sport principale per questo profilo.'
                                 )}
-                                {step === 3 && 'Indica la posizione che ricopri in campo.'}
                             </p>
                         </div>
 
@@ -423,84 +325,35 @@ export default function AddRolePage() {
                                                         : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                                         }`}
                                                 >
-                                                    <div className="text-4xl mb-3">
-                                                        {SPORT_EMOJI[sport] ?? '🏅'}
+                                                    <div className="flex justify-center mb-3">
+                                                        <SportIcon sport={sport} className="w-10 h-10 text-white/80" />
                                                     </div>
                                                     <div className="font-semibold text-white">{sport}</div>
                                                 </button>
                                             )
                                         })}
                                     </div>
-                                </div>
-                            )}
 
-                            {/* ═══════════ STEP 3: Posizione ═══════════════ */}
-                            {step === 3 && (
-                                <div className="space-y-8">
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-white mb-2">
-                                            Scegli la tua posizione
-                                        </h2>
-                                        <p className="text-secondary text-sm">
-                                            La posizione principale per {selectedSports[0]}. Potrai modificarla in seguito.
-                                        </p>
-                                    </div>
-
-                                    {positionsLoading ? (
-                                        <div className="flex justify-center py-12">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
-                                        </div>
-                                    ) : positions.length === 0 ? (
-                                        <div className="text-center py-12 text-secondary">
-                                            <p>Nessuna posizione disponibile per questo sport e ruolo.</p>
-                                            <p className="text-sm mt-2">Puoi procedere senza selezionarne una.</p>
-                                        </div>
-                                    ) : hasCategories ? (
-                                        /* Per Calcio: posizioni raggruppate per categoria */
-                                        <div className="space-y-6">
-                                            {Object.entries(positionsByCategory).map(([category, items]) => (
-                                                <div key={category}>
-                                                    <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">
-                                                        {category}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        {items.map(pos => {
-                                                            const sel = selectedPositionId === pos.id
-                                                            return (
-                                                                <button
-                                                                    key={pos.id}
-                                                                    onClick={() => setSelectedPositionId(sel ? null : pos.id)}
-                                                                    className={`p-3 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                                        ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                                        : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
-                                                                        }`}
-                                                                >
-                                                                    {pos.name}
-                                                                </button>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        /* Per Basket/Volley: lista semplice */
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            {positions.map(pos => {
-                                                const sel = selectedPositionId === pos.id
-                                                return (
-                                                    <button
-                                                        key={pos.id}
-                                                        onClick={() => setSelectedPositionId(sel ? null : pos.id)}
-                                                        className={`p-4 rounded-xl border-2 transition-all text-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${sel
-                                                            ? 'border-primary bg-primary/20 text-white ring-2 ring-primary'
-                                                            : 'border-base-300 bg-base-100 text-secondary hover:border-primary/50'
-                                                            }`}
-                                                    >
-                                                        {pos.name}
-                                                    </button>
-                                                )
-                                            })}
+                                    {/* Opzione Multi-sport (non disponibile per player e coach) */}
+                                    {selectedRole && isMultiSportRole(selectedRole) && (
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="flex items-center gap-3 w-full">
+                                                <div className="flex-1 h-px bg-base-300" />
+                                                <span className="text-sm text-secondary px-2">Oppure:</span>
+                                                <div className="flex-1 h-px bg-base-300" />
+                                            </div>
+                                            <button
+                                                onClick={() => handleSelectSport('Multi-sport')}
+                                                disabled={saving}
+                                                className={`w-full p-6 rounded-xl border-2 transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selectedSports.includes('Multi-sport')
+                                                    ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                                    : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                                    }`}
+                                            >
+                                                <div className="text-4xl mb-3">🌐</div>
+                                                <div className="font-semibold text-white">Multi-sport</div>
+                                                <div className="text-xs text-secondary mt-1">Lavoro su più discipline sportive</div>
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -528,7 +381,7 @@ export default function AddRolePage() {
                                 )}
 
                                 <button
-                                    onClick={step === 3 ? handleSave : goNext}
+                                    onClick={goNext}
                                     disabled={
                                         saving ||
                                         (step === 1 && !selectedRole) ||

@@ -1,6 +1,7 @@
 "use client"
 import React from 'react'
 import Link from 'next/link'
+import { Building2, Activity, MapPin } from 'lucide-react'
 import { Club } from '@/lib/types'
 
 interface ClubsWidgetProps {
@@ -29,7 +30,7 @@ export default function ClubsWidget({
 
             {displayedItems.length === 0 ? (
                 <div className="py-8 text-center">
-                    <div className="text-gray-400 mb-2">🏛️</div>
+                    <Building2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                     <p className="text-gray-600">{emptyMessage}</p>
                     <Link
                         href="/clubs"
@@ -52,10 +53,18 @@ export default function ClubsWidget({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-semibold text-gray-900 truncate">{club.name}</h4>
-                                    <p className="text-sm text-gray-600">📍 {club.city}</p>
+                                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                        {club.city}
+                                    </p>
                                     <div className="flex gap-2 mt-2 text-xs text-gray-500">
                                         <span>{club.membersCount || 0} membri</span>
-                                        {club.sports && <span>⚽ {club.sports.join(', ')}</span>}
+                                        {club.sports && (
+                                            <span className="flex items-center gap-1">
+                                                <Activity className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                                                {club.sports.join(', ')}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

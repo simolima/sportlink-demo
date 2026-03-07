@@ -115,6 +115,7 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
                 }
 
                 setProfileRoles(rolesData)
+                console.log('🔍 Profile roles loaded:', { count: rolesData.length, roles: rolesData.map(r => r.role_id), userId: params.id })
 
                 // Determina il ruolo da visualizzare
                 let effectiveViewRole = roleForView

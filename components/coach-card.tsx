@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
 import { MapPinIcon, CheckBadgeIcon, AcademicCapIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
+import { SportIcon } from '@/lib/sport-icons'
 
 interface CoachCardProps {
     coach: any
@@ -70,7 +71,8 @@ export default function CoachCard({ coach, currentUserId }: CoachCardProps) {
                 {/* Tags row */}
                 <div className="flex flex-wrap items-center gap-2 mt-auto">
                     {mainSport && (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100 inline-flex items-center gap-1">
+                            <SportIcon sport={mainSport} className="w-3 h-3 flex-shrink-0" />
                             {mainSport}
                         </span>
                     )}

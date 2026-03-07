@@ -80,6 +80,7 @@ export default function ProfileSidebar({
     const isCoach = roleLower.includes('coach') || roleLower.includes('allenatore')
     const isAgent = roleLower.includes('agent') || roleLower.includes('agente')
     const isDS = roleLower.includes('director') || roleLower.includes('ds')
+    const isMedical = ['athletic_trainer', 'nutritionist', 'physio'].includes(roleLower)
 
     type StatItem = {
         label: string
@@ -735,6 +736,16 @@ export default function ProfileSidebar({
                     className="w-full block text-center px-4 py-3 bg-[#2341F0] text-white rounded-lg font-semibold hover:bg-[#3B52F5] transition shadow-lg"
                 >
                     Modifica profilo
+                </a>
+            )}
+
+            {/* Studio CTA per ruoli medici */}
+            {isMedical && (
+                <a
+                    href={`/studios?ownerId=${user.id}`}
+                    className="w-full block text-center px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
+                >
+                    {isSelf ? 'Il tuo Studio →' : 'Visita lo Studio'}
                 </a>
             )}
 

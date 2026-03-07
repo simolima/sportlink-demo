@@ -562,6 +562,79 @@ export type BlockedAgent = {
   reason?: string;
 };
 
+// ============================================================================
+// STUDIO PROFESSIONALE
+// ============================================================================
+
+export const MEDICAL_ROLES = ['athletic_trainer', 'nutritionist', 'physio'] as const;
+export type MedicalRole = typeof MEDICAL_ROLES[number];
+
+export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
+export type StudioClientStatus = 'pending' | 'active' | 'inactive';
+
+export type ProfessionalStudio = {
+  id: string;
+  ownerId: string;
+  name: string;
+  city?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  logoUrl?: string;
+  description?: string;
+  servicesOffered: string[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  // owner profile (joined)
+  owner?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+    roleId: string;
+  };
+};
+
+export type StudioAppointment = {
+  id: string;
+  studioId: string;
+  clientId: string;
+  professionalId: string;
+  startTime: string;
+  endTime: string;
+  status: AppointmentStatus;
+  serviceType?: string;
+  notes?: string;
+  isExternalBlocker: boolean;
+  createdAt: string;
+  // joined
+  client?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+};
+
+export type StudioClient = {
+  id: string;
+  studioId: string;
+  clientProfileId: string;
+  status: StudioClientStatus;
+  notes?: string;
+  onboardedAt?: string;
+  createdAt: string;
+  // joined
+  client?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+    roleId: string;
+  };
+};
+
 // Notification
 export type Notification = {
   id: number | string;

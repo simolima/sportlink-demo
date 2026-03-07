@@ -6,6 +6,7 @@ import {
     OpportunitiesForYouWidget,
     YourApplicationsWidget,
     YourClubWidget,
+    YourStudioWidget,
     RosterOverviewWidget,
     AgentMarketWidget,
     ReceivedApplicationsWidget,
@@ -27,6 +28,9 @@ const DS_ROLES = ['sporting_director']
 
 // Ruoli Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout)
 const STAFF_ROLES = ['athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
+
+// Ruoli medici che possono avere uno studio professionale
+const MEDICAL_ROLES = ['athletic_trainer', 'nutritionist', 'physio']
 
 // Ruoli che possono gestire club
 const CLUB_ADMIN_ROLES = ['coach', 'sporting_director', 'athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
@@ -206,6 +210,7 @@ export default function HomePage() {
     const isAgent = AGENT_ROLES.includes(userRole)
     const isDS = DS_ROLES.includes(userRole)
     const isStaff = STAFF_ROLES.includes(userRole)
+    const isMedical = MEDICAL_ROLES.includes(userRole)
     // Mostra "Gestione Società" solo se il ruolo attivo è pertinente al club
     const showClubAdminSection = (isClubAdmin || isDS) && CLUB_ADMIN_ROLES.includes(userRole)
 
@@ -302,6 +307,19 @@ export default function HomePage() {
                             <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
                             <YourApplicationsWidget userId={userId!} />
                             <YourClubWidget userId={userId!} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Studio professionale per Fisioterapisti, Nutrizionisti, Preparatori Atletici */}
+                {isMedical && (
+                    <div className="space-y-6 mt-8">
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            Il tuo Studio Professionale
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <YourStudioWidget userId={userId!} />
                         </div>
                     </div>
                 )}

@@ -3,7 +3,9 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supabase-server'
-import { deleteEvent } from '@/lib/google-calendar-service'
+import { deleteEvent, updateEvent } from '@/lib/google-calendar-service'
+import { createNotification } from '@/lib/notifications-repository'
+import { dispatchToUser } from '@/lib/notification-dispatcher'
 
 async function getSelectedCalendarId(studioId: string): Promise<string | null> {
     const { data: connection } = await supabase
@@ -35,7 +37,7 @@ export async function PATCH(
 
         const { data: appointment } = await supabase
             .from('studio_appointments')
-            .select('id, client_id, professional_id, studio_id, status, google_event_id')
+            .select('id, client_id, professional_id, studio_id, status, google_event_id, start_time, end_time, service_type, notes')
             .eq('id', params.apptId)
             .eq('studio_id', params.id)
             .is('deleted_at', null)
@@ -53,20 +55,66 @@ export async function PATCH(
         }
 
         const body = await req.json()
-        const { status, notes } = body
+        const { status, notes, startTime, endTime } = body
+
+        if (!status && notes === undefined && !startTime && !endTime) {
+            return withCors(NextResponse.json({ error: 'no_fields_to_update' }, { status: 400 }))
+        }
 
         // Il client può solo cancellare
         if (isClient && !isOwner && status !== 'cancelled') {
             return withCors(NextResponse.json({ error: 'il cliente può solo cancellare la prenotazione' }, { status: 403 }))
         }
 
+        if (isClient && !isOwner && (startTime || endTime)) {
+            return withCors(NextResponse.json({ error: 'il cliente non può riprogrammare la prenotazione' }, { status: 403 }))
+        }
+
         const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed']
-        if (!validStatuses.includes(status)) {
+        if (status && !validStatuses.includes(status)) {
             return withCors(NextResponse.json({ error: 'status non valido' }, { status: 400 }))
         }
 
-        const updates: Record<string, any> = { status }
+        const updates: Record<string, any> = {}
+        if (status) updates.status = status
         if (notes !== undefined) updates.notes = notes
+
+        if ((startTime || endTime) && !isOwner) {
+            return withCors(NextResponse.json({ error: 'solo il professionista può riprogrammare' }, { status: 403 }))
+        }
+
+        const resolvedStartTime = startTime || appointment.start_time
+        const resolvedEndTime = endTime || appointment.end_time
+
+        if (startTime || endTime) {
+            const sameTimeAsCurrent = resolvedStartTime === appointment.start_time && resolvedEndTime === appointment.end_time
+            if (!sameTimeAsCurrent) {
+                const { data: conflictingAppointments } = await supabase
+                    .from('studio_appointments')
+                    .select('id')
+                    .eq('studio_id', params.id)
+                    .is('deleted_at', null)
+                    .in('status', ['pending', 'confirmed'])
+                    .neq('id', params.apptId)
+                    .lt('start_time', resolvedEndTime)
+                    .gt('end_time', resolvedStartTime)
+
+                const { data: conflictingExternalEvents } = await supabase
+                    .from('studio_external_events')
+                    .select('id')
+                    .eq('professional_studio_id', params.id)
+                    .is('deleted_at', null)
+                    .lt('start_time', resolvedEndTime)
+                    .gt('end_time', resolvedStartTime)
+
+                if ((conflictingAppointments?.length || 0) > 0 || (conflictingExternalEvents?.length || 0) > 0) {
+                    return withCors(NextResponse.json({ error: 'slot_not_available' }, { status: 409 }))
+                }
+            }
+
+            updates.start_time = resolvedStartTime
+            updates.end_time = resolvedEndTime
+        }
 
         const { data: updated, error } = await supabase
             .from('studio_appointments')
@@ -85,6 +133,50 @@ export async function PATCH(
                 }
             } catch (syncError) {
                 console.error('Failed to delete Google event on cancellation:', syncError)
+            }
+        } else if ((startTime || endTime || notes !== undefined) && appointment.google_event_id) {
+            try {
+                const selectedCalendarId = await getSelectedCalendarId(params.id)
+                if (selectedCalendarId) {
+                    await updateEvent(params.id, selectedCalendarId, appointment.google_event_id, {
+                        summary: updated.service_type || 'Prenotazione Sprinta',
+                        description: updated.notes || undefined,
+                        start: updated.start_time,
+                        end: updated.end_time,
+                    })
+                    await supabase
+                        .from('studio_appointments')
+                        .update({ google_sync_status: 'synced' })
+                        .eq('id', params.apptId)
+                }
+            } catch (syncError) {
+                console.error('Failed to update Google event on appointment change:', syncError)
+                await supabase
+                    .from('studio_appointments')
+                    .update({ google_sync_status: 'sync_failed' })
+                    .eq('id', params.apptId)
+            }
+        }
+
+        if (status && status !== appointment.status) {
+            if (isOwner) {
+                const clientNotification = await createNotification({
+                    userId: appointment.client_id,
+                    type: 'studio_booking_status_updated',
+                    title: 'Aggiornamento prenotazione',
+                    message: `La tua prenotazione è ora ${status}`,
+                    metadata: { studioId: params.id, appointmentId: params.apptId, status },
+                })
+                if (clientNotification) dispatchToUser(appointment.client_id, clientNotification)
+            } else if (isClient && status === 'cancelled') {
+                const ownerNotification = await createNotification({
+                    userId: appointment.professional_id,
+                    type: 'studio_booking_cancelled_by_client',
+                    title: 'Prenotazione annullata',
+                    message: 'Un cliente ha annullato una prenotazione',
+                    metadata: { studioId: params.id, appointmentId: params.apptId },
+                })
+                if (ownerNotification) dispatchToUser(appointment.professional_id, ownerNotification)
             }
         }
 

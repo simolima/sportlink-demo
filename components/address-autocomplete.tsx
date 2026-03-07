@@ -119,7 +119,7 @@ export default function AddressAutocomplete({ value, onChange, placeholder = 'es
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={placeholder}
-                    className={`pl-9 pr-8 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${className ?? ''}`}
+                    className={`pl-9 pr-8 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${className ?? ''}`}
                 />
                 {inputValue && (
                     <button

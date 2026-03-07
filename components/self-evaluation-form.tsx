@@ -333,7 +333,7 @@ export default function SelfEvaluationForm({
                     {/* Sport-Specific */}
                     {mainSport === 'Calcio' && (
                         <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-green-400">
+                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-brand-400">
                                 Abilità Calcio
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4">
@@ -358,7 +358,7 @@ export default function SelfEvaluationForm({
 
                     {mainSport === 'Pallavolo' && (
                         <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-green-400">
+                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-brand-400">
                                 Abilità Pallavolo
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4">
@@ -383,7 +383,7 @@ export default function SelfEvaluationForm({
 
                     {mainSport === 'Basket' && (
                         <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-green-400">
+                            <h4 className="font-semibold text-gray-800 pl-4 border-l-4 border-brand-400">
                                 Abilità Basketball
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4">

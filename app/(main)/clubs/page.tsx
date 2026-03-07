@@ -88,7 +88,7 @@ export default function ClubsPage() {
                     </div>
                     <button
                         onClick={() => router.push('/clubs/create')}
-                        className={`px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2 ${!isSportingDirector ? 'hidden' : ''}`}
+                        className={`px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition flex items-center gap-2 ${!isSportingDirector ? 'hidden' : ''}`}
                     >
                         <BuildingOffice2Icon className="h-5 w-5" />
                         Crea Società

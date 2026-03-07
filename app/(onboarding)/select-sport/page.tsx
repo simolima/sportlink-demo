@@ -199,8 +199,8 @@ export default function SelectSportPage() {
 
                 console.log('✅ Profile updated successfully')
 
-                // Note: profile_stats will be created automatically by database trigger
-                // or we'll create it later once schema is fixed
+                // profile_roles è sincronizzato automaticamente dal trigger
+                // trg_sync_profile_roles su profiles (AFTER INSERT OR UPDATE OF role_id)
 
                 // Insert sports in profile_sports
                 console.log('🏀 Fetching sports from lookup_sports...', sports)

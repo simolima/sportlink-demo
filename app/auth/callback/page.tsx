@@ -1,209 +1,190 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 
+// Previene doppia esecuzione in React StrictMode (development)
+let callbackProcessed = false
+
 export default function AuthCallbackPage() {
-    const router = useRouter()
+    const [status, setStatus] = useState<string>('Autenticazione in corso...')
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
+        if (callbackProcessed) return
+        callbackProcessed = true
+
+        let mounted = true
+        let authListenerUnsubscribe: (() => void) | null = null
+
         const handleCallback = async () => {
             try {
-                console.log('🔐 Auth Callback Page - Starting...')
-
-                // If Supabase returned an auth code, exchange it explicitly
                 const url = new URL(window.location.href)
                 const authCode = url.searchParams.get('code')
+                const hasHashToken = window.location.hash.includes('access_token')
+
+                // ── STRATEGIA 1: Code exchange (PKCE flow) ──
                 if (authCode) {
-                    console.log('🔁 Exchanging OAuth code for session...')
-                    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode)
+                    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode)
+
+                    if (data?.session) {
+                        return processSession(data.session)
+                    }
                     if (exchangeError) {
-                        console.error('❌ Code exchange error:', exchangeError)
-                        setError('Errore durante lo scambio sessione OAuth')
-                        setTimeout(() => router.push('/login'), 2000)
-                        return
+                        console.warn('Code exchange error:', exchangeError.message)
                     }
                 }
 
-                // Force session refresh to ensure we have the latest auth state
-                await supabase.auth.refreshSession()
-
-                // Get the current session (Supabase handles the code exchange automatically)
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-                console.log('📦 Session:', session)
-                console.log('❌ Session Error:', sessionError)
-
-                if (sessionError) {
-                    console.error('Session error:', sessionError)
-                    setError('Errore durante l\'autenticazione')
-                    setTimeout(() => router.push('/login'), 2000)
-                    return
+                // ── STRATEGIA 2: Hash token (implicit flow) ──
+                // Supabase potrebbe aver già intercettato l'hash e stabilito la sessione
+                if (hasHashToken) {
+                    // Aspetta che Supabase processi l'hash token
+                    await new Promise(r => setTimeout(r, 500))
                 }
 
-                if (!session) {
-                    console.log('⚠️ No session found')
-                    setError('Nessuna sessione trovata')
-                    setTimeout(() => router.push('/login'), 2000)
-                    return
+                // ── STRATEGIA 3: Sessione già presente ──
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session) {
+                    return processSession(session)
                 }
 
-                const user = session.user
-                console.log('👤 User authenticated:', user.id, user.email)
-                console.log('📦 User metadata:', user.user_metadata)
+                // ── STRATEGIA 4: Aspetta onAuthStateChange ──
+                // Il token potrebbe arrivare in modo asincrono
+                const sessionFromListener = await new Promise<any>((resolve) => {
+                    const timeout = setTimeout(() => resolve(null), 3000)
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+                        if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                            clearTimeout(timeout)
+                            resolve(session)
+                        }
+                    })
+                    authListenerUnsubscribe = () => subscription.unsubscribe()
+                })
 
-                // Extract name from Google OAuth metadata
-                const fullName = user.user_metadata?.full_name || ''
-                const firstName = user.user_metadata?.given_name || fullName.split(' ')[0] || ''
-                const lastName = user.user_metadata?.family_name || fullName.split(' ').slice(1).join(' ') || ''
-                const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
+                if (sessionFromListener) {
+                    return processSession(sessionFromListener)
+                }
 
-                console.log('👤 Extracted user data:', { firstName, lastName, avatarUrl })
+                // ── STRATEGIA 5: Ultimo tentativo con refresh ──
+                const { data: refreshData } = await supabase.auth.refreshSession()
+                if (refreshData?.session) {
+                    return processSession(refreshData.session)
+                }
 
-                // Save basic session info to localStorage
-                localStorage.setItem('currentUserId', user.id)
-                localStorage.setItem('currentUserEmail', user.email || '')
-                localStorage.setItem('currentUserName', fullName || `${firstName} ${lastName}`.trim() || user.email?.split('@')[0] || 'User')
+                // Nessuna sessione → login
+                if (mounted) setError('Sessione non trovata. Riprova il login.')
+                setTimeout(() => { window.location.href = '/login' }, 2500)
+            } catch (err) {
+                console.error('Callback error:', err)
 
-                // Save OAuth user data for profile completion
-                if (firstName) localStorage.setItem('oauth_firstName', firstName)
-                if (lastName) localStorage.setItem('oauth_lastName', lastName)
-                if (avatarUrl) localStorage.setItem('oauth_avatarUrl', avatarUrl)
+                // Ultimo tentativo: anche in caso di errore, controlla se abbiamo una sessione
+                try {
+                    const { data: { session } } = await supabase.auth.getSession()
+                    if (session) return processSession(session)
+                } catch { /* ignore */ }
 
-                // Small delay to ensure session is fully propagated to RLS context
-                await new Promise(resolve => setTimeout(resolve, 100))
+                if (mounted) setError('Errore durante l\'autenticazione. Riprova.')
+                setTimeout(() => { window.location.href = '/login' }, 2500)
+            }
+        }
 
-                // Check if profile is complete
-                const { data: profile, error: profileError } = await supabase
+        async function processSession(session: { user: any }) {
+            const user = session.user
+
+            // Salva info base in localStorage
+            const fullName = user.user_metadata?.full_name || ''
+            const firstName = user.user_metadata?.given_name || fullName.split(' ')[0] || ''
+            const lastName = user.user_metadata?.family_name || fullName.split(' ').slice(1).join(' ') || ''
+            const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
+
+            localStorage.setItem('currentUserId', user.id)
+            localStorage.setItem('currentUserEmail', user.email || '')
+            localStorage.setItem('currentUserName', fullName || `${firstName} ${lastName}`.trim() || user.email?.split('@')[0] || 'User')
+            if (firstName) localStorage.setItem('oauth_firstName', firstName)
+            if (lastName) localStorage.setItem('oauth_lastName', lastName)
+            if (avatarUrl) localStorage.setItem('oauth_avatarUrl', avatarUrl)
+
+            if (mounted) setStatus('Caricamento profilo...')
+
+            // Fetch profilo con retry
+            let profile: any = null
+            for (let attempt = 0; attempt < 3; attempt++) {
+                if (attempt > 0) await new Promise(r => setTimeout(r, 500))
+                const { data, error: profileError } = await supabase
                     .from('profiles')
                     .select('role_id, first_name, last_name')
                     .eq('id', user.id)
                     .single()
 
-                console.log('📋 Profile:', profile, 'Error:', profileError)
-
-                const { data: sports, error: sportsError } = await supabase
-                    .from('profile_sports')
-                    .select('id')
-                    .eq('user_id', user.id)
-
-                console.log('🏀 Sports query result:', {
-                    sports,
-                    sportsError,
-                    sportsErrorDetails: sportsError ? {
-                        message: sportsError.message,
-                        code: sportsError.code,
-                        details: sportsError.details,
-                        hint: sportsError.hint
-                    } : null,
-                    count: sports?.length,
-                    userId: user.id
-                })
-
-                // If there's an RLS error, it means sports table is blocked but might have data
-                // Don't redirect to select-sport if there's an RLS/permission error
-                const isRLSError = sportsError && (
-                    sportsError.code === '42501' || // insufficient_privilege
-                    sportsError.message?.includes('row-level security') ||
-                    sportsError.message?.includes('permission denied')
-                )
-
-                if (isRLSError) {
-                    console.warn('⚠️ RLS blocking profile_sports query - assuming sports are saved')
-                    console.log('✅ Profile appears complete (RLS blocking check), redirecting to home')
-
-                    if (profile?.first_name && profile?.last_name) {
-                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
-                    }
-                    if (profile?.role_id) {
-                        localStorage.setItem('currentUserRole', profile.role_id)
-                    }
-                    localStorage.setItem('onboarding_complete', 'true') // Set flag
-
-                    window.location.href = '/home'
-                    return
+                if (data) {
+                    profile = data
+                    break
                 }
-
-                // Check profile completion status
-                // Note: Trigger creates profile with "Nome", "Cognome" as placeholders
-                const isPlaceholderName = profile?.first_name === 'Nome' || profile?.last_name === 'Cognome'
-                const hasRealName = profile?.first_name && profile?.last_name && !isPlaceholderName
-
-                const hasCompleteProfile = !!hasRealName
-                const hasRole = !!profile?.role_id
-                const hasSports = !!(sports && sports.length > 0)
-
-                // Check if user has already completed onboarding (flag set after select-sport)
-                const onboardingComplete = localStorage.getItem('onboarding_complete') === 'true'
-
-                console.log('📊 Profile status:', {
-                    hasCompleteProfile,
-                    hasRole,
-                    hasSports,
-                    onboardingComplete,
-                    firstName: profile?.first_name,
-                    lastName: profile?.last_name,
-                    isPlaceholderName,
-                    roleId: profile?.role_id,
-                    sportsCount: sports?.length || 0,
-                    // Additional check: if no sports but no error, might be cache issue
-                    sportsQuerySuccessful: !sportsError,
-                    possibleCacheIssue: !hasSports && !sportsError && hasCompleteProfile && hasRole
-                })
-
-                // CRITICAL FIX: If profile has real name + role, consider it complete regardless of sports/flag
-                // This prevents infinite redirect loops for existing users
-                if (hasCompleteProfile && hasRole) {
-                    console.log('✅ Profile has name + role, considering complete and redirecting to home')
-                    if (profile?.first_name && profile?.last_name) {
-                        localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
-                    }
-                    localStorage.setItem('currentUserRole', profile.role_id)
-                    localStorage.setItem('onboarding_complete', 'true') // Always set flag
-                    window.location.href = '/home'
-                    return
+                if (profileError?.code === '42501' || profileError?.message?.includes('permission denied')) {
+                    break
                 }
-
-                // If we reach here, profile is incomplete - redirect to appropriate onboarding step
-                if (!hasCompleteProfile) {
-                    console.log('⚠️ Name missing, redirecting to complete-profile...')
-                    window.location.href = '/complete-profile'
-                    return
-                }
-
-                if (!hasRole) {
-                    console.log('⚠️ Role missing, redirecting to profile-setup...')
-                    window.location.href = '/profile-setup?oauth=true'
-                    return
-                }
-
-                // Sports are optional - if we have name + role but reached here, redirect to select-sport
-                console.log('⚠️ Sports missing, redirecting to select-sport...')
-                window.location.href = '/select-sport'
-
-            } catch (err) {
-                console.error('❌ Callback error:', err)
-                setError('Errore durante il processo di autenticazione')
-                setTimeout(() => router.push('/login'), 2000)
             }
+
+            // Salva dati profilo in localStorage
+            if (profile?.first_name && profile?.last_name) {
+                const isPlaceholder = profile.first_name === 'Nome' || profile.last_name === 'Cognome'
+                if (!isPlaceholder) {
+                    localStorage.setItem('currentUserName', `${profile.first_name} ${profile.last_name}`)
+                }
+            }
+            if (profile?.role_id) {
+                localStorage.setItem('currentUserRole', profile.role_id)
+            }
+
+            // Determina dove redirectare
+            const isPlaceholderName = profile?.first_name === 'Nome' || profile?.last_name === 'Cognome'
+            const hasRealName = profile?.first_name && profile?.last_name && !isPlaceholderName
+            const hasRole = !!profile?.role_id
+
+            if (hasRealName && hasRole) {
+                localStorage.setItem('onboarding_complete', 'true')
+                window.location.href = '/home'
+                return
+            }
+
+            // Se non abbiamo profilo (RLS blocca) o altro errore → vai a home comunque
+            if (!profile) {
+                localStorage.setItem('onboarding_complete', 'true')
+                window.location.href = '/home'
+                return
+            }
+
+            if (!hasRealName) {
+                window.location.href = '/complete-profile'
+                return
+            }
+            if (!hasRole) {
+                window.location.href = '/profile-setup?oauth=true'
+                return
+            }
+
+            localStorage.setItem('onboarding_complete', 'true')
+            window.location.href = '/home'
         }
 
         handleCallback()
-    }, [router])
+        return () => {
+            mounted = false
+            authListenerUnsubscribe?.()
+        }
+    }, [])
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0F32' }}>
             <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
                 {error ? (
                     <div>
-                        <p className="text-red-600 mb-2">{error}</p>
-                        <p className="text-gray-600">Reindirizzamento al login...</p>
+                        <p className="text-red-400 mb-2">{error}</p>
+                        <p className="text-gray-400 text-sm">Reindirizzamento...</p>
                     </div>
                 ) : (
-                    <p className="text-gray-600">Autenticazione in corso...</p>
+                    <p className="text-gray-300">{status}</p>
                 )}
             </div>
         </div>

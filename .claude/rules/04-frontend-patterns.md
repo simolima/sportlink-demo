@@ -160,30 +160,68 @@ useEffect(() => {
 
 ---
 
-## Tema Colori (Green Theme)
+## Tema Colori — Brand Navy & Blu
+
+Il progetto usa un **tema scuro** con palette navy/blu. I colori principali sono:
+
+- **Navy** `#0A0F32` — background principale
+- **Blu Primario** `#2341F0` — bottoni, link, accenti
+
+### Font: Neulis Sans (Adobe Typekit) + Inter (fallback)
+
+Configurato in `globals.css` (import Typekit) e `tailwind.config.ts` (fontFamily).
+
+### Palette `brand-*` (Tailwind custom)
+
+Definita in `tailwind.config.ts` sotto `theme.extend.colors.brand`:
+
+```
+brand-50:  #eff1fe   — sfondi leggerissimi
+brand-100: #e0e4fd   — sfondi badge, stati attivi
+brand-200: #c7ccfb   — bordi leggeri
+brand-300: #a5acf8   — bordi, hover leggeri
+brand-400: #8186f3   — accent secondari
+brand-500: #5f64ec   — accent medi
+brand-600: #2341f0   — ⭐ PRIMARIO (bottoni, icone, link)
+brand-700: #1c37cf   — hover bottoni primari
+brand-800: #1d2ea8   — testo scuro su badge chiari
+brand-900: #1e2b83   — testo molto scuro
+brand-950: #0a0f32   — ⭐ Navy background
+```
+
+### Classi DaisyUI (tema `sprinta`)
 
 ```tsx
-// Pulsanti primari
-"bg-green-600 hover:bg-green-700 text-white"
+// Bottoni
+"btn btn-primary"                          // bg #2341F0, testo bianco
+"btn btn-ghost"                            // trasparente, testo secondario
 
-// Pulsanti outline
-"border-2 border-green-600 text-green-600 hover:bg-green-50"
+// Sfondo e testo
+"bg-base-100"                              // Navy #0A0F32
+"bg-base-200"                              // Navy dark #11152F
+"bg-base-300"                              // Navy darker #141A3A
+"text-secondary"                           // #A7B0FF (testo principale su scuro)
+"text-primary"                             // #2341F0
 
 // Input focus
-"focus:border-green-500 focus:outline-none"
+"focus:border-brand-500 focus:outline-none"
 
 // Link e accenti
-"text-green-600 hover:text-green-700"
+"text-brand-600 hover:text-brand-700"
 
-// Info box
-"bg-green-50 border-green-100 text-green-900"
+// Info box / badge
+"bg-brand-50 border-brand-100 text-brand-900"
 
 // Gradients (header, badge)
-"bg-gradient-to-br from-green-400 to-green-600"
+"bg-gradient-to-br from-brand-400 to-brand-600"
 
 // Avatar fallback
-"bg-gradient-to-br from-green-500 to-emerald-600"
+"bg-gradient-to-br from-brand-500 to-brand-600"
 ```
+
+### ⚠️ Colori VIETATI
+
+**Non usare MAI** le classi Tailwind `green-*` o `emerald-*` nel progetto. Tutto il verde è stato migrato a `brand-*`. I colori semantici DaisyUI (`success`, `warning`, `error`, `info`) restano invariati.
 
 ---
 
@@ -219,18 +257,79 @@ app/
   (auth)/     → login, signup (pagine senza navbar)
   (landing)/  → landing page pubblica
   (main)/     → app principale (richiede auth)
+    dashboard/page.tsx  → ⭐ Dashboard Server Component (Fase 2 SaaS)
   (onboarding)/ → onboarding nuovi utenti
+  actions/
+    role-actions.ts            → ⭐ Server Actions: switchActiveRole(), getActiveRole()
+    team-events-actions.ts     → createTeamEvent()
+    team-management-actions.ts → ⭐ createTeam(), assignMemberToTeam(), removeMemberFromTeam()
+    appointment-actions.ts     → bookAppointment()
+    studio-actions.ts          → createOrUpdateStudio()
 
-components/   → tutti "use client"
+components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo
-  navbar.tsx  → navigazione (green theme, dinamica in base a auth)
+  navbar.tsx  → navigazione (brand theme navy/blu, dinamica in base a auth)
   avatar.tsx  → componente avatar riutilizzabile
-  ...
+  ui/
+    RoleSwitcher.tsx  → ⭐ Client Component: dropdown ruolo attivo (DaisyUI)
+  widgets/    → ⭐ SERVER Components (async, nessuna direttiva 'use client')
+    TeamEventsWidget.tsx
+    StudioAppointmentsWidget.tsx
+    StudioSettingsWidget.tsx
+    PhysicalStatusWidget.tsx      → ⭐ Stato fisico atleta + cronologia infortuni
+    ReportInjuryModal.tsx         → Client Component: modal segnalazione infortunio
+    ResolveInjuryButton.tsx       → Client Component: bottone "Segna Guarito"
+  club-admin/ → ⭐ Componenti Area Club Admin
+    TeamManagementWidget.tsx  → Client Component: gestione roster squadre
+    CreateTeamModal.tsx       → Client Component: modal creazione squadra
+    TeamRosterCard.tsx        → Client Component: card squadra con roster interattivo
+    CreateTeamModal.tsx       → Client Component: modal creazione squadra
+    TeamRosterCard.tsx        → Client Component: card squadra con roster interattivo
 
 lib/
   hooks/
     useAuth.tsx  → ⭐ hook auth principale
   supabase-browser.ts  → client lato browser
-  types.ts     → TypeScript types condivisi
+  types.ts     → TypeScript types condivisi (ProfessionalRole, ROLE_TRANSLATIONS, ecc.)
   countries.ts → dati paesi + flag emoji
 ```
+
+---
+
+## Dashboard SaaS — Pattern (Marzo 2026)
+
+### Context Switcher via Cookie (no Zustand, no Redux)
+Il ruolo attivo dell'utente è salvato in un **cookie HTTP-only** `sprinta_active_role`.
+
+- **Scrittura**: Server Action `switchActiveRole(roleId)` in `app/actions/role-actions.ts` — imposta il cookie e chiama `revalidatePath('/', 'layout')`.
+- **Lettura**: helper `getActiveRole()` importato direttamente nei Server Components — nessun fetching client-side.
+- **UI**: `RoleSwitcher.tsx` usa `useTransition` per chiamare `switchActiveRole` con stato di pending inline.
+
+```typescript
+// ✅ In un Server Component (es. dashboard/page.tsx)
+import { getActiveRole } from '@/app/actions/role-actions'
+const activeRole = await getActiveRole() // legge il cookie server-side
+
+// ✅ In un Client Component che chiama la action
+import { useTransition } from 'react'
+import { switchActiveRole } from '@/app/actions/role-actions'
+const [isPending, startTransition] = useTransition()
+const handleSwitch = (role) => startTransition(async () => await switchActiveRole(role))
+```
+
+### Widget Server Components con Suspense Streaming
+
+I widget in `components/widgets/` sono **Server Components async** (NO 'use client').  
+Vengono wrappati in `<Suspense fallback={<Skeleton />}>` nella pagina madre, che streamma immediatamente il skeleton mentre il fetch DB è in corso.
+
+```tsx
+// ✅ Pattern nella dashboard page (Server Component)
+<Suspense fallback={<WidgetSkeleton />}>
+    <TeamEventsWidget userId={user.id} activeRole={activeRole} />
+</Suspense>
+```
+
+**Regola**: i widget sono selezionati condizionalmente in base all'`activeRole` prima di essere montati — non viene renderizzato un widget se il ruolo non è pertinente:</p>
+- `TEAM_ROLES` (`player`, `coach`, `sporting_director`, `athletic_trainer`) → `TeamEventsWidget`
+- `STUDIO_ROLES` (`physio`, `nutritionist`) → `StudioAppointmentsWidget`
+- `DUAL_ROLES` (`athletic_trainer`, `talent_scout`, `agent`) → entrambi i widget

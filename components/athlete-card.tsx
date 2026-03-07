@@ -28,7 +28,7 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
     return (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer h-full flex flex-col">
             {/* Header card with background */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 h-20" />
+            <div className="bg-gradient-to-r from-brand-500 to-brand-600 h-20" />
 
             {/* Avatar section + content */}
             <div className="px-4 pb-4 flex flex-col h-full">
@@ -48,7 +48,7 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
                                     {athlete.firstName} {athlete.lastName}
                                 </h3>
                                 {isVerified && (
-                                    <CheckBadgeIcon className="w-5 h-5 text-green-600" />
+                                    <CheckBadgeIcon className="w-5 h-5 text-brand-600" />
                                 )}
                             </div>
                             <p className="text-sm text-gray-600">{primaryPosition}</p>
@@ -87,7 +87,7 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
                     {/* Availability */}
                     <div className="flex items-center">
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${athlete.availability === 'Disponibile'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-brand-100 text-brand-800'
                             : 'bg-gray-100 text-gray-800'
                             }`}>
                             {athlete.availability || 'Non specificato'}
@@ -98,7 +98,7 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
                 {/* View Profile Button */}
                 <button
                     onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                    className="w-full mt-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
                 >
                     Visualizza Profilo
                 </button>

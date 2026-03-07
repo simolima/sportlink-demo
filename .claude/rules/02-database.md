@@ -111,14 +111,30 @@ physical_stats        — Dati fisici (1:1 con profiles, opzionale)
   ├── dominant_foot, dominant_hand
   └── additional_metrics (JSONB)
 
-profile_sports        — Sport praticati (M:N profiles ↔ lookup_sports)
-  ├── user_id FK, sport_id FK (UNIQUE together)
+profile_sports        — Sport praticati per ruolo (M:N profiles ↔ lookup_sports ↔ lookup_roles)
+  ├── user_id FK, sport_id FK, role_id FK (nullable, UNIQUE together via index)
   ├── level_id FK, primary_position_id FK
   ├── is_main_sport (boolean)
   └── deleted_at
+  NOTE: role_id aggiunto per supportare sport diversi per ogni ruolo (es. player=Calcio, coach=Basket).
+        NULL per righe legacy (pre-migrazione). Unique index usa COALESCE(role_id, '').
 
 profile_secondary_positions  — Posizioni secondarie per profilo_sport
   ├── profile_sport_id FK, position_id FK
+
+-- TRACKER INFORTUNI (GDPR-safe, nessun dato clinico)
+athlete_injuries      — Registro funzionale infortuni (solo disponibilità e tempi recupero)
+  ├── id (UUID PK)
+  ├── athlete_profile_id FK → profiles
+  ├── reported_by_profile_id FK → profiles  ← sempre l'utente loggato al momento dell'inserimento
+  ├── injury_type (text check: 'Muscolare'|'Articolare'|'Trauma'|'Malattia'|'Altro')
+  ├── body_part (text, nullable)
+  ├── severity (enum: 'Lieve'|'Moderato'|'Grave')
+  ├── start_date (date), expected_return_date (date, nullable)
+  ├── status (enum: 'Active'|'Recovering'|'Resolved')
+  ├── notes (text, nullable)
+  └── deleted_at, created_at, updated_at
+  Ruoli autorizzati a inserire per altri: physio, coach, sporting_director, athletic_trainer
 
 -- CARRIERA
 profile_experiences   — Storico carriera (ha SOSTITUITO career_experiences)

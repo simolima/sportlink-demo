@@ -304,8 +304,8 @@ export default function ExperienceCard({ exp, sportName, showStats = true }: Exp
                                 {exp.roleDetail || exp.role || profileLabel || 'Esperienza'}
                             </h4>
                             {exp.isCurrentlyPlaying && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-[11px] font-semibold rounded-full border border-green-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-50 text-brand-700 text-[11px] font-semibold rounded-full border border-brand-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
                                     Attuale
                                 </span>
                             )}

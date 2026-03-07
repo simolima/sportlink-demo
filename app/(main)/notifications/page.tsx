@@ -292,7 +292,7 @@ export default function NotificationsPage() {
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Segna come letta"
               >
-                <Check size={18} className="text-green-600" />
+                <Check size={18} className="text-brand-600" />
               </button>
             )}
             <button
@@ -386,7 +386,7 @@ export default function NotificationsPage() {
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   title="Segna tutte come lette"
                 >
-                  <Check size={18} className="text-green-600" />
+                  <Check size={18} className="text-brand-600" />
                 </button>
               )}
               {!canNavigate && (
@@ -432,7 +432,7 @@ export default function NotificationsPage() {
           <h1 className="text-2xl font-bold">Notifiche</h1>
           {/* Indicatore connessione real-time */}
           <span
-            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isRealtime ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isRealtime ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500'}`}
             title={isRealtime ? 'Connesso in tempo reale' : 'Polling'}
           >
             {isRealtime ? <Wifi size={12} /> : <WifiOff size={12} />}

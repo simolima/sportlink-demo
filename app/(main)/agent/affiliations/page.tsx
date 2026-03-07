@@ -224,7 +224,7 @@ export default function AgentAffiliationsPage() {
                             setSearchTerm('')
                             fetchPlayers()
                         }}
-                        className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-brand-700 transition flex items-center gap-2"
                     >
                         <UserPlus size={20} />
                         Richiedi Affiliazione
@@ -258,7 +258,7 @@ export default function AgentAffiliationsPage() {
                                             {filteredPlayers.map((player) => (
                                                 <button
                                                     key={player.id}
-                                                    className={`w-full flex items-center gap-4 p-3 rounded-lg border hover:bg-green-50 transition ${selectedPlayer?.id === player.id ? 'border-green-600 bg-green-50' : 'border-gray-200'}`}
+                                                    className={`w-full flex items-center gap-4 p-3 rounded-lg border hover:bg-brand-50 transition ${selectedPlayer?.id === player.id ? 'border-brand-600 bg-brand-50' : 'border-gray-200'}`}
                                                     onClick={() => {
                                                         setSelectedPlayer(player)
                                                         setModalStep(2)
@@ -304,7 +304,7 @@ export default function AgentAffiliationsPage() {
                                             </button>
                                             <button
                                                 onClick={handleSendRequest}
-                                                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                                                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-brand-700 transition flex items-center justify-center gap-2"
                                             >
                                                 <Send size={18} />
                                                 Invia richiesta
@@ -391,7 +391,7 @@ export default function AgentAffiliationsPage() {
                                 setSearchTerm('')
                                 fetchPlayers()
                             }}
-                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition"
+                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-brand-700 transition"
                         >
                             Invia la tua prima richiesta
                         </button>
@@ -452,7 +452,7 @@ export default function AgentAffiliationsPage() {
                                         className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 ${affiliation.status === 'pending'
                                             ? 'bg-warning/20 text-warning'
                                             : affiliation.status === 'active'
-                                                ? 'bg-green-100 text-green-700 border-2 border-green-500'
+                                                ? 'bg-brand-100 text-brand-700 border-2 border-brand-500'
                                                 : 'bg-error/20 text-error'
                                             }`}
                                     >

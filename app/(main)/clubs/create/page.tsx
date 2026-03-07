@@ -192,7 +192,7 @@ export default function CreateClubPage() {
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex items-center gap-3 mb-6">
-            <Building2 size={32} className="text-green-600" />
+            <Building2 size={32} className="text-brand-600" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Crea una Società</h1>
               <p className="text-gray-600">Compila i campi per creare la tua società sportiva</p>
@@ -210,7 +210,7 @@ export default function CreateClubPage() {
                 required
                 value={formData.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 placeholder="es. AC Milano Calcio"
               />
             </div>
@@ -250,7 +250,7 @@ export default function CreateClubPage() {
                           <button
                             type="button"
                             onClick={() => handleLinkOrg(org.id)}
-                            className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded px-2 py-1 transition-colors"
+                            className="flex items-center gap-1 text-xs font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded px-2 py-1 transition-colors"
                           >
                             <Link2 size={12} />
                             Collega
@@ -275,7 +275,7 @@ export default function CreateClubPage() {
             {orgChoiceMade && (
               <div className={`flex items-center gap-2 text-xs rounded-md px-3 py-2 ${selectedOrgId === 'new'
                 ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'bg-green-50 text-green-700 border border-green-100'
+                : 'bg-brand-50 text-brand-700 border border-brand-100'
                 }`}>
                 {selectedOrgId === 'new' ? (
                   <>
@@ -308,7 +308,7 @@ export default function CreateClubPage() {
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 placeholder="Descrivi la tua società..."
               />
             </div>
@@ -325,7 +325,7 @@ export default function CreateClubPage() {
                     type="button"
                     onClick={() => toggleSport(sport)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${formData.sports.includes(sport)
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-brand-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
@@ -365,7 +365,7 @@ export default function CreateClubPage() {
                   required
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   placeholder="es. Milano"
                 />
               </div>
@@ -383,7 +383,7 @@ export default function CreateClubPage() {
                   max={new Date().getFullYear()}
                   value={formData.foundedYear}
                   onChange={(e) => setFormData({ ...formData, foundedYear: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   placeholder="es. 1899"
                 />
               </div>
@@ -395,7 +395,7 @@ export default function CreateClubPage() {
                   type="url"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   placeholder="https://esempio.com"
                 />
               </div>
@@ -413,7 +413,7 @@ export default function CreateClubPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creazione in corso...' : 'Crea Società'}
               </button>

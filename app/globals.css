@@ -13,12 +13,18 @@
 
 :root {
     --white: #FFFFFF;
-    --navy: #0A0F32;
-    --navy-dark: #11152F;
-    --navy-darker: #141A3A;
-    --blue: #2341F0;
-    --blue-hover: #3B52F5;
-    --secondary: #A7B0FF;
+    --navy: #10174A;
+    --navy-light: #141B4D;
+    --navy-lighter: #1A2360;
+    --surface-1: #10174A;
+    --surface-2: #141B4D;
+    --surface-3: #1A2360;
+    --surface-4: #202b70;
+    --navy-dark: #141B4D;
+    --navy-darker: #1A2360;
+    --blue: #3B52F5;
+    --blue-hover: #5168FF;
+    --secondary: #B2BAFF;
     --radius: 12px;
 }
 
@@ -30,31 +36,116 @@ body,
 
 body {
     font-family: "neulis-sans", Inter, system-ui, sans-serif;
-    background-color: var(--navy);
+    background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(59, 82, 245, 0.22), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(81, 104, 255, 0.18), transparent 50%),
+        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
     color: var(--secondary);
+    font-size: 1.0625rem;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.625rem;
+}
+
+h3 {
+    font-size: 1.375rem;
+}
+
+h4 {
+    font-size: 1.1875rem;
+}
+
+p {
+    line-height: 1.7;
+}
+
+small {
+    font-size: 0.9375rem;
+    line-height: 1.5;
 }
 
 .container {
     max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
 }
 
 /* small helpers for card look */
 .card-sm {
-    background: var(--navy-dark);
+    background: var(--surface-2);
     border-radius: var(--radius);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--navy-darker);
+    border: 1px solid var(--surface-3);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .card-sm:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-    transition: box-shadow 0.2s ease;
+    background: var(--surface-3);
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-page-bg {
+    background:
+        radial-gradient(1200px 500px at 0% -10%, rgba(59, 82, 245, 0.18), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(81, 104, 255, 0.12), transparent 55%),
+        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
+}
+
+.glass-nav {
+    background: linear-gradient(180deg, rgba(26, 35, 96, 0.84) 0%, rgba(20, 27, 77, 0.72) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(178, 186, 255, 0.14);
+    box-shadow: 0 10px 30px rgba(5, 10, 35, 0.35);
+}
+
+.glass-panel {
+    background: linear-gradient(145deg, rgba(26, 35, 96, 0.8) 0%, rgba(20, 27, 77, 0.76) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 14px 30px rgba(8, 12, 38, 0.28);
+}
+
+.glass-widget {
+    background: linear-gradient(150deg, rgba(26, 35, 96, 0.88) 0%, rgba(20, 27, 77, 0.86) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(6, 10, 32, 0.3);
+}
+
+.glass-widget-header {
+    background: linear-gradient(180deg, rgba(32, 43, 112, 0.44) 0%, rgba(26, 35, 96, 0.08) 100%);
+    border-bottom: 1px solid rgba(178, 186, 255, 0.14);
+}
+
+.glass-subtle-text {
+    color: rgba(178, 186, 255, 0.78);
+}
+
+.glass-quiet-text {
+    color: rgba(178, 186, 255, 0.6);
 }
 
 /* Button styles */
@@ -87,6 +178,17 @@ body {
 .btn-secondary:hover {
     background: var(--blue);
     color: var(--white);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+    outline: 2px solid var(--blue-hover);
+    outline-offset: 2px;
 }
 
 /* Font utility for Neulis Sans Hairline variant */

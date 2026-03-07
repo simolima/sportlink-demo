@@ -179,23 +179,23 @@ useEffect(() => {
 
 Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa → vedi `design/BRAND_GUIDE.md`.
 
-- **Navy** `#0A0F32` (`brand-950`) — background principale
-- **Blu Primario** `#2341F0` (`brand-600`) — bottoni, link, accenti
+- **Navy** `#10174A` — background principale
+- **Blu Primario** `#3B52F5` — bottoni, link, accenti
 - **Font**: Neulis Sans (Adobe Typekit) + Inter (fallback) — configurato in `globals.css` e `tailwind.config.ts`
 
 ### Classi DaisyUI (tema `sprinta`)
 
 ```tsx
 // Bottoni
-"btn btn-primary"                          // bg #2341F0, testo bianco
+"btn btn-primary"                          // bg #3B52F5, testo bianco
 "btn btn-ghost"                            // trasparente, testo secondario
 
 // Sfondo e testo
-"bg-base-100"                              // Navy #0A0F32
-"bg-base-200"                              // Navy dark #11152F
-"bg-base-300"                              // Navy darker #141A3A
-"text-secondary"                           // #A7B0FF (testo principale su scuro)
-"text-primary"                             // #2341F0
+"bg-base-100"                              // Navy #10174A
+"bg-base-200"                              // Navy dark #141B4D
+"bg-base-300"                              // Navy darker #1A2360
+"text-secondary"                           // #B2BAFF (testo principale su scuro)
+"text-primary"                             // #3B52F5
 
 // Input focus
 "focus:border-brand-500 focus:outline-none"
@@ -206,6 +206,19 @@ Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa 
 // Gradients (header, badge)
 "bg-gradient-to-br from-brand-400 to-brand-600"
 ```
+
+### Utility visuali condivise (`app/globals.css`)
+
+Per shell/dashboard dark mode usare preferibilmente le utility globali già definite:
+
+- `.glass-page-bg` — sfondo pagina stratificato (radial + linear gradient)
+- `.glass-nav` — navbar traslucida con blur e border soft
+- `.glass-panel` — pannelli hero/header principali
+- `.glass-widget` — card widget dark layered
+- `.glass-widget-header` — header sezione/card coerente
+- `.glass-subtle-text` / `.glass-quiet-text` — livelli testuali secondari su sfondo scuro
+
+Regola: preferire queste utility rispetto a nuovi `bg-white` / `text-gray-*` nelle superfici principali della dashboard dark.
 
 ### ⚠️ Colori VIETATI
 

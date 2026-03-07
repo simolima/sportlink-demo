@@ -66,7 +66,7 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                 </div>
@@ -75,17 +75,17 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-brand-50 to-white">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
-                            <UsersIcon className="w-5 h-5 text-brand-600" />
+                        <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
+                            <UsersIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Panoramica Roster</h3>
-                            <p className="text-xs text-gray-500">I tuoi atleti assistiti</p>
+                            <h3 className="font-bold text-white">Panoramica Roster</h3>
+                            <p className="text-xs glass-subtle-text">I tuoi atleti assistiti</p>
                         </div>
                     </div>
                     <Link
@@ -101,25 +101,25 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
             <div className="p-6">
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     {/* Total Athletes */}
-                    <div className="text-center p-4 bg-brand-50 rounded-lg">
-                        <UsersIcon className="w-6 h-6 text-brand-600 mx-auto mb-2" />
-                        <div className="text-3xl font-bold text-brand-700">{totalAthletes}</div>
-                        <div className="text-xs text-brand-600">Atleti Assistiti</div>
+                    <div className="text-center p-4 bg-base-300/65 rounded-xl border border-base-300">
+                        <UsersIcon className="w-6 h-6 text-primary mx-auto mb-2" />
+                        <div className="text-3xl font-bold text-white">{totalAthletes}</div>
+                        <div className="text-xs glass-subtle-text">Atleti Assistiti</div>
                     </div>
 
                     {/* Pending Requests */}
-                    <div className={`text-center p-4 rounded-lg ${pendingRequests > 0 ? 'bg-amber-50' : 'bg-gray-50'}`}>
+                    <div className={`text-center p-4 rounded-xl border ${pendingRequests > 0 ? 'bg-amber-500/15 border-amber-400/30' : 'bg-base-300/65 border-base-300'}`}>
                         {pendingRequests > 0 ? (
                             <>
                                 <ClockIcon className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                                <div className="text-3xl font-bold text-amber-700">{pendingRequests}</div>
-                                <div className="text-xs text-amber-600">Richieste Pendenti</div>
+                                <div className="text-3xl font-bold text-amber-400">{pendingRequests}</div>
+                                <div className="text-xs text-amber-300">Richieste Pendenti</div>
                             </>
                         ) : (
                             <>
-                                <UserPlusIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                                <div className="text-3xl font-bold text-gray-500">0</div>
-                                <div className="text-xs text-gray-500">Richieste Pendenti</div>
+                                <UserPlusIcon className="w-6 h-6 text-secondary/55 mx-auto mb-2" />
+                                <div className="text-3xl font-bold text-secondary/80">0</div>
+                                <div className="text-xs glass-subtle-text">Richieste Pendenti</div>
                             </>
                         )}
                     </div>
@@ -137,8 +137,8 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
 
                 {/* Recent Athletes Preview */}
                 {athletes.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="text-xs text-gray-500 mb-3">Atleti recenti</div>
+                    <div className="mt-4 pt-4 border-t border-base-300/70">
+                        <div className="text-xs glass-subtle-text mb-3">Atleti recenti</div>
                         <div className="flex -space-x-2">
                             {athletes.slice(0, 5).map((athlete) => (
                                 <Link
@@ -150,17 +150,17 @@ export default function RosterOverviewWidget({ userId }: RosterOverviewWidgetPro
                                         <img
                                             src={athlete.avatarUrl}
                                             alt={athlete.name}
-                                            className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                                            className="w-10 h-10 rounded-full border-2 border-base-200 object-cover"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-brand-600 flex items-center justify-center text-white text-sm font-semibold">
+                                        <div className="w-10 h-10 rounded-full border-2 border-base-200 bg-brand-600 flex items-center justify-center text-white text-sm font-semibold">
                                             {athlete.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                 </Link>
                             ))}
                             {athletes.length > 5 && (
-                                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold">
+                                <div className="w-10 h-10 rounded-full border-2 border-base-200 bg-base-300 flex items-center justify-center text-secondary text-xs font-semibold">
                                     +{athletes.length - 5}
                                 </div>
                             )}

@@ -122,24 +122,24 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="glass-widget rounded-2xl p-6">
                 <div className="animate-pulse">Caricamento...</div>
             </div>
         )
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 bg-white">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
                             <BriefcaseIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Opportunità per Te</h3>
-                            <p className="text-xs text-gray-600">Annunci per {userRole} • {userSport}</p>
+                            <h3 className="font-bold text-white">Opportunità per Te</h3>
+                            <p className="text-xs glass-subtle-text">Annunci per {userRole} • {userSport}</p>
                         </div>
                     </div>
                     <Link
@@ -155,9 +155,9 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
             {/* Content */}
             {opportunities.length === 0 ? (
                 <div className="px-6 py-8 text-center">
-                    <BriefcaseIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Nessuna opportunità al momento</p>
-                    <p className="text-gray-400 text-xs mt-1">Controlla regolarmente per nuovi annunci</p>
+                    <BriefcaseIcon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                    <p className="glass-subtle-text text-sm">Nessuna opportunità al momento</p>
+                    <p className="glass-quiet-text text-xs mt-1">Controlla regolarmente per nuovi annunci</p>
                 </div>
             ) : (
                 <div className="relative">
@@ -165,9 +165,9 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                     {canScrollLeft && (
                         <button
                             onClick={() => scroll('left')}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white p-2 rounded-r-lg shadow-md"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-200/85 hover:bg-base-200 p-2 rounded-r-lg shadow-md"
                         >
-                            <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+                            <ChevronLeftIcon className="w-5 h-5 text-secondary" />
                         </button>
                     )}
 
@@ -181,11 +181,11 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                             <Link
                                 key={opp.id}
                                 href={`/opportunities`}
-                                className="flex-shrink-0 w-80 bg-gray-50 hover:bg-gray-100 rounded-lg p-4 transition cursor-pointer border border-gray-200"
+                                className="flex-shrink-0 w-80 bg-base-300/65 hover:bg-base-300/85 rounded-xl p-4 transition cursor-pointer border border-base-300"
                             >
                                 <div className="space-y-2">
-                                    <h4 className="font-semibold text-gray-900 line-clamp-2">{opp.title}</h4>
-                                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                    <h4 className="font-semibold text-white line-clamp-2">{opp.title}</h4>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs glass-subtle-text">
                                         {opp.city && (
                                             <span className="flex items-center gap-1">
                                                 <MapPinIcon className="w-3.5 h-3.5" />
@@ -193,17 +193,17 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                                             </span>
                                         )}
                                         {opp.position && (
-                                            <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full">
+                                            <span className="px-2 py-0.5 bg-primary/15 text-primary rounded-full">
                                                 {opp.position}
                                             </span>
                                         )}
                                     </div>
                                     {opp.level && (
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs glass-subtle-text">
                                             Livello: <span className="font-medium">{opp.level}</span>
                                         </p>
                                     )}
-                                    <div className="flex items-center gap-1 text-xs text-gray-500 pt-2 border-t border-gray-200">
+                                    <div className="flex items-center gap-1 text-xs glass-quiet-text pt-2 border-t border-base-300/70">
                                         <CalendarIcon className="w-3.5 h-3.5" />
                                         Scade: {new Date(opp.expiryDate).toLocaleDateString('it-IT')}
                                     </div>
@@ -216,9 +216,9 @@ export default function OpportunitiesForYouWidget({ userId, userRole }: Opportun
                     {canScrollRight && (
                         <button
                             onClick={() => scroll('right')}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white p-2 rounded-l-lg shadow-md"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-200/85 hover:bg-base-200 p-2 rounded-l-lg shadow-md"
                         >
-                            <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+                            <ChevronRightIcon className="w-5 h-5 text-secondary" />
                         </button>
                     )}
                 </div>

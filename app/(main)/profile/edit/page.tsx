@@ -10,6 +10,7 @@ import OrganizationAutocomplete from "@/components/organization-autocomplete"
 import CustomSelect from "@/components/custom-select"
 import { uploadService } from "@/lib/upload-service"
 import { allCountries } from "@/lib/countries"
+import { getAuthHeaders } from "@/lib/auth-fetch"
 
 interface Experience {
     id: string
@@ -174,6 +175,10 @@ const initialForm: FormState = {
 export default function EditProfilePage() {
     // --- HOOKS: always before any return ---
     const router = useRouter();
+    const activeRole = useMemo(() => {
+        if (typeof window === "undefined") return null;
+        return localStorage.getItem("currentUserRole")?.toLowerCase() || null;
+    }, []);
     const userId = useMemo(() => {
         if (typeof window === "undefined") return null;
         return localStorage.getItem("currentUserId");
@@ -189,6 +194,8 @@ export default function EditProfilePage() {
     const [isPhysio, setIsPhysio] = useState(false);
     const [isAthleticTrainer, setIsAthleticTrainer] = useState(false);
     const [isStaff, setIsStaff] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [resolvedRoleId, setResolvedRoleId] = useState<string | null>(null);
 
     // --- Sport principale per logica ruolo/dominanza ---
     const [mainSport, setMainSport] = useState<string | undefined>(undefined);
@@ -243,6 +250,7 @@ export default function EditProfilePage() {
 
                 // Supporta sia vecchio schema (professionalRole) che nuovo (role_id)
                 const roleId = user.role_id || user.professionalRole
+                setResolvedRoleId(roleId || null)
                 const professionalRole = roleId === 'player' ? 'Player' :
                     roleId === 'coach' ? 'Coach' :
                         roleId === 'agent' ? 'Agent' :
@@ -262,18 +270,51 @@ export default function EditProfilePage() {
                 setIsAthleticTrainer(roleId === "athletic_trainer");
                 setIsStaff(["athletic_trainer", "nutritionist", "physio", "talent_scout"].includes(roleId));
 
+                const scopedRole = activeRole || roleId || null
+
                 // Fetch sports from profile_sports table (nuovo schema Supabase)
                 const fetchSports = async () => {
                     const { supabase: supabaseClient } = await import('@/lib/supabase-browser')
-                    const { data: sportsData } = await supabaseClient
+                    let query = supabaseClient
                         .from('profile_sports')
-                        .select('sport_id, lookup_sports(name)')
+                        .select('sport_id, role_id, lookup_sports(name)')
                         .eq('user_id', userId)
+
+                    if (scopedRole) {
+                        query = query.eq('role_id', scopedRole)
+                    }
+
+                    let { data: sportsData } = await query
+
+                    // Fallback legacy: righe pre-migrazione con role_id NULL
+                    if ((!sportsData || sportsData.length === 0) && scopedRole) {
+                        const { data: legacySportsData } = await supabaseClient
+                            .from('profile_sports')
+                            .select('sport_id, role_id, lookup_sports(name)')
+                            .eq('user_id', userId)
+                            .is('role_id', null)
+                        sportsData = legacySportsData || []
+                    }
 
                     return sportsData?.map((s: any) => s.lookup_sports?.name).filter(Boolean) || []
                 }
 
                 const userSports = user.sports || await fetchSports()
+                const fetchRoleSelfEvaluation = async () => {
+                    if (!scopedRole) return undefined
+                    const { supabase: supabaseClient } = await import('@/lib/supabase-browser')
+                    const { data } = await supabaseClient
+                        .from('profile_roles')
+                        .select('role_self_evaluation')
+                        .eq('user_id', userId)
+                        .eq('role_id', scopedRole)
+                        .eq('is_active', true)
+                        .maybeSingle()
+
+                    return data?.role_self_evaluation ?? undefined
+                }
+
+                const roleSelfEvaluation = await fetchRoleSelfEvaluation()
                 const sport = Array.isArray(userSports) && userSports.length > 0 ? userSports[0] : user.sport || undefined;
                 setMainSport(sport);
                 setIsFootball(Array.isArray(userSports) && userSports.includes("Calcio"));
@@ -437,8 +478,12 @@ export default function EditProfilePage() {
                         linkedin: user.social_links?.linkedin || user.socialLinks?.linkedin || "",
                         transfermarkt: user.social_links?.transfermarkt || user.socialLinks?.transfermarkt || ""
                     },
-                    playerSelfEvaluation: user.player_self_evaluation || user.playerSelfEvaluation || undefined,
-                    coachSelfEvaluation: user.coach_self_evaluation || user.coachSelfEvaluation || undefined,
+                    playerSelfEvaluation: roleId === 'player'
+                        ? (roleSelfEvaluation || user.player_self_evaluation || user.playerSelfEvaluation || undefined)
+                        : (user.player_self_evaluation || user.playerSelfEvaluation || undefined),
+                    coachSelfEvaluation: roleId === 'coach'
+                        ? (roleSelfEvaluation || user.coach_self_evaluation || user.coachSelfEvaluation || undefined)
+                        : (user.coach_self_evaluation || user.coachSelfEvaluation || undefined),
                     // Stato contrattuale
                     contractStatus: user.contract_status || user.contractStatus || undefined,
                     contractEndDate: user.contract_end_date || user.contractEndDate || undefined,
@@ -458,7 +503,7 @@ export default function EditProfilePage() {
             alert("Sessione scaduta");
             router.push("/home");
         }
-    }, [router, userId]);
+    }, [activeRole, router, userId]);
 
     // Sincronizza il campo di ricerca con il valore del form
     useEffect(() => {
@@ -1116,6 +1161,7 @@ export default function EditProfilePage() {
 
     const handleSave = async () => {
         if (!userId) return
+        setSaveError(null)
 
         // Validazione pre-salvataggio: verifica errori date (solo per esperienze con date specificate)
         const experiencesWithDateErrors: string[] = []
@@ -1150,6 +1196,12 @@ export default function EditProfilePage() {
                 socialLinks: form.socialLinks,
                 playerSelfEvaluation: isPlayer ? form.playerSelfEvaluation : undefined,
                 coachSelfEvaluation: isCoach ? form.coachSelfEvaluation : undefined,
+                activeRoleId: activeRole || resolvedRoleId || undefined,
+                roleSelfEvaluation: isPlayer
+                    ? form.playerSelfEvaluation
+                    : isCoach
+                        ? form.coachSelfEvaluation
+                        : undefined,
                 // Stato contrattuale (solo per Player, Coach, Sporting Director)
                 contractStatus: (isPlayer || isCoach || isSportingDirector) ? form.contractStatus : undefined,
                 contractEndDate: (isPlayer || isCoach || isSportingDirector) ? form.contractEndDate : undefined,
@@ -1158,16 +1210,39 @@ export default function EditProfilePage() {
             // Le experiences NON vanno nella tabella profiles (verranno gestite separatamente)
             // I dati fisici (height, weight, dominantFoot, dominantHand) vanno in physical_stats
             // Tutti i campi role-specific (uefaLicenses, certifications, ecc.) non sono più nella tabella profiles
+            const authHeaders = await getAuthHeaders()
+            const commonHeaders = {
+                "Content-Type": "application/json",
+                ...authHeaders,
+            }
 
             const res = await fetch("/api/users", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                headers: commonHeaders,
                 body: JSON.stringify(payload),
             })
             if (!res.ok) {
-                const errorData = await res.text()
-                console.error('Save failed:', res.status, errorData)
-                throw new Error(`Save failed: ${res.status}`)
+                const errorBody = await res.json().catch(async () => ({ error: await res.text() }))
+                const errorKey = String(errorBody?.error || '')
+                console.error('Save failed:', res.status, errorBody)
+
+                if (res.status === 401 || errorKey === 'unauthorized') {
+                    setSaveError('Sessione scaduta. Effettua di nuovo il login e riprova.')
+                    return
+                }
+                if (res.status === 403 || errorKey === 'forbidden_user_mismatch') {
+                    setSaveError('Profilo non coerente con l’utente autenticato. Ricarica la pagina o accedi di nuovo.')
+                    return
+                }
+
+                const serverMessage = typeof errorBody?.message === 'string'
+                    ? errorBody.message
+                    : typeof errorBody?.error === 'string'
+                        ? errorBody.error
+                        : `Errore salvataggio (${res.status})`
+                setSaveError(serverMessage)
+                return
             }
             const updated = await res.json()
 
@@ -1176,7 +1251,8 @@ export default function EditProfilePage() {
                 try {
                     const physRes = await fetch("/api/physical-stats", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        headers: commonHeaders,
                         body: JSON.stringify({
                             userId: userId,
                             height_cm: form.height || null,
@@ -1212,7 +1288,8 @@ export default function EditProfilePage() {
 
                     const expRes = await fetch("/api/career-experiences", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        headers: commonHeaders,
                         body: JSON.stringify({
                             userId: userId,
                             experiences: form.experiences,
@@ -1295,6 +1372,12 @@ export default function EditProfilePage() {
     return (
         <div className="min-h-screen bg-white text-gray-900">
             <div className="max-w-6xl mx-auto px-4 py-10 lg:py-12">
+                {saveError && (
+                    <div className="mb-6 rounded-xl border border-error/40 bg-error/10 p-4 text-sm text-error-content">
+                        <div className="font-semibold">Impossibile salvare le modifiche</div>
+                        <div className="mt-1">{saveError}</div>
+                    </div>
+                )}
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <p className="text-sm uppercase tracking-[0.2em] text-gray-600">Profilo</p>

@@ -135,10 +135,20 @@ export default function HomePage() {
             }
 
             // Fetch sports
-            const { data: userSports, error: sportsError } = await supabase
+            const storageRole = localStorage.getItem('currentUserRole')?.toLowerCase() || null
+            const scopedRole = storageRole || profile.role_id || null
+
+            let sportsQuery = supabase
                 .from('profile_sports')
-                .select('sport_id, lookup_sports(name)')
+                .select('sport_id, role_id, is_main_sport, lookup_sports(name)')
                 .eq('user_id', userId)
+                .is('deleted_at', null)
+
+            if (scopedRole) {
+                sportsQuery = sportsQuery.or(`role_id.eq.${scopedRole},role_id.is.null`)
+            }
+
+            const { data: userSports, error: sportsError } = await sportsQuery
 
             const sports = userSports?.map((ps: any) => ps.lookup_sports?.name).filter(Boolean) || []
 

@@ -25,6 +25,30 @@ function mapRoleToDatabase(frontendRole: string): string {
     return roleMap[frontendRole] || frontendRole.toLowerCase().replace(/\s+/g, '_')
 }
 
+function mapProfileToClient(profile: any) {
+    if (!profile) return profile
+    return {
+        ...profile,
+        firstName: profile.first_name,
+        lastName: profile.last_name,
+        phoneNumber: profile.phone_number,
+        professionalRole: profile.role_id,
+        roleId: profile.role_id,
+        avatarUrl: profile.avatar_url,
+        coverUrl: profile.cover_url,
+        birthDate: profile.birth_date,
+        privacySettings: profile.privacy_settings,
+        socialLinks: profile.social_links,
+        playerSelfEvaluation: profile.player_self_evaluation,
+        coachSelfEvaluation: profile.coach_self_evaluation,
+        contractStatus: profile.contract_status,
+        contractEndDate: profile.contract_end_date,
+        createdAt: profile.created_at,
+        updatedAt: profile.updated_at,
+        deletedAt: profile.deleted_at,
+    }
+}
+
 // Handle preflight requests
 export async function OPTIONS(req: Request) {
     return handleOptions()
@@ -52,7 +76,7 @@ export async function GET(req: Request) {
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
-        return withCors(NextResponse.json(profiles || []))
+        return withCors(NextResponse.json((profiles || []).map(mapProfileToClient)))
     } catch (err: any) {
         console.error('GET /api/users error:', err)
         return withCors(NextResponse.json({ error: err.message }, { status: 500 }))
@@ -193,6 +217,7 @@ export async function POST(req: Request) {
                 const profileSportsRecords = sportsData.map((sport, index) => ({
                     user_id: userId,
                     sport_id: sport.id,
+                    role_id: roleIdForSignup,
                     is_main_sport: index === 0, // Il primo è lo sport principale
                 }))
 
@@ -255,6 +280,10 @@ export async function PATCH(req: Request) {
 
         const body = await req.json()
         const id = body.id ?? null
+        const requestedActiveRoleId = body.activeRoleId !== undefined
+            ? mapRoleToDatabase(String(body.activeRoleId))
+            : null
+        const hasRoleSelfEvaluation = body.roleSelfEvaluation !== undefined
 
         console.log('🔍 PATCH /api/users - Request body:', { id, fields: Object.keys(body) })
 
@@ -303,8 +332,8 @@ export async function PATCH(req: Request) {
         if (body.email !== undefined) updates.email = body.email
         if (body.gender !== undefined) updates.gender = body.gender || null
         if (body.phoneNumber !== undefined) updates.phone_number = body.phoneNumber || null
-        if (body.professionalRole !== undefined) updates.role_id = body.professionalRole
-        if (body.roleId !== undefined) updates.role_id = body.roleId
+        if (body.professionalRole !== undefined) updates.role_id = mapRoleToDatabase(String(body.professionalRole))
+        if (body.roleId !== undefined) updates.role_id = mapRoleToDatabase(String(body.roleId))
         if (body.bio !== undefined) updates.bio = body.bio || null
         if (body.avatarUrl !== undefined) updates.avatar_url = body.avatarUrl || null
         if (body.coverUrl !== undefined) updates.cover_url = body.coverUrl || null
@@ -320,6 +349,15 @@ export async function PATCH(req: Request) {
         if (body.socialLinks !== undefined) updates.social_links = body.socialLinks
         if (body.playerSelfEvaluation !== undefined) updates.player_self_evaluation = body.playerSelfEvaluation
         if (body.coachSelfEvaluation !== undefined) updates.coach_self_evaluation = body.coachSelfEvaluation
+
+        // Role-scoped self-evaluation (new source of truth for multi-role)
+        // Keep backward compatibility for legacy profile columns.
+        if (hasRoleSelfEvaluation && requestedActiveRoleId === 'player') {
+            updates.player_self_evaluation = body.roleSelfEvaluation
+        }
+        if (hasRoleSelfEvaluation && requestedActiveRoleId === 'coach') {
+            updates.coach_self_evaluation = body.roleSelfEvaluation
+        }
 
         // Contract status fields (per Player, Coach, Sporting Director)
         if (body.contractStatus !== undefined) updates.contract_status = body.contractStatus || null
@@ -355,8 +393,48 @@ export async function PATCH(req: Request) {
             return withCors(NextResponse.json({ error: 'fetch_failed_after_update' }, { status: 500 }))
         }
 
+        let roleSelfEvaluation: any = undefined
+        if (hasRoleSelfEvaluation && requestedActiveRoleId) {
+            const { data: roleRow, error: roleCheckError } = await supabase
+                .from('profile_roles')
+                .select('role_id, role_self_evaluation')
+                .eq('user_id', id)
+                .eq('role_id', requestedActiveRoleId)
+                .eq('is_active', true)
+                .maybeSingle()
+
+            if (roleCheckError) {
+                console.error('❌ profile_roles check error:', roleCheckError)
+                return withCors(NextResponse.json({ error: roleCheckError.message }, { status: 500 }))
+            }
+
+            if (!roleRow) {
+                return withCors(NextResponse.json({ error: 'forbidden_role_mismatch' }, { status: 403 }))
+            }
+
+            const { error: roleUpdateError } = await supabase
+                .from('profile_roles')
+                .update({
+                    role_self_evaluation: body.roleSelfEvaluation,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('user_id', id)
+                .eq('role_id', requestedActiveRoleId)
+
+            if (roleUpdateError) {
+                console.error('❌ profile_roles update error:', roleUpdateError)
+                return withCors(NextResponse.json({ error: roleUpdateError.message }, { status: 500 }))
+            }
+
+            roleSelfEvaluation = body.roleSelfEvaluation
+        }
+
         console.log('✅ Profile updated successfully')
-        return withCors(NextResponse.json(updated))
+        return withCors(NextResponse.json({
+            ...mapProfileToClient(updated),
+            activeRoleId: requestedActiveRoleId,
+            roleSelfEvaluation,
+        }))
 
     } catch (err: any) {
         console.error('PATCH /api/users error:', err)

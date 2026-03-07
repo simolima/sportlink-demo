@@ -7,7 +7,7 @@ function createChain(config?: {
 }) {
     const chain: any = {}
 
-    const methods = ['select', 'insert', 'delete', 'eq', 'is', 'in', 'order', 'limit']
+    const methods = ['select', 'insert', 'update', 'delete', 'eq', 'is', 'in', 'order', 'limit']
     for (const method of methods) {
         chain[method] = vi.fn(() => chain)
     }
@@ -34,7 +34,7 @@ vi.mock('@/lib/cors', () => ({
     handleOptions: () => new Response(null, { status: 204 }),
 }))
 
-import { GET, POST } from '@/app/api/users/roles/route'
+import { DELETE, GET, POST } from '@/app/api/users/roles/route'
 import { getUserIdFromAuthToken, supabaseServer } from '@/lib/supabase-server'
 
 function makeRequest(url: string): Request {
@@ -239,5 +239,136 @@ describe('POST /api/users/roles', () => {
                 primary_position_id: 99,
             },
         ])
+    })
+})
+
+describe('DELETE /api/users/roles', () => {
+    it('returns 401 when user is not authenticated', async () => {
+        vi.mocked(getUserIdFromAuthToken).mockResolvedValue(null)
+
+        const res = await DELETE(
+            makeJsonRequest('http://localhost:3000/api/users/roles', { roleId: 'coach' }, 'DELETE'),
+        )
+
+        expect(res.status).toBe(401)
+        const data = await res.json()
+        expect(data.error).toBe('unauthorized')
+    })
+
+    it('returns 409 when trying to remove the last active role', async () => {
+        vi.mocked(supabaseServer.from).mockImplementationOnce(() =>
+            createChain({
+                thenResult: {
+                    data: [{ role_id: 'player', is_primary: true }],
+                    error: null,
+                },
+            }),
+        )
+
+        const res = await DELETE(
+            makeJsonRequest('http://localhost:3000/api/users/roles', { roleId: 'player' }, 'DELETE'),
+        )
+
+        expect(res.status).toBe(409)
+        const data = await res.json()
+        expect(data.error).toBe('cannot_remove_last_role')
+    })
+
+    it('deactivates role and soft-deletes only scoped sports', async () => {
+        const activeRolesChain = createChain({
+            thenResult: {
+                data: [
+                    { role_id: 'player', is_primary: true },
+                    { role_id: 'coach', is_primary: false },
+                ],
+                error: null,
+            },
+        })
+        const deactivateRoleChain = createChain({
+            thenResult: { data: [{ role_id: 'coach' }], error: null },
+        })
+        const cleanupSportsChain = createChain({
+            thenResult: { data: [{ user_id: 'user-1' }], error: null },
+        })
+        const updateProfileChain = createChain({
+            thenResult: { data: [], error: null },
+        })
+
+        vi.mocked(supabaseServer.from)
+            .mockImplementationOnce(() => activeRolesChain)
+            .mockImplementationOnce(() => deactivateRoleChain)
+            .mockImplementationOnce(() => cleanupSportsChain)
+            .mockImplementationOnce(() => updateProfileChain)
+
+        const res = await DELETE(
+            makeJsonRequest('http://localhost:3000/api/users/roles', { roleId: 'coach' }, 'DELETE'),
+        )
+        const data = await res.json()
+
+        expect(res.status).toBe(200)
+        expect(data).toEqual({
+            removedRoleId: 'coach',
+            newPrimaryRoleId: null,
+            remainingRoles: ['player'],
+        })
+
+        expect(deactivateRoleChain.update).toHaveBeenCalledWith(
+            expect.objectContaining({ is_active: false, is_primary: false }),
+        )
+        expect(cleanupSportsChain.update).toHaveBeenCalledWith(
+            expect.objectContaining({ deleted_at: expect.any(String) }),
+        )
+        expect(cleanupSportsChain.eq).toHaveBeenCalledWith('role_id', 'coach')
+    })
+
+    it('promotes fallback primary role when deleting current primary', async () => {
+        const activeRolesChain = createChain({
+            thenResult: {
+                data: [
+                    { role_id: 'player', is_primary: true },
+                    { role_id: 'coach', is_primary: false },
+                ],
+                error: null,
+            },
+        })
+        const promotePrimaryChain = createChain({
+            thenResult: { data: [{ role_id: 'coach' }], error: null },
+        })
+        const deactivateRoleChain = createChain({
+            thenResult: { data: [{ role_id: 'player' }], error: null },
+        })
+        const cleanupSportsChain = createChain({
+            thenResult: { data: [{ user_id: 'user-1' }], error: null },
+        })
+        const updateProfileChain = createChain({
+            thenResult: { data: [{ id: 'user-1' }], error: null },
+        })
+
+        vi.mocked(supabaseServer.from)
+            .mockImplementationOnce(() => activeRolesChain)
+            .mockImplementationOnce(() => promotePrimaryChain)
+            .mockImplementationOnce(() => deactivateRoleChain)
+            .mockImplementationOnce(() => cleanupSportsChain)
+            .mockImplementationOnce(() => updateProfileChain)
+
+        const res = await DELETE(
+            makeJsonRequest('http://localhost:3000/api/users/roles', { roleId: 'player' }, 'DELETE'),
+        )
+        const data = await res.json()
+
+        expect(res.status).toBe(200)
+        expect(data).toEqual({
+            removedRoleId: 'player',
+            newPrimaryRoleId: 'coach',
+            remainingRoles: ['coach'],
+        })
+
+        expect(promotePrimaryChain.update).toHaveBeenCalledWith(
+            expect.objectContaining({ is_primary: true }),
+        )
+        expect(promotePrimaryChain.eq).toHaveBeenCalledWith('role_id', 'coach')
+        expect(updateProfileChain.update).toHaveBeenCalledWith(
+            expect.objectContaining({ role_id: 'coach' }),
+        )
     })
 })

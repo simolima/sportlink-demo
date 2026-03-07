@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 // import { authService } from '@/services/mock'
 import type { User } from '@/lib/types'
 
@@ -272,9 +273,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updateUser = async (updates: Partial<User>) => {
         if (!user) return
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/users', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ id: user.id, ...updates })
             })
             if (!res.ok) return

@@ -57,6 +57,20 @@ export async function GET(req: Request) {
             'talent_scout': 'Talent Scout',
         }
 
+        const roleTypeToDbRole: Record<string, string> = {
+            'Player': 'player',
+            'Coach': 'coach',
+            'Agent': 'agent',
+            'Sporting Director': 'sporting_director',
+            'Athletic Trainer': 'athletic_trainer',
+            'Nutritionist': 'nutritionist',
+            'Physio/Masseur': 'physio',
+            'Talent Scout': 'talent_scout',
+        }
+        const normalizedRoleFilter = roleType !== 'all'
+            ? (roleTypeToDbRole[roleType] || roleType.toLowerCase())
+            : null
+
         // =============================================
         // STEP 1: Resolve sport name → sport_id (if filtering by sport)
         // =============================================
@@ -82,6 +96,10 @@ export async function GET(req: Request) {
                 .from('profile_sports')
                 .select('user_id')
                 .is('deleted_at', null)
+
+            if (normalizedRoleFilter) {
+                psQuery = psQuery.or(`role_id.eq.${normalizedRoleFilter},role_id.is.null`)
+            }
 
             if (sportId) {
                 psQuery = psQuery.eq('sport_id', sportId)
@@ -200,7 +218,7 @@ export async function GET(req: Request) {
         // =============================================
         let query = supabaseServer
             .from('profiles')
-            .select('*, profile_sports(sport_id, is_main_sport, lookup_sports(name), primary_position:lookup_positions(name, category))', { count: 'exact' })
+            .select('*, profile_sports(sport_id, role_id, is_main_sport, lookup_sports(name), primary_position:lookup_positions(name, category))', { count: 'exact' })
             .is('deleted_at', null)
             .not('role_id', 'is', null)
 
@@ -213,18 +231,7 @@ export async function GET(req: Request) {
         if (roleType !== 'all') {
             // Frontend sends either lowercase DB values (player, coach, agent)
             // or PascalCase labels (Player, Coach, Agent). Support both.
-            const roleMap: Record<string, string> = {
-                'Player': 'player',
-                'Coach': 'coach',
-                'Agent': 'agent',
-                'Sporting Director': 'sporting_director',
-                'Athletic Trainer': 'athletic_trainer',
-                'Nutritionist': 'nutritionist',
-                'Physio/Masseur': 'physio',
-                'Talent Scout': 'talent_scout',
-            }
-            const dbRole = roleMap[roleType] || roleType.toLowerCase()
-            query = query.eq('role_id', dbRole)
+            query = query.eq('role_id', normalizedRoleFilter)
         }
 
         // Text search
@@ -257,11 +264,16 @@ export async function GET(req: Request) {
 
         // Normalizza: aggiunge professionalRole, sports e campi camelCase per il frontend
         const normalized = (data || []).map((profile: any) => {
-            const sports = (profile.profile_sports || [])
+            const roleScopedSports = (profile.profile_sports || []).filter((ps: any) =>
+                ps.role_id === profile.role_id || ps.role_id === null
+            )
+            const sportsBase = roleScopedSports.length > 0 ? roleScopedSports : (profile.profile_sports || [])
+
+            const sports = sportsBase
                 .map((ps: any) => ps.lookup_sports?.name)
                 .filter(Boolean)
 
-            const mainSportEntry = (profile.profile_sports || []).find((ps: any) => ps.is_main_sport)
+            const mainSportEntry = sportsBase.find((ps: any) => ps.is_main_sport)
             const primaryPosition = mainSportEntry?.primary_position?.name || null
             const positionCategory = mainSportEntry?.primary_position?.category || null
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Users, UserPlus, Send } from 'lucide-react'
 import { Affiliation } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface AffiliationWithDetails extends Affiliation {
     player?: { id: number; firstName: string; lastName: string; avatarUrl?: string; sport?: string }
@@ -31,7 +32,7 @@ export default function AgentAffiliationsPage() {
         const loadData = async () => {
             if (typeof window === 'undefined') return
             const userId = localStorage.getItem('currentUserId')
-            const activeRole = localStorage.getItem('currentUserRole')
+            const activeRole = (localStorage.getItem('currentUserRole') || '').toLowerCase()
             if (!userId) {
                 router.push('/login')
                 return
@@ -111,9 +112,13 @@ export default function AgentAffiliationsPage() {
             return
         }
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/affiliations', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
                 body: JSON.stringify({
                     agentId: currentUser.id,
                     playerId: selectedPlayer.id,
@@ -130,7 +135,13 @@ export default function AgentAffiliationsPage() {
                 fetchAffiliations(currentUser.id)
             } else {
                 const error = await res.json()
-                showToast('error', 'Errore', error.error || 'Impossibile inviare la richiesta')
+                if (res.status === 401) {
+                    showToast('error', 'Sessione scaduta', 'Effettua nuovamente il login per inviare la richiesta')
+                } else if (res.status === 403 && error?.error === 'forbidden_agent_mismatch') {
+                    showToast('error', 'Mismatch account', 'Stai usando un account diverso dal profilo agente attivo')
+                } else {
+                    showToast('error', 'Errore', error.error || 'Impossibile inviare la richiesta')
+                }
             }
         } catch (error) {
             showToast('error', 'Errore', 'Si è verificato un errore')
@@ -199,7 +210,7 @@ export default function AgentAffiliationsPage() {
     }
 
     // Se l'utente non è agente, non mostrare nulla (prevenzione flash contenuti)
-    if ((localStorage.getItem('currentUserRole') || '') !== 'agent') {
+    if ((localStorage.getItem('currentUserRole') || '').toLowerCase() !== 'agent') {
         return null
     }
 
@@ -470,7 +481,10 @@ export default function AgentAffiliationsPage() {
                                                 if (confirm('Vuoi annullare questa richiesta?')) {
                                                     const res = await fetch('/api/affiliations', {
                                                         method: 'PUT',
-                                                        headers: { 'Content-Type': 'application/json' },
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            ...(await getAuthHeaders()),
+                                                        },
                                                         body: JSON.stringify({
                                                             id: affiliation.id,
                                                             status: 'rejected'

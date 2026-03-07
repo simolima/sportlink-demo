@@ -9,10 +9,22 @@ import { SportIcon } from '@/lib/sport-icons'
 interface AthleteCardProps {
     athlete: any
     currentUserId: string | null
+    canRequestAffiliation?: boolean
+    affiliationStatus?: 'none' | 'pending' | 'active'
+    onRequestAffiliation?: (athleteId: string) => Promise<void> | void
+    requestingAffiliation?: boolean
 }
 
-export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps) {
+export default function AthleteCard({
+    athlete,
+    currentUserId,
+    canRequestAffiliation = false,
+    affiliationStatus = 'none',
+    onRequestAffiliation,
+    requestingAffiliation = false,
+}: AthleteCardProps) {
     const router = useRouter()
+    const canAffiliationAction = canRequestAffiliation && !!currentUserId && String(currentUserId) !== String(athlete.id)
 
     const handleProfileClick = () => {
         router.push(`/profile/${athlete.id}`)
@@ -98,12 +110,36 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
                 </div>
 
                 {/* View Profile Button */}
-                <button
-                    onClick={handleProfileClick}
-                    className="w-full mt-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                >
-                    Visualizza Profilo
-                </button>
+                <div className="mt-4 space-y-2">
+                    {canAffiliationAction && affiliationStatus === 'none' && (
+                        <button
+                            onClick={() => onRequestAffiliation?.(String(athlete.id))}
+                            disabled={requestingAffiliation}
+                            className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {requestingAffiliation ? 'Invio in corso...' : 'Richiedi Affiliazione'}
+                        </button>
+                    )}
+
+                    {canAffiliationAction && affiliationStatus === 'pending' && (
+                        <div className="w-full py-2 bg-warning/10 text-warning border border-warning/30 font-semibold rounded-lg text-center">
+                            Richiesta in attesa
+                        </div>
+                    )}
+
+                    {canAffiliationAction && affiliationStatus === 'active' && (
+                        <div className="w-full py-2 bg-brand-100 text-brand-700 border border-brand-300 font-semibold rounded-lg text-center">
+                            Affiliato
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleProfileClick}
+                        className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold rounded-lg transition-colors duration-200 border border-gray-300"
+                    >
+                        Visualizza Profilo
+                    </button>
+                </div>
             </div>
         </div>
     )

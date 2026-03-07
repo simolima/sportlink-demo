@@ -9,10 +9,22 @@ import { SportIcon } from '@/lib/sport-icons'
 interface PlayerCardProps {
     player: any
     currentUserId: string | null
+    canRequestAffiliation?: boolean
+    affiliationStatus?: 'none' | 'pending' | 'active'
+    onRequestAffiliation?: (playerId: string) => Promise<void> | void
+    requestingAffiliation?: boolean
 }
 
-export default function PlayerCard({ player, currentUserId }: PlayerCardProps) {
+export default function PlayerCard({
+    player,
+    currentUserId,
+    canRequestAffiliation = false,
+    affiliationStatus = 'none',
+    onRequestAffiliation,
+    requestingAffiliation = false,
+}: PlayerCardProps) {
     const router = useRouter()
+    const canAffiliationAction = canRequestAffiliation && !!currentUserId && String(currentUserId) !== String(player.id)
 
     const handleProfileClick = () => {
         router.push(`/profile/${player.id}`)
@@ -110,6 +122,32 @@ export default function PlayerCard({ player, currentUserId }: PlayerCardProps) {
                             <div className="flex items-center gap-1">
                                 <GlobeAltIcon className="w-3.5 h-3.5" />
                                 <span>{country}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {canAffiliationAction && (
+                    <div className="mt-3 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+                        {affiliationStatus === 'none' && (
+                            <button
+                                onClick={() => onRequestAffiliation?.(String(player.id))}
+                                disabled={requestingAffiliation}
+                                className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {requestingAffiliation ? 'Invio in corso...' : 'Richiedi Affiliazione'}
+                            </button>
+                        )}
+
+                        {affiliationStatus === 'pending' && (
+                            <div className="w-full py-2 bg-warning/10 text-warning border border-warning/30 text-sm font-semibold rounded-lg text-center">
+                                Richiesta in attesa
+                            </div>
+                        )}
+
+                        {affiliationStatus === 'active' && (
+                            <div className="w-full py-2 bg-brand-100 text-brand-700 border border-brand-300 text-sm font-semibold rounded-lg text-center">
+                                Affiliato
                             </div>
                         )}
                     </div>

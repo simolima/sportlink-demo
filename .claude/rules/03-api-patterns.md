@@ -172,6 +172,8 @@ export async function POST(req: Request) {
 - `/api/messages` POST — verifica `senderId`
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
+- `/api/studios/[id]/reviews` POST — cliente attivo può creare la propria recensione
+- `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna rating/commento, owner modera `isPublished`
 
 ### Endpoint da hardenare (priorità decrescente)
 
@@ -230,3 +232,5 @@ const fallbackPoll = setInterval(async () => {
 | `/api/sports-organizations` | Organizzazioni sportive |
 | `/api/organization-requests` | Richieste organizzazione |
 | `/api/organization-requests/[id]/approve` | Approvazione |
+| `/api/studios/[id]/reviews` | Recensioni studio (GET/POST) |
+| `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH/DELETE) |

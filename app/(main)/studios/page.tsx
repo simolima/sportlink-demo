@@ -43,7 +43,7 @@ export default function StudiosPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
             </div>
         )
     }
@@ -60,7 +60,7 @@ export default function StudiosPage() {
                     {isMedical && (
                         <button
                             onClick={() => router.push('/studios/create')}
-                            className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2"
+                            className="px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition flex items-center gap-2"
                         >
                             <BuildingOffice2Icon className="h-5 w-5" />
                             Crea Studio
@@ -78,7 +78,7 @@ export default function StudiosPage() {
                                 placeholder="Cerca studio..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             />
                         </div>
                         <div className="relative">
@@ -88,7 +88,7 @@ export default function StudiosPage() {
                                 placeholder="Filtra per città..."
                                 value={city}
                                 onChange={e => setCity(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             />
                         </div>
                     </div>

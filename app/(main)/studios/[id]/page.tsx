@@ -2,15 +2,23 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-    BuildingOffice2Icon, MapPinIcon, PhoneIcon, GlobeAltIcon,
-    CalendarDaysIcon, PencilSquareIcon, ChartBarIcon
-} from '@heroicons/react/24/outline'
+import { PencilSquareIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { type ProfessionalStudio, MEDICAL_ROLES } from '@/lib/types'
+import { MEDICAL_ROLES, type MedicalRole, type ProfessionalStudio } from '@/lib/types'
 import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { useToast } from '@/lib/toast-context'
+import { getStudioMockDataByRole } from '@/lib/studio-mock-data'
+import StudioPublicHero from '@/components/studio-public/StudioPublicHero'
+import StudioTrustBar from '@/components/studio-public/StudioTrustBar'
+import StudioAboutSection from '@/components/studio-public/StudioAboutSection'
+import StudioSpecializations from '@/components/studio-public/StudioSpecializations'
+import StudioServicesSection from '@/components/studio-public/StudioServicesSection'
+import StudioMethodology from '@/components/studio-public/StudioMethodology'
+import StudioReviewsSection from '@/components/studio-public/StudioReviewsSection'
+import StudioLocationContact from '@/components/studio-public/StudioLocationContact'
+import StudioFaqSection from '@/components/studio-public/StudioFaqSection'
+import StudioFinalCta from '@/components/studio-public/StudioFinalCta'
 
 export default function StudioDetailPage() {
     const params = useParams()
@@ -84,128 +92,108 @@ export default function StudioDetailPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
             </div>
         )
     }
 
     if (!studio) return null
 
+    const roleLower = studio.owner?.roleId?.toLowerCase() as MedicalRole | undefined
+    const baseMockData = roleLower && MEDICAL_ROLES.includes(roleLower)
+        ? getStudioMockDataByRole(roleLower)
+        : null
+
+    // Progressively replace mock content with real DB content when available.
+    const mergedMockData = baseMockData ? {
+        ...baseMockData,
+        reviews: (studio.reviews && studio.reviews.length > 0)
+            ? studio.reviews.map(r => ({
+                id: r.id,
+                clientName: r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : 'Cliente verificato',
+                rating: r.rating,
+                text: r.comment,
+                date: r.createdAt,
+                verified: r.isVerified,
+            }))
+            : baseMockData.reviews,
+        specializations: (studio.specializations && studio.specializations.length > 0)
+            ? studio.specializations.map(s => ({
+                name: s.name,
+                description: s.description || '',
+                icon: s.icon || '⭐',
+            }))
+            : baseMockData.specializations,
+        faq: (studio.faqs && studio.faqs.length > 0)
+            ? studio.faqs.map(f => ({
+                question: f.question,
+                answer: f.answer,
+            }))
+            : baseMockData.faq,
+    } : null
+
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-4xl mx-auto px-4 py-8 pb-12">
-                {/* Scheda principale */}
-                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 border border-gray-100 shadow-sm">
-                                {studio.logoUrl ? (
-                                    <img src={studio.logoUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                                ) : (
-                                    <BuildingOffice2Icon className="h-8 w-8 text-white" />
-                                )}
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">{studio.name}</h1>
-                                {studio.owner && (
-                                    <Link href={`/profile/${studio.owner.id}`} className="text-green-600 hover:text-green-700 font-medium text-sm">
-                                        {studio.owner.firstName} {studio.owner.lastName}
-                                    </Link>
-                                )}
-                            </div>
+            {/* Admin controls sticky bar */}
+            {isOwner && (
+                <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+                    <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+                        <span className="text-sm text-gray-600 font-medium">Modalità Gestione Studio</span>
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href={`/studios/${studioId}/dashboard`}
+                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition"
+                            >
+                                <ChartBarIcon className="h-4 w-4" />
+                                Dashboard
+                            </Link>
+                            <Link
+                                href={`/studios/${studioId}/dashboard?tab=edit`}
+                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 transition"
+                            >
+                                <PencilSquareIcon className="h-4 w-4" />
+                                Modifica
+                            </Link>
                         </div>
-
-                        {/* Azioni */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            {isOwner && (
-                                <>
-                                    <Link
-                                        href={`/studios/${studioId}/dashboard`}
-                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition"
-                                    >
-                                        <ChartBarIcon className="h-4 w-4" />
-                                        Dashboard
-                                    </Link>
-                                    <Link
-                                        href={`/studios/${studioId}/dashboard?tab=edit`}
-                                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 transition"
-                                    >
-                                        <PencilSquareIcon className="h-4 w-4" />
-                                        Modifica
-                                    </Link>
-                                </>
-                            )}
-                            {user && !isOwner && (
-                                <button
-                                    onClick={() => setShowBookingForm(true)}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                                >
-                                    <CalendarDaysIcon className="h-5 w-5" />
-                                    Prenota Visita
-                                </button>
-                            )}
-                            {!user && (
-                                <Link
-                                    href="/login"
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                                >
-                                    <CalendarDaysIcon className="h-5 w-5" />
-                                    Accedi per prenotare
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Info contatti */}
-                    <div className="flex flex-wrap gap-4 mt-5 pt-5 border-t border-gray-100">
-                        {studio.city && (
-                            <div className="flex items-center gap-1.5 text-gray-600 text-sm">
-                                <MapPinIcon className="h-4 w-4 text-gray-400" />
-                                {studio.address ? `${studio.address}, ${studio.city}` : studio.city}
-                            </div>
-                        )}
-                        {studio.phone && (
-                            <a href={`tel:${studio.phone}`} className="flex items-center gap-1.5 text-gray-600 hover:text-green-600 text-sm transition">
-                                <PhoneIcon className="h-4 w-4 text-gray-400" />
-                                {studio.phone}
-                            </a>
-                        )}
-                        {studio.website && (
-                            <a href={studio.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-gray-600 hover:text-green-600 text-sm transition">
-                                <GlobeAltIcon className="h-4 w-4 text-gray-400" />
-                                Sito web
-                            </a>
-                        )}
                     </div>
                 </div>
+            )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Descrizione */}
-                    <div className="md:col-span-2 space-y-6">
-                        {studio.description && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h2 className="font-bold text-gray-900 mb-3">Chi siamo</h2>
-                                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{studio.description}</p>
-                            </div>
-                        )}
-                    </div>
+            {/* Hero Section */}
+            <StudioPublicHero
+                studio={studio}
+                mockData={mergedMockData}
+                onBookingClick={() => setShowBookingForm(true)}
+                onCallClick={studio.phone ? () => window.location.href = `tel:${studio.phone}` : undefined}
+                isAuthenticated={!!user}
+            />
 
-                    {/* Servizi */}
-                    {studio.servicesOffered.length > 0 && (
-                        <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h2 className="font-bold text-gray-900 mb-3">Servizi</h2>
-                            <ul className="space-y-2">
-                                {studio.servicesOffered.map((s, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                                        <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                                        {s}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            </div>
+            {/* Trust Bar */}
+            {mergedMockData && <StudioTrustBar mockData={mergedMockData} />}
+
+            {/* About Section */}
+            <StudioAboutSection studio={studio} />
+
+            {/* Specializations Grid */}
+            {mergedMockData && <StudioSpecializations mockData={mergedMockData} />}
+
+            {/* Services Section */}
+            <StudioServicesSection studio={studio} />
+
+            {/* Methodology Section */}
+            {mergedMockData && <StudioMethodology mockData={mergedMockData} />}
+
+            {/* Reviews Section */}
+            {mergedMockData && <StudioReviewsSection mockData={mergedMockData} />}
+
+            {/* Location & Contact */}
+            <StudioLocationContact studio={studio} />
+
+            {/* FAQ Section */}
+            {mergedMockData && <StudioFaqSection mockData={mergedMockData} />}
+
+            {/* Final CTA */}
+            <StudioFinalCta onBookingClick={() => setShowBookingForm(true)} />
 
             {/* Modal prenotazione */}
             {showBookingForm && (
@@ -219,7 +207,7 @@ export default function StudioDetailPage() {
                                     type="datetime-local"
                                     value={bookingData.startTime}
                                     onChange={e => setBookingData(p => ({ ...p, startTime: e.target.value }))}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                                     required
                                 />
                             </div>
@@ -229,7 +217,7 @@ export default function StudioDetailPage() {
                                     type="datetime-local"
                                     value={bookingData.endTime}
                                     onChange={e => setBookingData(p => ({ ...p, endTime: e.target.value }))}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                                     required
                                 />
                             </div>
@@ -239,7 +227,7 @@ export default function StudioDetailPage() {
                                     <select
                                         value={bookingData.serviceType}
                                         onChange={e => setBookingData(p => ({ ...p, serviceType: e.target.value }))}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                                     >
                                         <option value="">Seleziona servizio...</option>
                                         {studio.servicesOffered.map((s, i) => (
@@ -252,7 +240,7 @@ export default function StudioDetailPage() {
                                         value={bookingData.serviceType}
                                         onChange={e => setBookingData(p => ({ ...p, serviceType: e.target.value }))}
                                         placeholder="Es: Fisioterapia, Consulenza..."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                                     />
                                 )}
                             </div>
@@ -263,7 +251,7 @@ export default function StudioDetailPage() {
                                     onChange={e => setBookingData(p => ({ ...p, notes: e.target.value }))}
                                     placeholder="Descrivi brevemente il motivo della visita..."
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none resize-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none resize-none"
                                 />
                             </div>
                             <div className="flex gap-3 pt-2">
@@ -277,7 +265,7 @@ export default function StudioDetailPage() {
                                 <button
                                     type="submit"
                                     disabled={bookingLoading}
-                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold disabled:opacity-60"
+                                    className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-semibold disabled:opacity-60"
                                 >
                                     {bookingLoading ? 'Invio...' : 'Invia richiesta'}
                                 </button>

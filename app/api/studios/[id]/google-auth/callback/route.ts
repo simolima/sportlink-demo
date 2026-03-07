@@ -19,7 +19,6 @@ import {
     exchangeCodeForTokens,
     encryptTokenPair,
     validateCallbackParams,
-    validateState,
 } from '@/lib/google-oauth-service'
 
 export async function GET(
@@ -35,7 +34,9 @@ export async function GET(
 
         // 1. Validate callback parameters
         validateCallbackParams(code, error)
-        validateState(state, studioId)
+        if (!state || state !== studioId) {
+            throw new Error('invalid_state_parameter')
+        }
 
         // 2. Verify studio exists
         const { data: studio, error: studioError } = await supabaseServer

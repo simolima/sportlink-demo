@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
 import FollowButton from '@/components/follow-button'
 import { MapPinIcon, CheckBadgeIcon } from '@heroicons/react/24/outline'
+import { SportIcon } from '@/lib/sport-icons'
 
 interface AthleteCardProps {
     athlete: any
@@ -75,7 +76,8 @@ export default function AthleteCard({ athlete, currentUserId }: AthleteCardProps
 
                     {/* Info row: Sport & Location */}
                     <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
+                            <SportIcon sport={mainSport} className="w-4 h-4 text-brand-600 flex-shrink-0" />
                             <span className="font-medium text-gray-700">{mainSport}</span>
                         </div>
                         <div className="flex items-center gap-1 text-gray-600">

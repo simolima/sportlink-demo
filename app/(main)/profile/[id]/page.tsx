@@ -59,9 +59,61 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
         const fetchProfile = async () => {
             setLoading(true)
             try {
-                // Fetch user roles (sempre, per mostrare i bottoni di switch)
-                const rolesRes = await fetch(`/api/users/roles?userId=${params.id}`)
-                const rolesData: Array<{ role_id: string; is_primary: boolean; sport_name?: string | null }> = rolesRes.ok ? await rolesRes.json() : []
+                // Fetch user roles — prova API, poi fallback diretto a Supabase
+                let rolesData: Array<{ role_id: string; is_primary: boolean; sport_name?: string | null }> = []
+                try {
+                    const rolesRes = await fetch(`/api/users/roles?userId=${params.id}`)
+                    if (rolesRes.ok) {
+                        const json = await rolesRes.json()
+                        if (Array.isArray(json)) rolesData = json
+                    }
+                } catch { /* API fallita, proviamo direttamente */ }
+
+                // Fallback: se l'API non ha restituito ruoli, query direttamente a Supabase
+                if (rolesData.length === 0) {
+                    const { data: directRoles } = await supabase
+                        .from('profile_roles')
+                        .select('role_id, is_primary')
+                        .eq('user_id', params.id)
+                        .eq('is_active', true)
+
+                    if (directRoles && directRoles.length > 0) {
+                        // Arricchisci con sport name
+                        const { data: sportRows } = await supabase
+                            .from('profile_sports')
+                            .select('role_id, is_main_sport, lookup_sports(name)')
+                            .eq('user_id', params.id)
+                            .is('deleted_at', null)
+
+                        const sportByRole: Record<string, string> = {}
+                        if (sportRows) {
+                            for (const row of sportRows as any[]) {
+                                const sportName = row.lookup_sports?.name
+                                if (sportName && row.role_id) {
+                                    if (!sportByRole[row.role_id] || row.is_main_sport) {
+                                        sportByRole[row.role_id] = sportName
+                                    }
+                                }
+                            }
+                        }
+                        rolesData = directRoles.map((r: { role_id: string; is_primary: boolean }) => ({
+                            ...r,
+                            sport_name: sportByRole[r.role_id] ?? null,
+                        }))
+                    } else {
+                        // Ultimo fallback: profiles.role_id legacy
+                        const { data: fallbackProfile } = await supabase
+                            .from('profiles')
+                            .select('role_id')
+                            .eq('id', params.id)
+                            .is('deleted_at', null)
+                            .single()
+                        if (fallbackProfile?.role_id) {
+                            rolesData = [{ role_id: fallbackProfile.role_id, is_primary: true, sport_name: null }]
+                        }
+                    }
+                }
+
                 setProfileRoles(rolesData)
 
                 // Determina il ruolo da visualizzare

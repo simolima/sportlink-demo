@@ -3,57 +3,88 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 
+// Previene doppia esecuzione in React StrictMode (development)
+let callbackProcessed = false
+
 export default function AuthCallbackPage() {
     const [status, setStatus] = useState<string>('Autenticazione in corso...')
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
+        if (callbackProcessed) return
+        callbackProcessed = true
+
         let mounted = true
+        let authListenerUnsubscribe: (() => void) | null = null
 
         const handleCallback = async () => {
             try {
-                // Step 1: Exchange code for session (se presente)
                 const url = new URL(window.location.href)
                 const authCode = url.searchParams.get('code')
+                const hasHashToken = window.location.hash.includes('access_token')
 
+                // ── STRATEGIA 1: Code exchange (PKCE flow) ──
                 if (authCode) {
-                    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode)
-                    // Se il code è già stato scambiato, non è un errore fatale
+                    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode)
+
+                    if (data?.session) {
+                        return processSession(data.session)
+                    }
                     if (exchangeError) {
-                        console.warn('Code exchange issue (may already be exchanged):', exchangeError.message)
+                        console.warn('Code exchange error:', exchangeError.message)
                     }
                 }
 
-                // Step 2: Assicurarsi di avere la sessione
-                await supabase.auth.refreshSession()
-                const { data: { session } } = await supabase.auth.getSession()
-
-                if (!session) {
-                    // Ultimo tentativo: aspetta che la sessione si propaghi
+                // ── STRATEGIA 2: Hash token (implicit flow) ──
+                // Supabase potrebbe aver già intercettato l'hash e stabilito la sessione
+                if (hasHashToken) {
+                    // Aspetta che Supabase processi l'hash token
                     await new Promise(r => setTimeout(r, 500))
-                    const { data: { session: retrySession } } = await supabase.auth.getSession()
-                    if (!retrySession) {
-                        if (mounted) setError('Sessione non trovata. Riprova il login.')
-                        setTimeout(() => { window.location.href = '/login' }, 2000)
-                        return
-                    }
-                    // Usa la sessione dal retry
-                    return processSession(retrySession)
                 }
 
-                return processSession(session)
+                // ── STRATEGIA 3: Sessione già presente ──
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session) {
+                    return processSession(session)
+                }
+
+                // ── STRATEGIA 4: Aspetta onAuthStateChange ──
+                // Il token potrebbe arrivare in modo asincrono
+                const sessionFromListener = await new Promise<any>((resolve) => {
+                    const timeout = setTimeout(() => resolve(null), 3000)
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+                        if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                            clearTimeout(timeout)
+                            resolve(session)
+                        }
+                    })
+                    authListenerUnsubscribe = () => subscription.unsubscribe()
+                })
+
+                if (sessionFromListener) {
+                    return processSession(sessionFromListener)
+                }
+
+                // ── STRATEGIA 5: Ultimo tentativo con refresh ──
+                const { data: refreshData } = await supabase.auth.refreshSession()
+                if (refreshData?.session) {
+                    return processSession(refreshData.session)
+                }
+
+                // Nessuna sessione → login
+                if (mounted) setError('Sessione non trovata. Riprova il login.')
+                setTimeout(() => { window.location.href = '/login' }, 2500)
             } catch (err) {
                 console.error('Callback error:', err)
-                // Se abbiamo comunque una sessione valida, procedi
+
+                // Ultimo tentativo: anche in caso di errore, controlla se abbiamo una sessione
                 try {
                     const { data: { session } } = await supabase.auth.getSession()
-                    if (session) {
-                        return processSession(session)
-                    }
+                    if (session) return processSession(session)
                 } catch { /* ignore */ }
 
                 if (mounted) setError('Errore durante l\'autenticazione. Riprova.')
-                setTimeout(() => { window.location.href = '/login' }, 2000)
+                setTimeout(() => { window.location.href = '/login' }, 2500)
             }
         }
 
@@ -75,10 +106,10 @@ export default function AuthCallbackPage() {
 
             if (mounted) setStatus('Caricamento profilo...')
 
-            // Step 3: Fetch profilo con retry (il trigger DB potrebbe non aver ancora creato il profilo)
+            // Fetch profilo con retry
             let profile: any = null
             for (let attempt = 0; attempt < 3; attempt++) {
-                await new Promise(r => setTimeout(r, attempt * 500)) // 0ms, 500ms, 1000ms
+                if (attempt > 0) await new Promise(r => setTimeout(r, 500))
                 const { data, error: profileError } = await supabase
                     .from('profiles')
                     .select('role_id, first_name, last_name')
@@ -89,25 +120,12 @@ export default function AuthCallbackPage() {
                     profile = data
                     break
                 }
-                // RLS error → assume profilo esiste
                 if (profileError?.code === '42501' || profileError?.message?.includes('permission denied')) {
                     break
                 }
             }
 
-            // Check profile_sports (non-blocking, nessun redirect se fallisce)
-            const { data: sports, error: sportsError } = await supabase
-                .from('profile_sports')
-                .select('id')
-                .eq('user_id', user.id)
-
-            const isRLSError = sportsError && (
-                sportsError.code === '42501' ||
-                sportsError.message?.includes('row-level security') ||
-                sportsError.message?.includes('permission denied')
-            )
-
-            // Salva dati profilo in localStorage se disponibili
+            // Salva dati profilo in localStorage
             if (profile?.first_name && profile?.last_name) {
                 const isPlaceholder = profile.first_name === 'Nome' || profile.last_name === 'Cognome'
                 if (!isPlaceholder) {
@@ -118,26 +136,24 @@ export default function AuthCallbackPage() {
                 localStorage.setItem('currentUserRole', profile.role_id)
             }
 
-            // Determina dove redirect
+            // Determina dove redirectare
             const isPlaceholderName = profile?.first_name === 'Nome' || profile?.last_name === 'Cognome'
             const hasRealName = profile?.first_name && profile?.last_name && !isPlaceholderName
             const hasRole = !!profile?.role_id
 
-            // Se ha nome e ruolo → home
             if (hasRealName && hasRole) {
                 localStorage.setItem('onboarding_complete', 'true')
                 window.location.href = '/home'
                 return
             }
 
-            // Se RLS blocca tutto ma abbiamo una sessione → vai a home (assume profilo completo)
-            if (isRLSError && !profile) {
+            // Se non abbiamo profilo (RLS blocca) o altro errore → vai a home comunque
+            if (!profile) {
                 localStorage.setItem('onboarding_complete', 'true')
                 window.location.href = '/home'
                 return
             }
 
-            // Profilo incompleto → onboarding
             if (!hasRealName) {
                 window.location.href = '/complete-profile'
                 return
@@ -147,13 +163,15 @@ export default function AuthCallbackPage() {
                 return
             }
 
-            // Fallback: vai a home comunque
             localStorage.setItem('onboarding_complete', 'true')
             window.location.href = '/home'
         }
 
         handleCallback()
-        return () => { mounted = false }
+        return () => {
+            mounted = false
+            authListenerUnsubscribe?.()
+        }
     }, [])
 
     return (

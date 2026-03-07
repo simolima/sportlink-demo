@@ -141,14 +141,14 @@ export default function StudioDetailPage() {
                         <span className="text-sm text-gray-600 font-medium">Modalità Gestione Studio</span>
                         <div className="flex items-center gap-2">
                             <Link
-                                href={`/studios/${studioId}/dashboard`}
+                                href={`/studios/${studioId}/dashboard/overview`}
                                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition"
                             >
                                 <ChartBarIcon className="h-4 w-4" />
                                 Dashboard
                             </Link>
                             <Link
-                                href={`/studios/${studioId}/dashboard?tab=edit`}
+                                href={`/studios/${studioId}/dashboard/settings`}
                                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 transition"
                             >
                                 <PencilSquareIcon className="h-4 w-4" />

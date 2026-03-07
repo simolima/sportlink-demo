@@ -102,6 +102,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             logoUrl: data.logo_url,
             description: data.description,
             servicesOffered: data.services_offered ?? [],
+            timezone: data.timezone,
+            bookingEnabled: data.booking_enabled,
+            autoConfirmBookings: data.auto_confirm_bookings,
+            slotIncrementMinutes: data.slot_increment_minutes,
+            defaultBufferBetweenAppointments: data.default_buffer_between_appointments,
             createdAt: data.created_at,
             updatedAt: data.updated_at,
             reviews,
@@ -144,7 +149,21 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
 
         const body = await req.json()
-        const { name, city, address, phone, website, logoUrl, description, servicesOffered } = body
+        const {
+            name,
+            city,
+            address,
+            phone,
+            website,
+            logoUrl,
+            description,
+            servicesOffered,
+            timezone,
+            bookingEnabled,
+            autoConfirmBookings,
+            slotIncrementMinutes,
+            defaultBufferBetweenAppointments,
+        } = body
 
         const updates: Record<string, any> = {}
         if (name !== undefined) updates.name = name
@@ -155,6 +174,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         if (logoUrl !== undefined) updates.logo_url = logoUrl
         if (description !== undefined) updates.description = description
         if (servicesOffered !== undefined) updates.services_offered = servicesOffered
+        if (timezone !== undefined) updates.timezone = timezone
+        if (bookingEnabled !== undefined) updates.booking_enabled = bookingEnabled
+        if (autoConfirmBookings !== undefined) updates.auto_confirm_bookings = autoConfirmBookings
+        if (slotIncrementMinutes !== undefined) updates.slot_increment_minutes = slotIncrementMinutes
+        if (defaultBufferBetweenAppointments !== undefined) {
+            updates.default_buffer_between_appointments = defaultBufferBetweenAppointments
+        }
 
         const { data: updated, error } = await supabase
             .from('professional_studios')
@@ -176,6 +202,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             logoUrl: updated.logo_url,
             description: updated.description,
             servicesOffered: updated.services_offered ?? [],
+            timezone: updated.timezone,
+            bookingEnabled: updated.booking_enabled,
+            autoConfirmBookings: updated.auto_confirm_bookings,
+            slotIncrementMinutes: updated.slot_increment_minutes,
+            defaultBufferBetweenAppointments: updated.default_buffer_between_appointments,
             createdAt: updated.created_at,
             updatedAt: updated.updated_at,
         }))

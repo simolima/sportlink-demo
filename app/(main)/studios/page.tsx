@@ -110,7 +110,7 @@ export default function StudiosPage() {
                                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-100"
                             >
                                 {/* Logo o placeholder */}
-                                <div className="h-32 bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                <div className="h-32 bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
                                     {studio.logoUrl ? (
                                         <img src={studio.logoUrl} alt={studio.name} className="h-full w-full object-cover" />
                                     ) : (
@@ -120,7 +120,7 @@ export default function StudiosPage() {
                                 <div className="p-4">
                                     <h3 className="font-bold text-gray-900 text-lg">{studio.name}</h3>
                                     {studio.owner && (
-                                        <p className="text-sm text-green-600 font-medium mt-0.5">
+                                        <p className="text-sm text-brand-600 font-medium mt-0.5">
                                             {studio.owner.firstName} {studio.owner.lastName}
                                         </p>
                                     )}
@@ -136,7 +136,7 @@ export default function StudiosPage() {
                                     {studio.servicesOffered.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-3">
                                             {studio.servicesOffered.slice(0, 3).map((s, i) => (
-                                                <span key={i} className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-100">
+                                                <span key={i} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full border border-brand-100">
                                                     {s}
                                                 </span>
                                             ))}

@@ -2,7 +2,8 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
-import FollowButton from '@/components/follow-button'
+import FavoriteButton from '@/components/favorite-button'
+import VerifyButton from '@/components/verify-button'
 import { MapPinIcon, CheckBadgeIcon } from '@heroicons/react/24/outline'
 import { SportIcon } from '@/lib/sport-icons'
 
@@ -68,10 +69,11 @@ export default function AthleteCard({
                         </div>
                     </div>
 
-                    {/* Follow button */}
+                    {/* Action buttons */}
                     {currentUserId && currentUserId !== athlete.id && (
-                        <div className="flex-shrink-0">
-                            <FollowButton targetId={athlete.id} />
+                        <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton targetId={athlete.id} currentUserId={currentUserId} />
+                            <VerifyButton targetId={athlete.id} currentUserId={currentUserId} />
                         </div>
                     )}
                 </div>

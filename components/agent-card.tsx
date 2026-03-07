@@ -2,7 +2,8 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
-import FollowButton from '@/components/follow-button'
+import FavoriteButton from '@/components/favorite-button'
+import VerifyButton from '@/components/verify-button'
 import { MapPinIcon, CheckBadgeIcon, BriefcaseIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 import { SportIcon } from '@/lib/sport-icons'
 
@@ -54,8 +55,9 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
                         <p className="text-sm text-gray-500 mt-0.5">Agente</p>
                     </div>
                     {currentUserId && currentUserId !== agent.id && (
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <FollowButton targetId={agent.id} />
+                        <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton targetId={agent.id} currentUserId={currentUserId} />
+                            <VerifyButton targetId={agent.id} currentUserId={currentUserId} />
                         </div>
                     )}
                 </div>

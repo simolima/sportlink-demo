@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BriefcaseIcon, MapPinIcon, UserIcon } from '@heroicons/react/24/outline'
+import { BriefcaseIcon, MapPinIcon, UserIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 interface MarketOpportunity {
     id: number | string
@@ -93,9 +93,10 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                     </div>
                     <Link
                         href="/opportunities"
-                        className="text-sm font-medium text-primary hover:text-blue-700"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline transition"
                     >
-                        Vedi tutte →
+                        Vedi tutte
+                        <ChevronRightIcon className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { InboxIcon } from '@heroicons/react/24/outline'
+import { InboxIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 interface RecentApplication {
     id: number | string
@@ -104,9 +104,10 @@ export default function ReceivedApplicationsWidget({ userId, clubId }: ReceivedA
                     {clubId ? (
                         <Link
                             href={`/club-applications?clubId=${clubId}`}
-                            className="text-xs font-semibold text-primary hover:text-primary/80"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline transition"
                         >
-                            Gestisci →
+                            Gestisci
+                            <ChevronRightIcon className="w-3.5 h-3.5" />
                         </Link>
                     ) : (
                         <span className="text-xs font-semibold text-gray-400 cursor-not-allowed">

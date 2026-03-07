@@ -349,7 +349,7 @@ export default function HomePage() {
                 {isMedical && (
                     <div className="space-y-6 mt-8">
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                            <span className="w-1.5 h-5 bg-brand-500 rounded-full"></span>
                             Il tuo Studio Professionale
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

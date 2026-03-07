@@ -2,7 +2,8 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/avatar'
-import FollowButton from '@/components/follow-button'
+import FavoriteButton from '@/components/favorite-button'
+import VerifyButton from '@/components/verify-button'
 import { MapPinIcon, CheckBadgeIcon, TrophyIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 import { SportIcon } from '@/lib/sport-icons'
 
@@ -69,8 +70,9 @@ export default function PlayerCard({
                         </p>
                     </div>
                     {currentUserId && currentUserId !== player.id && (
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <FollowButton targetId={player.id} />
+                        <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton targetId={player.id} currentUserId={currentUserId} />
+                            <VerifyButton targetId={player.id} currentUserId={currentUserId} />
                         </div>
                     )}
                 </div>

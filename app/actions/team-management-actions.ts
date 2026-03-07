@@ -46,7 +46,17 @@ async function checkAdminOrDS(
     if (!membership) return false
     if (membership.club_role === 'Admin') return true
 
-    // 3. È Staff con ruolo DS (sporting_director)?
+    // 3. È Staff con ruolo DS (sporting_director) sul profilo attivo/multi-role?
+    const { data: dsRole } = await supabaseServer
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('role_id', 'sporting_director')
+        .maybeSingle()
+
+    if (dsRole?.role_id === 'sporting_director') return true
+
     const { data: profile } = await supabaseServer
         .from('profiles')
         .select('role_id')

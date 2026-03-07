@@ -30,6 +30,12 @@ selectedClubId:<role> — club selezionato scoped per ruolo attivo (es. selected
 - Non usare una singola chiave globale `selectedClubId` come fonte primaria quando l'utente ha profili multipli.
 - La chiave globale `selectedClubId` resta solo come fallback compatibilità legacy.
 
+### Guard pagine role-specific (Affiliazioni)
+
+- Le pagine role-specific (`/agent/affiliations`, `/player/affiliations`) devono validare prima `currentUserRole` (profilo attivo).
+- Evitare guard bloccanti basate solo su `profiles.role_id` quando l'utente può avere ruoli multipli.
+- Se il ruolo attivo non è coerente, redirect a `/home` con toast di accesso negato.
+
 ### Regola: Nei Nuovi Componenti
 
 ```typescript

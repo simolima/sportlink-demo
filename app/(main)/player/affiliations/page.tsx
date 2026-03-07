@@ -22,8 +22,16 @@ export default function PlayerAffiliationsPage() {
     const loadData = async () => {
       if (typeof window === 'undefined') return
       const userId = localStorage.getItem('currentUserId')
+      const activeRole = localStorage.getItem('currentUserRole')
       if (!userId) {
         router.push('/login')
+        return
+      }
+
+      if (activeRole !== 'player') {
+        showToast('error', 'Accesso negato', 'Attiva il profilo Giocatore per accedere a questa pagina')
+        setLoading(false)
+        router.push('/home')
         return
       }
 
@@ -35,14 +43,6 @@ export default function PlayerAffiliationsPage() {
 
         if (!user) {
           router.push('/login')
-          return
-        }
-
-        // Check if user is a player (use role_id from DB, not professionalRole)
-        if (user.role_id !== 'player') {
-          showToast('error', 'Accesso negato', 'Solo i giocatori possono accedere a questa pagina')
-          setLoading(false)
-          router.push('/home')
           return
         }
 
@@ -181,7 +181,7 @@ export default function PlayerAffiliationsPage() {
   }
 
   // Se l'utente non è Player, non mostrare contenuto (evita flash in attesa redirect)
-  if (currentUser && currentUser.role_id !== 'player') {
+  if ((localStorage.getItem('currentUserRole') || '') !== 'player') {
     return null
   }
 

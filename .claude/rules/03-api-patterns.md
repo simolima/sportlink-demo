@@ -173,6 +173,8 @@ export async function POST(req: Request) {
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
 - `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)
+- `/api/studios` POST — verifica ruolo medico su `profile_roles` (fallback `profiles.role_id`)
+- `/api/clubs` POST — verifica ruolo `sporting_director` su `profile_roles` (fallback `profiles.role_id`)
 
 ### Endpoint da hardenare (priorità decrescente)
 

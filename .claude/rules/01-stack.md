@@ -67,3 +67,9 @@ pnpm test:coverage
 - **Vitest** — test runner
 - **@testing-library/react** + **jsdom** — per componenti
 - Test in cartelle `__tests__/` accanto ai file sorgente
+
+## Note Architetturali — Multi-sport (Marzo 2026)
+
+`isMultiSportRole()` in `utils/roleHelpers.ts` include ora anche `sporting_director` e `talent_scout` (prima erano single-sport only).
+`SUPPORTED_SPORTS` in `lib/types.ts` NON include 'Multi-sport' — questa costante serve solo per i filtri ricerca/club/opportunità.
+La card Multi-sport è visibile in onboarding/add-role solo per i ruoli `isMultiSportRole() === true` ed è **esclusiva** (non combinabile con sport specifici).

@@ -8,6 +8,8 @@ import OnboardingHeader from '@/components/onboarding/OnboardingHeader'
 import { createUser } from '@/lib/services/auth-service'
 import { setCurrentUserSession, clearSignupDraft } from '@/lib/services/session'
 
+const MULTI_SPORT_LABEL = 'Multi-sport'
+
 export default function SelectSportPage() {
     const router = useRouter()
     const [selectedSports, setSelectedSports] = useState<string[]>([])
@@ -73,8 +75,17 @@ export default function SelectSportPage() {
     }, [checked])
 
     const handleSelectSport = (sport: string) => {
+        if (sport === MULTI_SPORT_LABEL) {
+            setSelectedSports([MULTI_SPORT_LABEL])
+            return
+        }
         if (role && isMultiSportRole(role)) {
-            setSelectedSports((prev) => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport])
+            setSelectedSports((prev) => {
+                const withoutMulti = prev.filter(s => s !== MULTI_SPORT_LABEL)
+                return withoutMulti.includes(sport)
+                    ? withoutMulti.filter(s => s !== sport)
+                    : [...withoutMulti, sport]
+            })
         } else {
             setSelectedSports([sport])
         }
@@ -333,7 +344,9 @@ export default function SelectSportPage() {
                     {/* Sport Grid */}
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-2">Seleziona uno sport</h2>
+                            <h2 className="text-xl font-semibold text-white mb-2">
+                                {role && isMultiSportRole(role) ? 'Seleziona gli sport' : 'Seleziona uno sport'}
+                            </h2>
                             <p className="text-secondary text-sm">Potrai aggiungere altri sport in seguito.</p>
                         </div>
 
@@ -357,7 +370,28 @@ export default function SelectSportPage() {
                                 </button>
                             ))}
                         </div>
-
+                        {/* Opzione Multi-sport (non disponibile per player e coach) */}
+                        {role && isMultiSportRole(role) && (
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-3 w-full">
+                                    <div className="flex-1 h-px bg-base-300" />
+                                    <span className="text-sm text-secondary px-2">Oppure:</span>
+                                    <div className="flex-1 h-px bg-base-300" />
+                                </div>
+                                <button
+                                    onClick={() => handleSelectSport(MULTI_SPORT_LABEL)}
+                                    disabled={isLoading}
+                                    className={`w-full p-6 rounded-xl border-2 transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${selectedSports.includes(MULTI_SPORT_LABEL)
+                                        ? 'border-primary bg-primary/20 ring-2 ring-primary shadow-lg shadow-primary/20'
+                                        : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
+                                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <div className="text-4xl mb-3">🌐</div>
+                                    <div className="font-semibold text-white">Multi-sport</div>
+                                    <div className="text-xs text-secondary mt-1">Lavoro su più discipline sportive</div>
+                                </button>
+                            </div>
+                        )}
                         {/* Conferma finale */}
                         <div className="pt-4 flex flex-col gap-4">
                             {selectedSports.length === 0 && (

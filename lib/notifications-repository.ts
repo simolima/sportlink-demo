@@ -249,16 +249,28 @@ export async function deleteAllUserNotifications(userId: string): Promise<number
 }
 
 // ============================================================================
-// PREFERENCES (stored in profiles.privacy_settings for now, or JSONB column)
-// For the MVP, preferences are not stored in a separate table.
-// We return defaults. Can be extended later with a notification_preferences table.
+// PREFERENCES — persisted in public.notification_preferences table.
+// Falls back to DEFAULT_PREFERENCES when no row exists for the user.
 // ============================================================================
 
-export function isNotificationTypeEnabled(userId: string, type: string): boolean {
-    // For now, all types are enabled — preferences can be added later
-    return true
+export async function getUserPreferences(userId: string): Promise<Record<string, boolean>> {
+    const { data, error } = await supabaseServer
+        .from('notification_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+    if (error || !data?.preferences) {
+        return { ...DEFAULT_PREFERENCES }
+    }
+
+    return { ...DEFAULT_PREFERENCES, ...(data.preferences as Record<string, boolean>) }
 }
 
-export function getUserPreferences(userId: string): Record<string, boolean> {
-    return { ...DEFAULT_PREFERENCES }
+export async function isNotificationTypeEnabled(userId: string, type: string): Promise<boolean> {
+    const category = TYPE_TO_CATEGORY[type]
+    if (!category) return true  // unknown types are allowed by default
+
+    const prefs = await getUserPreferences(userId)
+    return prefs[category] !== false
 }

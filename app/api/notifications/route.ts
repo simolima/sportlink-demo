@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     // Check user preferences
-    if (!isNotificationTypeEnabled(String(userId), type)) {
+    if (!await isNotificationTypeEnabled(String(userId), type)) {
         return withCors(NextResponse.json({
             skipped: true,
             reason: 'notification_disabled_by_user',

@@ -118,6 +118,14 @@ export default function ChatPanel({
                         if (prev.some(m => String(m.id) === String(incoming.id))) return prev
                         return [...prev, incoming]
                     })
+                    // Marca subito come letto nel DB: il receiver è nella chat e ha visto il messaggio
+                    getAuthHeaders().then(authHeaders => {
+                        fetch('/api/messages', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', ...authHeaders },
+                            body: JSON.stringify({ userId: currentUserId, peerId }),
+                        }).catch(() => { })
+                    })
                 }
             )
             .subscribe()

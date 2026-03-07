@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Bell, ArrowLeft, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 import {
     NOTIFICATION_CATEGORIES,
     CATEGORY_TRANSLATIONS,
@@ -52,9 +53,10 @@ export default function NotificationSettingsPage() {
         setSaving(true)
         setSaved(false)
         try {
+            const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/notification-preferences', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ userId, preferences }),
             })
 

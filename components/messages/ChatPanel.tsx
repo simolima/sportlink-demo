@@ -7,6 +7,7 @@ import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import { MessageSquare } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase-browser'
 
 interface User {
     id: string | number
@@ -52,7 +53,7 @@ export default function ChatPanel({
     const peerAvatar = peer?.avatarUrl || null
     const peerRole = peer?.currentRole || null
 
-    // Fetch messaggi
+    // Fetch messaggi iniziale
     useEffect(() => {
         if (!peerId || !currentUserId) {
             setMessages([])
@@ -84,6 +85,46 @@ export default function ChatPanel({
         }
 
         fetchMessages()
+    }, [peerId, currentUserId])
+
+    // Realtime: messaggi istantanei in ingresso
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const channel = supabase
+            .channel(`chat:${currentUserId}:${peerId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `receiver_id=eq.${currentUserId}`,
+                },
+                (payload: { new: Record<string, any> }) => {
+                    const raw = payload.new
+                    // Mostra solo i messaggi della conversazione attiva
+                    if (String(raw.sender_id) !== String(peerId)) return
+                    const incoming: Message = {
+                        id: raw.id,
+                        senderId: raw.sender_id,
+                        receiverId: raw.receiver_id,
+                        text: raw.content,
+                        timestamp: raw.created_at,
+                        read: raw.is_read,
+                    }
+                    setMessages(prev => {
+                        // Evita duplicati (nel caso il mittente riceva il proprio messaggio)
+                        if (prev.some(m => String(m.id) === String(incoming.id))) return prev
+                        return [...prev, incoming]
+                    })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [peerId, currentUserId])
 
     // Auto-scroll

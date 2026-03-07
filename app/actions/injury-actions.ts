@@ -34,6 +34,30 @@ export type InjuryActionResult<T = void> =
     | { success: true; data?: T }
     | { success: false; error: string }
 
+const AUTHORIZED_INJURY_ROLES = ['physio', 'coach', 'sporting_director', 'athletic_trainer']
+
+async function getAuthorizedRoleForUser(supabase: any, userId: string): Promise<string | null> {
+    const { data: roleRow } = await supabase
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .in('role_id', AUTHORIZED_INJURY_ROLES)
+        .limit(1)
+        .maybeSingle()
+
+    if (roleRow?.role_id) return roleRow.role_id
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role_id')
+        .eq('id', userId)
+        .is('deleted_at', null)
+        .maybeSingle()
+
+    return profile?.role_id ?? null
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Schema Zod — reportInjury
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,15 +140,8 @@ export async function reportInjury(
 
         if (!isSelf) {
             // Verifica che il reporter abbia un ruolo autorizzato
-            const { data: reporterProfile } = await supabase
-                .from('profiles')
-                .select('role_id')
-                .eq('id', user.id)
-                .is('deleted_at', null)
-                .maybeSingle()
-
-            const authorizedRoles = ['physio', 'coach', 'sporting_director', 'athletic_trainer']
-            if (!reporterProfile || !authorizedRoles.includes(reporterProfile.role_id ?? '')) {
+            const reporterRoleId = await getAuthorizedRoleForUser(supabase, user.id)
+            if (!reporterRoleId || !AUTHORIZED_INJURY_ROLES.includes(reporterRoleId)) {
                 return {
                     success: false,
                     error: 'Non hai i permessi per segnalare infortuni di altri utenti.',
@@ -202,15 +219,8 @@ export async function resolveInjury(injuryId: string): Promise<InjuryActionResul
 
         if (!canResolve) {
             // Fallback: controlla se ha un ruolo autorizzato
-            const { data: reporterProfile } = await supabase
-                .from('profiles')
-                .select('role_id')
-                .eq('id', user.id)
-                .is('deleted_at', null)
-                .maybeSingle()
-
-            const authorizedRoles = ['physio', 'coach', 'sporting_director', 'athletic_trainer']
-            if (!reporterProfile || !authorizedRoles.includes(reporterProfile.role_id ?? '')) {
+            const reporterRoleId = await getAuthorizedRoleForUser(supabase, user.id)
+            if (!reporterRoleId || !AUTHORIZED_INJURY_ROLES.includes(reporterRoleId)) {
                 return {
                     success: false,
                     error: 'Non hai i permessi per aggiornare questo infortunio.',

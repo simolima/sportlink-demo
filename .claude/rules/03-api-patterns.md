@@ -170,6 +170,15 @@ export async function POST(req: Request) {
 - `/api/follows` POST/DELETE — verifica `followerId`
 - `/api/notifications` PUT — verifica `userId`
 - `/api/opportunities` POST — verifica `creatorId`
+- `/api/studios` POST — verifica ruolo medico su `profile_roles` (fallback `profiles.role_id`)
+- `/api/clubs` POST — verifica ruolo `sporting_director` su `profile_roles` (fallback `profiles.role_id`)
+
+### Endpoint da hardenare (priorità decrescente)
+
+1. `/api/users` PATCH — verifica che `userId` corrisponda al token
+2. `/api/follows` POST/DELETE — verifica `followerId`
+3. `/api/notifications` PATCH — verifica `userId`
+4. `/api/opportunities` POST — verifica `creatorId`
 
 ---
 

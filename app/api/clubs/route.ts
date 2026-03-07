@@ -5,6 +5,26 @@ import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase } from '@/lib/supabase-server'
 import { resolveMembershipProfessionalRoleId } from '@/lib/club-membership-scope'
 
+async function userHasRole(userId: string, roleId: string): Promise<boolean> {
+    const { data: roleRow } = await supabase
+        .from('profile_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('role_id', roleId)
+        .maybeSingle()
+
+    if (roleRow?.role_id) return true
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+    return profile?.role_id === roleId
+}
+
 // OPTIONS /api/clubs - CORS preflight
 export async function OPTIONS() {
     return handleOptions()
@@ -137,7 +157,8 @@ export async function POST(request: Request) {
 
             creatorProfileRoleId = profile?.role_id || null
 
-            if (!profile || profile.role_id !== 'sporting_director') {
+            const canCreateClub = await userHasRole(creatorId, 'sporting_director')
+            if (!canCreateClub) {
                 return withCors(NextResponse.json(
                     { error: 'Solo i Direttori Sportivi possono creare società' },
                     { status: 403 }

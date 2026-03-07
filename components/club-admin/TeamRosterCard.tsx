@@ -23,6 +23,7 @@ export interface TeamMember {
     lastName: string
     avatarUrl: string | null
     role: TeamMemberRole
+    jerseyNumber: number | null
 }
 
 export interface AvailableClubMember {
@@ -68,6 +69,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
     const [showAddForm, setShowAddForm] = useState(false)
     const [selectedProfileId, setSelectedProfileId] = useState('')
     const [selectedRole, setSelectedRole] = useState<TeamMemberRole>('player')
+    const [jerseyNumber, setJerseyNumber] = useState<string>('')
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
     const [removingId, setRemovingId] = useState<string | null>(null)
 
@@ -98,15 +100,18 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
         }
         setErrorMsg(null)
         startAddTransition(async () => {
+            const parsedJersey = jerseyNumber !== '' ? parseInt(jerseyNumber, 10) : null
             const input: AssignMemberInput = {
                 teamId: team.id,
                 profileId: selectedProfileId,
                 role: selectedRole,
+                jerseyNumber: parsedJersey && !isNaN(parsedJersey) ? parsedJersey : null,
             }
             const result = await assignMemberToTeam(input, userId)
             if (result.success) {
                 setSelectedProfileId('')
                 setSelectedRole('player')
+                setJerseyNumber('')
                 setShowAddForm(false)
                 onMemberChanged?.()
             } else {
@@ -116,7 +121,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
     }
 
     return (
-        <div className="card bg-white border border-base-200 shadow-sm">
+        <div className="card bg-base-200 border border-base-300 shadow-sm">
             {/* ── Card header ── */}
             <div
                 className="flex items-center justify-between px-4 pt-4 pb-3 cursor-pointer select-none"
@@ -125,21 +130,21 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                 aria-expanded={isExpanded}
             >
                 <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{team.name}</h3>
+                    <h3 className="font-semibold text-base-content truncate">{team.name}</h3>
                     {(team.category || team.season) && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-base-content/50 mt-0.5">
                             {[team.category, team.season].filter(Boolean).join(' · ')}
                         </p>
                     )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="badge badge-ghost badge-sm text-gray-500">
+                    <span className="badge badge-sm bg-brand-600/20 text-brand-300 border-0 font-medium">
                         {members.length} {members.length === 1 ? 'membro' : 'membri'}
                     </span>
                     {isExpanded ? (
-                        <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+                        <ChevronUpIcon className="h-4 w-4 text-base-content/40" />
                     ) : (
-                        <ChevronDownIcon className="h-4 w-4 text-gray-400" />
+                        <ChevronDownIcon className="h-4 w-4 text-base-content/40" />
                     )}
                 </div>
             </div>
@@ -150,7 +155,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                     {/* Sezione Staff */}
                     {staffMembers.length > 0 && (
                         <div>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                            <p className="text-xs font-semibold text-base-content/40 uppercase tracking-wide mb-2">
                                 Staff
                             </p>
                             <div className="space-y-1.5">
@@ -169,9 +174,9 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                     {/* Sezione Giocatori */}
                     {players.length > 0 && (
                         <div>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                            <p className="text-xs font-semibold text-base-content/40 uppercase tracking-wide mb-2">
                                 Giocatori
-                                <span className="ml-1.5 badge badge-ghost badge-xs font-normal">
+                                <span className="ml-1.5 badge badge-xs bg-brand-600/20 text-brand-300 border-0 font-normal">
                                     {players.length}
                                 </span>
                             </p>
@@ -190,7 +195,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
 
                     {/* Stato vuoto */}
                     {members.length === 0 && (
-                        <p className="text-sm text-gray-400 text-center py-3">
+                        <p className="text-sm text-base-content/40 text-center py-3">
                             Nessun membro assegnato a questa squadra.
                         </p>
                     )}
@@ -241,9 +246,10 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                     {/* Ruolo */}
                                     <select
                                         value={selectedRole}
-                                        onChange={(e) =>
+                                        onChange={(e) => {
                                             setSelectedRole(e.target.value as TeamMemberRole)
-                                        }
+                                            if (e.target.value !== 'player') setJerseyNumber('')
+                                        }}
                                         className="select select-bordered select-sm focus:border-brand-500 focus:outline-none text-sm"
                                         aria-label="Ruolo in squadra"
                                     >
@@ -259,6 +265,20 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                         ))}
                                     </select>
                                 </div>
+
+                                {/* Numero di maglia — solo per i giocatori */}
+                                {selectedRole === 'player' && (
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={99}
+                                        value={jerseyNumber}
+                                        onChange={(e) => setJerseyNumber(e.target.value)}
+                                        placeholder="N° maglia (opzionale)"
+                                        className="input input-bordered input-sm w-full focus:border-brand-500 focus:outline-none text-sm"
+                                        aria-label="Numero di maglia"
+                                    />
+                                )}
 
                                 {/* Bottoni conferma / annulla */}
                                 <div className="flex gap-2">
@@ -312,6 +332,13 @@ function MemberRow({
 
     return (
         <div className="flex items-center gap-2.5 py-0.5">
+            {/* Numero maglia — solo giocatori */}
+            {member.role === 'player' && (
+                <span className="text-[10px] font-bold text-brand-300 w-5 text-center flex-shrink-0">
+                    {member.jerseyNumber != null ? `#${member.jerseyNumber}` : ''}
+                </span>
+            )}
+
             {/* Avatar */}
             {member.avatarUrl ? (
                 <div className="avatar flex-shrink-0">
@@ -332,12 +359,12 @@ function MemberRow({
             )}
 
             {/* Nome */}
-            <span className="text-sm text-gray-800 flex-1 truncate">
+            <span className="text-sm text-base-content flex-1 truncate">
                 {member.firstName} {member.lastName}
             </span>
 
             {/* Badge ruolo */}
-            <span className="badge badge-ghost badge-sm text-gray-500 text-xs flex-shrink-0">
+            <span className="badge badge-sm bg-brand-600/20 text-brand-300 border-0 text-xs flex-shrink-0">
                 {TEAM_MEMBER_ROLE_LABELS[member.role]}
             </span>
 
@@ -346,7 +373,7 @@ function MemberRow({
                 type="button"
                 onClick={onRemove}
                 disabled={isRemoving}
-                className="btn btn-ghost btn-xs btn-circle text-gray-300 hover:text-red-500 hover:bg-red-50 flex-shrink-0"
+                className="btn btn-ghost btn-xs btn-circle text-base-content/30 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0"
                 title={`Rimuovi ${member.firstName} dalla squadra`}
                 aria-label={`Rimuovi ${member.firstName} ${member.lastName} dalla squadra`}
             >

@@ -73,7 +73,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                 <div className="modal-box w-full max-w-md">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-lg font-bold text-gray-900">Nuova Squadra</h3>
+                        <h3 className="text-lg font-bold text-base-content">Nuova Squadra</h3>
                         <button
                             type="button"
                             onClick={closeModal}
@@ -90,7 +90,7 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                         {/* Nome */}
                         <div>
                             <label className="label pb-1">
-                                <span className="label-text font-medium">Nome squadra *</span>
+                                <span className="label-text font-medium text-base-content">Nome squadra *</span>
                             </label>
                             <input
                                 {...register('name')}
@@ -106,8 +106,8 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                         {/* Categoria */}
                         <div>
                             <label className="label pb-1">
-                                <span className="label-text font-medium">Categoria</span>
-                                <span className="label-text-alt text-gray-400">opzionale</span>
+                                <span className="label-text font-medium text-base-content">Categoria</span>
+                                <span className="label-text-alt text-base-content/50">opzionale</span>
                             </label>
                             <input
                                 {...register('category')}
@@ -119,8 +119,8 @@ export default function CreateTeamModal({ clubId, userId, onCreated }: Props) {
                         {/* Stagione */}
                         <div>
                             <label className="label pb-1">
-                                <span className="label-text font-medium">Stagione</span>
-                                <span className="label-text-alt text-gray-400">opzionale</span>
+                                <span className="label-text font-medium text-base-content">Stagione</span>
+                                <span className="label-text-alt text-base-content/50">opzionale</span>
                             </label>
                             <input
                                 {...register('season')}

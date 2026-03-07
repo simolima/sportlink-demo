@@ -55,6 +55,13 @@ export const assignMemberSchema = z.object({
         required_error: 'Ruolo obbligatorio',
         invalid_type_error: 'Ruolo non valido',
     }),
+    jerseyNumber: z
+        .number()
+        .int('Deve essere un numero intero')
+        .min(1, 'Minimo 1')
+        .max(99, 'Massimo 99')
+        .nullable()
+        .optional(),
 })
 
 export type AssignMemberInput = z.infer<typeof assignMemberSchema>

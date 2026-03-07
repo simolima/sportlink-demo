@@ -164,7 +164,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-4">
                     {isAuthenticated && user ? (
                         <>
-                            <NotificationBell userId={Number(user.id)} />
+                            <NotificationBell userId={String(user.id)} />
                             <ProfileDropdown />
                         </>
                     ) : (

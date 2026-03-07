@@ -207,6 +207,19 @@ Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa 
 "bg-gradient-to-br from-brand-400 to-brand-600"
 ```
 
+### Utility visuali condivise (`app/globals.css`)
+
+Per shell/dashboard dark mode usare preferibilmente le utility globali già definite:
+
+- `.glass-page-bg` — sfondo pagina stratificato (radial + linear gradient)
+- `.glass-nav` — navbar traslucida con blur e border soft
+- `.glass-panel` — pannelli hero/header principali
+- `.glass-widget` — card widget dark layered
+- `.glass-widget-header` — header sezione/card coerente
+- `.glass-subtle-text` / `.glass-quiet-text` — livelli testuali secondari su sfondo scuro
+
+Regola: preferire queste utility rispetto a nuovi `bg-white` / `text-gray-*` nelle superfici principali della dashboard dark.
+
 ### ⚠️ Colori VIETATI
 
 **Non usare MAI** le classi Tailwind `green-*` o `emerald-*` nel progetto. Tutto il verde va migrato a `brand-*`. I colori semantici DaisyUI (`success`, `warning`, `error`, `info`) restano invariati.

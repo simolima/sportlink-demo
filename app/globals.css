@@ -19,6 +19,7 @@
     --surface-1: #10174A;
     --surface-2: #141B4D;
     --surface-3: #1A2360;
+    --surface-4: #202b70;
     --navy-dark: #141B4D;
     --navy-darker: #1A2360;
     --blue: #3B52F5;
@@ -35,7 +36,10 @@ body,
 
 body {
     font-family: "neulis-sans", Inter, system-ui, sans-serif;
-    background-color: var(--surface-1);
+    background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(59, 82, 245, 0.22), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(81, 104, 255, 0.18), transparent 50%),
+        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
     color: var(--secondary);
     font-size: 1.0625rem;
     line-height: 1.65;
@@ -103,6 +107,45 @@ small {
 .card-sm:hover {
     background: var(--surface-3);
     transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-page-bg {
+    background:
+        radial-gradient(1200px 500px at 0% -10%, rgba(59, 82, 245, 0.18), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(81, 104, 255, 0.12), transparent 55%),
+        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
+}
+
+.glass-nav {
+    background: linear-gradient(180deg, rgba(26, 35, 96, 0.84) 0%, rgba(20, 27, 77, 0.72) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(178, 186, 255, 0.14);
+    box-shadow: 0 10px 30px rgba(5, 10, 35, 0.35);
+}
+
+.glass-panel {
+    background: linear-gradient(145deg, rgba(26, 35, 96, 0.8) 0%, rgba(20, 27, 77, 0.76) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 14px 30px rgba(8, 12, 38, 0.28);
+}
+
+.glass-widget {
+    background: linear-gradient(150deg, rgba(26, 35, 96, 0.88) 0%, rgba(20, 27, 77, 0.86) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(6, 10, 32, 0.3);
+}
+
+.glass-widget-header {
+    background: linear-gradient(180deg, rgba(32, 43, 112, 0.44) 0%, rgba(26, 35, 96, 0.08) 100%);
+    border-bottom: 1px solid rgba(178, 186, 255, 0.14);
+}
+
+.glass-subtle-text {
+    color: rgba(178, 186, 255, 0.78);
+}
+
+.glass-quiet-text {
+    color: rgba(178, 186, 255, 0.6);
 }
 
 /* Button styles */

@@ -33,7 +33,7 @@ export default function YourStudioWidget({ userId }: YourStudioWidgetProps) {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto" />
                 </div>
@@ -43,21 +43,21 @@ export default function YourStudioWidget({ userId }: YourStudioWidgetProps) {
 
     if (!studio) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
+            <div className="glass-widget rounded-2xl overflow-hidden">
+                <div className="glass-widget-header px-6 py-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
-                            <BuildingOffice2Icon className="w-5 h-5 text-brand-600" />
+                        <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
+                            <BuildingOffice2Icon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Il tuo Studio</h3>
-                            <p className="text-xs text-gray-500">La tua pagina professionale</p>
+                            <h3 className="font-bold text-white">Il tuo Studio</h3>
+                            <p className="text-xs glass-subtle-text">La tua pagina professionale</p>
                         </div>
                     </div>
                 </div>
                 <div className="px-6 py-8 text-center">
-                    <BuildingOffice2Icon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-600 text-sm mb-4">Non hai ancora uno studio</p>
+                    <BuildingOffice2Icon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                    <p className="glass-subtle-text text-sm mb-4">Non hai ancora uno studio</p>
                     <Link
                         href="/studios/create"
                         className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition"
@@ -71,27 +71,27 @@ export default function YourStudioWidget({ userId }: YourStudioWidgetProps) {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
-                        <BuildingOffice2Icon className="w-5 h-5 text-brand-600" />
+                    <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
+                        <BuildingOffice2Icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900">Il tuo Studio</h3>
-                        <p className="text-xs text-gray-500">{studio.city || 'La tua pagina professionale'}</p>
+                        <h3 className="font-bold text-white">Il tuo Studio</h3>
+                        <p className="text-xs glass-subtle-text">{studio.city || 'La tua pagina professionale'}</p>
                     </div>
                 </div>
             </div>
 
             {/* Studio info */}
             <div className="px-6 py-4">
-                <p className="font-semibold text-gray-900 mb-4">{studio.name}</p>
+                <p className="font-semibold text-white mb-4">{studio.name}</p>
                 <div className="flex gap-3">
                     <Link
                         href={`/studios/${studio.id}`}
-                        className="flex-1 text-center px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+                        className="flex-1 text-center px-3 py-2 border border-base-300 text-secondary rounded-lg text-sm font-medium hover:bg-base-300/40 transition"
                     >
                         Pagina pubblica
                     </Link>

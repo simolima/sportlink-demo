@@ -14,7 +14,6 @@ import {
     ShieldCheck,
     Clock,
     Target,
-    Square,
     ArrowUpCircle,
     ArrowDownCircle,
     Dribbble,
@@ -171,16 +170,16 @@ function StatBadge({ label, value, icon }: { label: string; value: number | stri
 function FootballStats({ exp }: { exp: ExperienceData }) {
     const stats: { label: string; value: number; icon?: React.ReactNode }[] = []
 
-    if (isVal(exp.appearances)) stats.push({ label: 'Presenze', value: exp.appearances, icon: <Shirt className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.goals)) stats.push({ label: 'Gol', value: exp.goals, icon: <CircleDot className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.assists)) stats.push({ label: 'Assist', value: exp.assists, icon: <Share2 className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.cleanSheets)) stats.push({ label: 'Clean sheet', value: exp.cleanSheets, icon: <ShieldCheck className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.minutesPlayed)) stats.push({ label: 'Minuti', value: exp.minutesPlayed, icon: <Clock className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.penalties)) stats.push({ label: 'Rigori', value: exp.penalties, icon: <Target className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.yellowCards)) stats.push({ label: 'Ammonizioni', value: exp.yellowCards, icon: <Square className="w-4 h-4 text-yellow-400" /> })
-    if (isVal(exp.redCards)) stats.push({ label: 'Espulsioni', value: exp.redCards, icon: <Square className="w-4 h-4 text-red-500" /> })
-    if (isVal(exp.substitutionsIn)) stats.push({ label: 'Subentri', value: exp.substitutionsIn, icon: <ArrowUpCircle className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.substitutionsOut)) stats.push({ label: 'Sostituzioni', value: exp.substitutionsOut, icon: <ArrowDownCircle className="w-4 h-4 text-slate-400" /> })
+    if (isVal(exp.appearances)) stats.push({ label: 'Presenze', value: exp.appearances, icon: <Shirt className="w-4 h-4 text-blue-400" /> })
+    if (isVal(exp.goals)) stats.push({ label: 'Gol', value: exp.goals, icon: <CircleDot className="w-4 h-4 text-success" /> })
+    if (isVal(exp.assists)) stats.push({ label: 'Assist', value: exp.assists, icon: <Share2 className="w-4 h-4 text-sky-400" /> })
+    if (isVal(exp.cleanSheets)) stats.push({ label: 'Clean sheet', value: exp.cleanSheets, icon: <ShieldCheck className="w-4 h-4 text-teal-400" /> })
+    if (isVal(exp.minutesPlayed)) stats.push({ label: 'Minuti', value: exp.minutesPlayed, icon: <Clock className="w-4 h-4 text-purple-400" /> })
+    if (isVal(exp.penalties)) stats.push({ label: 'Rigori', value: exp.penalties, icon: <Target className="w-4 h-4 text-orange-400" /> })
+    if (isVal(exp.yellowCards)) stats.push({ label: 'Ammonizioni', value: exp.yellowCards, icon: <span className="inline-block w-3 h-[15px] bg-yellow-400 rounded-[2px] flex-shrink-0" /> })
+    if (isVal(exp.redCards)) stats.push({ label: 'Espulsioni', value: exp.redCards, icon: <span className="inline-block w-3 h-[15px] bg-red-500 rounded-[2px] flex-shrink-0" /> })
+    if (isVal(exp.substitutionsIn)) stats.push({ label: 'Subentri', value: exp.substitutionsIn, icon: <ArrowUpCircle className="w-4 h-4 text-success" /> })
+    if (isVal(exp.substitutionsOut)) stats.push({ label: 'Sostituzioni', value: exp.substitutionsOut, icon: <ArrowDownCircle className="w-4 h-4 text-rose-400" /> })
 
     if (stats.length === 0) return null
     return (
@@ -198,11 +197,11 @@ function FootballStats({ exp }: { exp: ExperienceData }) {
 function BasketballStats({ exp }: { exp: ExperienceData }) {
     const stats: { label: string; value: number; icon?: React.ReactNode }[] = []
 
-    if (isVal(exp.gamesPlayed)) stats.push({ label: 'Partite', value: exp.gamesPlayed, icon: <Dribbble className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.appearances)) stats.push({ label: 'Presenze', value: exp.appearances, icon: <Shirt className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.pointsPerGame)) stats.push({ label: 'PPG', value: exp.pointsPerGame, icon: <Target className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.rebounds)) stats.push({ label: 'Rimbalzi', value: exp.rebounds, icon: <RefreshCw className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.minutesPlayed)) stats.push({ label: 'Minuti', value: exp.minutesPlayed, icon: <Clock className="w-4 h-4 text-slate-400" /> })
+    if (isVal(exp.gamesPlayed)) stats.push({ label: 'Partite', value: exp.gamesPlayed, icon: <Dribbble className="w-4 h-4 text-orange-400" /> })
+    if (isVal(exp.appearances)) stats.push({ label: 'Presenze', value: exp.appearances, icon: <Shirt className="w-4 h-4 text-blue-400" /> })
+    if (isVal(exp.pointsPerGame)) stats.push({ label: 'PPG', value: exp.pointsPerGame, icon: <Target className="w-4 h-4 text-success" /> })
+    if (isVal(exp.rebounds)) stats.push({ label: 'Rimbalzi', value: exp.rebounds, icon: <RefreshCw className="w-4 h-4 text-teal-400" /> })
+    if (isVal(exp.minutesPlayed)) stats.push({ label: 'Minuti', value: exp.minutesPlayed, icon: <Clock className="w-4 h-4 text-purple-400" /> })
 
     if (stats.length === 0) return null
     return (
@@ -220,10 +219,10 @@ function BasketballStats({ exp }: { exp: ExperienceData }) {
 function VolleyballStats({ exp }: { exp: ExperienceData }) {
     const stats: { label: string; value: number; icon?: React.ReactNode }[] = []
 
-    if (isVal(exp.matchesPlayed)) stats.push({ label: 'Partite', value: exp.matchesPlayed, icon: <CircleDot className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.volleyAces)) stats.push({ label: 'Ace', value: exp.volleyAces, icon: <Wind className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.volleyBlocks)) stats.push({ label: 'Muri', value: exp.volleyBlocks, icon: <Shield className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.volleyDigs)) stats.push({ label: 'Difese', value: exp.volleyDigs, icon: <ShieldCheck className="w-4 h-4 text-slate-400" /> })
+    if (isVal(exp.matchesPlayed)) stats.push({ label: 'Partite', value: exp.matchesPlayed, icon: <CircleDot className="w-4 h-4 text-blue-400" /> })
+    if (isVal(exp.volleyAces)) stats.push({ label: 'Ace', value: exp.volleyAces, icon: <Wind className="w-4 h-4 text-yellow-400" /> })
+    if (isVal(exp.volleyBlocks)) stats.push({ label: 'Muri', value: exp.volleyBlocks, icon: <Shield className="w-4 h-4 text-teal-400" /> })
+    if (isVal(exp.volleyDigs)) stats.push({ label: 'Difese', value: exp.volleyDigs, icon: <ShieldCheck className="w-4 h-4 text-sky-400" /> })
 
     if (stats.length === 0) return null
     return (
@@ -241,8 +240,8 @@ function VolleyballStats({ exp }: { exp: ExperienceData }) {
 function CoachStats({ exp }: { exp: ExperienceData }) {
     const stats: { label: string; value: number | string; icon?: React.ReactNode }[] = []
 
-    if (isVal(exp.matchesCoached)) stats.push({ label: 'Partite', value: exp.matchesCoached, icon: <ClipboardList className="w-4 h-4 text-slate-400" /> })
-    if (isVal(exp.wins)) stats.push({ label: 'Vittorie', value: exp.wins, icon: <CheckCircle className="w-4 h-4 text-green-500" /> })
+    if (isVal(exp.matchesCoached)) stats.push({ label: 'Partite', value: exp.matchesCoached, icon: <ClipboardList className="w-4 h-4 text-blue-400" /> })
+    if (isVal(exp.wins)) stats.push({ label: 'Vittorie', value: exp.wins, icon: <CheckCircle className="w-4 h-4 text-success" /> })
     if (isVal(exp.draws)) stats.push({ label: 'Pareggi', value: exp.draws, icon: <Minus className="w-4 h-4 text-slate-400" /> })
     if (isVal(exp.losses)) stats.push({ label: 'Sconfitte', value: exp.losses, icon: <XCircle className="w-4 h-4 text-red-400" /> })
     if (isVal(exp.trophies)) stats.push({ label: 'Trofei', value: exp.trophies, icon: <Trophy className="w-4 h-4 text-yellow-500" /> })
@@ -250,7 +249,7 @@ function CoachStats({ exp }: { exp: ExperienceData }) {
     // Win rate
     if (isVal(exp.matchesCoached) && exp.matchesCoached > 0 && isVal(exp.wins)) {
         const winRate = Math.round((exp.wins / exp.matchesCoached) * 100)
-        stats.push({ label: '% Vittorie', value: `${winRate}%`, icon: <BarChart2 className="w-4 h-4 text-slate-400" /> })
+        stats.push({ label: '% Vittorie', value: `${winRate}%`, icon: <BarChart2 className="w-4 h-4 text-purple-400" /> })
     }
 
     if (stats.length === 0) return null
@@ -355,7 +354,7 @@ export default function ExperienceCard({ exp, sportName, showStats = true }: Exp
                             )}
                             {exp.positionName && (
                                 <span className="inline-flex items-center gap-1">
-                                    <span className="text-[10px]">📌</span>
+                                    <MapPinIcon className="w-3.5 h-3.5" />
                                     {exp.positionName}
                                     {exp.positionCategory && (
                                         <span className="text-gray-400">({exp.positionCategory})</span>

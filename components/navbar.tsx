@@ -3,17 +3,28 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
-    HomeIcon,
-    UserGroupIcon,
-    BuildingOfficeIcon,
-    BuildingOffice2Icon,
-    BriefcaseIcon,
-    ChatBubbleLeftRightIcon,
-    UserCircleIcon,
+    HomeIcon as HomeOutline,
+    UserGroupIcon as UserGroupOutline,
+    BuildingOfficeIcon as BuildingOfficeOutline,
+    BuildingOffice2Icon as BuildingOffice2Outline,
+    BriefcaseIcon as BriefcaseOutline,
+    ChatBubbleLeftRightIcon as ChatBubbleOutline,
+    LinkIcon as LinkOutline,
+    IdentificationIcon as IdentificationOutline,
     MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
+import {
+    HomeIcon as HomeSolid,
+    UserGroupIcon as UserGroupSolid,
+    BuildingOfficeIcon as BuildingOfficeSolid,
+    BuildingOffice2Icon as BuildingOffice2Solid,
+    BriefcaseIcon as BriefcaseSolid,
+    ChatBubbleLeftRightIcon as ChatBubbleSolid,
+    LinkIcon as LinkSolid,
+    IdentificationIcon as IdentificationSolid,
+} from '@heroicons/react/24/solid'
 
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 const ProfileDropdown = dynamic(() => import('./ui/ProfileDropdown'), { ssr: false })
@@ -23,6 +34,12 @@ export default function Navbar() {
     const { user, isAuthenticated, isLoading } = useAuth()
     const [unreadCount, setUnreadCount] = useState(0)
     const [searchQuery, setSearchQuery] = useState('')
+    const pathname = usePathname()
+
+    const isActive = (href: string, exact = false) =>
+        exact ? pathname === href : pathname.startsWith(href)
+    const navCls = (href: string, exact = false) =>
+        `flex flex-col items-center text-xs font-semibold transition ${isActive(href, exact) ? 'text-white' : 'text-white/70 hover:text-white'}`
 
     useEffect(() => {
         if (!isAuthenticated) return
@@ -62,55 +79,55 @@ export default function Navbar() {
                         <span className="text-[11px] text-white/80">Sport Network</span>
                     </Link>
                     <div className="hidden md:flex items-center bg-base-200 border border-base-300 rounded-lg px-3 py-1.5 gap-2 w-56">
-                        <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
+                        <MagnifyingGlassIcon className="w-5 h-5 text-white/50" />
                         <input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Ricerca globale"
-                            className="bg-transparent text-secondary placeholder:text-secondary/60 focus:outline-none text-sm w-full"
+                            className="bg-transparent text-white/70 placeholder:text-white/40 focus:outline-none text-sm w-full"
                         />
                     </div>
                 </div>
 
-                {/* Nav centrale con icona sopra label */}
+                {/* Nav centrale */}
                 <div className="flex-1 flex justify-center">
                     {isAuthenticated && user ? (
                         <div className="flex items-center gap-4 md:gap-6">
-                            <Link href="/home" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <HomeIcon className="w-5 h-5" />
+                            <Link href="/home" className={navCls('/home', true)}>
+                                {isActive('/home', true) ? <HomeSolid className="w-5 h-5" /> : <HomeOutline className="w-5 h-5" />}
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/professionals" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <UserGroupIcon className="w-5 h-5" />
+                            <Link href="/professionals" className={navCls('/professionals')}>
+                                {isActive('/professionals') ? <UserGroupSolid className="w-5 h-5" /> : <UserGroupOutline className="w-5 h-5" />}
                                 <span className="mt-1">Scopri</span>
                             </Link>
-                            <Link href="/clubs" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BuildingOfficeIcon className="w-5 h-5" />
+                            <Link href="/clubs" className={navCls('/clubs')}>
+                                {isActive('/clubs') ? <BuildingOfficeSolid className="w-5 h-5" /> : <BuildingOfficeOutline className="w-5 h-5" />}
                                 <span className="mt-1">Società</span>
                             </Link>
-                            <Link href="/studios" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BuildingOffice2Icon className="w-5 h-5" />
+                            <Link href="/studios" className={navCls('/studios')}>
+                                {isActive('/studios') ? <BuildingOffice2Solid className="w-5 h-5" /> : <BuildingOffice2Outline className="w-5 h-5" />}
                                 <span className="mt-1">Studi</span>
                             </Link>
-                            <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BriefcaseIcon className="w-5 h-5" />
+                            <Link href="/opportunities" className={navCls('/opportunities')}>
+                                {isActive('/opportunities') ? <BriefcaseSolid className="w-5 h-5" /> : <BriefcaseOutline className="w-5 h-5" />}
                                 <span className="mt-1">Opportunità</span>
                             </Link>
                             {user.professionalRole === 'agent' && (
-                                <Link href="/agent/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                    <UserGroupIcon className="w-5 h-5" />
+                                <Link href="/agent/affiliations" className={navCls('/agent/affiliations')}>
+                                    {isActive('/agent/affiliations') ? <LinkSolid className="w-5 h-5" /> : <LinkOutline className="w-5 h-5" />}
                                     <span className="mt-1">Affiliazioni</span>
                                 </Link>
                             )}
                             {user.professionalRole === 'player' && (
-                                <Link href="/player/affiliations" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                    <UserCircleIcon className="w-5 h-5" />
+                                <Link href="/player/affiliations" className={navCls('/player/affiliations')}>
+                                    {isActive('/player/affiliations') ? <IdentificationSolid className="w-5 h-5" /> : <IdentificationOutline className="w-5 h-5" />}
                                     <span className="mt-1">Rappresentanza</span>
                                 </Link>
                             )}
-                            <Link href="/messages" className="relative flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                            <Link href="/messages" className={`relative ${navCls('/messages')}`}>
+                                {isActive('/messages') ? <ChatBubbleSolid className="w-5 h-5" /> : <ChatBubbleOutline className="w-5 h-5" />}
                                 <span className="mt-1">Messaggi</span>
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-2 -right-3 bg-error text-white text-[10px] px-1.5 py-0.5 rounded-full">{unreadCount}</span>
@@ -119,24 +136,24 @@ export default function Navbar() {
                         </div>
                     ) : (
                         <div className="flex items-center gap-4 md:gap-6">
-                            <Link href="/home" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <HomeIcon className="w-5 h-5" />
+                            <Link href="/home" className={navCls('/home', true)}>
+                                {isActive('/home', true) ? <HomeSolid className="w-5 h-5" /> : <HomeOutline className="w-5 h-5" />}
                                 <span className="mt-1">Home</span>
                             </Link>
-                            <Link href="/professionals" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <UserGroupIcon className="w-5 h-5" />
+                            <Link href="/professionals" className={navCls('/professionals')}>
+                                {isActive('/professionals') ? <UserGroupSolid className="w-5 h-5" /> : <UserGroupOutline className="w-5 h-5" />}
                                 <span className="mt-1">Scopri</span>
                             </Link>
-                            <Link href="/clubs" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BuildingOfficeIcon className="w-5 h-5" />
+                            <Link href="/clubs" className={navCls('/clubs')}>
+                                {isActive('/clubs') ? <BuildingOfficeSolid className="w-5 h-5" /> : <BuildingOfficeOutline className="w-5 h-5" />}
                                 <span className="mt-1">Società</span>
                             </Link>
-                            <Link href="/studios" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BuildingOffice2Icon className="w-5 h-5" />
+                            <Link href="/studios" className={navCls('/studios')}>
+                                {isActive('/studios') ? <BuildingOffice2Solid className="w-5 h-5" /> : <BuildingOffice2Outline className="w-5 h-5" />}
                                 <span className="mt-1">Studi</span>
                             </Link>
-                            <Link href="/opportunities" className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition">
-                                <BriefcaseIcon className="w-5 h-5" />
+                            <Link href="/opportunities" className={navCls('/opportunities')}>
+                                {isActive('/opportunities') ? <BriefcaseSolid className="w-5 h-5" /> : <BriefcaseOutline className="w-5 h-5" />}
                                 <span className="mt-1">Opportunità</span>
                             </Link>
                         </div>

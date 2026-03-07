@@ -127,6 +127,36 @@ export default function ChatPanel({
         }
     }, [peerId, currentUserId])
 
+    // Realtime: doppia spunta istantanea quando il peer legge i nostri messaggi
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const channel = supabase
+            .channel(`read-receipts:${currentUserId}:${peerId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `sender_id=eq.${currentUserId}`,
+                },
+                (payload: { new: Record<string, any> }) => {
+                    const raw = payload.new
+                    if (String(raw.receiver_id) !== String(peerId)) return
+                    if (!raw.is_read) return
+                    setMessages(prev =>
+                        prev.map(m => String(m.id) === String(raw.id) ? { ...m, read: true } : m)
+                    )
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [peerId, currentUserId])
+
     // Auto-scroll
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

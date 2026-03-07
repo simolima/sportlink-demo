@@ -69,11 +69,13 @@ export default function ProfileSidebar({
     const [loadingFavorites, setLoadingFavorites] = useState(false)
 
     const role = user?.professionalRole || 'Professionista'
-    const isPlayer = role.toLowerCase().includes('player') || role.toLowerCase().includes('giocatore')
-    const isCoach = role.toLowerCase().includes('coach') || role.toLowerCase().includes('allenatore')
-    const isAgent = role.toLowerCase().includes('agent') || role.toLowerCase().includes('agente')
-    const isDS = role.toLowerCase().includes('director') || role.toLowerCase().includes('ds')
-    const isMedical = ['athletic_trainer', 'nutritionist', 'physio'].includes(role.toLowerCase())
+    const roleLower = role.toLowerCase()
+    const roleLabel = ROLE_TRANSLATIONS[roleLower as ProfessionalRole] ?? role
+    const isPlayer = roleLower.includes('player') || roleLower.includes('giocatore')
+    const isCoach = roleLower.includes('coach') || roleLower.includes('allenatore')
+    const isAgent = roleLower.includes('agent') || roleLower.includes('agente')
+    const isDS = roleLower.includes('director') || roleLower.includes('ds')
+    const isMedical = ['athletic_trainer', 'nutritionist', 'physio'].includes(roleLower)
 
     type StatItem = {
         label: string
@@ -480,7 +482,7 @@ export default function ProfileSidebar({
                     {user?.firstName} {user?.lastName}
                 </h1>
                 <p className="text-[#2341F0] font-semibold text-lg mb-2">
-                    {user?.currentRole || role}
+                    {roleLabel}
                 </p>
                 {clubName && (
                     <p className="text-gray-600 text-sm">

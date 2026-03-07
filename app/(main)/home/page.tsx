@@ -32,6 +32,9 @@ const STAFF_ROLES = ['athletic_trainer', 'nutritionist', 'physio', 'talent_scout
 // Ruoli medici che possono avere uno studio professionale
 const MEDICAL_ROLES = ['athletic_trainer', 'nutritionist', 'physio']
 
+// Ruoli che possono gestire club
+const CLUB_ADMIN_ROLES = ['coach', 'sporting_director', 'athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
+
 export default function HomePage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
@@ -71,7 +74,8 @@ export default function HomePage() {
             setUserId(id)
             setUserRole(role)
             setUserName(name)
-            checkClubAdmin(id)
+            if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id)
+            else setLoading(false)
             return
         }
 
@@ -92,7 +96,9 @@ export default function HomePage() {
                     setUserId(id)
                     setUserRole(localStorage.getItem('currentUserRole') || '')
                     setUserName(localStorage.getItem('currentUserName') || name)
-                    checkClubAdmin(id)
+                    const fetchedRole = localStorage.getItem('currentUserRole') || ''
+                    if (CLUB_ADMIN_ROLES.includes(fetchedRole)) checkClubAdmin(id)
+                    else setLoading(false)
                 }
             })
             return
@@ -102,8 +108,9 @@ export default function HomePage() {
         setUserRole(role)
         setUserName(name)
 
-        // Verifica club admin e popola selector
-        checkClubAdmin(id)
+        // Verifica club admin solo per ruoli pertinenti
+        if (CLUB_ADMIN_ROLES.includes(role)) checkClubAdmin(id)
+        else setLoading(false)
     }, [router])
 
     const fetchUserDataFromDB = async (userId: string): Promise<boolean> => {
@@ -204,7 +211,8 @@ export default function HomePage() {
     const isDS = DS_ROLES.includes(userRole)
     const isStaff = STAFF_ROLES.includes(userRole)
     const isMedical = MEDICAL_ROLES.includes(userRole)
-    const showClubAdminSection = isClubAdmin || isDS
+    // Mostra "Gestione Società" solo se il ruolo attivo è pertinente al club
+    const showClubAdminSection = (isClubAdmin || isDS) && CLUB_ADMIN_ROLES.includes(userRole)
 
     return (
         <div className="min-h-screen bg-gray-50">

@@ -9,7 +9,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     // Layout semplificato - solo contenuto, nessuna sidebar
     // La navigazione è gestita dalla Navbar in header
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen glass-page-bg">
             {children}
         </main>
     )

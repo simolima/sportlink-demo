@@ -361,3 +361,33 @@ Vengono wrappati in `<Suspense fallback={<Skeleton />}>` nella pagina madre, che
 - `TEAM_ROLES` (`player`, `coach`, `sporting_director`, `athletic_trainer`) → `TeamEventsWidget`
 - `STUDIO_ROLES` (`physio`, `nutritionist`) → `StudioAppointmentsWidget`
 - `DUAL_ROLES` (`athletic_trainer`, `talent_scout`, `agent`) → entrambi i widget
+
+---
+
+## Home Dashboard UX — Tab Layout (Marzo 2026)
+
+La pagina `app/(main)/home/page.tsx` usa ora una composizione **a tab** per evitare stacking di sezioni eterogenee nello stesso viewport.
+
+Pattern:
+- Tab role-aware (render solo se pertinenti):
+  - `personal` → player/coach/sporting_director
+  - `staff` → athletic_trainer/nutritionist/physio/talent_scout
+  - `agent` → agent
+  - `club` → gestione società (admin context)
+  - `studio` → ruoli medical con studio
+- La tab attiva viene re-impostata automaticamente su una tab visibile quando cambia ruolo/contesto.
+- Evitare la duplicazione dello stesso widget in più sezioni visibili contemporaneamente.
+
+Regola:
+- In Home preferire una sola sezione primaria visibile alla volta (via tab) invece di concatenare più blocchi verticali con contenuti simili.
+
+## Dashboard Widgets — Surface Unification (Marzo 2026)
+
+I widget in `components/dashboard-widgets/` devono usare lo stesso linguaggio visivo dark:
+- contenitore: `.glass-widget`
+- header: `.glass-widget-header`
+- testo secondario: `.glass-subtle-text` / `.glass-quiet-text`
+
+Regole:
+- Non introdurre nuove card `bg-white` / `text-gray-*` nei widget dashboard principali.
+- Stati semantici restano DaisyUI (`success`, `warning`, `error`, `info`) senza creare palette custom parallele.

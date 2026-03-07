@@ -37,9 +37,9 @@ body,
 body {
     font-family: "neulis-sans", Inter, system-ui, sans-serif;
     background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(59, 82, 245, 0.22), transparent 55%),
-        radial-gradient(900px 500px at 90% 0%, rgba(81, 104, 255, 0.18), transparent 50%),
-        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
+        radial-gradient(1200px 600px at 10% -10%, rgba(94, 109, 246, 0.25), transparent 58%),
+        radial-gradient(900px 500px at 90% 0%, rgba(129, 134, 243, 0.2), transparent 55%),
+        linear-gradient(180deg, #151d56 0%, #10174a 55%, #0e1440 100%);
     color: var(--secondary);
     font-size: 1.0625rem;
     line-height: 1.65;
@@ -111,33 +111,33 @@ small {
 
 .glass-page-bg {
     background:
-        radial-gradient(1200px 500px at 0% -10%, rgba(59, 82, 245, 0.18), transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, rgba(81, 104, 255, 0.12), transparent 55%),
-        linear-gradient(180deg, var(--surface-1) 0%, #0f1645 100%);
+        radial-gradient(1200px 500px at 0% -10%, rgba(94, 109, 246, 0.22), transparent 58%),
+        radial-gradient(900px 500px at 100% 0%, rgba(129, 134, 243, 0.16), transparent 58%),
+        linear-gradient(180deg, #151d56 0%, #10174a 55%, #0e1440 100%);
 }
 
 .glass-nav {
-    background: linear-gradient(180deg, rgba(26, 35, 96, 0.84) 0%, rgba(20, 27, 77, 0.72) 100%);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(178, 186, 255, 0.14);
-    box-shadow: 0 10px 30px rgba(5, 10, 35, 0.35);
+    background: linear-gradient(180deg, rgba(32, 43, 112, 0.72) 0%, rgba(26, 35, 96, 0.62) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(178, 186, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(8, 12, 38, 0.22);
 }
 
 .glass-panel {
-    background: linear-gradient(145deg, rgba(26, 35, 96, 0.8) 0%, rgba(20, 27, 77, 0.76) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.16);
-    box-shadow: 0 14px 30px rgba(8, 12, 38, 0.28);
+    background: linear-gradient(145deg, rgba(32, 43, 112, 0.66) 0%, rgba(26, 35, 96, 0.58) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.22);
+    box-shadow: 0 10px 24px rgba(8, 12, 38, 0.2);
 }
 
 .glass-widget {
-    background: linear-gradient(150deg, rgba(26, 35, 96, 0.88) 0%, rgba(20, 27, 77, 0.86) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.16);
-    box-shadow: 0 10px 24px rgba(6, 10, 32, 0.3);
+    background: linear-gradient(150deg, rgba(32, 43, 112, 0.72) 0%, rgba(26, 35, 96, 0.66) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.2);
+    box-shadow: 0 8px 18px rgba(6, 10, 32, 0.2);
 }
 
 .glass-widget-header {
-    background: linear-gradient(180deg, rgba(32, 43, 112, 0.44) 0%, rgba(26, 35, 96, 0.08) 100%);
-    border-bottom: 1px solid rgba(178, 186, 255, 0.14);
+    background: linear-gradient(180deg, rgba(81, 104, 255, 0.2) 0%, rgba(26, 35, 96, 0.06) 100%);
+    border-bottom: 1px solid rgba(178, 186, 255, 0.2);
 }
 
 .glass-subtle-text {

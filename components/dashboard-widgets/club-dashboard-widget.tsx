@@ -81,7 +81,7 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
                 </div>
@@ -93,8 +93,8 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
 
     if (!clubId) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-8 text-center text-gray-500">Seleziona una società per vedere le candidature.</div>
+            <div className="glass-widget rounded-2xl overflow-hidden">
+                <div className="px-6 py-8 text-center glass-subtle-text">Seleziona una società per vedere le candidature.</div>
             </div>
         )
     }
@@ -102,15 +102,15 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'new':
-                return 'bg-blue-50 border-l-4 border-blue-500'
+                return 'bg-primary/10 border-l-4 border-primary'
             case 'pending':
-                return 'bg-yellow-50 border-l-4 border-yellow-500'
+                return 'bg-warning/10 border-l-4 border-warning'
             case 'accepted':
                 return 'bg-success/10 border-l-4 border-success'
             case 'rejected':
-                return 'bg-red-50 border-l-4 border-red-500'
+                return 'bg-error/10 border-l-4 border-error'
             default:
-                return 'bg-gray-50 border-l-4 border-gray-300'
+                return 'bg-base-200/75 border-l-4 border-base-300'
         }
     }
 
@@ -132,18 +132,18 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
     return (
         <div className="space-y-6">
             {/* Statistiche e titolo */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-6">
                     <div className="flex items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                <InboxIcon className="w-5 h-5 text-red-600" />
+                            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                                <InboxIcon className="w-5 h-5 text-primary" />
                             </div>
-                            <h3 className="font-bold text-gray-900 text-lg">Candidature Ricevute</h3>
+                            <h3 className="font-bold text-white text-lg">Candidature Ricevute</h3>
                         </div>
                         <Link
                             href={clubId ? `/clubs/${clubId}` : '/clubs'}
-                            className="text-sm text-red-600 hover:text-red-700 font-medium"
+                            className="text-sm text-primary hover:text-brand-700 font-medium"
                         >
                             Tutte
                         </Link>
@@ -160,35 +160,35 @@ export default function ClubDashboardWidget({ userId, clubId }: ClubDashboardWid
 
             {/* Candidature scrollabili */}
             {recentApplications.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-8 text-center">
-                    <InboxIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Nessuna candidatura ricevuta</p>
+                <div className="glass-widget rounded-2xl overflow-hidden p-8 text-center">
+                    <InboxIcon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                    <p className="glass-subtle-text text-sm">Nessuna candidatura ricevuta</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="glass-widget rounded-2xl overflow-hidden">
                     <div className="px-6 py-4">
                         <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
                             {recentApplications.map((app) => (
                                 <Link
                                     href={`/club-applications?focus=${app.id}`}
                                     key={app.id}
-                                    className={`min-w-[280px] max-w-[320px] snap-start p-4 rounded-lg border shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-sm transition ${getStatusColor(app.status)}`}
+                                    className={`min-w-[280px] max-w-[320px] snap-start p-4 rounded-lg border border-base-300 hover:border-primary/35 transition ${getStatusColor(app.status)}`}
                                 >
                                     <div className="flex items-start justify-between gap-2 mb-2">
-                                        <h4 className="font-semibold text-gray-900 leading-snug line-clamp-2">{app.applicantName}</h4>
+                                        <h4 className="font-semibold text-white leading-snug line-clamp-2">{app.applicantName}</h4>
                                     </div>
-                                    <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                                    <p className="text-xs glass-subtle-text mb-3 line-clamp-2">
                                         {app.announcementTitle}
                                     </p>
                                     <div className="flex items-center justify-between">
-                                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${app.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                                            app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${app.status === 'new' ? 'bg-primary/20 text-primary' :
+                                            app.status === 'pending' ? 'bg-warning/20 text-warning' :
                                                 app.status === 'accepted' ? 'bg-success/10 text-success' :
-                                                    'bg-red-100 text-red-700'
+                                                    'bg-error/20 text-error'
                                             }`}>
                                             {getStatusLabel(app.status)}
                                         </span>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs glass-quiet-text">
                                             {new Date(app.appliedAt).toLocaleDateString('it-IT')}
                                         </span>
                                     </div>

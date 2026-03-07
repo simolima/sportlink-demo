@@ -51,14 +51,22 @@ export default function StudioDashboardCalendarPage() {
     useEffect(() => {
         async function loadCalendars() {
             if (!status?.connected) return
+            
+            console.log('📅 Fetching Google calendars...')
             const authHeaders = await getAuthHeaders()
             const res = await fetch(`/api/studios/${studioId}/google-calendars`, {
                 credentials: 'include',
                 headers: authHeaders,
             })
+            
             if (res.ok) {
                 const data = await res.json()
+                console.log('✅ Calendars loaded:', data.calendars)
                 setCalendars(data.calendars || [])
+            } else {
+                const error = await res.json()
+                console.error('❌ Failed to load calendars:', error)
+                setMessage(`Errore nel caricamento calendari: ${error.error || 'Errore sconosciuto'}`)
             }
         }
 

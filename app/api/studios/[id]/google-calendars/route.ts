@@ -36,10 +36,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             return withCors(NextResponse.json({ error: 'forbidden' }, { status: 403 }))
         }
 
+        console.log(`📅 Fetching Google calendars for studio ${studioId}`)
         const calendars = await listCalendars(studioId)
+        console.log(`✅ Found ${calendars.length} calendars:`, calendars.map(c => c.summary))
 
         return withCors(NextResponse.json({ calendars }))
     } catch (error: any) {
+        console.error(`❌ Error fetching Google calendars for studio ${studioId}:`, error.message)
         return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
     }
 }

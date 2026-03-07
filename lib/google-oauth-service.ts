@@ -33,6 +33,8 @@ export interface EncryptedTokenPair {
 
 const GOOGLE_OAUTH_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID!
 const GOOGLE_OAUTH_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+// Must be static URI (no dynamic [id] segments) - Google OAuth requirement
+// Example: https://sportlink-demo-ejj2.vercel.app/api/google-auth/callback
 const GOOGLE_OAUTH_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI!
 const GOOGLE_TOKEN_ENCRYPTION_KEY = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY! // 64-char hex string
 
@@ -259,19 +261,6 @@ export function isTokenExpired(expiryDate: number, bufferSeconds: number = 300):
 // ============================================================================
 // VALIDATION HELPERS
 // ============================================================================
-
-/**
- * Validate state parameter matches expected studio ID (CSRF protection)
- * 
- * @param state - State parameter from OAuth callback
- * @param expectedStudioId - Expected studio ID
- * @throws Error if state doesn't match
- */
-export function validateState(state: string | null, expectedStudioId: string): void {
-    if (state !== expectedStudioId) {
-        throw new Error('State parameter mismatch (CSRF protection)')
-    }
-}
 
 /**
  * Validate OAuth callback contains required parameters

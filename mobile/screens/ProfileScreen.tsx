@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getFollowersCount, getFollowingCount } from '../lib/services';
 
 export default function ProfileScreen({ currentUser, onLogout }: { currentUser: any; onLogout: () => void }) {
@@ -9,11 +9,7 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
     const [followingCount, setFollowingCount] = useState(0);
     const [applicationsCount, setApplicationsCount] = useState(0);
 
-    useEffect(() => {
-        loadUserData();
-    }, []);
-
-    const loadUserData = async () => {
+    const loadUserData = useCallback(async () => {
         try {
             const [followers, following] = await Promise.all([
                 getFollowersCount(currentUser.id),
@@ -29,14 +25,18 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentUser.id]);
+
+    useEffect(() => {
+        loadUserData();
+    }, [loadUserData]);
 
     return (
         <ScrollView style={styles.container}>
             {/* Cover Image */}
             <View style={styles.coverContainer}>
                 {currentUser.coverUrl ? (
-                    <Image source={{ uri: currentUser.coverUrl }} style={styles.coverImage} />
+                    <Image alt="Cover profile" source={{ uri: currentUser.coverUrl }} style={styles.coverImage} />
                 ) : (
                     <View style={styles.coverPlaceholder} />
                 )}
@@ -46,7 +46,7 @@ export default function ProfileScreen({ currentUser, onLogout }: { currentUser: 
             <View style={styles.profileHeader}>
                 <View style={styles.avatarContainer}>
                     {currentUser.avatarUrl ? (
-                        <Image source={{ uri: currentUser.avatarUrl }} style={styles.avatar} />
+                        <Image alt="Avatar profile" source={{ uri: currentUser.avatarUrl }} style={styles.avatar} />
                     ) : (
                         <View style={styles.avatarPlaceholder}>
                             <Text style={styles.avatarText}>

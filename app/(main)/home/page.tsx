@@ -253,14 +253,6 @@ export default function HomePage() {
         }
     }
 
-    if (loading) {
-        return (
-            <div className="min-h-screen glass-page-bg flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        )
-    }
-
     const isPlayer = PLAYER_ROLES.includes(userRole)
     const isCoach = COACH_ROLES.includes(userRole)
     const isAgent = AGENT_ROLES.includes(userRole)
@@ -289,7 +281,15 @@ export default function HomePage() {
         if (!activeTab || !visibleTabs.some((tab) => tab.id === activeTab)) {
             setActiveTab(visibleTabs[0].id)
         }
-    }, [activeTab, isPlayer, isCoach, isDS, isStaff, isAgent, showClubAdminSection, isMedical])
+    }, [activeTab, visibleTabs])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen glass-page-bg">

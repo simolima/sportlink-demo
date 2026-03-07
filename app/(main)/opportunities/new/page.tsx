@@ -116,7 +116,7 @@ export default function CreateOpportunityPage() {
         }
 
         fetchUserClubs()
-    }, [currentUserId, preselectedClubId])
+    }, [currentUserId, preselectedClubId, showToast])
 
     // Aggiorna sport quando si seleziona un club
     const handleClubChange = (clubId: string) => {

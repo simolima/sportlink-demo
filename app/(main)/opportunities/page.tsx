@@ -65,7 +65,7 @@ export default function OpportunitiesPage() {
     }
     fetchCurrentUser(userId)
     fetchUserClubs(userId)
-  }, [])
+  }, [router])
 
   const fetchCurrentUser = async (userId: string) => {
     try {
@@ -138,7 +138,7 @@ export default function OpportunitiesPage() {
     }
 
     fetchAnnouncements()
-  }, [filters.sport, filters.type, filters.level, filters.search])
+  }, [filters.sport, filters.type, filters.level, filters.search, showToast])
 
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, search: searchInput }))

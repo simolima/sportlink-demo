@@ -444,6 +444,7 @@ export type ClubMembership = {
   clubId: number | string;
   userId: number | string;
   role: ClubRole;
+  professionalRoleId?: ProfessionalRole;
   position?: string; // es. "Attaccante", "Portiere", "Preparatore Atletico"
   permissions: ClubPermission[];
   joinedAt: string;

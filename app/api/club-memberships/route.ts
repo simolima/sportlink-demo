@@ -10,17 +10,19 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
+import { resolveMembershipProfessionalRoleId } from '@/lib/club-membership-scope'
 
 export async function OPTIONS() {
     return handleOptions()
 }
 
-// GET /api/club-memberships?clubId=X&userId=Y
+// GET /api/club-memberships?clubId=X&userId=Y&professionalRoleId=Z
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url)
         const clubId = searchParams.get('clubId')
         const userId = searchParams.get('userId')
+        const professionalRoleId = searchParams.get('professionalRoleId')?.toLowerCase()
 
         let query = supabaseServer
             .from('club_memberships')
@@ -38,6 +40,9 @@ export async function GET(request: Request) {
         if (userId) {
             query = query.eq('user_id', userId)
         }
+        if (professionalRoleId) {
+            query = query.eq('professional_role_id', professionalRoleId)
+        }
 
         const { data, error } = await query.order('joined_at', { ascending: false })
 
@@ -52,6 +57,7 @@ export async function GET(request: Request) {
             clubId: m.club_id,
             userId: m.user_id,
             role: m.club_role,
+            professionalRoleId: m.professional_role_id || null,
             position: m.position_id || '',
             permissions: m.permissions || [],
             joinedAt: m.joined_at,
@@ -82,7 +88,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        const { clubId, userId, role, position, permissions } = body
+        const { clubId, userId, role, position, permissions, professionalRoleId } = body
 
         if (!clubId || !userId || !role) {
             return withCors(NextResponse.json({ error: 'clubId, userId, and role required' }, { status: 400 }))
@@ -102,12 +108,25 @@ export async function POST(request: Request) {
             return withCors(NextResponse.json({ error: 'User is already a member of this club' }, { status: 400 }))
         }
 
+        const { data: profile } = await supabaseServer
+            .from('profiles')
+            .select('role_id')
+            .eq('id', userId)
+            .maybeSingle()
+
+        const resolvedProfessionalRoleId = resolveMembershipProfessionalRoleId({
+            requestedProfessionalRoleId: professionalRoleId,
+            profileRoleId: profile?.role_id,
+            clubRole: role,
+        })
+
         const { data, error } = await supabaseServer
             .from('club_memberships')
             .insert({
                 club_id: clubId,
                 user_id: userId,
                 club_role: role,
+                professional_role_id: resolvedProfessionalRoleId,
                 position_id: position || null,
                 permissions: permissions || [],
                 status: 'active',
@@ -125,6 +144,7 @@ export async function POST(request: Request) {
             clubId: data.club_id,
             userId: data.user_id,
             role: data.club_role,
+            professionalRoleId: data.professional_role_id || null,
             joinedAt: data.joined_at,
             isActive: data.status === 'active',
         }, { status: 201 }))
@@ -138,7 +158,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const body = await request.json()
-        const { id, role, position, permissions, isActive } = body
+        const { id, role, position, permissions, isActive, professionalRoleId } = body
 
         if (!id) {
             return withCors(NextResponse.json({ error: 'id required' }, { status: 400 }))
@@ -146,6 +166,7 @@ export async function PUT(request: Request) {
 
         const updateData: Record<string, any> = {}
         if (role !== undefined) updateData.club_role = role
+        if (professionalRoleId !== undefined) updateData.professional_role_id = professionalRoleId || null
         if (position !== undefined) updateData.position_id = position || null
         if (permissions !== undefined) updateData.permissions = permissions
         if (isActive !== undefined) updateData.status = isActive ? 'active' : 'past'

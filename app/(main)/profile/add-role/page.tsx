@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { switchActiveRole } from '@/app/actions/role-actions'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
+import { syncLegacySelectedClubIdForRole } from '@/lib/club-membership-scope'
 import {
     PROFESSIONAL_ROLES,
     ROLE_TRANSLATIONS,
@@ -167,6 +168,7 @@ export default function AddRolePage() {
             // 2. Switch al nuovo ruolo
             await switchActiveRole(selectedRole, authToken)
             localStorage.setItem('currentUserRole', selectedRole)
+            syncLegacySelectedClubIdForRole(selectedRole)
             localStorage.setItem(
                 'currentUserSports',
                 JSON.stringify(selectedSports)

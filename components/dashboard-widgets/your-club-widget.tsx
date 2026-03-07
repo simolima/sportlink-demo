@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BuildingOffice2Icon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { membershipMatchesActiveProfessionalRole } from '@/lib/club-membership-scope'
 
 interface Club {
     id: number | string
@@ -16,9 +17,10 @@ interface Club {
 export interface YourClubWidgetProps {
     userId: string
     clubId?: string | number
+    professionalRoleId?: string
 }
 
-export default function YourClubWidget({ userId, clubId }: YourClubWidgetProps) {
+export default function YourClubWidget({ userId, clubId, professionalRoleId }: YourClubWidgetProps) {
     const [club, setClub] = useState<Club | null>(null)
     const [memberRole, setMemberRole] = useState<string>('')
     const [loading, setLoading] = useState(true)
@@ -27,14 +29,17 @@ export default function YourClubWidget({ userId, clubId }: YourClubWidgetProps) 
         const fetchData = async () => {
             try {
                 // Check club memberships
-                const memRes = await fetch(`/api/club-memberships?userId=${userId}`)
+                const roleQuery = professionalRoleId ? `&professionalRoleId=${encodeURIComponent(professionalRoleId.toLowerCase())}` : ''
+                const memRes = await fetch(`/api/club-memberships?userId=${userId}${roleQuery}`)
                 if (memRes.ok) {
                     const memberships = await memRes.json()
                     const myMembership = memberships.find((m: any) =>
+                        membershipMatchesActiveProfessionalRole(m, professionalRoleId) &&
                         (m.userId === userId || m.userId?.toString() === userId?.toString()) &&
                         m.isActive !== false &&
                         (!clubId || String(m.clubId) === String(clubId))
                     ) || memberships.find((m: any) =>
+                        membershipMatchesActiveProfessionalRole(m, professionalRoleId) &&
                         (m.userId === userId || m.userId?.toString() === userId?.toString()) && m.isActive !== false
                     )
 
@@ -70,7 +75,7 @@ export default function YourClubWidget({ userId, clubId }: YourClubWidgetProps) 
             }
         }
         fetchData()
-    }, [userId])
+    }, [userId, clubId, professionalRoleId])
 
     if (loading) {
         return (

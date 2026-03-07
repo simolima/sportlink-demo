@@ -1,7 +1,14 @@
 'use client'
 
 import { Paperclip, Send, Smile } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+
+// Lazy-load emoji-mart: ~350KB caricati solo al primo click su Smile
+const EmojiPicker = dynamic(
+    () => import('@emoji-mart/react').then(m => m.default ?? m),
+    { ssr: false, loading: () => null }
+)
 
 interface Props {
     onSend: (text: string) => Promise<void>
@@ -9,18 +16,20 @@ interface Props {
     placeholder?: string
 }
 
-/**
- * MessageInput - Input messaggi moderno stile LinkedIn
- * 
- * - Textarea auto-resize
- * - Enter per inviare, Shift+Enter per nuova riga
- * - Bottone Invia blu Sprinta
- * - Icone emoji e allegato (placeholder per future features)
- */
 export default function MessageInput({ onSend, disabled = false, placeholder = 'Scrivi un messaggio...' }: Props) {
     const [text, setText] = useState('')
     const [sending, setSending] = useState(false)
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+    // Preload data dopo il primo render così il picker si apre istantaneamente
+    const [emojiData, setEmojiData] = useState<any>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const emojiPickerRef = useRef<HTMLDivElement>(null)
+    const cursorPosRef = useRef<number>(0)
+
+    // Preload emoji data in background (non blocca il render)
+    useEffect(() => {
+        import('@emoji-mart/data').then(m => setEmojiData(m.default ?? m))
+    }, [])
 
     // Auto-resize textarea
     useEffect(() => {
@@ -30,6 +39,40 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
             textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`
         }
     }, [text])
+
+    // Chiudi emoji picker click fuori
+    useEffect(() => {
+        if (!showEmojiPicker) return
+        const handleClickOutside = (e: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+                setShowEmojiPicker(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [showEmojiPicker])
+
+    // Salva posizione cursore prima che la textarea perda il focus
+    const saveCursor = useCallback(() => {
+        if (textareaRef.current) {
+            cursorPosRef.current = textareaRef.current.selectionStart
+        }
+    }, [])
+
+    const onEmojiSelect = useCallback((emoji: { native: string }) => {
+        const pos = cursorPosRef.current
+        const native = emoji.native
+        setText(prev => prev.substring(0, pos) + native + prev.substring(pos))
+        cursorPosRef.current = pos + native.length
+        // Riposiziona cursore e mantieni focus sulla textarea
+        setTimeout(() => {
+            const textarea = textareaRef.current
+            if (textarea) {
+                textarea.focus()
+                textarea.setSelectionRange(cursorPosRef.current, cursorPosRef.current)
+            }
+        }, 0)
+    }, [])
 
     const handleSend = async () => {
         const trimmed = text.trim()
@@ -58,13 +101,33 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
     return (
         <div className="border-t border-gray-200 bg-white p-4">
             <div className="flex items-end gap-3">
-                {/* Icone azioni (placeholder) */}
-                <div className="flex items-center gap-1 pb-2">
+                {/* Icone azioni */}
+                <div className="flex items-center gap-1 pb-2 relative" ref={emojiPickerRef}>
+                    {/* emoji-mart Picker */}
+                    {showEmojiPicker && (
+                        <div className="absolute bottom-12 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden">
+                            <EmojiPicker
+                                data={emojiData}
+                                onEmojiSelect={onEmojiSelect}
+                                locale="it"
+                                theme="light"
+                                previewEmoji="soccer"
+                                previewPosition="none"
+                                skinTonePosition="search"
+                                set="native"
+                                dynamicWidth={false}
+                            />
+                        </div>
+                    )}
                     <button
                         type="button"
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Emoji (coming soon)"
-                        disabled
+                        onClick={() => {
+                            saveCursor()
+                            setShowEmojiPicker(prev => !prev)
+                        }}
+                        className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-[#2341F0] bg-[#EEF1F7]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                        title="Emoji"
+                        disabled={disabled}
                     >
                         <Smile size={20} />
                     </button>

@@ -45,6 +45,12 @@ export default function SearchPage() {
     const [clubs, setClubs] = useState<Club[]>([])
     const [opps, setOpps] = useState<Opportunity[]>([])
 
+    const extractArray = (payload: any): any[] => {
+        if (Array.isArray(payload)) return payload
+        if (payload && Array.isArray(payload.data)) return payload.data
+        return []
+    }
+
     useEffect(() => {
         const fetchAll = async () => {
             if (!query) {
@@ -55,16 +61,50 @@ export default function SearchPage() {
             setError(null)
             try {
                 const [usersRes, clubsRes, oppsRes] = await Promise.all([
-                    fetch('/api/users'),
-                    fetch('/api/clubs'),
+                    fetch(`/api/search/professionals?searchTerm=${encodeURIComponent(query)}&limit=30&offset=0`),
+                    fetch(`/api/clubs?search=${encodeURIComponent(query)}`),
                     fetch(`/api/opportunities?search=${encodeURIComponent(query)}&activeOnly=true`),
                 ])
-                const usersData = usersRes.ok ? await usersRes.json() : []
-                const clubsData = clubsRes.ok ? await clubsRes.json() : []
-                const oppsData = oppsRes.ok ? await oppsRes.json() : []
-                setUsers(Array.isArray(usersData) ? usersData : [])
-                setClubs(Array.isArray(clubsData) ? clubsData : [])
-                setOpps(Array.isArray(oppsData) ? oppsData : [])
+                const usersPayload = usersRes.ok ? await usersRes.json() : []
+                const clubsPayload = clubsRes.ok ? await clubsRes.json() : []
+                const oppsPayload = oppsRes.ok ? await oppsRes.json() : []
+
+                const normalizedUsers: User[] = extractArray(usersPayload).map((u: any) => ({
+                    id: u.id,
+                    firstName: u.firstName || u.first_name || '',
+                    lastName: u.lastName || u.last_name || '',
+                    email: u.email || '',
+                    professionalRole: u.professionalRole || u.roleId || u.role_id || '',
+                    sports: Array.isArray(u.sports) ? u.sports : [],
+                    sport: u.sport || null,
+                    city: u.city || '',
+                }))
+
+                const normalizedClubs: Club[] = extractArray(clubsPayload).map((c: any) => ({
+                    id: c.id,
+                    name: c.name || '',
+                    city: c.city || '',
+                    sport: c.sport || (Array.isArray(c.sports) && c.sports.length > 0 ? c.sports[0] : ''),
+                    logoUrl: c.logoUrl || c.logo_url || '',
+                }))
+
+                const normalizedOpps: Opportunity[] = extractArray(oppsPayload).map((o: any) => ({
+                    id: o.id,
+                    title: o.title || '',
+                    type: o.type || o.roleRequired || '',
+                    sport: o.sport || '',
+                    level: o.level || o.contractType || '',
+                    city: o.city || o.location || '',
+                    club: o.club ? {
+                        id: o.club.id,
+                        name: o.club.name,
+                        logoUrl: o.club.logoUrl || o.club.logo_url,
+                    } : undefined,
+                }))
+
+                setUsers(normalizedUsers)
+                setClubs(normalizedClubs)
+                setOpps(normalizedOpps)
             } catch (err) {
                 setUsers([])
                 setClubs([])
@@ -81,7 +121,7 @@ export default function SearchPage() {
         if (!query) return text
         const regex = new RegExp(`(${query.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'ig')
         return text.split(regex).map((part, i) =>
-            regex.test(part) ? (
+            i % 2 === 1 ? (
                 <mark key={i} className="bg-yellow-200 text-gray-900 px-0.5 rounded">{part}</mark>
             ) : (
                 <span key={i}>{part}</span>

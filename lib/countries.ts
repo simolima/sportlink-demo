@@ -332,3 +332,22 @@ export function formatCountryWithFlag(countryName: string | null | undefined): s
     const flag = getCountryFlag(countryName)
     return flag ? `${flag} ${countryName}` : countryName
 }
+
+/**
+ * Returns the lowercase ISO 3166-1 alpha-2 country code for a given country name.
+ * Useful for building flag-icons CSS classes: `fi fi-${code}` (e.g. `fi fi-it`).
+ * See: https://github.com/lipis/flag-icons
+ *
+ * @param countryName Nome del paese (es: "Italia")
+ * @returns Lowercase ISO code (es: "it") or undefined if not found
+ *
+ * @example
+ * getCountryCode("Italia")  // "it"
+ * getCountryCode("Francia") // "fr"
+ */
+export function getCountryCode(countryName: string | null | undefined): string | undefined {
+    if (!countryName) return undefined
+    return allCountries
+        .find(c => c.name.toLowerCase() === countryName.toLowerCase())
+        ?.code.toLowerCase()
+}

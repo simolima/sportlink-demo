@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from './avatar'
 import SocialLinks from './social-links'
-import { formatCountryWithFlag } from '@/lib/countries'
+import { getCountryCode } from '@/lib/countries'
 import { supabase } from '@/lib/supabase-browser'
 import { ROLE_TRANSLATIONS, type ProfessionalRole } from '@/lib/types'
 import {
@@ -84,8 +84,27 @@ export default function ProfileSidebar({
 
     type StatItem = {
         label: string
-        value: string | number
+        value: React.ReactNode
         link?: string
+    }
+
+    // Helper: renders a country flag + name as JSX (no emoji)
+    const renderCountry = (countryName?: string | null): React.ReactNode => {
+        if (!countryName) return 'Non specificato'
+        const code = getCountryCode(countryName)
+        return (
+            <span className="flex items-center justify-end gap-1.5">
+                {code && (
+                    <span
+                        className={`fi fi-${code} rounded-sm shadow-sm shrink-0`}
+                        style={{ width: '1.25rem', height: '0.9375rem', display: 'inline-block' }}
+                        aria-label={countryName}
+                        role="img"
+                    />
+                )}
+                <span>{countryName}</span>
+            </span>
+        )
     }
 
     // Determina statistiche in base al ruolo
@@ -95,7 +114,7 @@ export default function ProfileSidebar({
             const footLabel = foot === 'destro' ? 'Destro' : foot === 'sinistro' ? 'Sinistro' : foot === 'ambidestro' ? 'Ambidestro' : undefined
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
+                { label: 'Nazionalità', value: renderCountry(user?.country) },
                 { label: 'Altezza', value: user?.height ? `${user.height} cm` : 'Non specificato' },
                 { label: 'Peso', value: user?.weight ? `${user.weight} kg` : 'Non specificato' },
                 { label: 'Piede', value: footLabel || 'Non specificato' },
@@ -107,14 +126,14 @@ export default function ProfileSidebar({
             const licenseLabel = licenses.length > 0 ? licenses.join(', ') : 'Non specificato'
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
+                { label: 'Nazionalità', value: renderCountry(user?.country) },
                 { label: 'Licenza', value: licenseLabel }
             ] as StatItem[]
         }
         if (isDS) {
             return [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
+                { label: 'Nazionalità', value: renderCountry(user?.country) },
                 { label: 'Club gestito', value: clubName || 'Nessuno' }
             ] as StatItem[]
         }
@@ -123,7 +142,7 @@ export default function ProfileSidebar({
             const fifaNumber = user?.fifaLicenseNumber
             const stats = [
                 { label: 'Data di nascita', value: getBirthDateAndAge(user?.birthDate) },
-                { label: 'Nazionalità', value: formatCountryWithFlag(user?.country) },
+                { label: 'Nazionalità', value: renderCountry(user?.country) },
                 { label: 'Assistiti', value: assistatiCount || 0 },
                 { label: 'Licenza FIFA', value: hasFifa ? 'Sì' : 'No' },
             ]
@@ -516,8 +535,8 @@ export default function ProfileSidebar({
                                         router.push(url.pathname + url.search)
                                     }}
                                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${isActive
-                                            ? 'bg-[#2341F0] text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        ? 'bg-[#2341F0] text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
                                     {label}

@@ -50,27 +50,7 @@ const userId = localStorage.getItem('currentUserId')  // NO!
 ### Fetch verso endpoint protetti (POST/PATCH/DELETE)
 
 Gli endpoint che verificano il JWT richiedono l'**Authorization header** con il Bearer token.
-Il browser Supabase client salva i token in **localStorage**, non in cookie.
-Usare sempre `getAuthHeaders()` da `lib/auth-fetch.ts`:
-
-```typescript
-import { getAuthHeaders } from '@/lib/auth-fetch'
-
-// ✅ CORRETTO — invia il Bearer token con la sessione Supabase
-const res = await fetch('/api/messages', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-        'Content-Type': 'application/json',
-        ...(await getAuthHeaders()),
-    },
-    body: JSON.stringify({ senderId, receiverId, text }),
-})
-
-// Per GET autenticate
-const authHeaders = await getAuthHeaders()
-const res = await fetch('/api/resource', { headers: authHeaders })
-```
+Usare sempre `getAuthHeaders()` da `lib/auth-fetch.ts` — per dettagli ed esempi completi → vedi **03-api-patterns.md** sezione "Client-side: getAuthHeaders()".
 
 Se il server risponde `401`, significa che la sessione è scaduta → redirect al login.
 
@@ -89,13 +69,16 @@ const hasCompletedProfile = !!(
 
 ---
 
-## Tutte le Pagine: "use client"
+## Componenti Client vs Server
+
+La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
+- `app/(main)/dashboard/page.tsx` — **Server Component** (async, accede ai cookie server-side)
+- `components/widgets/` — **Server Components** async (NO 'use client'), wrappati in `<Suspense>`
+- `app/actions/` — **Server Actions** con direttiva `'use server'`
 
 ```typescript
-"use client"  // ← sempre prima riga in qualsiasi pagina/componente
+"use client"  // ← prima riga in qualsiasi pagina/componente CLIENT
 ```
-
-Non esistono Server Components in questo progetto.
 
 ---
 
@@ -173,32 +156,11 @@ useEffect(() => {
 
 ## Tema Colori — Brand Navy & Blu
 
-Il progetto usa un **tema scuro** con palette navy/blu. I colori principali sono:
+Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa → vedi `design/BRAND_GUIDE.md`.
 
-- **Navy** `#0A0F32` — background principale
-- **Blu Primario** `#2341F0` — bottoni, link, accenti
-
-### Font: Neulis Sans (Adobe Typekit) + Inter (fallback)
-
-Configurato in `globals.css` (import Typekit) e `tailwind.config.ts` (fontFamily).
-
-### Palette `brand-*` (Tailwind custom)
-
-Definita in `tailwind.config.ts` sotto `theme.extend.colors.brand`:
-
-```
-brand-50:  #eff1fe   — sfondi leggerissimi
-brand-100: #e0e4fd   — sfondi badge, stati attivi
-brand-200: #c7ccfb   — bordi leggeri
-brand-300: #a5acf8   — bordi, hover leggeri
-brand-400: #8186f3   — accent secondari
-brand-500: #5f64ec   — accent medi
-brand-600: #2341f0   — ⭐ PRIMARIO (bottoni, icone, link)
-brand-700: #1c37cf   — hover bottoni primari
-brand-800: #1d2ea8   — testo scuro su badge chiari
-brand-900: #1e2b83   — testo molto scuro
-brand-950: #0a0f32   — ⭐ Navy background
-```
+- **Navy** `#0A0F32` (`brand-950`) — background principale
+- **Blu Primario** `#2341F0` (`brand-600`) — bottoni, link, accenti
+- **Font**: Neulis Sans (Adobe Typekit) + Inter (fallback) — configurato in `globals.css` e `tailwind.config.ts`
 
 ### Classi DaisyUI (tema `sprinta`)
 
@@ -220,19 +182,15 @@ brand-950: #0a0f32   — ⭐ Navy background
 // Link e accenti
 "text-brand-600 hover:text-brand-700"
 
-// Info box / badge
-"bg-brand-50 border-brand-100 text-brand-900"
-
 // Gradients (header, badge)
 "bg-gradient-to-br from-brand-400 to-brand-600"
-
-// Avatar fallback
-"bg-gradient-to-br from-brand-500 to-brand-600"
 ```
 
 ### ⚠️ Colori VIETATI
 
-**Non usare MAI** le classi Tailwind `green-*` o `emerald-*` nel progetto. Tutto il verde è stato migrato a `brand-*`. I colori semantici DaisyUI (`success`, `warning`, `error`, `info`) restano invariati.
+**Non usare MAI** le classi Tailwind `green-*` o `emerald-*` nel progetto. Tutto il verde va migrato a `brand-*`. I colori semantici DaisyUI (`success`, `warning`, `error`, `info`) restano invariati.
+
+> **Nota**: alcuni file legacy (`address-autocomplete.tsx`, `dashboard-widgets/your-studio-widget.tsx`, `profile-sidebar.tsx`) hanno ancora classi `green-*` da migrare. Non aggiungerne di nuove.
 
 ---
 
@@ -276,6 +234,7 @@ app/
     team-management-actions.ts → ⭐ createTeam(), assignMemberToTeam(), removeMemberFromTeam()
     appointment-actions.ts     → bookAppointment()
     studio-actions.ts          → createOrUpdateStudio()
+    injury-actions.ts          → reportInjury(), resolveInjury()
 
 components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo

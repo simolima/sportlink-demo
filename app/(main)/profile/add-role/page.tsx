@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { switchActiveRole } from '@/app/actions/role-actions'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
+import { SportIcon } from '@/lib/sport-icons'
 import {
     PROFESSIONAL_ROLES,
     ROLE_TRANSLATIONS,
@@ -45,13 +46,6 @@ const ROLE_DESCRIPTIONS: Record<ProfessionalRole, string> = {
     nutritionist: 'Ottimizza le performance alimentari',
     physio: 'Cura e recupero degli atleti',
     talent_scout: 'Scopri e valuta nuovi talenti',
-}
-
-const SPORT_EMOJI: Record<string, string> = {
-    Calcio: '⚽',
-    Basket: '🏀',
-    Pallavolo: '🏐',
-    'Multi-sport': '🌐',
 }
 
 /** Ruoli che hanno posizioni in lookup_positions */
@@ -380,8 +374,8 @@ export default function AddRolePage() {
                                                         : 'border-base-300 bg-base-100 hover:border-primary/50 hover:bg-base-100/80'
                                                         }`}
                                                 >
-                                                    <div className="text-4xl mb-3">
-                                                        {SPORT_EMOJI[sport] ?? '🏅'}
+                                                    <div className="flex justify-center mb-3">
+                                                        <SportIcon sport={sport} className="w-10 h-10 text-white/80" />
                                                     </div>
                                                     <div className="font-semibold text-white">{sport}</div>
                                                 </button>

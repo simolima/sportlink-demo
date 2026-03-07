@@ -8,7 +8,7 @@
 |--------|------|--------|--------------|--------------|
 | `supabaseServer` | `lib/supabase-server.ts` | Service Role Key (se configurata) | ✅ SÌ | API routes admin, operazioni che richiedono pieno accesso |
 | `createServerClient()` | `lib/supabase-server.ts` | Anon Key + cookies | ❌ NO | API routes che rispettano i permessi utente |
-| `supabaseBrowser` / `createBrowserClient()` | `lib/supabase-browser.ts` | Anon Key | ❌ NO | Componenti client-side |
+| `supabase` | `lib/supabase-browser.ts` | Anon Key | ❌ NO | Componenti client-side |
 
 **Regola**: Usare `supabaseServer` con parsimonia. Preferire `createServerClient()` nelle API routes normali se le RLS policies sono configurate correttamente.
 
@@ -229,6 +229,61 @@ notifications         — Notifiche in-app
   ├── id (UUID), user_id FK, type, title, message
   ├── metadata (JSONB), is_read (boolean)
   └── deleted_at
+
+-- MULTI-ROLE (Marzo 2026)
+profile_roles          — Ruoli attivi per utente (M:N profiles ↔ lookup_roles)
+  ├── PK (user_id FK, role_id FK)
+  ├── is_active (boolean), is_primary (boolean)
+  └── created_at, updated_at
+  NOTE: seeded da profiles.role_id alla prima migrazione. Unique index per un solo primary attivo.
+
+-- GESTIONE SQUADRE (Marzo 2026)
+club_teams            — Squadre di un club (es. "Prima Squadra", "Under 19")
+  ├── id (UUID), club_id FK, name, category, season
+  ├── sport_id FK, created_by FK
+  └── deleted_at, created_at, updated_at
+
+team_members          — Membri di una squadra (giocatori + staff)
+  ├── id (UUID), club_team_id FK, profile_id FK
+  ├── role (enum: player|head_coach|assistant_coach|athletic_trainer|physio|nutritionist|team_manager|goalkeeper_coach)
+  ├── jersey_number (1-99), status ('active'|'inactive'|'suspended'|'trial')
+  ├── joined_at, notes
+  └── deleted_at, created_at, updated_at
+  Unique: (club_team_id, profile_id) WHERE deleted_at IS NULL
+
+-- STUDI PROFESSIONALI (Marzo 2026)
+professional_studios  — Studi per fisio/nutrizionisti
+  ├── id (UUID), owner_id FK, name
+  ├── city, address, phone, website, logo_url, description
+  ├── services_offered (JSONB array)
+  └── deleted_at, created_at, updated_at
+
+studio_clients        — Clienti di uno studio (atleti)
+  ├── id (UUID), studio_id FK, client_profile_id FK
+  ├── status (enum: pending|active|discharged), notes, onboarded_at
+  └── deleted_at, created_at, updated_at
+  Unique: (studio_id, client_profile_id)
+
+athlete_medical_consents — Consenso atleta per accesso dati medici
+  ├── id (UUID), athlete_id FK, requested_by_profile_id FK
+  ├── status (enum: pending|approved|revoked|expired)
+  ├── request_message, granted_at, revoked_at, expires_at
+  └── created_at, updated_at
+  Unique: (athlete_id, requested_by_profile_id)
+
+-- CALENDARI (Marzo 2026)
+team_events           — Allenamenti e partite di una squadra
+  ├── id (UUID), team_id FK, created_by FK
+  ├── event_type (enum: training|match|meeting|other)
+  ├── title, date_time (timestamptz), duration_minutes, location, description
+  ├── opponent (text), is_home (boolean)  ← solo per match
+  └── deleted_at, created_at, updated_at
+
+studio_appointments   — Appuntamenti studio professionista ↔ cliente
+  ├── id (UUID), studio_id FK, client_id FK, professional_id FK
+  ├── start_time, end_time (timestamptz), status (enum: pending|confirmed|completed|cancelled|no_show)
+  ├── service_type, notes
+  └── deleted_at, created_at, updated_at
 ```
 
 ## Migrations

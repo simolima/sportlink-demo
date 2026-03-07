@@ -4,6 +4,9 @@
 /* Google Fonts - Inter (fallback) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
+/* Flag icons — self-hosted SVG flags, no external CDN dependency */
+@import 'flag-icons/css/flag-icons.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

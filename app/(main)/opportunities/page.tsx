@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Briefcase, MapPin, Calendar, Building2, Search, Plus, Users, Eye, Trash2 } from 'lucide-react'
+import { Briefcase, MapPin, Calendar, Building2, Search, Plus, Users, Eye, Trash2, Target } from 'lucide-react'
 import { Opportunity, OPPORTUNITY_TYPES, LEVELS, SUPPORTED_SPORTS } from '@/lib/types'
 import { useToast } from '@/lib/toast-context'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
@@ -534,8 +534,9 @@ export default function OpportunitiesPage() {
                             {announcement.type}
                           </span>
                           {announcement.roleRequired && (
-                            <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                              🎯 {announcement.roleRequired}
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                              <Target className="w-3.5 h-3.5 shrink-0" />
+                              {announcement.roleRequired}
                             </span>
                           )}
                         </div>

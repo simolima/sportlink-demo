@@ -62,7 +62,8 @@ function validateEncryptionKey(): Buffer {
 
 // OAuth 2.0 scopes
 const CALENDAR_SCOPES = [
-    'https://www.googleapis.com/auth/calendar.events', // Full read/write for events
+    'https://www.googleapis.com/auth/calendar', // Full calendar access (read/write calendars & events)
+    'https://www.googleapis.com/auth/calendar.events', // Specific events scope for redundancy
 ]
 
 // ============================================================================

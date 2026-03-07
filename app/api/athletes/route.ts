@@ -52,8 +52,9 @@ export async function GET(req: NextRequest) {
         if (playerIds.length > 0) {
             const { data: sportData } = await supabaseServer
                 .from('profile_sports')
-                .select('user_id, sport_id, lookup_sports:sport_id(name)')
+                .select('user_id, sport_id, role_id, is_main_sport, lookup_sports:sport_id(name)')
                 .in('user_id', playerIds)
+                .or('role_id.eq.player,role_id.is.null')
                 .is('deleted_at', null)
 
             if (sportData) {

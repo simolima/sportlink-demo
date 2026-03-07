@@ -213,7 +213,7 @@ const fallbackPoll = setInterval(async () => {
 | Endpoint | Note |
 |----------|------|
 | `/api/users` | GET all / POST create / PATCH update |
-| `/api/users/roles` | Lista ruoli utente + creazione ruolo multi-profile (POST autenticata) |
+| `/api/users/roles` | Lista ruoli utente + creazione ruolo multi-profile (POST autenticata) + rimozione ruolo sicura (DELETE autenticata, disattiva solo il ruolo target) |
 | `/api/follows` | Follow/unfollow |
 | `/api/opportunities` | Annunci lavoro |
 | `/api/applications` | Candidature |

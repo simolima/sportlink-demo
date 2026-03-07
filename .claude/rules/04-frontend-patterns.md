@@ -58,7 +58,22 @@ const userId = localStorage.getItem('currentUserId')  // NO!
 Gli endpoint che verificano il JWT richiedono l'**Authorization header** con il Bearer token.
 Usare sempre `getAuthHeaders()` da `lib/auth-fetch.ts` — per dettagli ed esempi completi → vedi **03-api-patterns.md** sezione "Client-side: getAuthHeaders()".
 
-Se il server risponde `401`, significa che la sessione è scaduta → redirect al login.
+Se il server risponde `401`, significa che la sessione è scaduta: nelle pagine con form in modifica (es. edit profilo) preferire prima un messaggio in-page con azione di retry/login, evitando redirect immediato che perderebbe modifiche non salvate.
+
+Per errori `403` (`forbidden_*_mismatch`), mostrare messaggio esplicito di mismatch account/sessione e invitare a ricaricare o rieffettuare login.
+
+Per il salvataggio profilo multi-ruolo (`PATCH /api/users`), inviare anche:
+- `activeRoleId`: ruolo attivo corrente (`currentUserRole`) normalizzato lowercase
+- `roleSelfEvaluation`: autovalutazione del ruolo attivo
+
+In backend questi campi vengono persistiti su `profile_roles.role_self_evaluation` (source of truth multi-ruolo),
+con mirror legacy su `profiles.player_self_evaluation` / `profiles.coach_self_evaluation` per compatibilità.
+
+### Query `profile_sports` — Scope per ruolo attivo
+
+- In lettura, filtrare `profile_sports` per `role_id = currentUserRole` quando il contesto è role-specific.
+- Mantenere fallback legacy su `role_id IS NULL` per i record pre-migrazione.
+- In scrittura onboarding/edit role-specific, non cancellare tutti gli sport dell’utente: applicare delete/update solo sul ruolo attivo (`role_id` scoped) + fallback legacy `NULL`.
 
 ---
 

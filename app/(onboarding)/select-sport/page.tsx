@@ -116,6 +116,7 @@ export default function SelectSportPage() {
             const currentUserId = localStorage.getItem('currentUserId')
             const professionalRole = role as ProfessionalRole
             const sports = selectedSports
+            const roleIdForSports = mapRoleToDatabase(professionalRole)
 
             // Detect true OAuth flow (avoid stale currentUserId from old sessions)
             const isOAuthFlow = !!(currentUserId && (!signupFirstName || !signupEmail || !signupPassword))
@@ -241,6 +242,7 @@ export default function SelectSportPage() {
                     .from('profile_sports')
                     .delete()
                     .eq('user_id', currentUserId)
+                    .or(`role_id.eq.${roleIdForSports},role_id.is.null`)
 
                 if (deleteError) {
                     console.warn('⚠️ Error deleting old sports:', deleteError)
@@ -252,6 +254,7 @@ export default function SelectSportPage() {
                     const profileSportsRecords = sportsData.map((sport: any, index: number) => ({
                         user_id: currentUserId,
                         sport_id: sport.id,
+                        role_id: roleIdForSports,
                         is_main_sport: index === 0,
                     }))
 

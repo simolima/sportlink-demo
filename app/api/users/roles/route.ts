@@ -209,3 +209,107 @@ export async function POST(req: Request) {
         return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
     }
 }
+
+export async function DELETE(req: Request) {
+    try {
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+        if (!authenticatedUserId) {
+            return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+        }
+
+        const body = await req.json()
+        const roleId = body?.roleId?.toString?.().toLowerCase() as ProfessionalRole | undefined
+
+        if (!roleId || !(PROFESSIONAL_ROLES as readonly string[]).includes(roleId)) {
+            return withCors(NextResponse.json({ error: 'invalid_role_id' }, { status: 400 }))
+        }
+
+        const { data: activeRoles, error: activeRolesError } = await supabaseServer
+            .from('profile_roles')
+            .select('role_id, is_primary')
+            .eq('user_id', authenticatedUserId)
+            .eq('is_active', true)
+
+        if (activeRolesError) {
+            throw activeRolesError
+        }
+
+        const targetRole = (activeRoles || []).find(r => r.role_id === roleId)
+        if (!targetRole) {
+            return withCors(NextResponse.json({ error: 'role_not_found' }, { status: 404 }))
+        }
+
+        if ((activeRoles || []).length <= 1) {
+            return withCors(NextResponse.json({ error: 'cannot_remove_last_role' }, { status: 409 }))
+        }
+
+        const fallbackRoleId = (activeRoles || []).find(r => r.role_id !== roleId)?.role_id || null
+        const nowIso = new Date().toISOString()
+
+        if (targetRole.is_primary && fallbackRoleId) {
+            const { error: promoteError } = await supabaseServer
+                .from('profile_roles')
+                .update({
+                    is_primary: true,
+                    updated_at: nowIso,
+                })
+                .eq('user_id', authenticatedUserId)
+                .eq('role_id', fallbackRoleId)
+                .eq('is_active', true)
+
+            if (promoteError) {
+                throw promoteError
+            }
+        }
+
+        const { error: deactivateError } = await supabaseServer
+            .from('profile_roles')
+            .update({
+                is_active: false,
+                is_primary: false,
+                updated_at: nowIso,
+            })
+            .eq('user_id', authenticatedUserId)
+            .eq('role_id', roleId)
+            .eq('is_active', true)
+
+        if (deactivateError) {
+            throw deactivateError
+        }
+
+        const { error: sportsCleanupError } = await supabaseServer
+            .from('profile_sports')
+            .update({ deleted_at: nowIso })
+            .eq('user_id', authenticatedUserId)
+            .eq('role_id', roleId)
+            .is('deleted_at', null)
+
+        if (sportsCleanupError) {
+            throw sportsCleanupError
+        }
+
+        if (fallbackRoleId) {
+            const { error: profileUpdateError } = await supabaseServer
+                .from('profiles')
+                .update({ role_id: fallbackRoleId, updated_at: nowIso })
+                .eq('id', authenticatedUserId)
+                .eq('role_id', roleId)
+
+            if (profileUpdateError) {
+                throw profileUpdateError
+            }
+        }
+
+        const remainingRoles = (activeRoles || [])
+            .filter(r => r.role_id !== roleId)
+            .map(r => r.role_id)
+
+        return withCors(NextResponse.json({
+            removedRoleId: roleId,
+            newPrimaryRoleId: targetRole.is_primary ? fallbackRoleId : null,
+            remainingRoles,
+        }))
+    } catch (error: any) {
+        return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+    }
+}

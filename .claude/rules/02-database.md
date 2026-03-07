@@ -269,8 +269,11 @@ notifications         — Notifiche in-app
 profile_roles          — Ruoli attivi per utente (M:N profiles ↔ lookup_roles)
   ├── PK (user_id FK, role_id FK)
   ├── is_active (boolean), is_primary (boolean)
+  ├── role_self_evaluation (JSONB, nullable)  ← autovalutazione scoped al ruolo
   └── created_at, updated_at
   NOTE: seeded da profiles.role_id alla prima migrazione. Unique index per un solo primary attivo.
+  NOTE 2: `profiles.player_self_evaluation` e `profiles.coach_self_evaluation` restano per backward compatibility,
+          ma il source of truth multi-ruolo è `profile_roles.role_self_evaluation` per `(user_id, role_id)`.
 
 -- GESTIONE SQUADRE (Marzo 2026)
 club_teams            — Squadre di un club (es. "Prima Squadra", "Under 19")

@@ -162,6 +162,20 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
                     .eq('user_id', params.id)
                     .single()
 
+                // Fetch role-scoped self-evaluation for current viewed role
+                let roleSelfEvaluation: any = null
+                if (effectiveViewRole) {
+                    const { data: roleEvalRow } = await supabase
+                        .from('profile_roles')
+                        .select('role_self_evaluation')
+                        .eq('user_id', params.id)
+                        .eq('role_id', effectiveViewRole)
+                        .eq('is_active', true)
+                        .maybeSingle()
+
+                    roleSelfEvaluation = roleEvalRow?.role_self_evaluation || null
+                }
+
                 // Construct user object
                 const userData = {
                     id: profile.id,
@@ -188,8 +202,12 @@ function ProfilePageContent({ params }: { params: { id: string } }) {
                     dominantFoot: physicalStats?.dominant_foot || null,
                     dominantHand: physicalStats?.dominant_hand || null,
                     socialLinks: profile.social_links || {},
-                    playerSelfEvaluation: profile.player_self_evaluation || null,
-                    coachSelfEvaluation: profile.coach_self_evaluation || null,
+                    playerSelfEvaluation: effectiveViewRole === 'player'
+                        ? (roleSelfEvaluation || profile.player_self_evaluation || null)
+                        : (profile.player_self_evaluation || null),
+                    coachSelfEvaluation: effectiveViewRole === 'coach'
+                        ? (roleSelfEvaluation || profile.coach_self_evaluation || null)
+                        : (profile.coach_self_evaluation || null),
                     contractStatus: profile.contract_status || null,
                     contractEndDate: profile.contract_end_date || null,
                     experiences: [], // populated below

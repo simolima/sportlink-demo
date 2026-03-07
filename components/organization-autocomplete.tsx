@@ -51,9 +51,7 @@ export default function OrganizationAutocomplete({
 
     // Sync con valore esterno
     useEffect(() => {
-        if (value !== query) {
-            setQuery(value)
-        }
+        setQuery(value)
     }, [value])
 
     // Debounced search

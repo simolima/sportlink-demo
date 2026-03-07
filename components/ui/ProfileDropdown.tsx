@@ -98,21 +98,20 @@ export default function ProfileDropdown() {
             {/* Trigger */}
             <button
                 onClick={() => setOpen(o => !o)}
-                className="flex flex-col items-center text-secondary text-xs font-semibold hover:text-primary transition"
+                className="flex items-center gap-2 text-white/70 hover:text-white transition"
                 aria-haspopup="true"
                 aria-expanded={open}
             >
                 {isPending ? (
-                    <ArrowPathIcon className="w-5 h-5 animate-spin text-brand-600" />
+                    <ArrowPathIcon className="w-5 h-5 animate-spin text-white" />
                 ) : user.avatarUrl ? (
                     <Avatar src={user.avatarUrl} alt={user.firstName} size="xs" />
                 ) : (
-                    <UserCircleIcon className="w-5 h-5" />
+                    <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {user.firstName?.[0]}{user.lastName?.[0]}
+                    </div>
                 )}
-                <span className="mt-1 flex items-center gap-0.5">
-                    Profilo
-                    <ChevronDownIcon className="w-3 h-3" />
-                </span>
+                <ChevronDownIcon className="w-3.5 h-3.5" />
             </button>
 
             {/* Dropdown */}

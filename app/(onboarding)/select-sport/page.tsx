@@ -364,7 +364,7 @@ export default function SelectSportPage() {
                                         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <div className="flex justify-center mb-3">
-                                        <SportIcon sport={sport} className="w-10 h-10 text-white/80" />
+                                        <SportIcon sport={sport} className="w-10 h-10" colored />
                                     </div>
                                     <div className="font-semibold text-white">{sport}</div>
                                 </button>

@@ -17,6 +17,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 *,
                 owner:profiles!owner_id(
                     id, first_name, last_name, avatar_url, role_id
+                ),
+                reviews:studio_reviews(
+                    id, studio_id, reviewer_profile_id, rating, title, comment, is_verified, is_published,
+                    created_at, updated_at, deleted_at,
+                    reviewer:profiles!reviewer_profile_id(
+                        id, first_name, last_name, avatar_url
+                    )
+                ),
+                specializations:studio_specializations(
+                    id, studio_id, name, description, icon, display_order, created_at, updated_at, deleted_at
+                ),
+                faqs:studio_faqs(
+                    id, studio_id, question, answer, display_order, created_at, updated_at, deleted_at
                 )
             `)
             .eq('id', params.id)
@@ -26,6 +39,57 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         if (error || !data) {
             return withCors(NextResponse.json({ error: 'studio not found' }, { status: 404 }))
         }
+
+        const reviews = (data.reviews || [])
+            .filter((r: any) => !r.deleted_at && r.is_published)
+            .map((r: any) => ({
+                id: r.id,
+                studioId: r.studio_id,
+                reviewerProfileId: r.reviewer_profile_id,
+                rating: r.rating,
+                title: r.title ?? undefined,
+                comment: r.comment,
+                isVerified: !!r.is_verified,
+                isPublished: !!r.is_published,
+                createdAt: r.created_at,
+                updatedAt: r.updated_at,
+                deletedAt: r.deleted_at,
+                reviewer: r.reviewer ? {
+                    id: r.reviewer.id,
+                    firstName: r.reviewer.first_name,
+                    lastName: r.reviewer.last_name,
+                    avatarUrl: r.reviewer.avatar_url,
+                } : undefined,
+            }))
+
+        const specializations = (data.specializations || [])
+            .filter((s: any) => !s.deleted_at)
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
+            .map((s: any) => ({
+                id: s.id,
+                studioId: s.studio_id,
+                name: s.name,
+                description: s.description ?? undefined,
+                icon: s.icon ?? undefined,
+                displayOrder: s.display_order ?? 0,
+                createdAt: s.created_at,
+                updatedAt: s.updated_at,
+                deletedAt: s.deleted_at,
+            }))
+
+        const faqs = (data.faqs || [])
+            .filter((f: any) => !f.deleted_at)
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
+            .map((f: any) => ({
+                id: f.id,
+                studioId: f.studio_id,
+                question: f.question,
+                answer: f.answer,
+                displayOrder: f.display_order ?? 0,
+                createdAt: f.created_at,
+                updatedAt: f.updated_at,
+                deletedAt: f.deleted_at,
+            }))
 
         return withCors(NextResponse.json({
             id: data.id,
@@ -40,6 +104,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             servicesOffered: data.services_offered ?? [],
             createdAt: data.created_at,
             updatedAt: data.updated_at,
+            reviews,
+            specializations,
+            faqs,
             owner: data.owner ? {
                 id: data.owner.id,
                 firstName: data.owner.first_name,

@@ -1,0 +1,11 @@
+// Barrel export for all studio public page components
+export { default as StudioPublicHero } from './StudioPublicHero'
+export { default as StudioTrustBar } from './StudioTrustBar'
+export { default as StudioAboutSection } from './StudioAboutSection'
+export { default as StudioSpecializations } from './StudioSpecializations'
+export { default as StudioServicesSection } from './StudioServicesSection'
+export { default as StudioMethodology } from './StudioMethodology'
+export { default as StudioReviewsSection } from './StudioReviewsSection'
+export { default as StudioLocationContact } from './StudioLocationContact'
+export { default as StudioFaqSection } from './StudioFaqSection'
+export { default as StudioFinalCta } from './StudioFinalCta'

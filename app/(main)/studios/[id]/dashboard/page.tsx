@@ -140,7 +140,7 @@ export default function StudioDashboardPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
             </div>
         )
     }
@@ -157,7 +157,7 @@ export default function StudioDashboardPage() {
                         <h1 className="text-2xl font-bold text-gray-900">{studio.name}</h1>
                         <p className="text-gray-500 text-sm">Dashboard gestionale</p>
                     </div>
-                    <Link href={`/studios/${studioId}`} className="text-sm text-green-600 hover:text-green-700">
+                    <Link href={`/studios/${studioId}`} className="text-sm text-brand-600 hover:text-brand-700">
                         ← Pagina pubblica
                     </Link>
                 </div>
@@ -191,7 +191,7 @@ export default function StudioDashboardPage() {
                                 key={key}
                                 onClick={() => setActiveTab(key)}
                                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition border-b-2 ${activeTab === key
-                                    ? 'border-green-600 text-green-600 bg-green-50/50'
+                                    ? 'border-brand-600 text-brand-600 bg-brand-50/50'
                                     : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}
                             >
@@ -267,11 +267,11 @@ export default function StudioDashboardPage() {
                                 ) : clients.map(c => (
                                     <div key={c.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                                 {c.client?.firstName?.[0]}{c.client?.lastName?.[0]}
                                             </div>
                                             <div>
-                                                <Link href={`/profile/${c.clientProfileId}`} className="font-medium text-gray-900 hover:text-green-600">
+                                                <Link href={`/profile/${c.clientProfileId}`} className="font-medium text-gray-900 hover:text-brand-600">
                                                     {c.client?.firstName} {c.client?.lastName}
                                                 </Link>
                                                 {c.onboardedAt && <p className="text-xs text-gray-400">Dal {new Date(c.onboardedAt).toLocaleDateString('it-IT')}</p>}
@@ -296,7 +296,7 @@ export default function StudioDashboardPage() {
                             <form onSubmit={handleSaveEdit} className="space-y-5 max-w-lg">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Nome <span className="text-red-500">*</span></label>
-                                    <input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" required />
+                                    <input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
@@ -314,30 +314,30 @@ export default function StudioDashboardPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
-                                        <input value={editForm.city} onChange={e => setEditForm(p => ({ ...p, city: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" />
+                                        <input value={editForm.city} onChange={e => setEditForm(p => ({ ...p, city: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                                        <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" />
+                                        <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none" />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Sito web</label>
-                                    <input type="url" value={editForm.website} onChange={e => setEditForm(p => ({ ...p, website: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" />
+                                    <input type="url" value={editForm.website} onChange={e => setEditForm(p => ({ ...p, website: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
-                                    <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none resize-none" />
+                                    <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none resize-none" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Servizi</label>
                                     <div className="flex gap-2 mb-2">
-                                        <input value={newService} onChange={e => setNewService(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newService.trim()) { setEditForm(p => ({ ...p, servicesOffered: [...p.servicesOffered, newService.trim()] })); setNewService('') } } }} placeholder="Aggiungi servizio..." className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" />
-                                        <button type="button" onClick={() => { if (newService.trim()) { setEditForm(p => ({ ...p, servicesOffered: [...p.servicesOffered, newService.trim()] })); setNewService('') } }} className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"><PlusCircleIcon className="h-5 w-5" /></button>
+                                        <input value={newService} onChange={e => setNewService(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newService.trim()) { setEditForm(p => ({ ...p, servicesOffered: [...p.servicesOffered, newService.trim()] })); setNewService('') } } }} placeholder="Aggiungi servizio..." className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none" />
+                                        <button type="button" onClick={() => { if (newService.trim()) { setEditForm(p => ({ ...p, servicesOffered: [...p.servicesOffered, newService.trim()] })); setNewService('') } }} className="px-3 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"><PlusCircleIcon className="h-5 w-5" /></button>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {editForm.servicesOffered.map((s, i) => (
-                                            <span key={i} className="flex items-center gap-1 text-sm bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100">
+                                            <span key={i} className="flex items-center gap-1 text-sm bg-brand-50 text-brand-800 px-3 py-1 rounded-full border border-brand-100">
                                                 {s}
                                                 <button type="button" onClick={() => setEditForm(p => ({ ...p, servicesOffered: p.servicesOffered.filter((_, j) => j !== i) }))}><XMarkIcon className="h-3.5 w-3.5" /></button>
                                             </span>
@@ -346,7 +346,7 @@ export default function StudioDashboardPage() {
                                 </div>
                                 <div className="flex gap-3 pt-2">
                                     <button type="button" onClick={() => setActiveTab('overview')} className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">Annulla</button>
-                                    <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold disabled:opacity-60">{saving ? 'Salvataggio...' : 'Salva modifiche'}</button>
+                                    <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-semibold disabled:opacity-60">{saving ? 'Salvataggio...' : 'Salva modifiche'}</button>
                                 </div>
                             </form>
                         )}

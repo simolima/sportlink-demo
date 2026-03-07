@@ -94,7 +94,7 @@ export default function CreateStudioPage() {
     if (authLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
             </div>
         )
     }
@@ -124,7 +124,7 @@ export default function CreateStudioPage() {
                             value={formData.name}
                             onChange={e => handleChange('name', e.target.value)}
                             placeholder="Es: Studio Fisioterapico Rossi"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             required
                         />
                     </div>
@@ -152,7 +152,7 @@ export default function CreateStudioPage() {
                             value={formData.city}
                             onChange={e => handleChange('city', e.target.value)}
                             placeholder="Es: Milano"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                         />
                     </div>
 
@@ -165,7 +165,7 @@ export default function CreateStudioPage() {
                                 value={formData.phone}
                                 onChange={e => handleChange('phone', e.target.value)}
                                 placeholder="+39 02 12345678"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             />
                         </div>
                         <div>
@@ -175,7 +175,7 @@ export default function CreateStudioPage() {
                                 value={formData.website}
                                 onChange={e => handleChange('website', e.target.value)}
                                 placeholder="https://..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             />
                         </div>
                     </div>
@@ -188,7 +188,7 @@ export default function CreateStudioPage() {
                             onChange={e => handleChange('description', e.target.value)}
                             placeholder="Descrivi i tuoi servizi, la tua esperienza e l'approccio professionale..."
                             rows={4}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none resize-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none resize-none"
                         />
                     </div>
 
@@ -202,12 +202,12 @@ export default function CreateStudioPage() {
                                 onChange={e => setNewService(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addService())}
                                 placeholder="Es: Fisioterapia, Riabilitazione..."
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
                             />
                             <button
                                 type="button"
                                 onClick={addService}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                             >
                                 <PlusCircleIcon className="h-5 w-5" />
                             </button>
@@ -215,7 +215,7 @@ export default function CreateStudioPage() {
                         {formData.servicesOffered.length > 0 && (
                             <div className="flex flex-wrap gap-2">
                                 {formData.servicesOffered.map((s, i) => (
-                                    <span key={i} className="flex items-center gap-1 text-sm bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100">
+                                    <span key={i} className="flex items-center gap-1 text-sm bg-brand-50 text-brand-800 px-3 py-1 rounded-full border border-brand-200">
                                         {s}
                                         <button type="button" onClick={() => removeService(s)}>
                                             <XMarkIcon className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function CreateStudioPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold disabled:opacity-60"
+                            className="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-semibold disabled:opacity-60"
                         >
                             {loading ? 'Creazione...' : 'Crea Studio'}
                         </button>

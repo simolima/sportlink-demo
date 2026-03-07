@@ -165,6 +165,8 @@ export async function POST(req: Request) {
 - `/api/messages` POST — verifica `senderId`
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
+- `/api/studios/[id]/reviews` POST — cliente attivo può creare la propria recensione
+- `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna rating/commento, owner modera `isPublished`
 - `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)
 - `/api/users` PATCH — verifica che `userId` corrisponda al token
 - `/api/follows` POST/DELETE — verifica `followerId`
@@ -239,9 +241,5 @@ const fallbackPoll = setInterval(async () => {
 | `/api/organization-requests` | Richieste organizzazione |
 | `/api/organization-requests/[id]/approve` | Approvazione |
 | `/api/lookup/positions` | Lookup posizioni per sport+ruolo (supporta alias Pallavolo/Volley) |
-| `/api/studios` | CRUD studi professionali |
-| `/api/studios/[id]` | Dettaglio studio |
-| `/api/studios/[id]/clients` | Clienti di uno studio |
-| `/api/studios/[id]/appointments` | Appuntamenti studio |
-| `/api/studios/[id]/appointments/[apptId]` | Dettaglio/update appuntamento |
-| `/api/places-autocomplete` | Autocomplete indirizzi (Google Places) |
+| `/api/studios/[id]/reviews` | Recensioni studio (GET/POST) |
+| `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH/DELETE) |

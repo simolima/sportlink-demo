@@ -186,6 +186,40 @@ club_memberships      — Roster attuale del club
   ├── permissions (JSONB), position_id FK
   └── deleted_at
 
+-- STUDI PROFESSIONALI
+professional_studios  — Studio professionale per ruoli medical/sport performance
+  ├── id (UUID), owner_id FK, name
+  ├── city, address, phone, website, logo_url, description
+  ├── services_offered (JSONB array)
+  └── deleted_at, created_at, updated_at
+
+studio_clients        — Relazione studio ↔ clienti (athletes/profiles)
+  ├── id (UUID), studio_id FK, client_profile_id FK
+  ├── status ('pending'|'active'|'inactive')
+  ├── notes, onboarded_at
+  └── deleted_at, created_at, updated_at
+
+studio_appointments   — Agenda appuntamenti studio
+  ├── id (UUID), studio_id FK, client_id FK, professional_id FK
+  ├── start_time, end_time, status, service_type, notes
+  └── deleted_at, created_at, updated_at
+
+studio_reviews        — Recensioni clienti verso studio (nuovo, Marzo 2026)
+  ├── id (UUID), studio_id FK, reviewer_profile_id FK
+  ├── rating (1..5), title, comment
+  ├── is_verified, is_published
+  └── deleted_at, created_at, updated_at
+
+studio_specializations — Specializzazioni pubbliche mostrabili nella pagina studio (nuovo)
+  ├── id (UUID), studio_id FK
+  ├── name, description, icon, display_order
+  └── deleted_at, created_at, updated_at
+
+studio_faqs           — FAQ pubbliche per studio (nuovo)
+  ├── id (UUID), studio_id FK
+  ├── question, answer, display_order
+  └── deleted_at, created_at, updated_at
+
 -- MARKETPLACE
 opportunities         — Annunci di lavoro
   ├── id (UUID), club_id FK, created_by FK

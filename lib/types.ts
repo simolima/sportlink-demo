@@ -573,6 +573,49 @@ export type MedicalRole = typeof MEDICAL_ROLES[number];
 export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 export type StudioClientStatus = 'pending' | 'active' | 'inactive';
 
+export type StudioReview = {
+  id: string;
+  studioId: string;
+  reviewerProfileId: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  isVerified: boolean;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  deletedAt?: string;
+  reviewer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+};
+
+export type StudioSpecialization = {
+  id: string;
+  studioId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
+};
+
+export type StudioFaq = {
+  id: string;
+  studioId: string;
+  question: string;
+  answer: string;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
+};
+
 export type ProfessionalStudio = {
   id: string;
   ownerId: string;
@@ -595,6 +638,9 @@ export type ProfessionalStudio = {
     avatarUrl?: string;
     roleId: string;
   };
+  reviews?: StudioReview[];
+  specializations?: StudioSpecialization[];
+  faqs?: StudioFaq[];
 };
 
 export type StudioAppointment = {

@@ -172,6 +172,7 @@ export async function POST(req: Request) {
 - `/api/messages` POST — verifica `senderId`
 - `/api/messages` PATCH — verifica `userId` o ownership dei messaggi per IDs
 - `/api/affiliations` POST — verifica `agentId`
+- `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)
 
 ### Endpoint da hardenare (priorità decrescente)
 
@@ -199,7 +200,7 @@ const fallbackPoll = setInterval(async () => {
 }, 30_000) // ogni 30 secondi
 ```
 
-## Lista Endpoint Esistenti (27 routes)
+## Lista Endpoint Esistenti (29 routes)
 
 | Endpoint | Note |
 |----------|------|
@@ -230,3 +231,5 @@ const fallbackPoll = setInterval(async () => {
 | `/api/sports-organizations` | Organizzazioni sportive |
 | `/api/organization-requests` | Richieste organizzazione |
 | `/api/organization-requests/[id]/approve` | Approvazione |
+| `/api/users/roles` | Lista ruoli utente + creazione ruolo multi-profile (POST autenticata) |
+| `/api/lookup/positions` | Lookup posizioni per sport+ruolo (supporta alias Pallavolo/Volley) |

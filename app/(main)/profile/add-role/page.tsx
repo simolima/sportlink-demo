@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
-import { switchActiveRole, deleteProfileRole } from '@/app/actions/role-actions'
+import { switchActiveRole } from '@/app/actions/role-actions'
+import { getAuthHeaders } from '@/lib/auth-fetch'
 import { isMultiSportRole, SUPPORTED_SPORTS } from '@/utils/roleHelpers'
 import {
     PROFESSIONAL_ROLES,
@@ -91,10 +91,16 @@ export default function AddRolePage() {
     // ── Fetch ruoli esistenti ───────────────────────────────────────────────
     useEffect(() => {
         if (!user?.id) return
-        fetch(`/api/users/roles?userId=${user.id}`)
-            .then(res => res.ok ? res.json() : [])
-            .then((data: { role_id: string }[]) => setExistingRoles(data.map(r => r.role_id)))
-            .catch(() => { })
+
+            ; (async () => {
+                const authHeaders = await getAuthHeaders()
+                const response = await fetch('/api/users/roles', {
+                    headers: authHeaders,
+                })
+                const data = response.ok ? await response.json() : []
+                setExistingRoles((data as { role_id: string }[]).map(r => r.role_id))
+            })()
+                .catch(() => { })
     }, [user?.id])
 
     // ── Fetch posizioni quando si arriva allo step 3 ────────────────────────
@@ -104,46 +110,24 @@ export default function AddRolePage() {
 
         setPositionsLoading(true)
             ; (async () => {
-                // Recupera sport_id dal nome
-                const { data: sportRow } = await supabaseBrowser
-                    .from('lookup_sports')
-                    .select('id')
-                    .eq('name', selectedSports[0])
-                    .maybeSingle()
+                const response = await fetch(
+                    `/api/lookup/positions?sportName=${encodeURIComponent(selectedSports[0])}&roleId=${encodeURIComponent(selectedRole)}`
+                )
 
-                if (!sportRow) {
-                    // Prova con mapping alternativi (Pallavolo → Volley)
-                    const altName = selectedSports[0] === 'Pallavolo' ? 'Volley' : null
-                    if (altName) {
-                        const { data: altRow } = await supabaseBrowser
-                            .from('lookup_sports')
-                            .select('id')
-                            .eq('name', altName)
-                            .maybeSingle()
-                        if (altRow) {
-                            await fetchPositions(altRow.id, selectedRole)
-                            return
-                        }
-                    }
+                if (!response.ok) {
                     setPositions([])
                     setPositionsLoading(false)
                     return
                 }
-                await fetchPositions(sportRow.id, selectedRole)
+
+                const data = await response.json()
+                setPositions(Array.isArray(data) ? data : [])
+                setPositionsLoading(false)
             })()
-
-        async function fetchPositions(sportId: number, roleId: string) {
-            const { data } = await supabaseBrowser
-                .from('lookup_positions')
-                .select('id, name, category')
-                .eq('sport_id', sportId)
-                .eq('role_id', roleId)
-                .order('category')
-                .order('name')
-
-            setPositions(data ?? [])
-            setPositionsLoading(false)
-        }
+                .catch(() => {
+                    setPositions([])
+                    setPositionsLoading(false)
+                })
     }, [step, selectedRole, selectedSports])
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -193,70 +177,35 @@ export default function AddRolePage() {
         setError(null)
 
         try {
-            // 1. Insert in profile_roles
-            const { error: roleErr } = await supabaseBrowser
-                .from('profile_roles')
-                .insert({
-                    user_id: user.id,
-                    role_id: selectedRole,
-                    is_active: true,
-                    is_primary: false,
-                })
+            const authHeaders = await getAuthHeaders()
+            const response = await fetch('/api/users/roles', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    roleId: selectedRole,
+                    sports: selectedSports,
+                    primaryPositionId: selectedPositionId,
+                }),
+            })
 
-            if (roleErr) {
-                if (roleErr.code === '23505') {
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}))
+                if (response.status === 409 || payload?.error === 'role_already_exists') {
                     setError('Hai già questo ruolo attivo.')
+                } else if (response.status === 401) {
+                    setError('Sessione scaduta. Effettua di nuovo il login.')
                 } else {
-                    setError(roleErr.message)
+                    setError(payload?.error || 'Errore nel salvataggio. Riprova.')
                 }
                 setSaving(false)
                 return
             }
 
-            // 2. Recupera sport_id per ciascun sport selezionato
-            const { data: sportsRows } = await supabaseBrowser
-                .from('lookup_sports')
-                .select('id, name')
-
-            if (!sportsRows) throw new Error('Errore nel recupero degli sport')
-
-            // Mappa nome → id (gestisce alias Pallavolo/Volley)
-            const sportNameToId: Record<string, number> = {}
-            for (const row of sportsRows) {
-                sportNameToId[row.name] = row.id
-            }
-
-            const sportRecords = selectedSports.map((sportName, idx) => {
-                const sportId =
-                    sportNameToId[sportName] ??
-                    sportNameToId[sportName === 'Pallavolo' ? 'Volley' : sportName]
-
-                return {
-                    user_id: user.id,
-                    sport_id: sportId,
-                    role_id: selectedRole,
-                    is_main_sport: idx === 0,
-                    primary_position_id: idx === 0 ? selectedPositionId : null,
-                }
-            }).filter(r => r.sport_id != null)
-
-            // 3. Insert in profile_sports
-            if (sportRecords.length > 0) {
-                const { error: sportErr } = await supabaseBrowser
-                    .from('profile_sports')
-                    .insert(sportRecords)
-
-                if (sportErr) {
-                    console.error('profile_sports insert error:', sportErr)
-                    // Rollback: rimuovi il ruolo appena creato (server action bypassa RLS)
-                    await deleteProfileRole(selectedRole)
-                    setError('Errore nel salvataggio degli sport. Riprova.')
-                    setSaving(false)
-                    return
-                }
-            }
-
-            // 4. Switch al nuovo ruolo
+            // 2. Switch al nuovo ruolo
             await switchActiveRole(selectedRole)
             localStorage.setItem('currentUserRole', selectedRole)
             localStorage.setItem(

@@ -44,7 +44,11 @@ export default function RoleSwitcher({ activeRole, availableRoles }: RoleSwitche
     function handleSwitch(roleId: ProfessionalRole) {
         if (roleId === activeRole || isPending) return
         startTransition(async () => {
-            await switchActiveRole(roleId)
+            try {
+                await switchActiveRole(roleId)
+            } catch (err: any) {
+                console.error('Switch role failed:', err)
+            }
         })
     }
 

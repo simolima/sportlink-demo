@@ -28,6 +28,19 @@ interface ClubMembership {
 
 type MainTab = 'career' | 'clubs'
 type CareerSubTab = 'all' | 'applications'
+type PendingAction =
+  | {
+    type: 'delete_opportunity'
+    opportunityId: number
+    title: string
+    description: string
+  }
+  | {
+    type: 'withdraw_application'
+    applicationId: string
+    title: string
+    description: string
+  }
 
 const normalizeMainTab = (tab: string | null): MainTab => {
   if (tab === 'clubs' || tab === 'my-clubs') return 'clubs'
@@ -58,6 +71,8 @@ export default function OpportunitiesPage() {
   const [agentApplyTarget, setAgentApplyTarget] = useState<OpportunityWithDetails | null>(null)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('')
   const [submittingAgentApplication, setSubmittingAgentApplication] = useState(false)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [submittingPendingAction, setSubmittingPendingAction] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     search: '',
@@ -297,19 +312,61 @@ export default function OpportunitiesPage() {
     }
   }
 
-  const handleDeleteOpportunity = async (opportunityId: number) => {
-    if (!confirm('Sei sicuro di voler eliminare questa opportunità?')) return
+  const openDeleteOpportunityConfirm = (opportunityId: number, title: string) => {
+    setPendingAction({
+      type: 'delete_opportunity',
+      opportunityId,
+      title: 'Eliminare opportunità?',
+      description: `Stai per eliminare “${title}”. L'azione non è reversibile.`,
+    })
+  }
 
+  const openWithdrawApplicationConfirm = (applicationId: string, opportunityTitle: string) => {
+    setPendingAction({
+      type: 'withdraw_application',
+      applicationId,
+      title: 'Ritirare candidatura?',
+      description: `Ritirerai la candidatura per “${opportunityTitle}”. Potrai candidarti di nuovo in seguito.`,
+    })
+  }
+
+  const closePendingActionModal = () => {
+    setPendingAction(null)
+    setSubmittingPendingAction(false)
+  }
+
+  const handlePendingActionConfirm = async () => {
+    if (!pendingAction) return
+
+    setSubmittingPendingAction(true)
     try {
-      const res = await fetch(`/api/opportunities?id=${opportunityId}`, { method: 'DELETE' })
-      if (res.ok) {
+      if (pendingAction.type === 'delete_opportunity') {
+        const res = await fetch(`/api/opportunities?id=${pendingAction.opportunityId}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('delete_failed')
+
+        setMyClubOpportunities(prev => prev.filter(o => {
+          const id = typeof o.id === 'number' ? o.id : parseInt(String(o.id))
+          return id !== pendingAction.opportunityId
+        }))
         showToast('success', 'Eliminata', "L'opportunità è stata eliminata")
-        setMyClubOpportunities(prev => prev.filter(o => o.id !== opportunityId))
-      } else {
-        showToast('error', 'Errore', "Impossibile eliminare l'opportunità")
       }
-    } catch (error) {
-      showToast('error', 'Errore', 'Si è verificato un errore')
+
+      if (pendingAction.type === 'withdraw_application') {
+        const res = await fetch(`/api/applications?id=${pendingAction.applicationId}&withdraw=true`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('withdraw_failed')
+
+        setUserApplications(prev => prev.map(app =>
+          String(app.id) === String(pendingAction.applicationId)
+            ? { ...app, status: 'withdrawn' }
+            : app
+        ))
+        showToast('success', 'Candidatura ritirata', 'Hai ritirato con successo la candidatura')
+      }
+
+      closePendingActionModal()
+    } catch {
+      showToast('error', 'Errore', 'Operazione non riuscita. Riprova.')
+      setSubmittingPendingAction(false)
     }
   }
 
@@ -626,14 +683,7 @@ export default function OpportunitiesPage() {
                         </button>
                         {hasApplied && withdrawableApplication?.status !== 'withdrawn' && (
                           <button
-                            onClick={async () => {
-                              try {
-                                await fetch(`/api/applications?id=${withdrawableApplication.id}&withdraw=true`, { method: 'DELETE' })
-                                setUserApplications(prev => prev.map(app => app.id === withdrawableApplication.id ? { ...app, status: 'withdrawn' } : app))
-                              } catch (e) {
-                                alert('Errore nel ritiro della candidatura')
-                              }
-                            }}
+                            onClick={() => openWithdrawApplicationConfirm(String(withdrawableApplication.id), announcement.title)}
                             className="w-full px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50"
                           >
                             Ritira candidatura
@@ -765,7 +815,10 @@ export default function OpportunitiesPage() {
                                     <Eye size={18} />
                                   </Link>
                                   <button
-                                    onClick={() => handleDeleteOpportunity(typeof opp.id === 'number' ? opp.id : parseInt(opp.id as string))}
+                                    onClick={() => openDeleteOpportunityConfirm(
+                                      typeof opp.id === 'number' ? opp.id : parseInt(opp.id as string),
+                                      opp.title
+                                    )}
                                     className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                                     title="Elimina opportunità"
                                   >
@@ -835,6 +888,36 @@ export default function OpportunitiesPage() {
                 className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submittingAgentApplication ? 'Invio...' : 'Invia candidatura'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md glass-widget rounded-2xl border border-base-300/70 overflow-hidden">
+            <div className="glass-widget-header border-b border-base-300/70 px-5 py-4">
+              <h3 className="text-lg font-semibold text-white">{pendingAction.title}</h3>
+              <p className="text-sm glass-subtle-text mt-1">{pendingAction.description}</p>
+            </div>
+
+            <div className="px-5 py-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closePendingActionModal}
+                disabled={submittingPendingAction}
+                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-white hover:bg-base-300/60 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handlePendingActionConfirm}
+                disabled={submittingPendingAction}
+                className="px-4 py-2 rounded-lg bg-error text-white hover:opacity-90 disabled:opacity-60"
+              >
+                {submittingPendingAction ? 'Conferma...' : 'Conferma'}
               </button>
             </div>
           </div>

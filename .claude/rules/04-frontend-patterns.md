@@ -397,7 +397,9 @@ Regole:
 La pagina `app/(main)/opportunities/page.tsx` usa ora un flusso candidatura agente non bloccante:
 
 - ❌ vietato usare `prompt()` per selezionare assistiti
+- ❌ vietato usare `alert()` / `confirm()` nativi nei flow azione principali
 - ✅ usare modal inline con lista assistiti + submit esplicito
+- ✅ usare modal di conferma inline per azioni distruttive (delete/withdraw)
 - lo stato submit deve disabilitare il bottone per evitare doppio invio
 
 Compatibilità tab:

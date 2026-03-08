@@ -10,6 +10,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
+import { isNotificationTypeEnabled } from '@/lib/notifications-repository'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -118,6 +119,50 @@ export async function POST(request: Request) {
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
 
+        // Notify club admins about the new join request (fire-and-forget)
+        ; (async () => {
+            try {
+                const { data: admins } = await supabaseServer
+                    .from('club_memberships')
+                    .select('user_id')
+                    .eq('club_id', data.club_id)
+                    .eq('club_role', 'Admin')
+                    .eq('status', 'active')
+                    .is('deleted_at', null)
+
+                const { data: club } = await supabaseServer
+                    .from('clubs')
+                    .select('name')
+                    .eq('id', data.club_id)
+                    .single()
+
+                const { data: requester } = await supabaseServer
+                    .from('profiles')
+                    .select('first_name, last_name')
+                    .eq('id', data.user_id)
+                    .single()
+
+                const requesterName = requester
+                    ? `${requester.first_name} ${requester.last_name}`.trim()
+                    : 'Un utente'
+
+                for (const admin of admins || []) {
+                    const enabled = await isNotificationTypeEnabled(admin.user_id, 'club_join_request')
+                    if (!enabled) continue
+                    await supabaseServer.from('notifications').insert({
+                        user_id: admin.user_id,
+                        type: 'club_join_request',
+                        title: 'Nuova richiesta di ingresso',
+                        message: `${requesterName} vuole entrare in ${club?.name || 'il club'}`,
+                        metadata: { requestId: data.id, clubId: data.club_id, requesterId: data.user_id },
+                        is_read: false,
+                    })
+                }
+            } catch (e) {
+                console.error('club_join_request notify error:', e)
+            }
+        })()
+
         return withCors(NextResponse.json({
             id: data.id,
             clubId: data.club_id,
@@ -157,6 +202,42 @@ export async function PUT(request: Request) {
         if (error) {
             console.error('PUT /api/club-join-requests error:', error)
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+        }
+
+        // Notify the requester of accept/reject (fire-and-forget)
+        if (data.status === 'accepted' || data.status === 'rejected') {
+            ; (async () => {
+                try {
+                    const notifType = data.status === 'accepted' ? 'club_join_accepted' : 'club_join_rejected'
+                    const enabled = await isNotificationTypeEnabled(data.user_id, notifType)
+                    if (!enabled) return
+
+                    const { data: club } = await supabaseServer
+                        .from('clubs')
+                        .select('name')
+                        .eq('id', data.club_id)
+                        .single()
+
+                    const clubName = club?.name || 'il club'
+                    const title = data.status === 'accepted'
+                        ? 'Richiesta accettata'
+                        : 'Richiesta rifiutata'
+                    const message = data.status === 'accepted'
+                        ? `La tua richiesta di ingresso in ${clubName} è stata accettata`
+                        : `La tua richiesta di ingresso in ${clubName} è stata rifiutata`
+
+                    await supabaseServer.from('notifications').insert({
+                        user_id: data.user_id,
+                        type: notifType,
+                        title,
+                        message,
+                        metadata: { requestId: data.id, clubId: data.club_id },
+                        is_read: false,
+                    })
+                } catch (e) {
+                    console.error('club_join accept/reject notify error:', e)
+                }
+            })()
         }
 
         return withCors(NextResponse.json({

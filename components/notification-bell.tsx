@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell } from 'lucide-react'
+import { Bell, BellOff } from 'lucide-react'
+import { playNotificationSound, getSoundVariant, isSoundEnabled, toggleSound, unlockAudioContext } from '@/lib/notification-sound'
 import Link from 'next/link'
 import { Notification } from '@/lib/types'
 import { supabase } from '@/lib/supabase-browser'
@@ -19,6 +20,18 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [hasNewNotification, setHasNewNotification] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  // Sync sound state from localStorage (client only)
+  useEffect(() => {
+    setSoundEnabled(isSoundEnabled())
+  }, [])
+
+  const handleToggleSound = () => {
+    unlockAudioContext()
+    const next = toggleSound()
+    setSoundEnabled(next)
+  }
 
   // Fetch iniziale notifiche (esclude messaggi)
   const fetchNotifications = useCallback(async () => {
@@ -66,6 +79,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
           setNotifications(prev => [notification, ...prev].slice(0, 10))
           setUnreadCount(prev => prev + 1)
           setHasNewNotification(true)
+          playNotificationSound(getSoundVariant(raw.type))
           setTimeout(() => setHasNewNotification(false), 2000)
         }
       )
@@ -114,13 +128,23 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
           <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-20 max-h-96 overflow-y-auto">
             <div className="p-3 border-b flex items-center justify-between">
               <h3 className="font-semibold text-sm">Notifiche</h3>
-              <Link
-                href="/notifications"
-                className="text-xs text-blue-600 hover:underline"
-                onClick={() => setShowDropdown(false)}
-              >
-                Vedi tutte
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleToggleSound}
+                  className="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500"
+                  title={soundEnabled ? 'Disabilita suono' : 'Abilita suono'}
+                  aria-label={soundEnabled ? 'Disabilita suono notifiche' : 'Abilita suono notifiche'}
+                >
+                  {soundEnabled ? <Bell size={14} /> : <BellOff size={14} />}
+                </button>
+                <Link
+                  href="/notifications"
+                  className="text-xs text-blue-600 hover:underline"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  Vedi tutte
+                </Link>
+              </div>
             </div>
 
             {notifications.length === 0 ? (

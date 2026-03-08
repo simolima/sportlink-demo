@@ -38,8 +38,8 @@ function makeNotification(overrides: Partial<Notification> = {}): Notification {
 // getNotificationCategory
 // ============================================================================
 describe('getNotificationCategory', () => {
-    it('returns "follower" for new_follower', () => {
-        expect(getNotificationCategory('new_follower')).toBe('follower')
+    it('returns null for new_follower (category removed from UI)', () => {
+        expect(getNotificationCategory('new_follower')).toBeNull()
     })
 
     it('returns "messages" for message_received', () => {
@@ -265,13 +265,13 @@ describe('formatNotificationType', () => {
 // ============================================================================
 describe('isNotificationEnabled', () => {
     it('returns true when category is enabled', () => {
-        const prefs = { ...DEFAULT_NOTIFICATION_PREFERENCES, follower: true }
-        expect(isNotificationEnabled('new_follower', prefs)).toBe(true)
+        const prefs = { ...DEFAULT_NOTIFICATION_PREFERENCES, profile: true }
+        expect(isNotificationEnabled('profile_verified', prefs)).toBe(true)
     })
 
     it('returns false when category is disabled', () => {
-        const prefs = { ...DEFAULT_NOTIFICATION_PREFERENCES, follower: false }
-        expect(isNotificationEnabled('new_follower', prefs)).toBe(false)
+        const prefs = { ...DEFAULT_NOTIFICATION_PREFERENCES, profile: false }
+        expect(isNotificationEnabled('profile_verified', prefs)).toBe(false)
     })
 
     it('returns true for unknown type (safe default)', () => {
@@ -413,13 +413,14 @@ describe('isGroupedNotification', () => {
 describe('exported constants', () => {
     it('NOTIFICATION_CATEGORIES has all expected keys', () => {
         const keys = Object.keys(NOTIFICATION_CATEGORIES)
-        expect(keys).toContain('follower')
         expect(keys).toContain('messages')
         expect(keys).toContain('applications')
         expect(keys).toContain('affiliations')
         expect(keys).toContain('club')
         expect(keys).toContain('opportunities')
+        expect(keys).toContain('profile')
         expect(keys).toContain('permissions')
+        expect(keys).not.toContain('follower')
     })
 
     it('CATEGORY_TRANSLATIONS has a translation for every category', () => {

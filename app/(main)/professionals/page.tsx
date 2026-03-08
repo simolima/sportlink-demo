@@ -498,7 +498,7 @@ export default function ProfessionalsPage() {
                                             <button
                                                 key={chip.key}
                                                 onClick={chip.onRemove}
-                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-full hover:bg-brand-100 transition-colors"
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/30 rounded-full hover:bg-primary/15 transition-colors"
                                             >
                                                 <span>{chip.label}</span>
                                                 <span aria-hidden="true">×</span>
@@ -514,7 +514,7 @@ export default function ProfessionalsPage() {
                                         </p>
                                         <button
                                             onClick={() => router.push('/agent/affiliations')}
-                                            className="px-3 py-2 text-sm font-semibold text-white bg-primary hover:bg-brand-700 rounded-lg transition-colors"
+                                            className="px-3 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors"
                                         >
                                             Le mie affiliazioni
                                         </button>
@@ -552,7 +552,7 @@ export default function ProfessionalsPage() {
                                 {hasActiveFilters && (
                                     <button
                                         onClick={resetFilters}
-                                        className="mt-4 px-4 py-2 bg-primary hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                                        className="mt-4 px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors duration-200"
                                     >
                                         Rimuovi tutti i filtri
                                     </button>
@@ -572,19 +572,19 @@ export default function ProfessionalsPage() {
                                     <button
                                         onClick={() => fetchProfessionals(Math.max(0, offset - limit))}
                                         disabled={offset === 0 || loading}
-                                        className="px-4 py-2 bg-[#0A0F32] hover:bg-[#161B4A] disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Precedenti
                                     </button>
 
-                                    <span className="text-sm text-gray-600 font-medium">
+                                    <span className="text-sm glass-subtle-text font-medium">
                                         {offset + 1} - {Math.min(offset + limit, total)} di {total}
                                     </span>
 
                                     <button
                                         onClick={() => fetchProfessionals(offset + limit)}
                                         disabled={!hasMore || loading}
-                                        className="px-4 py-2 bg-[#0A0F32] hover:bg-[#161B4A] disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Successivi
                                     </button>

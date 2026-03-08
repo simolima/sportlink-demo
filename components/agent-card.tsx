@@ -32,7 +32,7 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
     return (
         <div
             onClick={handleProfileClick}
-            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200 h-full flex flex-col cursor-pointer group"
+            className="glass-widget rounded-xl border border-base-300/70 overflow-hidden hover:border-primary/35 transition-all duration-200 h-full flex flex-col cursor-pointer group"
         >
             <div className="p-5 flex flex-col h-full">
                 {/* Top: Avatar + Name + Follow */}
@@ -45,14 +45,14 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
                     />
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                            <h3 className="font-semibold text-base text-gray-900 truncate group-hover:text-brand-700 transition-colors">
+                            <h3 className="font-semibold text-base text-white truncate group-hover:text-primary transition-colors">
                                 {fullName}
                             </h3>
                             {isVerified && (
-                                <CheckBadgeIcon className="w-4.5 h-4.5 text-amber-500 flex-shrink-0" />
+                                <CheckBadgeIcon className="w-4.5 h-4.5 text-primary flex-shrink-0" />
                             )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-0.5">Agente</p>
+                        <p className="text-sm glass-subtle-text mt-0.5">Agente</p>
                     </div>
                     {currentUserId && currentUserId !== agent.id && (
                         <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -64,7 +64,7 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
 
                 {/* Bio or Agent Notes */}
                 {(agent.bio || agent.agentNotes) && (
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    <p className="text-sm glass-subtle-text line-clamp-2 mb-3">
                         {agent.bio || agent.agentNotes}
                     </p>
                 )}
@@ -72,26 +72,26 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
                 {/* Tags row */}
                 <div className="flex flex-wrap items-center gap-2 mt-auto">
                     {mainSport && (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100 inline-flex items-center gap-1">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/30 inline-flex items-center gap-1">
                             <SportIcon sport={mainSport} className="w-3 h-3 flex-shrink-0" />
                             {mainSport}
                         </span>
                     )}
                     {uefaLicenses.length > 0 && (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-warning/10 text-warning border border-warning/30">
                             <BriefcaseIcon className="w-3 h-3 inline mr-0.5 -mt-0.5" />
                             UEFA
                         </span>
                     )}
                     {hasFIFA && (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-warning/10 text-warning border border-warning/30">
                             <BriefcaseIcon className="w-3 h-3 inline mr-0.5 -mt-0.5" />
                             FIFA
                         </span>
                     )}
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${agent.availability === 'Disponibile'
-                        ? 'bg-brand-50 text-brand-700 border border-brand-100'
-                        : 'bg-gray-50 text-gray-500 border border-gray-200'
+                        ? 'bg-primary/10 text-primary border border-primary/30'
+                        : 'bg-base-300/70 text-secondary/70 border border-base-300'
                         }`}>
                         {agent.availability || 'Non specificato'}
                     </span>
@@ -99,7 +99,7 @@ export default function AgentCard({ agent, currentUserId }: AgentCardProps) {
 
                 {/* Location & Country footer */}
                 {(city || country) && (
-                    <div className="flex items-center gap-3 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-3 text-xs glass-quiet-text mt-3 pt-3 border-t border-base-300/70">
                         {city && (
                             <div className="flex items-center gap-1">
                                 <MapPinIcon className="w-3.5 h-3.5" />

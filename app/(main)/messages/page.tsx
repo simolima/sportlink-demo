@@ -104,7 +104,7 @@ export default function MessagesPage() {
     // Auth check
     if (authLoading || !user) {
         return (
-            <div className="h-[calc(100vh-64px)] flex items-center justify-center">
+            <div className="h-[calc(100vh-64px)] glass-page-bg flex items-center justify-center">
                 <div className="animate-spin w-8 h-8 border-2 border-[#2341F0] border-t-transparent rounded-full" />
             </div>
         )
@@ -112,8 +112,8 @@ export default function MessagesPage() {
 
     if (!currentUserId) {
         return (
-            <div className="h-[calc(100vh-64px)] flex items-center justify-center">
-                <p className="text-gray-500">Devi essere loggato per vedere i messaggi.</p>
+            <div className="h-[calc(100vh-64px)] glass-page-bg flex items-center justify-center">
+                <p className="glass-subtle-text">Devi essere loggato per vedere i messaggi.</p>
             </div>
         )
     }
@@ -121,48 +121,50 @@ export default function MessagesPage() {
     const existingPeerIds = conversations.map(c => c.peerId)
 
     return (
-        <div className="h-[calc(100vh-64px)] flex bg-gray-100">
-            {/* Lista conversazioni - Desktop: sempre visibile, Mobile: solo se mobileView === 'list' */}
-            <div className={`
+        <div className="h-[calc(100vh-64px)] glass-page-bg px-3 py-3 md:px-4 md:py-4">
+            <div className="w-full h-full glass-panel rounded-2xl overflow-hidden border border-base-300/60 flex">
+                {/* Lista conversazioni - Desktop: sempre visibile, Mobile: solo se mobileView === 'list' */}
+                <div className={`
                 w-full lg:w-[380px] lg:min-w-[320px] lg:max-w-[420px] 
-                border-r border-gray-200 
+                border-r border-base-300/70 
                 ${mobileView === 'list' ? 'block' : 'hidden lg:block'}
             `}>
-                <ConversationList
-                    conversations={conversations}
-                    users={users}
-                    selectedPeerId={selectedPeerId}
-                    onSelectConversation={handleSelectConversation}
-                    onNewChat={() => setShowNewChatModal(true)}
-                    currentUserId={currentUserId}
-                    loading={loading}
-                />
-            </div>
+                    <ConversationList
+                        conversations={conversations}
+                        users={users}
+                        selectedPeerId={selectedPeerId}
+                        onSelectConversation={handleSelectConversation}
+                        onNewChat={() => setShowNewChatModal(true)}
+                        currentUserId={currentUserId}
+                        loading={loading}
+                    />
+                </div>
 
-            {/* Chat Panel - Desktop: sempre visibile, Mobile: solo se mobileView === 'chat' */}
-            <div className={`
+                {/* Chat Panel - Desktop: sempre visibile, Mobile: solo se mobileView === 'chat' */}
+                <div className={`
                 flex-1 
                 ${mobileView === 'chat' ? 'block' : 'hidden lg:block'}
             `}>
-                <ChatPanel
-                    peerId={selectedPeerId}
-                    currentUserId={currentUserId}
-                    users={users}
-                    onBack={handleBack}
-                    showBackButton={true}
-                />
-            </div>
+                    <ChatPanel
+                        peerId={selectedPeerId}
+                        currentUserId={currentUserId}
+                        users={users}
+                        onBack={handleBack}
+                        showBackButton={true}
+                    />
+                </div>
 
-            {/* Modal nuova chat */}
-            {showNewChatModal && (
-                <NewChatModal
-                    users={users}
-                    currentUserId={currentUserId}
-                    existingPeerIds={existingPeerIds}
-                    onSelect={handleNewChat}
-                    onClose={() => setShowNewChatModal(false)}
-                />
-            )}
+                {/* Modal nuova chat */}
+                {showNewChatModal && (
+                    <NewChatModal
+                        users={users}
+                        currentUserId={currentUserId}
+                        existingPeerIds={existingPeerIds}
+                        onSelect={handleNewChat}
+                        onClose={() => setShowNewChatModal(false)}
+                    />
+                )}
+            </div>
         </div>
     )
 }

@@ -400,17 +400,17 @@ export default function ProfessionalsPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen glass-page-bg">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                <div className="glass-panel rounded-2xl p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <SparklesIcon className="w-8 h-8 text-brand-600" />
-                        <h1 className="text-3xl font-extrabold text-gray-900">
+                        <SparklesIcon className="w-8 h-8 text-primary" />
+                        <h1 className="text-3xl font-extrabold text-white">
                             Scopri Professionisti
                         </h1>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="glass-subtle-text">
                         Ricerca tra giocatori, allenatori e agenti in base a sport, ruolo, location e qualifiche
                     </p>
                 </div>
@@ -476,14 +476,14 @@ export default function ProfessionalsPage() {
                     {/* Main Content - Results */}
                     <div className="lg:col-span-3">
                         {/* Results Info */}
-                        <div className="mb-6 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">
+                        <div className="mb-6 flex items-center justify-between glass-widget rounded-2xl px-4 py-3">
+                            <h2 className="text-lg font-semibold text-white">
                                 {total} professionisti trovati
                             </h2>
                             {hasActiveFilters && (
                                 <button
                                     onClick={resetFilters}
-                                    className="px-3 py-1.5 text-sm font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors"
+                                    className="px-3 py-1.5 text-sm font-semibold text-primary bg-primary/10 border border-primary/30 rounded-lg hover:bg-primary/20 transition-colors"
                                 >
                                     Reset filtri
                                 </button>
@@ -508,13 +508,13 @@ export default function ProfessionalsPage() {
                                 )}
 
                                 {currentUserRole === 'agent' && (
-                                    <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                        <p className="text-sm text-brand-700 font-medium">
+                                    <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <p className="text-sm text-primary font-medium">
                                             Modalità Agente attiva: puoi inviare richieste ai Player direttamente dalle card.
                                         </p>
                                         <button
                                             onClick={() => router.push('/agent/affiliations')}
-                                            className="px-3 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
+                                            className="px-3 py-2 text-sm font-semibold text-white bg-primary hover:bg-brand-700 rounded-lg transition-colors"
                                         >
                                             Le mie affiliazioni
                                         </button>
@@ -525,7 +525,7 @@ export default function ProfessionalsPage() {
 
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                            <div className="mb-6 p-4 bg-error/10 border border-error/30 rounded-lg text-error">
                                 {error}
                             </div>
                         )}
@@ -541,18 +541,18 @@ export default function ProfessionalsPage() {
 
                         {/* Empty State */}
                         {!loading && professionals.length === 0 && !error && (
-                            <div className="text-center py-16">
-                                <SparklesIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            <div className="text-center py-16 glass-widget rounded-2xl">
+                                <SparklesIcon className="w-16 h-16 text-secondary/55 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-white mb-2">
                                     Nessun professionista trovato
                                 </h3>
-                                <p className="text-gray-600">
+                                <p className="glass-subtle-text">
                                     Prova a cambiare i criteri di ricerca
                                 </p>
                                 {hasActiveFilters && (
                                     <button
                                         onClick={resetFilters}
-                                        className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                                        className="mt-4 px-4 py-2 bg-primary hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors duration-200"
                                     >
                                         Rimuovi tutti i filtri
                                     </button>

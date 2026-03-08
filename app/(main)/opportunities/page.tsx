@@ -29,6 +29,13 @@ interface ClubMembership {
 type MainTab = 'career' | 'clubs'
 type CareerSubTab = 'all' | 'applications'
 
+const normalizeMainTab = (tab: string | null): MainTab => {
+  if (tab === 'clubs' || tab === 'my-clubs') return 'clubs'
+  return 'career'
+}
+
+const normalizeRole = (role: string | null | undefined) => String(role || '').toLowerCase()
+
 export default function OpportunitiesPage() {
   const { user, isLoading: authLoading } = useRequireAuth(false)
   const router = useRouter()
@@ -36,7 +43,7 @@ export default function OpportunitiesPage() {
   const { showToast } = useToast()
 
   // Main tabs and sub-tabs
-  const initialTab = (searchParams.get('tab') as MainTab) || 'career'
+  const initialTab = normalizeMainTab(searchParams.get('tab'))
   const [mainTab, setMainTab] = useState<MainTab>(initialTab)
   const [careerSubTab, setCareerSubTab] = useState<CareerSubTab>('all')
 
@@ -48,6 +55,9 @@ export default function OpportunitiesPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [affiliatedPlayers, setAffiliatedPlayers] = useState<any[]>([])
   const [userApplications, setUserApplications] = useState<any[]>([])
+  const [agentApplyTarget, setAgentApplyTarget] = useState<OpportunityWithDetails | null>(null)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('')
+  const [submittingAgentApplication, setSubmittingAgentApplication] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     search: '',
@@ -55,6 +65,10 @@ export default function OpportunitiesPage() {
     type: 'all',
     level: 'all',
   })
+
+  useEffect(() => {
+    setMainTab(normalizeMainTab(searchParams.get('tab')))
+  }, [searchParams])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -82,7 +96,7 @@ export default function OpportunitiesPage() {
       }
 
       // Se è un Agent, carica i giocatori affiliati
-      if (user && user.professionalRole === 'Agent') {
+      if (normalizeRole(user?.professionalRole) === 'agent') {
         const affiliationsRes = await fetch(`/api/affiliations?agentId=${userId}&status=active`)
         const affiliations = await affiliationsRes.json()
         setAffiliatedPlayers(affiliations.map((aff: any) => aff.player).filter(Boolean))
@@ -170,12 +184,7 @@ export default function OpportunitiesPage() {
         return
       }
 
-      if (affiliatedPlayers.length === 0) {
-        showToast('info', 'Nessun assistito', 'Non hai ancora giocatori affiliati da candidare.')
-        return
-      }
-
-      handleAgentApplication(announcementId, announcement)
+      openAgentApplicationModal(announcement)
       return
     }
 
@@ -218,22 +227,35 @@ export default function OpportunitiesPage() {
     }
   }
 
-  const handleAgentApplication = async (announcementId: number, announcement: OpportunityWithDetails) => {
-    const selectedIndex = prompt(
-      `Seleziona quale giocatore candidare per "${announcement.title}":\n\n${affiliatedPlayers
-        .map((p: any, i: number) => `${i + 1}. ${p.firstName} ${p.lastName} - ${p.sport || 'N/A'}`)
-        .join('\n')}\n\nInserisci il numero:`
-    )
-
-    if (!selectedIndex) return
-
-    const index = parseInt(selectedIndex) - 1
-    if (isNaN(index) || index < 0 || index >= affiliatedPlayers.length) {
-      showToast('error', 'Errore', 'Selezione non valida')
+  const openAgentApplicationModal = (announcement: OpportunityWithDetails) => {
+    if (affiliatedPlayers.length === 0) {
+      showToast('info', 'Nessun assistito', 'Non hai ancora giocatori affiliati da candidare.')
       return
     }
 
-    const selectedPlayer = affiliatedPlayers[index]
+    setAgentApplyTarget(announcement)
+    setSelectedPlayerId('')
+  }
+
+  const closeAgentApplicationModal = () => {
+    setAgentApplyTarget(null)
+    setSelectedPlayerId('')
+    setSubmittingAgentApplication(false)
+  }
+
+  const handleAgentApplicationSubmit = async () => {
+    if (!agentApplyTarget) return
+    const announcementId = typeof agentApplyTarget.id === 'number'
+      ? agentApplyTarget.id
+      : parseInt(agentApplyTarget.id as string)
+
+    const selectedPlayer = affiliatedPlayers.find((p: any) => String(p.id) === selectedPlayerId)
+    if (!selectedPlayer) {
+      showToast('error', 'Selezione richiesta', 'Seleziona un assistito prima di continuare')
+      return
+    }
+
+    setSubmittingAgentApplication(true)
     const checkRes = await fetch(
       `/api/applications?opportunityId=${announcementId}&applicantId=${selectedPlayer.id}`
     )
@@ -241,6 +263,7 @@ export default function OpportunitiesPage() {
 
     if (existing.length > 0) {
       showToast('info', 'Già candidato', `${selectedPlayer.firstName} ha già una candidatura per questo annuncio`)
+      setSubmittingAgentApplication(false)
       return
     }
 
@@ -262,12 +285,15 @@ export default function OpportunitiesPage() {
           'Candidatura inviata!',
           `${selectedPlayer.firstName} ${selectedPlayer.lastName} è stato candidato con successo`
         )
+        closeAgentApplicationModal()
       } else {
         const error = await res.json()
         showToast('error', 'Errore', error.error || 'Impossibile inviare la candidatura')
+        setSubmittingAgentApplication(false)
       }
     } catch (error) {
       showToast('error', 'Errore', 'Si è verificato un errore')
+      setSubmittingAgentApplication(false)
     }
   }
 
@@ -469,10 +495,9 @@ export default function OpportunitiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getFilteredOpportunities().map((announcement) => {
-                  const userRole = currentUser?.professionalRole
-                  const requiredRole = announcement.roleRequired
-                  const canApply =
-                    userRole === 'agent' ? requiredRole === 'player' : userRole === requiredRole
+                  const userRole = normalizeRole(currentUser?.professionalRole)
+                  const requiredRole = normalizeRole(announcement.roleRequired)
+                  const canApply = userRole === 'agent' ? requiredRole === 'player' : userRole === requiredRole
                   const isCompatible = canApply
 
                   const existingApplication = userApplications.find((app: any) => {
@@ -595,7 +620,7 @@ export default function OpportunitiesPage() {
                         >
                           {hasApplied
                             ? '✓ Candidatura già inviata'
-                            : currentUser?.professionalRole === 'Agent'
+                            : normalizeRole(currentUser?.professionalRole) === 'agent'
                               ? 'Candida Assistito'
                               : 'Candidati'}
                         </button>
@@ -760,6 +785,61 @@ export default function OpportunitiesPage() {
           </>
         )}
       </div>
+
+      {agentApplyTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Candida un assistito</h3>
+              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                Seleziona il giocatore da candidare per “{agentApplyTarget.title}”
+              </p>
+            </div>
+
+            <div className="px-6 py-5 space-y-3 max-h-[52vh] overflow-y-auto">
+              {affiliatedPlayers.map((player: any) => {
+                const isSelected = selectedPlayerId === String(player.id)
+                return (
+                  <button
+                    key={player.id}
+                    type="button"
+                    onClick={() => setSelectedPlayerId(String(player.id))}
+                    className={`w-full text-left p-4 rounded-xl border transition ${isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                      }`}
+                  >
+                    <p className="font-medium text-gray-900">
+                      {player.firstName} {player.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {player.sport || 'Sport non specificato'}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeAgentApplicationModal}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleAgentApplicationSubmit}
+                disabled={!selectedPlayerId || submittingAgentApplication}
+                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {submittingAgentApplication ? 'Invio...' : 'Invia candidatura'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

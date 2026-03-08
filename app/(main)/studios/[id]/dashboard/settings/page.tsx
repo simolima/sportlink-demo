@@ -16,6 +16,11 @@ type StudioSettings = {
     autoConfirmBookings: boolean
     slotIncrementMinutes: 15 | 30 | 60
     defaultBufferBetweenAppointments: number
+    yearsOfExperience: number | ''
+    languages: string[]
+    workModes: Array<'in-person' | 'remote' | 'hybrid'>
+    certifications: string[]
+    methodology: string
 }
 
 const DEFAULT_SETTINGS: StudioSettings = {
@@ -29,6 +34,11 @@ const DEFAULT_SETTINGS: StudioSettings = {
     autoConfirmBookings: false,
     slotIncrementMinutes: 30,
     defaultBufferBetweenAppointments: 5,
+    yearsOfExperience: '',
+    languages: [],
+    workModes: [],
+    certifications: [],
+    methodology: '',
 }
 
 export default function StudioDashboardSettingsPage() {
@@ -61,6 +71,11 @@ export default function StudioDashboardSettingsPage() {
                 autoConfirmBookings: Boolean(data.autoConfirmBookings),
                 slotIncrementMinutes: (data.slotIncrementMinutes || 30) as 15 | 30 | 60,
                 defaultBufferBetweenAppointments: Number(data.defaultBufferBetweenAppointments || 5),
+                yearsOfExperience: data.yearsOfExperience ?? '',
+                languages: data.languages ?? [],
+                workModes: data.workModes ?? [],
+                certifications: data.certifications ?? [],
+                methodology: data.methodology ?? '',
             })
 
             setLoading(false)
@@ -83,7 +98,10 @@ export default function StudioDashboardSettingsPage() {
                     'Content-Type': 'application/json',
                     ...authHeaders,
                 },
-                body: JSON.stringify(settings),
+                body: JSON.stringify({
+                    ...settings,
+                    yearsOfExperience: settings.yearsOfExperience === '' ? null : Number(settings.yearsOfExperience),
+                }),
             })
 
             const data = await res.json()
@@ -251,6 +269,202 @@ export default function StudioDashboardSettingsPage() {
                                     defaultBufferBetweenAppointments: Number(e.target.value),
                                 }))
                             }
+                        />
+                    </label>
+                </div>
+
+                {/* Professional Profile Section */}
+                <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Profilo Professionale</h3>
+
+                    {/* Years of Experience */}
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Anni di esperienza</span>
+                        <input
+                            type="number"
+                            className="input input-bordered bg-white"
+                            min={0}
+                            placeholder="Es. 10"
+                            value={settings.yearsOfExperience}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, yearsOfExperience: e.target.value ? Number(e.target.value) : '' }))}
+                        />
+                    </label>
+
+                    {/* Languages */}
+                    <div className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Lingue parlate</span>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {settings.languages.map((lang, idx) => (
+                                <div key={idx} className="badge badge-lg badge-primary gap-2">
+                                    {lang}
+                                    <button
+                                        type="button"
+                                        className="btn btn-circle btn-ghost btn-xs"
+                                        onClick={() => {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                languages: prev.languages.filter((_, i) => i !== idx),
+                                            }))
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                className="input input-bordered bg-white flex-1"
+                                placeholder="Es. Italiano"
+                                id="add-language-input"
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={() => {
+                                    const input = document.getElementById('add-language-input') as HTMLInputElement
+                                    if (input?.value.trim()) {
+                                        setSettings((prev) => ({
+                                            ...prev,
+                                            languages: [...prev.languages, input.value.trim()],
+                                        }))
+                                        input.value = ''
+                                    }
+                                }}
+                            >
+                                Aggiungi
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Work Modes */}
+                    <div className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Modalità di lavoro</span>
+                        <div className="flex flex-col gap-2">
+                            <label className="label cursor-pointer justify-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-primary"
+                                    checked={settings.workModes.includes('in-person')}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: [...prev.workModes, 'in-person'],
+                                            }))
+                                        } else {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: prev.workModes.filter((m) => m !== 'in-person'),
+                                            }))
+                                        }
+                                    }}
+                                />
+                                <span className="label-text">In presenza</span>
+                            </label>
+                            <label className="label cursor-pointer justify-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-primary"
+                                    checked={settings.workModes.includes('remote')}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: [...prev.workModes, 'remote'],
+                                            }))
+                                        } else {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: prev.workModes.filter((m) => m !== 'remote'),
+                                            }))
+                                        }
+                                    }}
+                                />
+                                <span className="label-text">Remoto</span>
+                            </label>
+                            <label className="label cursor-pointer justify-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-primary"
+                                    checked={settings.workModes.includes('hybrid')}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: [...prev.workModes, 'hybrid'],
+                                            }))
+                                        } else {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                workModes: prev.workModes.filter((m) => m !== 'hybrid'),
+                                            }))
+                                        }
+                                    }}
+                                />
+                                <span className="label-text">Ibrido</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Certifications */}
+                    <div className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Certificazioni</span>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {settings.certifications.map((cert, idx) => (
+                                <div key={idx} className="badge badge-lg badge-outline gap-2">
+                                    {cert}
+                                    <button
+                                        type="button"
+                                        className="btn btn-circle btn-ghost btn-xs"
+                                        onClick={() => {
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                certifications: prev.certifications.filter((_, i) => i !== idx),
+                                            }))
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                className="input input-bordered bg-white flex-1"
+                                placeholder="Es. Certificazione nazionale"
+                                id="add-certification-input"
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={() => {
+                                    const input = document.getElementById('add-certification-input') as HTMLInputElement
+                                    if (input?.value.trim()) {
+                                        setSettings((prev) => ({
+                                            ...prev,
+                                            certifications: [...prev.certifications, input.value.trim()],
+                                        }))
+                                        input.value = ''
+                                    }
+                                }}
+                            >
+                                Aggiungi
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Methodology */}
+                    <label className="form-control">
+                        <span className="label-text mb-1 block text-sm text-gray-600">Metodologia</span>
+                        <textarea
+                            className="textarea textarea-bordered bg-white w-full"
+                            rows={5}
+                            placeholder="Descrivi il tuo approccio metodologico..."
+                            value={settings.methodology}
+                            onChange={(e) => setSettings((prev) => ({ ...prev, methodology: e.target.value }))}
                         />
                     </label>
                 </div>

@@ -26,6 +26,7 @@
 - **framer-motion** — installato come dipendenza di produzione (animazioni)
 - **clsx** — utility per classi condizionali
 - **FullCalendar v6** (`@fullcalendar/react`, `@fullcalendar/core`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction`) — usato nella dashboard studio per vista mese/settimana/giorno
+- **@dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) — libreria moderna per drag & drop utilizzata nella dashboard studio (specializzazioni e FAQ)
 
 ## Icone — Sistema Ibrido
 

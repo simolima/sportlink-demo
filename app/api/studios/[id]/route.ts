@@ -102,6 +102,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             logoUrl: data.logo_url,
             description: data.description,
             servicesOffered: data.services_offered ?? [],
+            yearsOfExperience: data.years_of_experience ?? undefined,
+            languages: data.languages ?? [],
+            workModes: data.work_modes ?? [],
+            certifications: data.certifications ?? [],
+            methodology: data.methodology ?? undefined,
             timezone: data.timezone,
             bookingEnabled: data.booking_enabled,
             autoConfirmBookings: data.auto_confirm_bookings,
@@ -158,6 +163,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             logoUrl,
             description,
             servicesOffered,
+            yearsOfExperience,
+            languages,
+            workModes,
+            certifications,
+            methodology,
             timezone,
             bookingEnabled,
             autoConfirmBookings,
@@ -174,6 +184,23 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         if (logoUrl !== undefined) updates.logo_url = logoUrl
         if (description !== undefined) updates.description = description
         if (servicesOffered !== undefined) updates.services_offered = servicesOffered
+        if (yearsOfExperience !== undefined) {
+            const val = Number(yearsOfExperience)
+            if (!Number.isNaN(val) && val >= 0) updates.years_of_experience = val
+        }
+        if (Array.isArray(languages)) {
+            updates.languages = languages.filter((l: any) => typeof l === 'string')
+        }
+        if (Array.isArray(workModes)) {
+            const valid = workModes.filter((m: any) => ['in-person', 'remote', 'hybrid'].includes(m))
+            updates.work_modes = valid
+        }
+        if (Array.isArray(certifications)) {
+            updates.certifications = certifications.filter((c: any) => typeof c === 'string')
+        }
+        if (methodology !== undefined) {
+            updates.methodology = methodology?.toString?.()?.trim() || null
+        }
         if (timezone !== undefined) updates.timezone = timezone
         if (bookingEnabled !== undefined) updates.booking_enabled = bookingEnabled
         if (autoConfirmBookings !== undefined) updates.auto_confirm_bookings = autoConfirmBookings

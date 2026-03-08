@@ -294,6 +294,11 @@ professional_studios  — Studi per fisio/nutrizionisti
   ├── id (UUID), owner_id FK, name
   ├── city, address, phone, website, logo_url, description
   ├── services_offered (JSONB array)
+  ├── years_of_experience (integer, nullable, CHECK >= 0)  ← Marzo 2026
+  ├── languages (JSONB array, nullable)                   ← Marzo 2026
+  ├── work_modes (JSONB array, nullable, CHECK valid values) ← Marzo 2026 (in-person|remote|hybrid)
+  ├── certifications (JSONB array, nullable)              ← Marzo 2026
+  ├── methodology (text, nullable)                        ← Marzo 2026
   ├── timezone (varchar default 'Europe/Rome'), booking_enabled (boolean default false)
   ├── auto_confirm_bookings (boolean default false), slot_increment_minutes (15|30|60, default 30)
   ├── default_buffer_between_appointments (0-60 minutes, default 5)

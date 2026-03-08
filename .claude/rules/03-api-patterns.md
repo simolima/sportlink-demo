@@ -248,6 +248,13 @@ const fallbackPoll = setInterval(async () => {
 | `/api/studios/[id]/available-slots` | Slot prenotabili per servizio+data (GET, supporta ricerca multi-giorno) |
 | `/api/studios/[id]/appointments` | Appuntamenti studio (GET/POST) |
 | `/api/studios/[id]/appointments/[apptId]` | Appuntamento singolo (PATCH/DELETE) |
+| `/api/studios/[id]/specializations` | Specializzazioni studio (GET/POST) — GET pubblico, POST owner-only |
+| `/api/studios/[id]/specializations/[specId]` | Specializzazione singola (PATCH/DELETE owner-only) |
+| `/api/studios/[id]/faqs` | FAQ studio (GET/POST) — GET pubblico, POST owner-only |
+| `/api/studios/[id]/faqs/[faqId]` | FAQ singola (PATCH/DELETE owner-only) |
+| `/api/studios/[id]/reviews` | Recensioni studio (GET pubblico, POST client attivo) |
+| `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH owner moderazione, DELETE owner) |
+| `/api/studios/[id]/clients` | Lista clienti studio (GET owner-only) — usata per permission validation recensioni |
 | `/api/studios/[id]/google-calendar` | Stato connessione + selezione calendario + disconnect |
 | `/api/studios/[id]/google-auth/initiate` | Avvio OAuth Google Calendar |
 | `/api/studios/[id]/google-auth/callback` | Callback OAuth Google Calendar |

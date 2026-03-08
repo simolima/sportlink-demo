@@ -22,6 +22,14 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   const [hasNewNotification, setHasNewNotification] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
 
+  // Unlock AudioContext on first user gesture so it's ready when a
+  // Supabase Realtime push arrives (no gesture associated with that event).
+  useEffect(() => {
+    const unlock = () => unlockAudioContext()
+    document.addEventListener('click', unlock, { once: true })
+    return () => document.removeEventListener('click', unlock)
+  }, [])
+
   // Sync sound state from localStorage (client only)
   useEffect(() => {
     setSoundEnabled(isSoundEnabled())

@@ -419,3 +419,25 @@ Regole:
 - preservare deep-link `?chat=<peerId>`
 - mantenere comportamento responsive (mobile toggle list/chat)
 - evitare nuovi hardcoded `bg-white` / `text-gray-*` nei componenti messaggistica principali
+
+### New Chat Modal — Accessibilità
+
+Il modal `components/messages/NewChatModal.tsx` deve seguire questo pattern:
+
+- root con `role="dialog"` + `aria-modal="true"` + `aria-labelledby`
+- chiusura tastiera con tasto `Escape`
+- superfici allineate a `glass-widget` / `glass-widget-header`
+
+Regola:
+- evitare modal chat con palette light legacy non coerente con la shell dark della pagina messaggi
+
+## Discover UX — Filter Surface (Marzo 2026)
+
+La sidebar filtri in `components/dynamic-filter-bar.tsx` usa ora controlli dark coerenti con tema dashboard:
+
+- contenitore: `glass-widget`
+- label: testo `text-secondary`
+- input/select: fondo `base-300` con focus `primary`
+
+Regola:
+- non usare nuove varianti `bg-white` / `border-gray-*` nei filtri principali della pagina Scopri

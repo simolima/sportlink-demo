@@ -296,7 +296,7 @@ export default function HomePage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 glass-panel rounded-2xl p-6 md:p-8">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">
+                    <h1 className="text-2xl md:text-3xl font-bold text-base-content">
                         Ciao, {userName || 'Utente'}!
                     </h1>
                     <p className="glass-subtle-text mt-1">
@@ -315,7 +315,7 @@ export default function HomePage() {
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${isActive
                                         ? 'bg-primary text-white shadow-sm'
-                                        : 'text-secondary hover:text-white hover:bg-base-300/50'
+                                        : 'text-secondary hover:text-base-content hover:bg-base-300/50'
                                         }`}
                                 >
                                     {tab.label}
@@ -327,7 +327,7 @@ export default function HomePage() {
 
                 {activeTab && (
                     <div className="mb-6 px-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white">{TAB_META[activeTab].title}</h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-base-content">{TAB_META[activeTab].title}</h2>
                         <p className="glass-subtle-text text-sm md:text-base mt-1">{TAB_META[activeTab].subtitle}</p>
                     </div>
                 )}
@@ -353,7 +353,7 @@ export default function HomePage() {
                 {showClubAdminSection && activeTab === 'club' && (
                     <div className="space-y-5">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-white">Club dashboard</h2>
+                            <h2 className="text-lg font-semibold text-base-content">Club dashboard</h2>
                             {adminClubs.length > 1 && (
                                 <select
                                     value={selectedClubId || ''}
@@ -413,7 +413,7 @@ export default function HomePage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-medium text-white mb-2">
+                        <h3 className="text-lg font-medium text-base-content mb-2">
                             Completa il tuo profilo
                         </h3>
                         <p className="glass-subtle-text mb-4">
@@ -421,7 +421,7 @@ export default function HomePage() {
                         </p>
                         <button
                             onClick={() => router.push(`/profile/${userId}`)}
-                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-brand-700 transition-colors"
                         >
                             Vai al profilo
                         </button>

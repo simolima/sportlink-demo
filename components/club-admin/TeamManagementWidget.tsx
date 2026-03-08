@@ -112,13 +112,13 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
     if (loading) {
         return (
             <div className="space-y-4 animate-pulse">
-                <div className="h-6 w-40 rounded bg-gray-200" />
+                <div className="h-6 w-40 rounded bg-base-300" />
                 {[1, 2].map((i) => (
-                    <div key={i} className="card bg-white border border-base-200 shadow-sm p-5">
-                        <div className="h-5 w-32 rounded bg-gray-200 mb-4" />
+                    <div key={i} className="card glass-widget border border-base-300/70 shadow-sm p-5">
+                        <div className="h-5 w-32 rounded bg-base-300 mb-4" />
                         <div className="space-y-2">
-                            <div className="h-4 w-full rounded bg-gray-100" />
-                            <div className="h-4 w-3/4 rounded bg-gray-100" />
+                            <div className="h-4 w-full rounded bg-base-200" />
+                            <div className="h-4 w-3/4 rounded bg-base-200" />
                         </div>
                     </div>
                 ))}
@@ -140,10 +140,10 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
             {/* ── Intestazione widget ── */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <UserGroupIcon className="h-5 w-5 text-brand-600 flex-shrink-0" />
-                    <h2 className="font-semibold text-gray-800 text-base">Gestione Squadre</h2>
+                    <UserGroupIcon className="h-5 w-5 text-primary flex-shrink-0" />
+                    <h2 className="font-semibold text-base-content text-base">Gestione Squadre</h2>
                     {teams.length > 0 && (
-                        <span className="badge badge-ghost badge-sm text-gray-500">
+                        <span className="badge badge-ghost badge-sm text-secondary">
                             {teams.length}
                         </span>
                     )}
@@ -153,14 +153,14 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
 
             {/* ── Stato vuoto ── */}
             {teams.length === 0 && (
-                <div className="card bg-white border border-base-200">
+                <div className="card glass-widget border border-base-300/70">
                     <div className="card-body items-center py-12 text-center gap-3">
-                        <div className="rounded-full bg-brand-50 p-4">
-                            <UserGroupIcon className="h-8 w-8 text-brand-500" />
+                        <div className="rounded-full bg-primary/10 p-4">
+                            <UserGroupIcon className="h-8 w-8 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-800">Nessuna squadra</h3>
-                            <p className="text-sm text-gray-400 mt-1 max-w-xs">
+                            <h3 className="font-semibold text-base-content">Nessuna squadra</h3>
+                            <p className="text-sm glass-subtle-text mt-1 max-w-xs">
                                 Crea la prima squadra per iniziare ad organizzare i tuoi giocatori
                                 in rosa.
                             </p>
@@ -219,7 +219,7 @@ export default function TeamManagementWidget({ clubId, userId }: Props) {
                     (cm) => !assignedProfiles.has(cm.profileId),
                 ).length
                 return unassigned > 0 ? (
-                    <p className="text-xs text-gray-400 text-right">
+                    <p className="text-xs glass-subtle-text text-right">
                         {unassigned} tesserato{unassigned !== 1 ? 'i' : ''} non ancora assegnat
                         {unassigned !== 1 ? 'i' : 'o'} a nessuna squadra
                     </p>

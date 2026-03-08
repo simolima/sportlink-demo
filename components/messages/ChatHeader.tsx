@@ -39,7 +39,7 @@ export default function ChatHeader({
                 {showBackButton && onBack && (
                     <button
                         onClick={onBack}
-                        className="p-2 -ml-2 text-secondary hover:text-white hover:bg-base-300/60 rounded-full transition-colors lg:hidden"
+                        className="p-2 -ml-2 text-secondary hover:text-base-content hover:bg-base-300/60 rounded-full transition-colors lg:hidden"
                     >
                         <ArrowLeft size={20} />
                     </button>
@@ -64,7 +64,7 @@ export default function ChatHeader({
                 <div className="min-w-0">
                     <Link
                         href={`/profile/${peerId}`}
-                        className="font-semibold text-white hover:text-primary transition-colors truncate block"
+                        className="font-semibold text-base-content hover:text-primary transition-colors truncate block"
                     >
                         {displayName}
                     </Link>
@@ -85,7 +85,7 @@ export default function ChatHeader({
 
                 {/* Menu azioni */}
                 <button
-                    className="p-2 text-secondary/60 hover:text-white hover:bg-base-300/60 rounded-full transition-colors"
+                    className="p-2 text-secondary hover:text-base-content hover:bg-base-300/60 rounded-full transition-colors"
                     title="Altre azioni"
                 >
                     <MoreVertical size={20} />

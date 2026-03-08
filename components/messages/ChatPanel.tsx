@@ -299,7 +299,7 @@ export default function ChatPanel({
                 <div className="w-20 h-20 bg-base-300/70 rounded-full flex items-center justify-center mb-4">
                     <MessageSquare size={40} className="text-secondary/60" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
+                <h3 className="text-xl font-semibold text-base-content mb-2">
                     I tuoi messaggi
                 </h3>
                 <p className="glass-subtle-text max-w-sm">

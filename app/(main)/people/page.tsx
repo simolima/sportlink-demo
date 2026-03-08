@@ -178,28 +178,28 @@ export default function PeoplePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg text-base-content">
             <div className="max-w-6xl mx-auto py-6 px-4">
                 {/* Title */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Scopri Professionisti</h1>
-                    <p className="text-gray-600 mt-1">Trova e connettiti con i migliori talenti dello sport</p>
+                    <h1 className="text-3xl font-bold text-base-content">Scopri Professionisti</h1>
+                    <p className="glass-subtle-text mt-1">Trova e connettiti con i migliori talenti dello sport</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Filtri Sidebar */}
                     <aside className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-20">
+                        <div className="glass-widget rounded-lg shadow-sm border border-base-300/70 p-6 sticky top-20">
                             {/* Filter Header */}
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-2">
-                                    <FunnelIcon className="w-5 h-5 text-brand-600" />
-                                    <h2 className="font-bold text-gray-900">Filtra</h2>
+                                    <FunnelIcon className="w-5 h-5 text-primary" />
+                                    <h2 className="font-bold text-base-content">Filtra</h2>
                                 </div>
                                 {(selectedSport !== 'all' || selectedRole !== 'all' || selectedAvailability !== 'all' || searchQuery) && (
                                     <button
                                         onClick={handleResetFilters}
-                                        className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                                        className="text-xs text-primary hover:text-primary-hover font-medium"
                                     >
                                         Ripristina
                                     </button>
@@ -208,26 +208,26 @@ export default function PeoplePage() {
 
                             {/* Search Input */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Ricerca</label>
+                                <label className="block text-sm font-medium text-secondary mb-2">Ricerca</label>
                                 <div className="relative">
-                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
                                     <input
                                         type="text"
                                         placeholder="Nome, email..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                        className="w-full pl-9 pr-3 py-2 border border-base-300 bg-base-200 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm"
                                     />
                                 </div>
                             </div>
 
                             {/* Sport Filter */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Sport</label>
+                                <label className="block text-sm font-medium text-secondary mb-2">Sport</label>
                                 <select
                                     value={selectedSport}
                                     onChange={handleSportChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm bg-white"
+                                    className="w-full px-3 py-2 border border-base-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm bg-base-200"
                                 >
                                     <option value="all">Tutti gli sport</option>
                                     {SUPPORTED_SPORTS.map(sport => (
@@ -238,11 +238,11 @@ export default function PeoplePage() {
 
                             {/* Professional Role Filter */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo Professionale</label>
+                                <label className="block text-sm font-medium text-secondary mb-2">Ruolo Professionale</label>
                                 <select
                                     value={selectedRole}
                                     onChange={handleRoleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm bg-white"
+                                    className="w-full px-3 py-2 border border-base-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm bg-base-200"
                                 >
                                     <option value="all">Tutti i ruoli</option>
                                     {PROFESSIONAL_ROLES.map(role => (
@@ -253,11 +253,11 @@ export default function PeoplePage() {
 
                             {/* Availability Filter */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Disponibilità</label>
+                                <label className="block text-sm font-medium text-secondary mb-2">Disponibilità</label>
                                 <select
                                     value={selectedAvailability}
                                     onChange={(e) => setSelectedAvailability(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm bg-white"
+                                    className="w-full px-3 py-2 border border-base-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm bg-base-200"
                                 >
                                     <option value="all">Qualsiasi</option>
                                     <option value="Disponibile">Disponibile</option>
@@ -272,11 +272,11 @@ export default function PeoplePage() {
                                     {/* Specific Role Filter */}
                                     {rolesByProfession[mainSport] && (
                                         <div className="mb-6">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo Specifico</label>
+                                            <label className="block text-sm font-medium text-secondary mb-2">Ruolo Specifico</label>
                                             <select
                                                 value={selectedSpecificRole}
                                                 onChange={(e) => setSelectedSpecificRole(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm bg-white"
+                                                className="w-full px-3 py-2 border border-base-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm bg-base-200"
                                             >
                                                 <option value="">Tutti i ruoli</option>
                                                 {rolesByProfession[mainSport].map(role => (
@@ -289,13 +289,13 @@ export default function PeoplePage() {
                                     {/* Dominance Filter */}
                                     {dominanceOptions[mainSport] && (
                                         <div className="mb-6">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-secondary mb-2">
                                                 {mainSport === 'Calcio' ? 'Piede Dominante' : 'Mano Dominante'}
                                             </label>
                                             <select
                                                 value={selectedDominant}
                                                 onChange={(e) => setSelectedDominant(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm bg-white"
+                                                className="w-full px-3 py-2 border border-base-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm bg-base-200"
                                             >
                                                 <option value="">Qualsiasi</option>
                                                 {dominanceOptions[mainSport].map(opt => (
@@ -308,7 +308,7 @@ export default function PeoplePage() {
                             )}
 
                             {/* Help text */}
-                            <div className="text-xs text-gray-500 bg-brand-50 border border-brand-200 rounded p-3">
+                            <div className="text-xs glass-subtle-text bg-primary/10 border border-primary/20 rounded p-3">
                                 💡 Seleziona uno sport per visualizzare i filtri specifici
                             </div>
                         </div>
@@ -317,8 +317,8 @@ export default function PeoplePage() {
                     {/* Users List */}
                     <div className="lg:col-span-3">
                         {/* Results count */}
-                        <div className="mb-4 text-sm text-gray-600">
-                            Risultati: <span className="font-semibold text-gray-900">{filteredUsers.length}</span>
+                        <div className="mb-4 text-sm glass-subtle-text">
+                            Risultati: <span className="font-semibold text-base-content">{filteredUsers.length}</span>
                         </div>
 
                         {/* Users Grid */}
@@ -327,7 +327,7 @@ export default function PeoplePage() {
                                 {filteredUsers.map(user => (
                                     <div
                                         key={user.id}
-                                        className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border border-gray-100 overflow-hidden"
+                                        className="glass-widget rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border border-base-300/70 overflow-hidden"
                                     >
                                         <div className="p-6">
                                             <div className="flex items-start gap-4">
@@ -350,7 +350,7 @@ export default function PeoplePage() {
                                                     {/* Name */}
                                                     <div className="flex items-center gap-2">
                                                         <h3
-                                                            className="font-semibold text-lg text-gray-900 cursor-pointer hover:text-brand-600 truncate"
+                                                            className="font-semibold text-lg text-base-content cursor-pointer hover:text-primary truncate"
                                                             onClick={() => router.push(`/profile/${user.id}`)}
                                                         >
                                                             {user.firstName} {user.lastName}
@@ -365,17 +365,17 @@ export default function PeoplePage() {
                                                             </span>
                                                         )}
                                                         {user.sport && (
-                                                            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                            <span className="inline-flex items-center gap-1 bg-base-200 text-secondary text-xs font-medium px-2.5 py-0.5 rounded-full">
                                                                 {user.sport}
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     {/* Location & Availability */}
-                                                    <div className="flex items-center gap-3 mt-3 text-sm text-gray-600 flex-wrap">
+                                                    <div className="flex items-center gap-3 mt-3 text-sm glass-subtle-text flex-wrap">
                                                         {user.city && (
                                                             <div className="flex items-center">
-                                                                <MapPinIcon className="h-4 w-4 mr-1 text-gray-400" />
+                                                                <MapPinIcon className="h-4 w-4 mr-1 text-secondary" />
                                                                 <span>{user.city}</span>
                                                             </div>
                                                         )}
@@ -384,7 +384,7 @@ export default function PeoplePage() {
                                                                 ? 'bg-brand-50 text-brand-700'
                                                                 : user.availability === 'Valuta proposte'
                                                                     ? 'bg-amber-50 text-amber-700'
-                                                                    : 'bg-gray-100 text-gray-600'
+                                                                    : 'bg-base-200 text-secondary'
                                                                 }`}>
                                                                 {user.availability}
                                                             </span>
@@ -393,7 +393,7 @@ export default function PeoplePage() {
 
                                                     {/* Bio */}
                                                     {user.bio && (
-                                                        <p className="text-gray-600 text-sm mt-3 line-clamp-2">{user.bio}</p>
+                                                        <p className="glass-subtle-text text-sm mt-3 line-clamp-2">{user.bio}</p>
                                                     )}
                                                 </div>
 
@@ -407,13 +407,13 @@ export default function PeoplePage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                                <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900">Nessun risultato trovato</h3>
-                                <p className="text-gray-600 text-sm mt-1">Prova a modificare i filtri di ricerca</p>
+                            <div className="glass-widget rounded-lg shadow-sm border border-base-300/70 p-12 text-center">
+                                <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-secondary/60 mb-4" />
+                                <h3 className="text-lg font-medium text-base-content">Nessun risultato trovato</h3>
+                                <p className="glass-subtle-text text-sm mt-1">Prova a modificare i filtri di ricerca</p>
                                 <button
                                     onClick={handleResetFilters}
-                                    className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition text-sm font-medium"
+                                    className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition text-sm font-medium"
                                 >
                                     Ripristina filtri
                                 </button>

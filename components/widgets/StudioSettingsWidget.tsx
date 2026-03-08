@@ -66,14 +66,14 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
     // ── STATO VUOTO — l'utente non ha ancora uno studio ──────────────────────
     if (!studio) {
         return (
-            <div className="card bg-white border border-base-200 shadow-sm">
+            <div className="glass-widget">
                 <div className="card-body items-center py-10 text-center gap-3">
-                    <div className="rounded-full bg-brand-50 p-4">
+                    <div className="rounded-full bg-base-200 p-4 border border-base-300">
                         <BuildingStorefrontIcon className="h-8 w-8 text-brand-500" />
                     </div>
                     <div>
-                        <h2 className="font-semibold text-gray-800">Nessuno studio configurato</h2>
-                        <p className="mt-1 text-sm text-gray-400 max-w-xs">
+                        <h2 className="font-semibold text-base-content">Nessuno studio configurato</h2>
+                        <p className="mt-1 text-sm text-secondary max-w-xs">
                             Crea il tuo studio per mostrare i servizi offerti e ricevere prenotazioni dagli atleti.
                         </p>
                     </div>
@@ -86,13 +86,13 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
 
     // ── STATO CON STUDIO ─────────────────────────────────────────────────────
     return (
-        <div className="card bg-white border border-base-200 shadow-sm">
+        <div className="glass-widget">
             <div className="card-body p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4 gap-2">
                     <div className="flex items-center gap-2">
                         <BuildingStorefrontIcon className="h-5 w-5 text-brand-600 flex-shrink-0" />
-                        <h2 className="card-title text-base font-semibold text-gray-800">
+                        <h2 className="card-title text-base font-semibold text-base-content">
                             {studio.name}
                         </h2>
                     </div>
@@ -100,22 +100,22 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
                 </div>
 
                 {/* Info principali */}
-                <div className="space-y-1 text-sm text-gray-600 mb-4">
+                <div className="space-y-1 text-sm text-secondary mb-4">
                     {studio.city && (
                         <p>
-                            <span className="font-medium text-gray-700">Città: </span>
+                            <span className="font-medium text-base-content">Città: </span>
                             {studio.city}
                         </p>
                     )}
                     {studio.address && (
                         <p>
-                            <span className="font-medium text-gray-700">Indirizzo: </span>
+                            <span className="font-medium text-base-content">Indirizzo: </span>
                             {studio.address}
                         </p>
                     )}
                     {studio.phone && (
                         <p>
-                            <span className="font-medium text-gray-700">Tel: </span>
+                            <span className="font-medium text-base-content">Tel: </span>
                             {studio.phone}
                         </p>
                     )}
@@ -124,7 +124,7 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
                 {/* Servizi offerti */}
                 {studio.services_offered?.length > 0 && (
                     <div className="mb-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">
                             Servizi offerti
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -144,12 +144,12 @@ export default async function StudioSettingsWidget({ userId, activeRole }: Props
                 <div className="divider my-2" />
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-400" />
+                        <CalendarDaysIcon className="h-4 w-4 text-secondary" />
                         <div>
-                            <p className="text-sm font-medium text-gray-700">
+                            <p className="text-sm font-medium text-base-content">
                                 Sincronizza con Google Calendar
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-secondary">
                                 {studio.sync_gcal
                                     ? 'Sincronizzazione attiva'
                                     : 'Non ancora configurata'}

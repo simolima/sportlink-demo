@@ -77,7 +77,7 @@ export default function ConversationList({
         <div className="flex flex-col h-full glass-widget">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-4 glass-widget-header">
-                <h2 className="text-xl font-bold text-white">Messaggi</h2>
+                <h2 className="text-xl font-bold text-base-content">Messaggi</h2>
                 <button
                     onClick={onNewChat}
                     className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
@@ -96,7 +96,7 @@ export default function ConversationList({
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Cerca conversazione..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-base-300/55 border border-base-300 rounded-lg text-sm text-secondary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors"
+                        className="w-full pl-10 pr-4 py-2.5 bg-base-300/55 border border-base-300 rounded-lg text-sm text-base-content placeholder:text-secondary/70 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors"
                     />
                 </div>
             </div>

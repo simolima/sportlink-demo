@@ -25,6 +25,7 @@ import {
     LinkIcon as LinkSolid,
     IdentificationIcon as IdentificationSolid,
 } from '@heroicons/react/24/solid'
+import ThemeToggle from './ui/theme-toggle'
 
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 const ProfileDropdown = dynamic(() => import('./ui/ProfileDropdown'), { ssr: false })
@@ -39,7 +40,7 @@ export default function Navbar() {
     const isActive = (href: string, exact = false) =>
         exact ? pathname === href : pathname.startsWith(href)
     const navCls = (href: string, exact = false) =>
-        `group relative flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-xl transition ${isActive(href, exact) ? 'text-white bg-brand-600/25 border border-brand-400/30' : 'text-secondary/80 hover:text-white hover:bg-base-300/45 border border-transparent'}`
+        `group relative flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-xl transition ${isActive(href, exact) ? 'text-base-content bg-primary/15 border border-primary/30' : 'text-secondary hover:text-base-content hover:bg-base-300/50 border border-transparent'}`
 
     useEffect(() => {
         if (!isAuthenticated) return
@@ -70,18 +71,18 @@ export default function Navbar() {
     if (isLoading) return null
 
     return (
-        <nav className="sticky top-0 z-40 border-b border-base-300/50 bg-transparent">
+        <nav className="sticky top-0 z-40 border-b border-base-300/50 bg-base-100/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
                 <div className="glass-nav rounded-2xl px-4 md:px-5 py-3 flex items-center gap-4">
                     {/* Logo + ricerca */}
                     <div className="flex items-center gap-3 min-w-[220px]">
-                        <Link href={isAuthenticated ? '/home' : '/'} className="flex items-center gap-2.5 text-white font-bold leading-tight">
-                            {/* Logo-mark bianco — standard brand professionale su sfondo scuro */}
+                        <Link href={isAuthenticated ? '/home' : '/'} className="flex items-center gap-2.5 text-base-content font-bold leading-tight hover:opacity-80 transition-opacity">
+                            {/* Logo-mark adattato per temi (currentColor) */}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="820 360 230 360"
                                 fill="currentColor"
-                                className="w-[22px] h-[22px] text-white flex-shrink-0"
+                                className="w-[22px] h-[22px] text-primary flex-shrink-0"
                                 aria-hidden="true"
                             >
                                 <path d="M927.7,615c5.1-1.4,9.9-3.3,14.3-5.7-18.2-.6-34.6-13.5-38.6-32.5-4.4-21.4,9.7-42.3,30.8-48l36.6-9.8,52.4-14c1.1-.3,2-1.2,2.2-2.4l10.4-52.6c.4-2.3-1.6-4.2-3.8-3.6l-139.5,37.4c-31.7,8.5-52.2,38.1-50.2,69.7.2,4.5,1,9,2.2,13.5,9.7,36.2,46.9,57.7,83.2,48Z" />
@@ -90,17 +91,17 @@ export default function Navbar() {
                             </svg>
                             <div className="flex flex-col">
                                 <span className="text-sm md:text-base tracking-[0.18em] uppercase">SPRINTA</span>
-                                <span className="text-[11px] text-secondary/85">Sport Network</span>
+                                <span className="text-[11px] text-secondary">Sport Network</span>
                             </div>
                         </Link>
-                        <div className="hidden lg:flex items-center bg-base-200/65 border border-base-300/70 rounded-xl px-3 py-1.5 gap-2 w-56 backdrop-blur">
-                            <MagnifyingGlassIcon className="w-5 h-5 text-secondary/60" />
+                        <div className="hidden lg:flex items-center bg-base-200/65 border border-base-300/70 rounded-xl px-3 py-1.5 gap-2 w-56 backdrop-blur transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
+                            <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Ricerca globale"
-                                className="bg-transparent text-secondary/90 placeholder:text-secondary/45 focus:outline-none text-sm w-full"
+                                className="bg-transparent text-base-content placeholder:text-secondary focus:outline-none text-sm w-full"
                             />
                         </div>
                     </div>
@@ -177,6 +178,7 @@ export default function Navbar() {
 
                     {/* Azioni a destra */}
                     <div className="flex items-center gap-3 shrink-0">
+                        <ThemeToggle />
                         {isAuthenticated && user ? (
                             <>
                                 <NotificationBell userId={String(user.id)} />
@@ -184,7 +186,7 @@ export default function Navbar() {
                             </>
                         ) : (
                             <>
-                                <Link href="/login" className="px-3 py-1.5 btn btn-ghost btn-sm text-secondary hover:text-white hover:bg-base-300/40">Login</Link>
+                                <Link href="/login" className="px-3 py-1.5 btn btn-ghost btn-sm text-secondary hover:text-base-content hover:bg-base-300/40">Login</Link>
                                 <Link href="/signup" className="px-4 py-2 btn btn-primary btn-sm">Registrati</Link>
                             </>
                         )}

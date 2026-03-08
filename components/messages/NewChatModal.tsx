@@ -67,11 +67,11 @@ export default function NewChatModal({
             >
                 {/* Header */}
                 <div className="glass-widget-header flex items-center justify-between px-4 py-3 border-b border-base-300/70">
-                    <h3 id="new-chat-title" className="text-lg font-semibold text-white">Nuova conversazione</h3>
+                    <h3 id="new-chat-title" className="text-lg font-semibold text-base-content">Nuova conversazione</h3>
                     <button
                         onClick={onClose}
                         aria-label="Chiudi modale nuova conversazione"
-                        className="p-2 text-secondary/70 hover:text-white hover:bg-base-300/60 rounded-full transition-colors"
+                        className="p-2 text-secondary hover:text-base-content hover:bg-base-300/60 rounded-full transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -86,7 +86,7 @@ export default function NewChatModal({
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Cerca utente..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-base-300/55 border border-base-300 rounded-lg text-sm text-secondary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors"
+                            className="w-full pl-10 pr-4 py-2.5 bg-base-300/55 border border-base-300 rounded-lg text-sm text-base-content placeholder:text-secondary/70 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors"
                             autoFocus
                         />
                     </div>
@@ -126,7 +126,7 @@ export default function NewChatModal({
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-medium text-white truncate">{name}</span>
+                                            <span className="font-medium text-base-content truncate">{name}</span>
                                             {hasExistingChat && (
                                                 <span className="text-[10px] px-1.5 py-0.5 bg-base-300/80 text-secondary rounded">
                                                     Chat esistente

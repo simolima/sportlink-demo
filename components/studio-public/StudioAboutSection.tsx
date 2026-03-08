@@ -8,19 +8,19 @@ export default function StudioAboutSection({ studio }: Props) {
     if (!studio.description) return null
 
     return (
-        <section className="py-16 bg-white">
+        <section className="py-16 bg-base-100">
             <div className="max-w-4xl mx-auto px-4">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Chi sono</h2>
+                <h2 className="text-3xl font-bold text-base-content mb-2">Chi sono</h2>
                 <div className="w-16 h-1 bg-brand-600 rounded-full mb-8" />
 
                 <div className="prose prose-lg max-w-none">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    <p className="text-secondary leading-relaxed whitespace-pre-line">
                         {studio.description}
                     </p>
                 </div>
 
                 {studio.owner && (
-                    <div className="mt-8 flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="mt-8 flex items-center gap-4 p-4 bg-base-200 rounded-xl border border-base-300">
                         {studio.owner.avatarUrl && (
                             <img
                                 src={studio.owner.avatarUrl}
@@ -29,10 +29,10 @@ export default function StudioAboutSection({ studio }: Props) {
                             />
                         )}
                         <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-base-content">
                                 {studio.owner.firstName} {studio.owner.lastName}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-secondary">
                                 Titolare dello studio
                             </p>
                         </div>

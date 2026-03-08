@@ -1359,18 +1359,18 @@ export default function EditProfilePage() {
     }
 
     const inputBase =
-        "w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[#2341F0] focus:ring-2 focus:ring-[#2341F0] focus:ring-opacity-40"
+        "w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content placeholder:text-secondary focus:border-primary focus:ring-2 focus:ring-primary/30"
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
+            <div className="min-h-screen glass-page-bg text-base-content flex items-center justify-center">
                 <div className="text-lg font-semibold">Caricamento profilo...</div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-white text-gray-900">
+        <div className="min-h-screen glass-page-bg text-base-content">
             <div className="max-w-6xl mx-auto px-4 py-10 lg:py-12">
                 {saveError && (
                     <div className="mb-6 rounded-xl border border-error/40 bg-error/10 p-4 text-sm text-error-content">
@@ -1380,20 +1380,20 @@ export default function EditProfilePage() {
                 )}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <p className="text-sm uppercase tracking-[0.2em] text-gray-600">Profilo</p>
+                        <p className="text-sm uppercase tracking-[0.2em] glass-subtle-text">Profilo</p>
                         <h1 className="text-3xl font-semibold mt-1">Modifica il tuo profilo</h1>
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={() => router.back()}
-                            className="rounded-xl border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:bg-gray-200"
+                            className="rounded-xl border border-base-300 bg-base-200 px-4 py-2 text-sm text-base-content hover:bg-base-300"
                         >
                             Annulla
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="rounded-xl bg-[#2341F0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1f35c2] disabled:opacity-60"
+                            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60"
                         >
                             {saving ? "Salvataggio..." : "Salva modifiche"}
                         </button>
@@ -1402,17 +1402,17 @@ export default function EditProfilePage() {
 
                 {/* Main content */}
                 <div className="space-y-6">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-600">Informazioni personali</p>
+                                <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Informazioni personali</p>
                                 <h2 className="text-xl font-semibold mt-1">Dettagli principali</h2>
                             </div>
-                            <div className="text-xs text-gray-600">Completa per aumentare la fiducia</div>
+                            <div className="text-xs glass-subtle-text">Completa per aumentare la fiducia</div>
                         </div>
                         <div className="mt-6 grid gap-4 lg:grid-cols-2">
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Email</label>
+                                <label className="text-sm text-secondary">Email</label>
                                 <input
                                     type="email"
                                     value={form.email}
@@ -1423,7 +1423,7 @@ export default function EditProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Data di nascita</label>
+                                <label className="text-sm text-secondary">Data di nascita</label>
                                 <input
                                     type="date"
                                     value={form.birthDate}
@@ -1432,7 +1432,7 @@ export default function EditProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Bio</label>
+                                <label className="text-sm text-secondary">Bio</label>
                                 <textarea
                                     value={form.bio}
                                     onChange={(e) => updateField("bio", e.target.value)}
@@ -1442,16 +1442,16 @@ export default function EditProfilePage() {
                                     className={`${inputBase} resize-none`}
                                 />
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className={`${form.bio.length > 450 ? 'text-amber-600' : 'text-gray-500'}`}>
+                                    <span className={`${form.bio.length > 450 ? 'text-warning' : 'glass-subtle-text'}`}>
                                         {form.bio.length}/500 caratteri
                                     </span>
-                                    <span className="text-gray-400 text-right">
+                                    <span className="glass-quiet-text text-right">
                                         Usa un linguaggio professionale e rispettoso
                                     </span>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Nazionalità</label>
+                                <label className="text-sm text-secondary">Nazionalità</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -1466,7 +1466,7 @@ export default function EditProfilePage() {
                                         className={inputBase}
                                     />
                                     {showCountryDropdown && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
                                             {allCountries
                                                 .filter((country) =>
                                                     country.name.toLowerCase().includes(countrySearchTerm.toLowerCase())
@@ -1480,7 +1480,7 @@ export default function EditProfilePage() {
                                                             setCountrySearchTerm(country.name)
                                                             setShowCountryDropdown(false)
                                                         }}
-                                                        className="px-4 py-2.5 cursor-pointer hover:bg-gray-100 transition-colors flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
+                                                        className="px-4 py-2.5 cursor-pointer hover:bg-base-200 transition-colors flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
                                                     >
                                                         <span
                                                             className={`fi fi-${country.code.toLowerCase()} rounded-sm shadow-sm shrink-0`}
@@ -1494,7 +1494,7 @@ export default function EditProfilePage() {
                                             {allCountries.filter((country) =>
                                                 country.name.toLowerCase().includes(countrySearchTerm.toLowerCase())
                                             ).length === 0 && (
-                                                    <div className="px-4 py-2 text-gray-500 text-sm">
+                                                    <div className="px-4 py-2 glass-subtle-text text-sm">
                                                         Nessun paese trovato
                                                     </div>
                                                 )}
@@ -1503,7 +1503,7 @@ export default function EditProfilePage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-700">Disponibilità per lavori</label>
+                                <label className="text-sm text-secondary">Disponibilità per lavori</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -1515,7 +1515,7 @@ export default function EditProfilePage() {
                                         className={`${inputBase} cursor-pointer`}
                                     />
                                     {showAvailabilityDropdown && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                        <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg overflow-hidden">
                                             {['Disponibile', 'Non disponibile'].map((option) => (
                                                 <div
                                                     key={option}
@@ -1524,8 +1524,8 @@ export default function EditProfilePage() {
                                                         setShowAvailabilityDropdown(false)
                                                     }}
                                                     className={`px-4 py-2.5 cursor-pointer transition-colors ${form.availability === option
-                                                        ? 'bg-gray-100 font-medium'
-                                                        : 'hover:bg-gray-100'
+                                                        ? 'bg-base-200 font-medium'
+                                                        : 'hover:bg-base-200'
                                                         }`}
                                                 >
                                                     {option}
@@ -1540,7 +1540,7 @@ export default function EditProfilePage() {
                             {(isPlayer || isCoach || isSportingDirector) && (
                                 <>
                                     <div className="space-y-2">
-                                        <label className="text-sm text-gray-700">Stato contrattuale</label>
+                                        <label className="text-sm text-secondary">Stato contrattuale</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -1554,7 +1554,7 @@ export default function EditProfilePage() {
                                                 className={`${inputBase} cursor-pointer`}
                                             />
                                             {showContractStatusDropdown && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg overflow-hidden">
                                                     {[{ value: 'svincolato', label: 'Svincolato' }, { value: 'sotto contratto', label: 'Sotto contratto' }].map((option) => (
                                                         <div
                                                             key={option.value}
@@ -1564,8 +1564,8 @@ export default function EditProfilePage() {
                                                                 setShowContractStatusDropdown(false)
                                                             }}
                                                             className={`px-4 py-2.5 cursor-pointer transition-colors ${form.contractStatus === option.value
-                                                                ? 'bg-gray-100 font-medium'
-                                                                : 'hover:bg-gray-100'
+                                                                ? 'bg-base-200 font-medium'
+                                                                : 'hover:bg-base-200'
                                                                 }`}
                                                         >
                                                             {option.label}
@@ -1578,7 +1578,7 @@ export default function EditProfilePage() {
 
                                     {form.contractStatus === 'sotto contratto' && (
                                         <div className="space-y-2">
-                                            <label className="text-sm text-gray-700">Data fine contratto</label>
+                                            <label className="text-sm text-secondary">Data fine contratto</label>
                                             <input
                                                 type="date"
                                                 value={form.contractEndDate || ""}
@@ -1594,7 +1594,7 @@ export default function EditProfilePage() {
                             {isPlayer && (
                                 <>
                                     <div className="space-y-2">
-                                        <label className="text-sm text-gray-700">Altezza (cm)</label>
+                                        <label className="text-sm text-secondary">Altezza (cm)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -1606,7 +1606,7 @@ export default function EditProfilePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm text-gray-700">Peso (kg)</label>
+                                        <label className="text-sm text-secondary">Peso (kg)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -1619,7 +1619,7 @@ export default function EditProfilePage() {
                                     </div>
                                     {mainSport === "Calcio" && (
                                         <div className="space-y-2">
-                                            <label className="text-sm text-gray-700">Piede dominante</label>
+                                            <label className="text-sm text-secondary">Piede dominante</label>
                                             <div className="relative">
                                                 <input
                                                     type="text"
@@ -1631,7 +1631,7 @@ export default function EditProfilePage() {
                                                     className={`${inputBase} cursor-pointer`}
                                                 />
                                                 {showFootDropdown && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                    <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg overflow-hidden">
                                                         {['', 'destro', 'sinistro', 'ambidestro'].map((option) => (
                                                             <div
                                                                 key={option || 'empty'}
@@ -1640,8 +1640,8 @@ export default function EditProfilePage() {
                                                                     setShowFootDropdown(false)
                                                                 }}
                                                                 className={`px-4 py-2.5 cursor-pointer transition-colors ${form.dominantFoot === option || (!form.dominantFoot && !option)
-                                                                    ? 'bg-gray-100 font-medium'
-                                                                    : 'hover:bg-gray-100'
+                                                                    ? 'bg-base-200 font-medium'
+                                                                    : 'hover:bg-base-200'
                                                                     }`}
                                                             >
                                                                 {option ? option.charAt(0).toUpperCase() + option.slice(1) : 'Seleziona piede'}
@@ -1654,7 +1654,7 @@ export default function EditProfilePage() {
                                     )}
                                     {(mainSport === "Basket" || mainSport === "Pallavolo") && (
                                         <div className="space-y-2">
-                                            <label className="text-sm text-gray-700">Mano dominante</label>
+                                            <label className="text-sm text-secondary">Mano dominante</label>
                                             <div className="relative">
                                                 <input
                                                     type="text"
@@ -1666,7 +1666,7 @@ export default function EditProfilePage() {
                                                     className={`${inputBase} cursor-pointer`}
                                                 />
                                                 {showHandDropdown && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                                                    <div className="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg overflow-hidden">
                                                         {['', 'destra', 'sinistra', 'ambidestra'].map((option) => (
                                                             <div
                                                                 key={option || 'empty'}
@@ -1675,8 +1675,8 @@ export default function EditProfilePage() {
                                                                     setShowHandDropdown(false)
                                                                 }}
                                                                 className={`px-4 py-2.5 cursor-pointer transition-colors ${form.dominantHand === option || (!form.dominantHand && !option)
-                                                                    ? 'bg-gray-100 font-medium'
-                                                                    : 'hover:bg-gray-100'
+                                                                    ? 'bg-base-200 font-medium'
+                                                                    : 'hover:bg-base-200'
                                                                     }`}
                                                             >
                                                                 {option ? option.charAt(0).toUpperCase() + option.slice(1) : 'Seleziona mano'}
@@ -1694,31 +1694,31 @@ export default function EditProfilePage() {
 
                     {/* Sezione Qualifiche Agent */}
                     {isAgent && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="mb-6">
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Licenza e Informazioni</h2>
+                                <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                <h2 className="text-xl font-semibold mt-1 text-base-content">Licenza e Informazioni</h2>
                             </div>
 
                             <div className="space-y-4">
                                 {/* Licenza FIFA */}
-                                <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                                <label className="flex items-center gap-3 p-4 border border-base-300 rounded-lg hover:bg-base-200/70 cursor-pointer transition">
                                     <input
                                         type="checkbox"
                                         checked={form.hasFifaLicense || false}
                                         onChange={(e) => updateField("hasFifaLicense", e.target.checked)}
-                                        className="w-5 h-5 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+                                        className="w-5 h-5 text-primary border-base-300 rounded focus:ring-primary"
                                     />
                                     <div>
-                                        <span className="block text-sm font-semibold text-gray-900">Licenza FIFA</span>
-                                        <span className="text-xs text-gray-500">Sono un agente FIFA registrato</span>
+                                        <span className="block text-sm font-semibold text-base-content">Licenza FIFA</span>
+                                        <span className="text-xs glass-subtle-text">Sono un agente FIFA registrato</span>
                                     </div>
                                 </label>
 
                                 {/* Numero Licenza */}
                                 {form.hasFifaLicense && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-secondary mb-2">
                                             Numero Licenza FIFA
                                         </label>
                                         <input
@@ -1726,14 +1726,14 @@ export default function EditProfilePage() {
                                             value={form.fifaLicenseNumber || ""}
                                             onChange={(e) => updateField("fifaLicenseNumber", e.target.value)}
                                             placeholder="Es: 123456789"
-                                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content focus:border-primary focus:ring-1 focus:ring-primary"
                                         />
                                     </div>
                                 )}
 
                                 {/* Note Agente */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-secondary mb-2">
                                         Informazioni Aggiuntive
                                     </label>
                                     <textarea
@@ -1741,7 +1741,7 @@ export default function EditProfilePage() {
                                         onChange={(e) => updateField("agentNotes", e.target.value)}
                                         rows={3}
                                         placeholder="Es: Specializzazione in trasferimenti internazionali, focus su giovani talenti..."
-                                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 resize-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content resize-none focus:border-primary focus:ring-1 focus:ring-primary"
                                     />
                                 </div>
                             </div>
@@ -1750,16 +1750,16 @@ export default function EditProfilePage() {
 
                     {/* Sezione Certificazioni Coach */}
                     {isCoach && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Allenatore</h2>
+                                    <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-base-content">Certificazioni Allenatore</h2>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -1768,7 +1768,7 @@ export default function EditProfilePage() {
 
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-3">Seleziona dalle certificazioni suggerite:</p>
+                                    <p className="text-xs glass-subtle-text mb-3">Seleziona dalle certificazioni suggerite:</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                                         {mainSport && coachCertificationOptions[mainSport]?.map((cert) => (
                                             <button
@@ -1784,26 +1784,26 @@ export default function EditProfilePage() {
                                 </div>
 
                                 {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                    <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                         Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
                                     </div>
                                 )}
 
                                 {(form.certifications || []).map((cert) => (
-                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                    <div key={cert.id} className="rounded-xl border border-base-300 bg-base-100 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1 grid gap-3 md:grid-cols-2">
                                                 <input
                                                     value={cert.name}
                                                     onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
                                                     placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     value={cert.issuingOrganization}
                                                     onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
                                                     placeholder="Ente rilascio (FIGC, FIP, FIPAV)"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1812,7 +1812,7 @@ export default function EditProfilePage() {
                                                     placeholder="Anno conseguimento"
                                                     min="1950"
                                                     max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1820,7 +1820,7 @@ export default function EditProfilePage() {
                                                     onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
                                                     placeholder="Scadenza (opzionale)"
                                                     min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                             </div>
                                             <button
@@ -1839,16 +1839,16 @@ export default function EditProfilePage() {
 
                     {/* Sezione Certificazioni Direttore Sportivo */}
                     {isSportingDirector && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Direttore Sportivo</h2>
+                                    <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-base-content">Certificazioni Direttore Sportivo</h2>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -1873,26 +1873,26 @@ export default function EditProfilePage() {
                                 </div>
 
                                 {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                    <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                         Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
                                     </div>
                                 )}
 
                                 {(form.certifications || []).map((cert) => (
-                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                    <div key={cert.id} className="rounded-xl border border-base-300 bg-base-100 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1 grid gap-3 md:grid-cols-2">
                                                 <input
                                                     value={cert.name}
                                                     onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
                                                     placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     value={cert.issuingOrganization}
                                                     onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
                                                     placeholder="Ente rilascio (FIGC, FIP, FIPAV)"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1901,7 +1901,7 @@ export default function EditProfilePage() {
                                                     placeholder="Anno conseguimento"
                                                     min="1950"
                                                     max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1909,7 +1909,7 @@ export default function EditProfilePage() {
                                                     onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
                                                     placeholder="Scadenza (opzionale)"
                                                     min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                             </div>
                                             <button
@@ -1928,16 +1928,16 @@ export default function EditProfilePage() {
 
                     {/* Sezione Certificazioni Fisioterapista */}
                     {isPhysio && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Fisioterapista</h2>
+                                    <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-base-content">Certificazioni Fisioterapista</h2>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -1962,26 +1962,26 @@ export default function EditProfilePage() {
                                 </div>
 
                                 {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                    <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                         Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
                                     </div>
                                 )}
 
                                 {(form.certifications || []).map((cert) => (
-                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                    <div key={cert.id} className="rounded-xl border border-base-300 bg-base-100 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1 grid gap-3 md:grid-cols-2">
                                                 <input
                                                     value={cert.name}
                                                     onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
                                                     placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     value={cert.issuingOrganization}
                                                     onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
                                                     placeholder="Ente rilascio (TSRM PSTRP, IAASP)"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1990,7 +1990,7 @@ export default function EditProfilePage() {
                                                     placeholder="Anno conseguimento"
                                                     min="1950"
                                                     max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -1998,7 +1998,7 @@ export default function EditProfilePage() {
                                                     onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
                                                     placeholder="Scadenza (opzionale)"
                                                     min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                             </div>
                                             <button
@@ -2017,16 +2017,16 @@ export default function EditProfilePage() {
 
                     {/* Sezione Certificazioni Preparatore Atletico */}
                     {isAthleticTrainer && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni Preparatore Atletico</h2>
+                                    <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-base-content">Certificazioni Preparatore Atletico</h2>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2051,26 +2051,26 @@ export default function EditProfilePage() {
                                 </div>
 
                                 {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                    <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                         Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
                                     </div>
                                 )}
 
                                 {(form.certifications || []).map((cert) => (
-                                    <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                                    <div key={cert.id} className="rounded-xl border border-base-300 bg-base-100 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1 grid gap-3 md:grid-cols-2">
                                                 <input
                                                     value={cert.name}
                                                     onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
                                                     placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     value={cert.issuingOrganization}
                                                     onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
                                                     placeholder="Ente rilascio (NSCA, IUSCA)"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -2079,7 +2079,7 @@ export default function EditProfilePage() {
                                                     placeholder="Anno conseguimento"
                                                     min="1950"
                                                     max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -2087,7 +2087,7 @@ export default function EditProfilePage() {
                                                     onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
                                                     placeholder="Scadenza (opzionale)"
                                                     min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                             </div>
                                             <button
@@ -2106,16 +2106,16 @@ export default function EditProfilePage() {
 
                     {/* Sezione Certificazioni Staff */}
                     {isStaff && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                        <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Qualifiche</p>
-                                    <h2 className="text-xl font-semibold mt-1 text-gray-900">Certificazioni e Abilitazioni</h2>
+                                    <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Qualifiche</p>
+                                    <h2 className="text-xl font-semibold mt-1 text-base-content">Certificazioni e Abilitazioni</h2>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={addCertification}
-                                    className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                                 >
                                     <PlusIcon className="h-4 w-4" />
                                     Aggiungi certificazione
@@ -2124,7 +2124,7 @@ export default function EditProfilePage() {
 
                             <div className="space-y-4">
                                 {(form.certifications || []).length === 0 && (
-                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                    <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                         Nessuna certificazione inserita. Aggiungi le tue qualifiche professionali.
                                     </div>
                                 )}
@@ -2132,7 +2132,7 @@ export default function EditProfilePage() {
                                 {(form.certifications || []).map((cert) => (
                                     <div
                                         key={cert.id}
-                                        className="rounded-xl border border-gray-200 bg-white p-4"
+                                        className="rounded-xl border border-base-300 bg-base-100 p-4"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1 grid gap-3 md:grid-cols-2">
@@ -2140,13 +2140,13 @@ export default function EditProfilePage() {
                                                     value={cert.name}
                                                     onChange={(e) => handleCertificationChange(cert.id, "name", e.target.value)}
                                                     placeholder="Nome certificazione"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     value={cert.issuingOrganization}
                                                     onChange={(e) => handleCertificationChange(cert.id, "issuingOrganization", e.target.value)}
                                                     placeholder="Ente rilascio"
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -2155,7 +2155,7 @@ export default function EditProfilePage() {
                                                     placeholder="Anno conseguimento"
                                                     min="1950"
                                                     max={new Date().getFullYear()}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                                 <input
                                                     type="number"
@@ -2163,7 +2163,7 @@ export default function EditProfilePage() {
                                                     onChange={(e) => handleCertificationChange(cert.id, "expiryDate", e.target.value)}
                                                     placeholder="Scadenza (opzionale)"
                                                     min={cert.yearObtained || "1950"}
-                                                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900"
+                                                    className="w-full rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-sm text-base-content"
                                                 />
                                             </div>
                                             <button
@@ -2181,7 +2181,7 @@ export default function EditProfilePage() {
                     )}
 
                     {/* Social Links Section */}
-                    <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                    <section className="space-y-6 glass-widget rounded-2xl border border-base-300/70 p-6 md:p-8 shadow-sm">
                         <SocialLinksForm
                             socialLinks={form.socialLinks}
                             onChange={(updated) => setForm(prev => ({ ...prev, socialLinks: updated }))}
@@ -2192,7 +2192,7 @@ export default function EditProfilePage() {
 
                     {/* Player Self Evaluation Section */}
                     {isPlayer && (
-                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <section className="space-y-6 glass-widget rounded-2xl border border-base-300/70 p-6 md:p-8 shadow-sm">
                             <SelfEvaluationForm
                                 evaluation={form.playerSelfEvaluation}
                                 professionalRole="Player"
@@ -2204,7 +2204,7 @@ export default function EditProfilePage() {
 
                     {/* Coach Self Evaluation Section */}
                     {isCoach && (
-                        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <section className="space-y-6 glass-widget rounded-2xl border border-base-300/70 p-6 md:p-8 shadow-sm">
                             <SelfEvaluationForm
                                 evaluation={form.coachSelfEvaluation}
                                 professionalRole="Coach"
@@ -2215,16 +2215,16 @@ export default function EditProfilePage() {
                     )}
 
                     {/* Esperienze Section */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                    <section className="glass-widget rounded-2xl border border-base-300/70 p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Esperienze</p>
-                                <h2 className="text-xl font-semibold mt-1 text-gray-900">Percorso professionale</h2>
+                                <p className="text-xs uppercase tracking-[0.2em] glass-subtle-text">Esperienze</p>
+                                <h2 className="text-xl font-semibold mt-1 text-base-content">Percorso professionale</h2>
                             </div>
                             <button
                                 type="button"
                                 onClick={addExperience}
-                                className="inline-flex items-center gap-2 rounded-full bg-[#2341F0] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1f35c2]"
+                                className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
                             >
                                 <PlusIcon className="h-4 w-4" />
                                 Aggiungi esperienza
@@ -2233,7 +2233,7 @@ export default function EditProfilePage() {
 
                         <div className="mt-6 space-y-4">
                             {form.experiences.length === 0 && (
-                                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                <div className="rounded-xl border border-dashed border-base-300 bg-base-200 p-4 text-sm glass-subtle-text">
                                     Nessuna esperienza inserita. Aggiungi il tuo percorso.
                                 </div>
                             )}
@@ -2250,7 +2250,7 @@ export default function EditProfilePage() {
                                 return (
                                     <div
                                         key={exp.id}
-                                        className={`rounded-xl border ${isExpanded ? 'border-[#2341F0]/30 bg-white shadow-sm' : 'border-gray-200 bg-gray-50/50'} transition-all duration-200`}
+                                        className={`rounded-xl border ${isExpanded ? 'border-primary/30 bg-base-100 shadow-sm' : 'border-base-300 bg-base-200/50'} transition-all duration-200`}
                                     >
                                         {/* ── Accordion Header ── */}
                                         <div
@@ -2258,12 +2258,12 @@ export default function EditProfilePage() {
                                             onClick={() => toggleExpAccordion(exp.id)}
                                         >
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className={`flex-shrink-0 w-2 h-2 rounded-full ${exp.isCurrentlyPlaying ? 'bg-brand-500' : 'bg-gray-300'}`} />
+                                                <div className={`flex-shrink-0 w-2 h-2 rounded-full ${exp.isCurrentlyPlaying ? 'bg-primary' : 'bg-base-300'}`} />
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-sm font-semibold text-gray-900 truncate">
-                                                        {exp.team || <span className="text-gray-400 italic">Nuova esperienza</span>}
+                                                    <p className="text-sm font-semibold text-base-content truncate">
+                                                        {exp.team || <span className="glass-quiet-text italic">Nuova esperienza</span>}
                                                     </p>
-                                                    <p className="text-xs text-gray-500 truncate">
+                                                    <p className="text-xs glass-subtle-text truncate">
                                                         {[exp.season, exp.category, exp.positionDetail || exp.role].filter(Boolean).join(' · ') || 'Compila i dettagli'}
                                                     </p>
                                                 </div>
@@ -2282,13 +2282,13 @@ export default function EditProfilePage() {
                                                 >
                                                     <XMarkIcon className="h-4 w-4" />
                                                 </button>
-                                                <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                                <ChevronDownIcon className={`h-4 w-4 text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                             </div>
                                         </div>
 
                                         {/* ── Accordion Body ── */}
                                         {isExpanded && (
-                                            <div className="px-4 pb-4 border-t border-gray-100">
+                                            <div className="px-4 pb-4 border-t border-base-300/70">
                                                 <div className="pt-3">
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div className="flex-1 grid gap-3 md:grid-cols-2">
@@ -2746,17 +2746,17 @@ export default function EditProfilePage() {
                                                                         onChange={() => toggleDatesForExp(exp.id)}
                                                                         className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
                                                                     />
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <span className="text-sm text-secondary">
                                                                         Specifica periodo esatto (opzionale)
                                                                     </span>
                                                                 </label>
 
                                                                 {/* Date opzionali - mostrate solo se checkbox attivo */}
                                                                 {showDatesForExp[exp.id] && (
-                                                                    <div className="space-y-3 pl-6 border-l-2 border-gray-200">
+                                                                    <div className="space-y-3 pl-6 border-l-2 border-base-300/70">
                                                                         <div className="grid grid-cols-2 gap-3">
                                                                             <div>
-                                                                                <label className="text-xs text-gray-600 mb-1 block">Data inizio</label>
+                                                                                <label className="text-xs glass-subtle-text mb-1 block">Data inizio</label>
                                                                                 <input
                                                                                     type="date"
                                                                                     value={exp.from || ""}
@@ -2766,7 +2766,7 @@ export default function EditProfilePage() {
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label className="text-xs text-gray-600 mb-1 block">Data fine</label>
+                                                                                <label className="text-xs glass-subtle-text mb-1 block">Data fine</label>
                                                                                 <input
                                                                                     type="date"
                                                                                     value={exp.to || ""}
@@ -2789,7 +2789,7 @@ export default function EditProfilePage() {
                                                                                 }}
                                                                                 className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
                                                                             />
-                                                                            <span className="text-sm text-gray-700">
+                                                                            <span className="text-sm text-secondary">
                                                                                 {isCoach ? "Alleno ancora qui" : "Gioco ancora qui"}
                                                                             </span>
                                                                         </label>
@@ -2807,7 +2807,7 @@ export default function EditProfilePage() {
 
                                                             {isPlayer && mainSport === "Calcio" && (
                                                                 <div className="mt-3 md:col-span-2 w-full">
-                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <p className="text-sm text-secondary mb-2">Statistiche (opzionali)</p>
                                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                                         <div className="space-y-1">
                                                                             <label className="text-xs text-gray-600">Presenze</label>
@@ -2916,7 +2916,7 @@ export default function EditProfilePage() {
                                                             )}
                                                             {isPlayer && mainSport === "Basket" && (
                                                                 <div className="mt-3 md:col-span-2 w-full">
-                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <p className="text-sm text-secondary mb-2">Statistiche (opzionali)</p>
                                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                                         <div className="space-y-1">
                                                                             <label className="text-xs text-gray-600">Punti/partita</label>
@@ -2964,7 +2964,7 @@ export default function EditProfilePage() {
                                                             )}
                                                             {isPlayer && mainSport === "Pallavolo" && (
                                                                 <div className="mt-3 md:col-span-2 w-full">
-                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <p className="text-sm text-secondary mb-2">Statistiche (opzionali)</p>
                                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                                         <div className="space-y-1">
                                                                             <label className="text-xs text-gray-600">Ace</label>
@@ -3011,7 +3011,7 @@ export default function EditProfilePage() {
                                                             )}
                                                             {isCoach && (
                                                                 <div className="mt-3 md:col-span-2 w-full">
-                                                                    <p className="text-sm text-gray-700 mb-2">Statistiche (opzionali)</p>
+                                                                    <p className="text-sm text-secondary mb-2">Statistiche (opzionali)</p>
                                                                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                                                         <div className="space-y-1">
                                                                             <label className="text-xs text-gray-600">Partite Allenate</label>
@@ -3087,14 +3087,14 @@ export default function EditProfilePage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                         <button
                             onClick={() => router.back()}
-                            className="w-full sm:w-auto rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                            className="w-full sm:w-auto rounded-xl border border-base-300 bg-base-100 px-4 py-3 text-sm text-secondary hover:bg-base-200"
                         >
                             Annulla
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full sm:w-auto rounded-xl bg-[#2341F0] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f35c2] disabled:opacity-60"
+                            className="w-full sm:w-auto rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60"
                         >
                             {saving ? "Salvataggio..." : "Salva modifiche"}
                         </button>

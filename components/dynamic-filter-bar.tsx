@@ -149,6 +149,11 @@ export default function DynamicFilterBar({
     hasFIFALicense,
     onHasFIFALicenseChange,
 }: DynamicFilterBarProps) {
+    const labelClass = 'block text-sm font-semibold text-secondary mb-2'
+    const controlClass = 'w-full px-3 py-2 border border-base-300 rounded-lg bg-base-300/55 text-secondary placeholder:text-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm'
+    const sectionDividerClass = 'mb-6 pb-6 border-b border-base-300/60'
+    const checkboxClass = 'w-4 h-4 text-primary border-base-300 rounded focus:ring-2 focus:ring-primary/30 bg-base-300/60'
+
     const positions = selectedSport && selectedSport !== 'all'
         ? (positionsBySport[selectedSport] || [])
         : []
@@ -180,16 +185,16 @@ export default function DynamicFilterBar({
     }
 
     return (
-        <aside className="bg-white rounded-lg border border-gray-200 p-6 h-fit sticky top-20">
+        <aside className="glass-widget rounded-2xl border border-base-300/70 p-6 h-fit sticky top-20">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6">
-                <FunnelIcon className="w-5 h-5 text-brand-600" />
-                <h2 className="font-bold text-lg text-gray-900">Filtra Ricerca</h2>
+                <FunnelIcon className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-lg text-white">Filtra Ricerca</h2>
             </div>
 
             {/* Search Input */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Cerca Professionista
                 </label>
                 <input
@@ -197,13 +202,13 @@ export default function DynamicFilterBar({
                     placeholder="Nome, email, ruolo..."
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 />
             </div>
 
             {/* Role Type Filter */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Tipo di Professionista
                 </label>
                 <select
@@ -218,7 +223,7 @@ export default function DynamicFilterBar({
                         onHasUEFALicenseChange('all')
                         onHasFIFALicenseChange('all')
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 >
                     <option value="all">Tutti i Professionisti</option>
                     {PROFESSIONAL_ROLES.map((role) => (
@@ -231,7 +236,7 @@ export default function DynamicFilterBar({
 
             {/* Sport Filter */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Sport
                 </label>
                 <select
@@ -240,7 +245,7 @@ export default function DynamicFilterBar({
                         onSportChange(e.target.value)
                         onPositionChange('all')
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 >
                     <option value="all">Tutti gli Sport</option>
                     {SUPPORTED_SPORTS.map((sport) => (
@@ -254,13 +259,13 @@ export default function DynamicFilterBar({
             {/* Position Filter (Contextual - Players only) */}
             {(roleType === 'player' || roleType === 'all') && positions.length > 0 && (
                 <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className={labelClass}>
                         Ruolo
                     </label>
                     <select
                         value={selectedPosition}
                         onChange={(e) => onPositionChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                        className={controlClass}
                     >
                         <option value="all">Tutti i Ruoli</option>
                         {positions.map((pos) => (
@@ -274,7 +279,7 @@ export default function DynamicFilterBar({
 
             {/* City Filter */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Città
                 </label>
                 <input
@@ -282,13 +287,13 @@ export default function DynamicFilterBar({
                     placeholder="Es. Milano"
                     value={selectedCity}
                     onChange={(e) => onCityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 />
             </div>
 
             {/* Country Filter */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Paese
                 </label>
                 <input
@@ -296,19 +301,19 @@ export default function DynamicFilterBar({
                     placeholder="Es. Italia"
                     value={selectedCountry}
                     onChange={(e) => onCountryChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 />
             </div>
 
             {/* Availability Filter */}
             <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={labelClass}>
                     Disponibilità
                 </label>
                 <select
                     value={selectedAvailability}
                     onChange={(e) => onAvailabilityChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                    className={controlClass}
                 >
                     <option value="all">Tutte</option>
                     {AVAILABILITY_OPTIONS.map((opt) => (
@@ -323,7 +328,7 @@ export default function DynamicFilterBar({
             {selectedSport !== 'all' && (selectedSport === 'Calcio' || selectedSport === 'Basket' || selectedSport === 'Pallavolo') && (
                 <>
                     <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className={labelClass}>
                             Categoria
                         </label>
                         <select
@@ -332,7 +337,7 @@ export default function DynamicFilterBar({
                                 onLevelChange(e.target.value)
                                 onDetailedCategoryChange('all')
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                            className={controlClass}
                         >
                             <option value="all">Tutte le Categorie</option>
                             {(CATEGORY_OPTIONS_BY_SPORT[selectedSport] || []).map((opt) => (
@@ -346,13 +351,13 @@ export default function DynamicFilterBar({
                     {/* Detailed Category Filter (Serie A, Serie B, ecc.) */}
                     {selectedLevel !== 'all' && DETAILED_CATEGORIES[selectedSport]?.[selectedLevel] && (
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className={labelClass}>
                                 {selectedSport === 'Calcio' ? 'Serie/Divisione' : 'Livello Dettagliato'}
                             </label>
                             <select
                                 value={selectedDetailedCategory}
                                 onChange={(e) => onDetailedCategoryChange(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                className={controlClass}
                             >
                                 <option value="all">Tutte le opzioni</option>
                                 {(DETAILED_CATEGORIES[selectedSport]?.[selectedLevel] || []).map((opt) => (
@@ -370,14 +375,14 @@ export default function DynamicFilterBar({
             {(roleType === 'player' || roleType === 'all') && (
                 <>
                     {/* Season Filter - PRIMO FILTRO */}
-                    <div className="mb-6 pb-6 border-b border-gray-200">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <div className={sectionDividerClass}>
+                        <label className={labelClass}>
                             Stagione
                         </label>
                         <select
                             value={selectedSeason}
                             onChange={(e) => onSeasonChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                            className={controlClass}
                         >
                             <option value="all">Tutte le stagioni</option>
                             <option value="2025/2026">2025/2026</option>
@@ -391,8 +396,8 @@ export default function DynamicFilterBar({
                     {/* CALCIO - Goal & Porte Inviolate */}
                     {selectedSport === 'Calcio' && (
                         <>
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Goal Minima (Stagione Selezionata)
                                 </label>
                                 <input
@@ -401,12 +406,12 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 5"
                                     value={minGoals ?? ''}
                                     onChange={(e) => onMinGoalsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
 
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Porte Inviolate Minime (Stagione Selezionata)
                                 </label>
                                 <input
@@ -415,7 +420,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 3"
                                     value={minCleanSheets ?? ''}
                                     onChange={(e) => onMinCleanSheetsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
                         </>
@@ -424,8 +429,8 @@ export default function DynamicFilterBar({
                     {/* BASKET - Punti, Assist, Rimbalzi */}
                     {selectedSport === 'Basket' && (
                         <>
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Punti/Partita Minimi (Stagione Selezionata)
                                 </label>
                                 <input
@@ -435,12 +440,12 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 10.5"
                                     value={minPoints ?? ''}
                                     onChange={(e) => onMinPointsChange(e.target.value ? parseFloat(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
 
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Assist Minimi (Stagione Selezionata)
                                 </label>
                                 <input
@@ -449,12 +454,12 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 5"
                                     value={minAssists ?? ''}
                                     onChange={(e) => onMinAssistsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
 
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Rimbalzi Minimi (Stagione Selezionata)
                                 </label>
                                 <input
@@ -463,7 +468,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 8"
                                     value={minRebounds ?? ''}
                                     onChange={(e) => onMinReboundsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
                         </>
@@ -472,8 +477,8 @@ export default function DynamicFilterBar({
                     {/* PALLAVOLO - Ace, Muri, Difese */}
                     {selectedSport === 'Pallavolo' && (
                         <>
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Ace Minimi (Stagione Selezionata)
                                 </label>
                                 <input
@@ -482,12 +487,12 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 15"
                                     value={minAces ?? ''}
                                     onChange={(e) => onMinAcesChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
 
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Muri Minimi (Stagione Selezionata)
                                 </label>
                                 <input
@@ -496,12 +501,12 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 10"
                                     value={minBlocks ?? ''}
                                     onChange={(e) => onMinBlocksChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
 
-                            <div className="mb-6 pb-6 border-b border-gray-200">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <div className={sectionDividerClass}>
+                                <label className={labelClass}>
                                     Difese Minime (Stagione Selezionata)
                                 </label>
                                 <input
@@ -510,7 +515,7 @@ export default function DynamicFilterBar({
                                     placeholder="Es. 20"
                                     value={minDigs ?? ''}
                                     onChange={(e) => onMinDigsChange(e.target.value ? parseInt(e.target.value) : null)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                                    className={controlClass}
                                 />
                             </div>
                         </>
@@ -522,14 +527,14 @@ export default function DynamicFilterBar({
             {(roleType === 'coach' || roleType === 'all') && (
                 <>
                     {/* UEFA License Filter */}
-                    <div className="mb-6 pb-6 border-b border-gray-200">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <div className={sectionDividerClass}>
+                        <label className={labelClass}>
                             Licenza UEFA
                         </label>
                         <select
                             value={uefaLicense}
                             onChange={(e) => onUefaLicenseChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                            className={controlClass}
                         >
                             <option value="all">Tutte le Licenze</option>
                             {UEFA_LICENSES.map((license) => (
@@ -541,8 +546,8 @@ export default function DynamicFilterBar({
                     </div>
 
                     {/* Specialization Filter */}
-                    <div className="mb-6 pb-6 border-b border-gray-200">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <div className={sectionDividerClass}>
+                        <label className={labelClass}>
                             Specializzazione
                         </label>
                         <input
@@ -550,7 +555,7 @@ export default function DynamicFilterBar({
                             placeholder="Es. Difesa, Attacco..."
                             value={specialization}
                             onChange={(e) => onSpecializationChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 text-sm"
+                            className={controlClass}
                         />
                     </div>
                 </>
@@ -566,22 +571,22 @@ export default function DynamicFilterBar({
                                 type="checkbox"
                                 checked={hasUEFALicense === 'true'}
                                 onChange={(e) => onHasUEFALicenseChange(e.target.checked ? 'true' : 'all')}
-                                className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
+                                className={checkboxClass}
                             />
-                            <span className="text-sm font-medium text-gray-700">Possiede Licenza UEFA</span>
+                            <span className="text-sm font-medium text-secondary">Possiede Licenza UEFA</span>
                         </label>
                     </div>
 
                     {/* FIFA License Filter */}
-                    <div className="mb-6 pb-6 border-b border-gray-200">
+                    <div className={sectionDividerClass}>
                         <label className="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={hasFIFALicense === 'true'}
                                 onChange={(e) => onHasFIFALicenseChange(e.target.checked ? 'true' : 'all')}
-                                className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
+                                className={checkboxClass}
                             />
-                            <span className="text-sm font-medium text-gray-700">Possiede Licenza FIFA</span>
+                            <span className="text-sm font-medium text-secondary">Possiede Licenza FIFA</span>
                         </label>
                     </div>
                 </>
@@ -594,16 +599,16 @@ export default function DynamicFilterBar({
                         type="checkbox"
                         checked={verified}
                         onChange={(e) => onVerifiedChange(e.target.checked)}
-                        className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-2 focus:ring-brand-500"
+                        className={checkboxClass}
                     />
-                    <span className="text-sm font-medium text-gray-700">Solo Profili Verificati</span>
+                    <span className="text-sm font-medium text-secondary">Solo Profili Verificati</span>
                 </label>
             </div>
 
             {/* Reset Button */}
             <button
                 onClick={resetFilters}
-                className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold rounded-lg transition-colors duration-200"
+                className="w-full py-2 bg-base-300/75 hover:bg-base-300 text-white font-semibold rounded-lg transition-colors duration-200"
             >
                 Azzera Filtri
             </button>

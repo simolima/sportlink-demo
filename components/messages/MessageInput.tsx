@@ -110,7 +110,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                                 data={emojiData}
                                 onEmojiSelect={onEmojiSelect}
                                 locale="it"
-                                theme="light"
+                                theme="dark"
                                 previewEmoji="soccer"
                                 previewPosition="none"
                                 skinTonePosition="search"
@@ -127,6 +127,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                         }}
                         className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-primary bg-primary/15' : 'text-secondary/60 hover:text-white hover:bg-base-300/60'}`}
                         title="Emoji"
+                        aria-label="Apri selettore emoji"
                         disabled={disabled}
                     >
                         <Smile size={20} />
@@ -135,6 +136,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                         type="button"
                         className="p-2 text-secondary/60 hover:text-white hover:bg-base-300/60 rounded-full transition-colors"
                         title="Allegato (coming soon)"
+                        aria-label="Allegato non disponibile"
                         disabled
                     >
                         <Paperclip size={20} />
@@ -162,6 +164,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                     disabled={!text.trim() || sending || disabled}
                     className="flex items-center justify-center w-12 h-12 bg-primary text-white rounded-full hover:bg-brand-700 disabled:bg-base-300 disabled:text-secondary/50 disabled:cursor-not-allowed transition-colors shadow-sm"
                     title="Invia messaggio"
+                    aria-label="Invia messaggio"
                 >
                     <Send size={20} className={sending ? 'animate-pulse' : ''} />
                 </button>

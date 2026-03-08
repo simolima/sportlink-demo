@@ -45,6 +45,7 @@ export default function ChatPanel({
     const [messages, setMessages] = useState<Message[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [sendError, setSendError] = useState<string | null>(null)
     const bottomRef = useRef<HTMLDivElement>(null)
 
     // Info peer
@@ -174,6 +175,19 @@ export default function ChatPanel({
     const handleSend = async (text: string) => {
         if (!peerId || !currentUserId) return
 
+        const tempId = `temp-${Date.now()}`
+        const optimisticMessage: Message = {
+            id: tempId,
+            senderId: currentUserId,
+            receiverId: peerId,
+            text,
+            timestamp: new Date().toISOString(),
+            read: false,
+        }
+
+        setSendError(null)
+        setMessages(prev => [...prev, optimisticMessage])
+
         try {
             const authHeaders = await getAuthHeaders()
             const res = await fetch('/api/messages', {
@@ -183,10 +197,14 @@ export default function ChatPanel({
             })
             const newMsg = await res.json()
             if (newMsg && newMsg.id) {
-                setMessages(prev => [...prev, newMsg])
+                setMessages(prev => prev.map(msg => String(msg.id) === tempId ? newMsg : msg))
+            } else {
+                setMessages(prev => prev.filter(msg => String(msg.id) !== tempId))
+                setSendError('Impossibile inviare il messaggio. Riprova.')
             }
         } catch (e) {
-            // Silenzioso per ora
+            setMessages(prev => prev.filter(msg => String(msg.id) !== tempId))
+            setSendError('Errore di rete durante l\'invio del messaggio')
         }
     }
 
@@ -301,6 +319,11 @@ export default function ChatPanel({
             </div>
 
             {/* Input */}
+            {sendError && (
+                <div className="px-4 py-2 bg-error/10 border-t border-error/30 text-error text-sm">
+                    {sendError}
+                </div>
+            )}
             <MessageInput onSend={handleSend} />
         </div>
     )

@@ -28,6 +28,19 @@ interface ClubMembership {
 
 type MainTab = 'career' | 'clubs'
 type CareerSubTab = 'all' | 'applications'
+type PendingAction =
+  | {
+    type: 'delete_opportunity'
+    opportunityId: number
+    title: string
+    description: string
+  }
+  | {
+    type: 'withdraw_application'
+    applicationId: string
+    title: string
+    description: string
+  }
 
 const normalizeMainTab = (tab: string | null): MainTab => {
   if (tab === 'clubs' || tab === 'my-clubs') return 'clubs'
@@ -58,6 +71,8 @@ export default function OpportunitiesPage() {
   const [agentApplyTarget, setAgentApplyTarget] = useState<OpportunityWithDetails | null>(null)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('')
   const [submittingAgentApplication, setSubmittingAgentApplication] = useState(false)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [submittingPendingAction, setSubmittingPendingAction] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     search: '',
@@ -69,6 +84,21 @@ export default function OpportunitiesPage() {
   useEffect(() => {
     setMainTab(normalizeMainTab(searchParams.get('tab')))
   }, [searchParams])
+
+  useEffect(() => {
+    if (!agentApplyTarget && !pendingAction) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (submittingAgentApplication || submittingPendingAction) return
+
+      if (agentApplyTarget) closeAgentApplicationModal()
+      if (pendingAction) closePendingActionModal()
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [agentApplyTarget, pendingAction, submittingAgentApplication, submittingPendingAction])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -162,14 +192,14 @@ export default function OpportunitiesPage() {
     const userId = localStorage.getItem('currentUserId')
     if (!userId || !currentUser) return
 
-    const userRole = currentUser.professionalRole
-    const requiredRole = announcement.roleRequired
+    const userRole = normalizeRole(currentUser.professionalRole)
+    const requiredRole = normalizeRole(announcement.roleRequired)
 
-    if (userRole !== 'Agent' && userRole !== requiredRole) {
+    if (userRole !== 'agent' && userRole !== requiredRole) {
       showToast(
         'error',
         'Ruolo non compatibile',
-        `Questo annuncio è per ${requiredRole}, ma tu sei ${userRole}. Non puoi candidarti.`
+        `Questo annuncio è per ${announcement.roleRequired}, ma tu sei ${currentUser.professionalRole}. Non puoi candidarti.`
       )
       return
     }
@@ -297,19 +327,61 @@ export default function OpportunitiesPage() {
     }
   }
 
-  const handleDeleteOpportunity = async (opportunityId: number) => {
-    if (!confirm('Sei sicuro di voler eliminare questa opportunità?')) return
+  const openDeleteOpportunityConfirm = (opportunityId: number, title: string) => {
+    setPendingAction({
+      type: 'delete_opportunity',
+      opportunityId,
+      title: 'Eliminare opportunità?',
+      description: `Stai per eliminare “${title}”. L'azione non è reversibile.`,
+    })
+  }
 
+  const openWithdrawApplicationConfirm = (applicationId: string, opportunityTitle: string) => {
+    setPendingAction({
+      type: 'withdraw_application',
+      applicationId,
+      title: 'Ritirare candidatura?',
+      description: `Ritirerai la candidatura per “${opportunityTitle}”. Potrai candidarti di nuovo in seguito.`,
+    })
+  }
+
+  const closePendingActionModal = () => {
+    setPendingAction(null)
+    setSubmittingPendingAction(false)
+  }
+
+  const handlePendingActionConfirm = async () => {
+    if (!pendingAction) return
+
+    setSubmittingPendingAction(true)
     try {
-      const res = await fetch(`/api/opportunities?id=${opportunityId}`, { method: 'DELETE' })
-      if (res.ok) {
+      if (pendingAction.type === 'delete_opportunity') {
+        const res = await fetch(`/api/opportunities?id=${pendingAction.opportunityId}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('delete_failed')
+
+        setMyClubOpportunities(prev => prev.filter(o => {
+          const id = typeof o.id === 'number' ? o.id : parseInt(String(o.id))
+          return id !== pendingAction.opportunityId
+        }))
         showToast('success', 'Eliminata', "L'opportunità è stata eliminata")
-        setMyClubOpportunities(prev => prev.filter(o => o.id !== opportunityId))
-      } else {
-        showToast('error', 'Errore', "Impossibile eliminare l'opportunità")
       }
-    } catch (error) {
-      showToast('error', 'Errore', 'Si è verificato un errore')
+
+      if (pendingAction.type === 'withdraw_application') {
+        const res = await fetch(`/api/applications?id=${pendingAction.applicationId}&withdraw=true`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('withdraw_failed')
+
+        setUserApplications(prev => prev.map(app =>
+          String(app.id) === String(pendingAction.applicationId)
+            ? { ...app, status: 'withdrawn' }
+            : app
+        ))
+        showToast('success', 'Candidatura ritirata', 'Hai ritirato con successo la candidatura')
+      }
+
+      closePendingActionModal()
+    } catch {
+      showToast('error', 'Errore', 'Operazione non riuscita. Riprova.')
+      setSubmittingPendingAction(false)
     }
   }
 
@@ -514,14 +586,14 @@ export default function OpportunitiesPage() {
                   return (
                     <div
                       key={announcement.id}
-                      className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 h-full flex flex-col ${!isCompatible ? 'opacity-60 border-2 border-gray-200' : 'border-2 border-transparent'
+                      className={`glass-widget rounded-2xl border p-6 h-full flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 ${!isCompatible ? 'opacity-70 border-base-300/70' : 'border-base-300/70'
                         }`}
                     >
                       <div className="flex-1 flex flex-col">
                         {!isCompatible && (
                           <div className="mb-3 px-3 py-2 bg-warning/10 border border-warning/30 rounded-lg">
                             <p className="text-xs text-warning font-medium">
-                              ⚠️ Questo annuncio è per: <strong>{requiredRole}</strong>
+                              ⚠️ Questo annuncio è per: <strong>{announcement.roleRequired}</strong>
                             </p>
                           </div>
                         )}
@@ -547,13 +619,13 @@ export default function OpportunitiesPage() {
                               </div>
                             )}
                             <div>
-                              <h3 className="font-semibold text-gray-900">{announcement.club.name}</h3>
-                              <p className="text-sm text-gray-500">{announcement.sport}</p>
+                              <h3 className="font-semibold text-white">{announcement.club.name}</h3>
+                              <p className="text-sm glass-subtle-text">{announcement.sport}</p>
                             </div>
                           </div>
                         )}
 
-                        <h4 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h4>
+                        <h4 className="text-lg font-bold text-white mb-2">{announcement.title}</h4>
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span className="inline-block px-3 py-1 bg-secondary/10 text-primary text-xs font-medium rounded-full">
                             {announcement.type}
@@ -566,11 +638,11 @@ export default function OpportunitiesPage() {
                           )}
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                        <p className="text-sm glass-subtle-text mb-4 line-clamp-3">
                           {announcement.description}
                         </p>
 
-                        <div className="space-y-2 mb-4 text-sm text-gray-600">
+                        <div className="space-y-2 mb-4 text-sm glass-subtle-text">
                           {announcement.contractType && (
                             <div className="flex items-center gap-2">
                               <Briefcase size={16} />
@@ -596,7 +668,7 @@ export default function OpportunitiesPage() {
                         </div>
 
                         {announcement.applicationsCount !== undefined && (
-                          <p className="text-xs text-gray-500 mb-4">
+                          <p className="text-xs glass-quiet-text mb-4">
                             {announcement.applicationsCount} candidatur{announcement.applicationsCount === 1 ? 'a' : 'e'}
                           </p>
                         )}
@@ -612,10 +684,10 @@ export default function OpportunitiesPage() {
                           }
                           disabled={!isCompatible || hasApplied}
                           className={`w-full px-4 py-2 rounded-lg font-medium transition ${hasApplied
-                            ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                            ? 'bg-base-300 text-secondary/70 cursor-not-allowed'
                             : isCompatible
                               ? 'bg-primary text-white hover:bg-primary-hover'
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-base-300 text-secondary/50 cursor-not-allowed'
                             }`}
                         >
                           {hasApplied
@@ -626,15 +698,8 @@ export default function OpportunitiesPage() {
                         </button>
                         {hasApplied && withdrawableApplication?.status !== 'withdrawn' && (
                           <button
-                            onClick={async () => {
-                              try {
-                                await fetch(`/api/applications?id=${withdrawableApplication.id}&withdraw=true`, { method: 'DELETE' })
-                                setUserApplications(prev => prev.map(app => app.id === withdrawableApplication.id ? { ...app, status: 'withdrawn' } : app))
-                              } catch (e) {
-                                alert('Errore nel ritiro della candidatura')
-                              }
-                            }}
-                            className="w-full px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() => openWithdrawApplicationConfirm(String(withdrawableApplication.id), announcement.title)}
+                            className="w-full px-4 py-2 rounded-lg font-medium border border-error/40 text-error hover:bg-error/10 transition"
                           >
                             Ritira candidatura
                           </button>
@@ -723,21 +788,21 @@ export default function OpportunitiesPage() {
                       ) : (
                         <div className="divide-y divide-base-300/60">
                           {opportunities.map((opp) => (
-                            <div key={opp.id} className="px-6 py-4 hover:bg-gray-50 transition">
+                            <div key={opp.id} className="px-6 py-4 hover:bg-base-300/40 transition-colors">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="font-medium text-gray-900">{opp.title}</h4>
+                                    <h4 className="font-medium text-white">{opp.title}</h4>
                                     <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
                                       {opp.type}
                                     </span>
                                     {opp.roleRequired && (
-                                      <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                                      <span className="px-2 py-0.5 text-xs bg-base-300/70 text-secondary rounded-full">
                                         {opp.roleRequired}
                                       </span>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center gap-4 text-sm glass-subtle-text">
                                     {opp.city && (
                                       <span className="flex items-center gap-1">
                                         <MapPin size={14} />
@@ -759,14 +824,17 @@ export default function OpportunitiesPage() {
                                 <div className="flex items-center gap-2 ml-4">
                                   <Link
                                     href={`/club-applications?clubId=${club?.id}&opportunityId=${opp.id}`}
-                                    className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition"
+                                    className="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition"
                                     title="Visualizza candidature"
                                   >
                                     <Eye size={18} />
                                   </Link>
                                   <button
-                                    onClick={() => handleDeleteOpportunity(typeof opp.id === 'number' ? opp.id : parseInt(opp.id as string))}
-                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                    onClick={() => openDeleteOpportunityConfirm(
+                                      typeof opp.id === 'number' ? opp.id : parseInt(opp.id as string),
+                                      opp.title
+                                    )}
+                                    className="p-2 text-secondary hover:text-error hover:bg-error/10 rounded-lg transition"
                                     title="Elimina opportunità"
                                   >
                                     <Trash2 size={18} />
@@ -787,11 +855,16 @@ export default function OpportunitiesPage() {
       </div>
 
       {agentApplyTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Candida un assistito</h3>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div
+            className="w-full max-w-lg glass-widget rounded-2xl border border-base-300/70 overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="agent-application-title"
+          >
+            <div className="glass-widget-header px-6 py-4 border-b border-base-300/70">
+              <h3 id="agent-application-title" className="text-lg font-semibold text-white">Candida un assistito</h3>
+              <p className="text-sm glass-subtle-text mt-1 line-clamp-2">
                 Seleziona il giocatore da candidare per “{agentApplyTarget.title}”
               </p>
             </div>
@@ -805,14 +878,14 @@ export default function OpportunitiesPage() {
                     type="button"
                     onClick={() => setSelectedPlayerId(String(player.id))}
                     className={`w-full text-left p-4 rounded-xl border transition ${isSelected
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-base-300/70 hover:border-primary/40 hover:bg-base-300/50'
                       }`}
                   >
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-white">
                       {player.firstName} {player.lastName}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm glass-subtle-text mt-1">
                       {player.sport || 'Sport non specificato'}
                     </p>
                   </button>
@@ -820,11 +893,12 @@ export default function OpportunitiesPage() {
               })}
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-base-300/70 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={closeAgentApplicationModal}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                disabled={submittingAgentApplication}
+                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-white hover:bg-base-300/60 disabled:opacity-60"
               >
                 Annulla
               </button>
@@ -835,6 +909,41 @@ export default function OpportunitiesPage() {
                 className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submittingAgentApplication ? 'Invio...' : 'Invia candidatura'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div
+            className="w-full max-w-md glass-widget rounded-2xl border border-base-300/70 overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pending-action-title"
+          >
+            <div className="glass-widget-header border-b border-base-300/70 px-5 py-4">
+              <h3 id="pending-action-title" className="text-lg font-semibold text-white">{pendingAction.title}</h3>
+              <p className="text-sm glass-subtle-text mt-1">{pendingAction.description}</p>
+            </div>
+
+            <div className="px-5 py-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closePendingActionModal}
+                disabled={submittingPendingAction}
+                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-white hover:bg-base-300/60 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handlePendingActionConfirm}
+                disabled={submittingPendingAction}
+                className="px-4 py-2 rounded-lg bg-error text-white hover:opacity-90 disabled:opacity-60"
+              >
+                {submittingPendingAction ? 'Conferma...' : 'Conferma'}
               </button>
             </div>
           </div>

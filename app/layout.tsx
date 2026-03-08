@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ToastProvider } from '@/lib/toast-context';
 import { AuthProvider } from '@/lib/hooks/useAuth';
+import AuthLoadingGate from '@/components/ui/AuthLoadingGate';
 import { ThemeProvider } from '@/lib/hooks/useTheme';
 import type { Metadata } from 'next';
 
@@ -39,7 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
-              {children}
+              <AuthLoadingGate>
+                {children}
+              </AuthLoadingGate>
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

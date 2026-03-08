@@ -71,16 +71,30 @@ export default function Navbar() {
     if (isLoading) return null
 
     return (
-        <nav className="sticky top-0 z-40 border-b border-base-300/50 bg-transparent">
+        <nav className="sticky top-0 z-40 border-b border-base-300/50 bg-base-100/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
                 <div className="glass-nav rounded-2xl px-4 md:px-5 py-3 flex items-center gap-4">
                     {/* Logo + ricerca */}
                     <div className="flex items-center gap-3 min-w-[220px]">
-                        <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-base-content font-bold leading-tight">
-                            <span className="text-sm md:text-base tracking-[0.18em] uppercase">SPRINTA</span>
-                            <span className="text-[11px] text-secondary">Sport Network</span>
+                        <Link href={isAuthenticated ? '/home' : '/'} className="flex items-center gap-2.5 text-base-content font-bold leading-tight hover:opacity-80 transition-opacity">
+                            {/* Logo-mark adattato per temi (currentColor) */}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="820 360 230 360"
+                                fill="currentColor"
+                                className="w-[22px] h-[22px] text-primary flex-shrink-0"
+                                aria-hidden="true"
+                            >
+                                <path d="M927.7,615c5.1-1.4,9.9-3.3,14.3-5.7-18.2-.6-34.6-13.5-38.6-32.5-4.4-21.4,9.7-42.3,30.8-48l36.6-9.8,52.4-14c1.1-.3,2-1.2,2.2-2.4l10.4-52.6c.4-2.3-1.6-4.2-3.8-3.6l-139.5,37.4c-31.7,8.5-52.2,38.1-50.2,69.7.2,4.5,1,9,2.2,13.5,9.7,36.2,46.9,57.7,83.2,48Z" />
+                                <path d="M992.3,541.4c-5.1,1.4-9.9,3.3-14.4,5.7,18.2.6,34.5,13.4,38.5,32.4,4.5,21.4-9.6,42.4-30.7,48.1l-36.7,9.8-51.9,13.9c-1.1.3-2,1.2-2.2,2.4l-10.8,52.7c-.5,2.3,1.6,4.2,3.8,3.6l139.5-37.4c31.7-8.5,52.2-38.1,50.2-69.7-.3-4.4-1-9-2.2-13.5-9.7-36.2-46.9-57.7-83.2-48Z" />
+                                <circle cx="915" cy="410.3" r="40.4" />
+                            </svg>
+                            <div className="flex flex-col">
+                                <span className="text-sm md:text-base tracking-[0.18em] uppercase">SPRINTA</span>
+                                <span className="text-[11px] text-secondary">Sport Network</span>
+                            </div>
                         </Link>
-                        <div className="hidden lg:flex items-center bg-base-200/65 border border-base-300/70 rounded-xl px-3 py-1.5 gap-2 w-56 backdrop-blur">
+                        <div className="hidden lg:flex items-center bg-base-200/65 border border-base-300/70 rounded-xl px-3 py-1.5 gap-2 w-56 backdrop-blur transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
                             <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
                             <input
                                 value={searchQuery}

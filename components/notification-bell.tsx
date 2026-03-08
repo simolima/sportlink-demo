@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Bell, BellOff } from 'lucide-react'
 import { playNotificationSound, getSoundVariant, isSoundEnabled, toggleSound, unlockAudioContext } from '@/lib/notification-sound'
 import Link from 'next/link'
@@ -16,6 +16,7 @@ interface NotificationBellProps {
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
@@ -97,6 +98,33 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
       supabase.removeChannel(channel)
     }
   }, [userId, fetchNotifications])
+
+  // Suono campanella per messaggi in arrivo quando l'utente non è nella chat
+  useEffect(() => {
+    if (!userId) return
+    const channel = supabase
+      .channel(`msg-sound:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${userId}`,
+        },
+        () => {
+          // ChatPanel gestisce il suono in-chat; qui suona solo se si è altrove
+          if (!pathname?.startsWith('/messages')) {
+            playNotificationSound(getSoundVariant('message_received'))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId, pathname])
 
   const markAsRead = async (id: number) => {
     try {

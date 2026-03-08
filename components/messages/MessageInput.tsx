@@ -13,11 +13,12 @@ const EmojiPicker = dynamic(
 
 interface Props {
     onSend: (text: string) => Promise<void>
+    onTyping?: () => void
     disabled?: boolean
     placeholder?: string
 }
 
-export default function MessageInput({ onSend, disabled = false, placeholder = 'Scrivi un messaggio...' }: Props) {
+export default function MessageInput({ onSend, onTyping, disabled = false, placeholder = 'Scrivi un messaggio...' }: Props) {
     const [text, setText] = useState('')
     const [sending, setSending] = useState(false)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -150,7 +151,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                     <textarea
                         ref={textareaRef}
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={(e) => { setText(e.target.value); onTyping?.() }}
                         onKeyDown={handleKeyDown}
                         placeholder={placeholder}
                         disabled={disabled || sending}

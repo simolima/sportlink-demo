@@ -627,6 +627,11 @@ export type ProfessionalStudio = {
   logoUrl?: string;
   description?: string;
   servicesOffered: string[];
+  yearsOfExperience?: number;
+  languages?: string[];
+  workModes?: Array<'in-person' | 'remote' | 'hybrid'>;
+  certifications?: string[];
+  methodology?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

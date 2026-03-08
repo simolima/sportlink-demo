@@ -16,6 +16,7 @@ import StudioSpecializations from '@/components/studio-public/StudioSpecializati
 import StudioServicesSection from '@/components/studio-public/StudioServicesSection'
 import StudioMethodology from '@/components/studio-public/StudioMethodology'
 import StudioReviewsSection from '@/components/studio-public/StudioReviewsSection'
+import StudioReviewForm from '@/components/studio/StudioReviewForm'
 import StudioLocationContact from '@/components/studio-public/StudioLocationContact'
 import StudioFaqSection from '@/components/studio-public/StudioFaqSection'
 import StudioFinalCta from '@/components/studio-public/StudioFinalCta'
@@ -197,6 +198,13 @@ export default function StudioDetailPage() {
     // Progressively replace mock content with real DB content when available.
     const mergedMockData = baseMockData ? {
         ...baseMockData,
+        // Professional profile fields from DB (with fallback to mock)
+        yearsOfExperience: studio.yearsOfExperience ?? baseMockData.yearsOfExperience,
+        languages: (studio.languages && studio.languages.length > 0) ? studio.languages : baseMockData.languages,
+        workModes: (studio.workModes && studio.workModes.length > 0) ? studio.workModes : baseMockData.workModes,
+        certifications: (studio.certifications && studio.certifications.length > 0) ? studio.certifications : baseMockData.certifications,
+        methodology: studio.methodology || baseMockData.methodology,
+        // Dynamic content from DB (with fallback to mock)
         reviews: (studio.reviews && studio.reviews.length > 0)
             ? studio.reviews.map(r => ({
                 id: r.id,
@@ -274,7 +282,25 @@ export default function StudioDetailPage() {
             {mergedMockData && <StudioMethodology mockData={mergedMockData} />}
 
             {/* Reviews Section */}
-            {mergedMockData && <StudioReviewsSection mockData={mergedMockData} />}
+            {mergedMockData && (
+                <div className="bg-white py-16">
+                    <div className="max-w-6xl mx-auto px-4 space-y-12">
+                        <StudioReviewsSection mockData={mergedMockData} />
+                        <StudioReviewForm
+                            studioId={studioId}
+                            onSuccess={() => {
+                                // Reload studio data to refresh reviews
+                                fetch(`/api/studios/${studioId}`)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (!data.error) setStudio(data)
+                                    })
+                                    .catch(() => { })
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Location & Contact */}
             <StudioLocationContact studio={studio} />

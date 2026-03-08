@@ -9,6 +9,9 @@ import {
     Cog6ToothIcon,
     Squares2X2Icon,
     WrenchScrewdriverIcon,
+    SparklesIcon,
+    QuestionMarkCircleIcon,
+    StarIcon,
 } from '@heroicons/react/24/outline'
 
 type NavItem = {
@@ -27,6 +30,9 @@ export default function StudioDashboardLayout({ children }: { children: React.Re
         { href: `/studios/${studioId}/dashboard/calendar`, label: 'Calendario', icon: CalendarDaysIcon },
         { href: `/studios/${studioId}/dashboard/availability`, label: 'Disponibilità', icon: ClockIcon },
         { href: `/studios/${studioId}/dashboard/services`, label: 'Servizi', icon: WrenchScrewdriverIcon },
+        { href: `/studios/${studioId}/dashboard/specializations`, label: 'Specializzazioni', icon: SparklesIcon },
+        { href: `/studios/${studioId}/dashboard/faqs`, label: 'FAQ', icon: QuestionMarkCircleIcon },
+        { href: `/studios/${studioId}/dashboard/reviews`, label: 'Recensioni', icon: StarIcon },
         { href: `/studios/${studioId}/dashboard/bookings`, label: 'Prenotazioni', icon: Squares2X2Icon },
         { href: `/studios/${studioId}/dashboard/settings`, label: 'Impostazioni', icon: Cog6ToothIcon },
     ]

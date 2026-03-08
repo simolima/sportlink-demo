@@ -29,6 +29,13 @@ interface ClubMembership {
 type MainTab = 'career' | 'clubs'
 type CareerSubTab = 'all' | 'applications'
 
+const normalizeMainTab = (tab: string | null): MainTab => {
+  if (tab === 'clubs' || tab === 'my-clubs') return 'clubs'
+  return 'career'
+}
+
+const normalizeRole = (role: string | null | undefined) => String(role || '').toLowerCase()
+
 export default function OpportunitiesPage() {
   const { user, isLoading: authLoading } = useRequireAuth(false)
   const router = useRouter()
@@ -36,7 +43,7 @@ export default function OpportunitiesPage() {
   const { showToast } = useToast()
 
   // Main tabs and sub-tabs
-  const initialTab = (searchParams.get('tab') as MainTab) || 'career'
+  const initialTab = normalizeMainTab(searchParams.get('tab'))
   const [mainTab, setMainTab] = useState<MainTab>(initialTab)
   const [careerSubTab, setCareerSubTab] = useState<CareerSubTab>('all')
 
@@ -48,6 +55,9 @@ export default function OpportunitiesPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [affiliatedPlayers, setAffiliatedPlayers] = useState<any[]>([])
   const [userApplications, setUserApplications] = useState<any[]>([])
+  const [agentApplyTarget, setAgentApplyTarget] = useState<OpportunityWithDetails | null>(null)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('')
+  const [submittingAgentApplication, setSubmittingAgentApplication] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     search: '',
@@ -55,6 +65,10 @@ export default function OpportunitiesPage() {
     type: 'all',
     level: 'all',
   })
+
+  useEffect(() => {
+    setMainTab(normalizeMainTab(searchParams.get('tab')))
+  }, [searchParams])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -82,7 +96,7 @@ export default function OpportunitiesPage() {
       }
 
       // Se è un Agent, carica i giocatori affiliati
-      if (user && user.professionalRole === 'Agent') {
+      if (normalizeRole(user?.professionalRole) === 'agent') {
         const affiliationsRes = await fetch(`/api/affiliations?agentId=${userId}&status=active`)
         const affiliations = await affiliationsRes.json()
         setAffiliatedPlayers(affiliations.map((aff: any) => aff.player).filter(Boolean))
@@ -170,12 +184,7 @@ export default function OpportunitiesPage() {
         return
       }
 
-      if (affiliatedPlayers.length === 0) {
-        showToast('info', 'Nessun assistito', 'Non hai ancora giocatori affiliati da candidare.')
-        return
-      }
-
-      handleAgentApplication(announcementId, announcement)
+      openAgentApplicationModal(announcement)
       return
     }
 
@@ -218,22 +227,35 @@ export default function OpportunitiesPage() {
     }
   }
 
-  const handleAgentApplication = async (announcementId: number, announcement: OpportunityWithDetails) => {
-    const selectedIndex = prompt(
-      `Seleziona quale giocatore candidare per "${announcement.title}":\n\n${affiliatedPlayers
-        .map((p: any, i: number) => `${i + 1}. ${p.firstName} ${p.lastName} - ${p.sport || 'N/A'}`)
-        .join('\n')}\n\nInserisci il numero:`
-    )
-
-    if (!selectedIndex) return
-
-    const index = parseInt(selectedIndex) - 1
-    if (isNaN(index) || index < 0 || index >= affiliatedPlayers.length) {
-      showToast('error', 'Errore', 'Selezione non valida')
+  const openAgentApplicationModal = (announcement: OpportunityWithDetails) => {
+    if (affiliatedPlayers.length === 0) {
+      showToast('info', 'Nessun assistito', 'Non hai ancora giocatori affiliati da candidare.')
       return
     }
 
-    const selectedPlayer = affiliatedPlayers[index]
+    setAgentApplyTarget(announcement)
+    setSelectedPlayerId('')
+  }
+
+  const closeAgentApplicationModal = () => {
+    setAgentApplyTarget(null)
+    setSelectedPlayerId('')
+    setSubmittingAgentApplication(false)
+  }
+
+  const handleAgentApplicationSubmit = async () => {
+    if (!agentApplyTarget) return
+    const announcementId = typeof agentApplyTarget.id === 'number'
+      ? agentApplyTarget.id
+      : parseInt(agentApplyTarget.id as string)
+
+    const selectedPlayer = affiliatedPlayers.find((p: any) => String(p.id) === selectedPlayerId)
+    if (!selectedPlayer) {
+      showToast('error', 'Selezione richiesta', 'Seleziona un assistito prima di continuare')
+      return
+    }
+
+    setSubmittingAgentApplication(true)
     const checkRes = await fetch(
       `/api/applications?opportunityId=${announcementId}&applicantId=${selectedPlayer.id}`
     )
@@ -241,6 +263,7 @@ export default function OpportunitiesPage() {
 
     if (existing.length > 0) {
       showToast('info', 'Già candidato', `${selectedPlayer.firstName} ha già una candidatura per questo annuncio`)
+      setSubmittingAgentApplication(false)
       return
     }
 
@@ -262,12 +285,15 @@ export default function OpportunitiesPage() {
           'Candidatura inviata!',
           `${selectedPlayer.firstName} ${selectedPlayer.lastName} è stato candidato con successo`
         )
+        closeAgentApplicationModal()
       } else {
         const error = await res.json()
         showToast('error', 'Errore', error.error || 'Impossibile inviare la candidatura')
+        setSubmittingAgentApplication(false)
       }
     } catch (error) {
       showToast('error', 'Errore', 'Si è verificato un errore')
+      setSubmittingAgentApplication(false)
     }
   }
 
@@ -315,23 +341,23 @@ export default function OpportunitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen glass-page-bg">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Opportunità</h1>
-          <p className="text-gray-600">Trova opportunità per la tua carriera o gestisci quelle dei tuoi club</p>
+        <div className="mb-8 glass-panel rounded-2xl p-6 md:p-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Opportunità</h1>
+          <p className="glass-subtle-text">Trova opportunità per la tua carriera o gestisci quelle dei tuoi club</p>
         </div>
 
         {/* Main Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
+        <div className="glass-widget rounded-2xl overflow-hidden mb-6">
+          <div className="glass-widget-header border-b border-base-300/70">
             <nav className="flex -mb-px">
               <button
                 onClick={() => setMainTab('career')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'career'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-secondary hover:text-white hover:border-base-300'
                   }`}
               >
                 <Briefcase size={18} className="inline mr-2" />
@@ -341,7 +367,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setMainTab('clubs')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'clubs'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-secondary hover:text-white hover:border-base-300'
                   }`}
               >
                 <Building2 size={18} className="inline mr-2" />
@@ -365,7 +391,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setCareerSubTab('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'all'
                   ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  : 'glass-widget text-secondary hover:text-white hover:bg-base-300/60'
                   }`}
               >
                 Tutte le opportunità
@@ -374,7 +400,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setCareerSubTab('applications')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'applications'
                   ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  : 'glass-widget text-secondary hover:text-white hover:bg-base-300/60'
                   }`}
               >
                 Le mie candidature
@@ -388,29 +414,29 @@ export default function OpportunitiesPage() {
 
             {/* Filters (only for "all" sub-tab) */}
             {careerSubTab === 'all' && (
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="glass-widget rounded-2xl p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cerca</label>
+                    <label className="block text-sm font-medium text-secondary mb-2">Cerca</label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary/60" />
                       <input
                         type="text"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-base-300 rounded-lg bg-base-300/55 text-secondary placeholder:text-secondary/50 focus:ring-2 focus:ring-primary/25 focus:border-primary"
                         placeholder="Cerca annunci... (premi Enter)"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sport</label>
+                    <label className="block text-sm font-medium text-secondary mb-2">Sport</label>
                     <select
                       value={filters.sport}
                       onChange={(e) => setFilters({ ...filters, sport: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full px-4 py-2 border border-base-300 rounded-lg bg-base-300/55 text-secondary focus:ring-2 focus:ring-primary/25 focus:border-primary"
                     >
                       <option value="all">Tutti gli sport</option>
                       {SUPPORTED_SPORTS.map((sport) => (
@@ -422,11 +448,11 @@ export default function OpportunitiesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <label className="block text-sm font-medium text-secondary mb-2">Tipo</label>
                     <select
                       value={filters.type}
                       onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full px-4 py-2 border border-base-300 rounded-lg bg-base-300/55 text-secondary focus:ring-2 focus:ring-primary/25 focus:border-primary"
                     >
                       <option value="all">Tutti i tipi</option>
                       {OPPORTUNITY_TYPES.map((type) => (
@@ -438,11 +464,11 @@ export default function OpportunitiesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Livello</label>
+                    <label className="block text-sm font-medium text-secondary mb-2">Livello</label>
                     <select
                       value={filters.level}
                       onChange={(e) => setFilters({ ...filters, level: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full px-4 py-2 border border-base-300 rounded-lg bg-base-300/55 text-secondary focus:ring-2 focus:ring-primary/25 focus:border-primary"
                     >
                       <option value="all">Tutti i livelli</option>
                       {LEVELS.map((level) => (
@@ -458,9 +484,9 @@ export default function OpportunitiesPage() {
 
             {/* Results */}
             {getFilteredOpportunities().length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <Briefcase size={48} className="mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">
+              <div className="glass-widget rounded-2xl p-12 text-center">
+                <Briefcase size={48} className="mx-auto mb-4 text-secondary/60" />
+                <p className="glass-subtle-text">
                   {careerSubTab === 'applications'
                     ? 'Non hai ancora candidature attive'
                     : 'Nessuna opportunità trovata'}
@@ -469,10 +495,9 @@ export default function OpportunitiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getFilteredOpportunities().map((announcement) => {
-                  const userRole = currentUser?.professionalRole
-                  const requiredRole = announcement.roleRequired
-                  const canApply =
-                    userRole === 'agent' ? requiredRole === 'player' : userRole === requiredRole
+                  const userRole = normalizeRole(currentUser?.professionalRole)
+                  const requiredRole = normalizeRole(announcement.roleRequired)
+                  const canApply = userRole === 'agent' ? requiredRole === 'player' : userRole === requiredRole
                   const isCompatible = canApply
 
                   const existingApplication = userApplications.find((app: any) => {
@@ -595,7 +620,7 @@ export default function OpportunitiesPage() {
                         >
                           {hasApplied
                             ? '✓ Candidatura già inviata'
-                            : currentUser?.professionalRole === 'Agent'
+                            : normalizeRole(currentUser?.professionalRole) === 'agent'
                               ? 'Candida Assistito'
                               : 'Candidati'}
                         </button>
@@ -627,10 +652,10 @@ export default function OpportunitiesPage() {
         {mainTab === 'clubs' && (
           <>
             {userClubs.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <Building2 size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nessun club gestito</h3>
-                <p className="text-gray-600 mb-6">
+              <div className="glass-widget rounded-2xl p-12 text-center">
+                <Building2 size={48} className="mx-auto mb-4 text-secondary/60" />
+                <h3 className="text-lg font-semibold text-white mb-2">Nessun club gestito</h3>
+                <p className="glass-subtle-text mb-6">
                   Non sei Admin o Manager di nessun club. Quando avrai un ruolo di gestione in un club, potrai creare e gestire le opportunità qui.
                 </p>
                 <Link
@@ -657,9 +682,9 @@ export default function OpportunitiesPage() {
                 {/* Grouped by club */}
                 <div className="space-y-8">
                   {groupedByClub.map(({ club, opportunities }) => (
-                    <div key={club?.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div key={club?.id} className="glass-widget rounded-2xl overflow-hidden">
                       {/* Club header */}
-                      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                      <div className="glass-widget-header border-b border-base-300/70 px-6 py-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             {club?.logoUrl ? (
@@ -674,8 +699,8 @@ export default function OpportunitiesPage() {
                               </div>
                             )}
                             <div>
-                              <h3 className="font-semibold text-gray-900">{club?.name}</h3>
-                              <p className="text-sm text-gray-500">
+                              <h3 className="font-semibold text-white">{club?.name}</h3>
+                              <p className="text-sm glass-subtle-text">
                                 {opportunities.length} opportunità attiv{opportunities.length === 1 ? 'a' : 'e'}
                               </p>
                             </div>
@@ -692,11 +717,11 @@ export default function OpportunitiesPage() {
 
                       {/* Opportunities list */}
                       {opportunities.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-gray-500">
+                        <div className="px-6 py-8 text-center glass-subtle-text">
                           <p>Nessuna opportunità attiva per questo club</p>
                         </div>
                       ) : (
-                        <div className="divide-y divide-gray-100">
+                        <div className="divide-y divide-base-300/60">
                           {opportunities.map((opp) => (
                             <div key={opp.id} className="px-6 py-4 hover:bg-gray-50 transition">
                               <div className="flex items-start justify-between">
@@ -760,6 +785,61 @@ export default function OpportunitiesPage() {
           </>
         )}
       </div>
+
+      {agentApplyTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Candida un assistito</h3>
+              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                Seleziona il giocatore da candidare per “{agentApplyTarget.title}”
+              </p>
+            </div>
+
+            <div className="px-6 py-5 space-y-3 max-h-[52vh] overflow-y-auto">
+              {affiliatedPlayers.map((player: any) => {
+                const isSelected = selectedPlayerId === String(player.id)
+                return (
+                  <button
+                    key={player.id}
+                    type="button"
+                    onClick={() => setSelectedPlayerId(String(player.id))}
+                    className={`w-full text-left p-4 rounded-xl border transition ${isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                      }`}
+                  >
+                    <p className="font-medium text-gray-900">
+                      {player.firstName} {player.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {player.sport || 'Sport non specificato'}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeAgentApplicationModal}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleAgentApplicationSubmit}
+                disabled={!selectedPlayerId || submittingAgentApplication}
+                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {submittingAgentApplication ? 'Invio...' : 'Invia candidatura'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

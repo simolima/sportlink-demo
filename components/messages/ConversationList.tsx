@@ -74,13 +74,13 @@ export default function ConversationList({
     }, [conversations, search, getUserInfo])
 
     return (
-        <div className="flex flex-col h-full bg-white">
+        <div className="flex flex-col h-full glass-widget">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Messaggi</h2>
+            <div className="flex items-center justify-between px-4 py-4 glass-widget-header">
+                <h2 className="text-xl font-bold text-white">Messaggi</h2>
                 <button
                     onClick={onNewChat}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#2341F0] text-white text-sm font-medium rounded-lg hover:bg-[#3B52F5] transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
                 >
                     <MessageSquarePlus size={18} />
                     <span className="hidden sm:inline">Nuova chat</span>
@@ -88,15 +88,15 @@ export default function ConversationList({
             </div>
 
             {/* Ricerca */}
-            <div className="px-4 py-3 border-b border-gray-100">
+            <div className="px-4 py-3 border-b border-base-300/70">
                 <div className="relative">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/60" />
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Cerca conversazione..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-0 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2341F0]/20 focus:bg-white transition-colors"
+                        className="w-full pl-10 pr-4 py-2.5 bg-base-300/55 border border-base-300 rounded-lg text-sm text-secondary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors"
                     />
                 </div>
             </div>
@@ -105,17 +105,17 @@ export default function ConversationList({
             <div className="flex-1 overflow-y-auto">
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin w-8 h-8 border-2 border-[#2341F0] border-t-transparent rounded-full" />
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
                     </div>
                 ) : filteredConversations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <MessageSquarePlus size={32} className="text-gray-400" />
+                        <div className="w-16 h-16 bg-base-300/70 rounded-full flex items-center justify-center mb-4">
+                            <MessageSquarePlus size={32} className="text-secondary/60" />
                         </div>
-                        <p className="text-gray-600 font-medium">
+                        <p className="text-secondary font-medium">
                             {search ? 'Nessun risultato' : 'Nessuna conversazione'}
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm glass-quiet-text mt-1">
                             {search ? 'Prova con altri termini' : 'Inizia una nuova chat!'}
                         </p>
                     </div>

@@ -99,7 +99,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
     }
 
     return (
-        <div className="border-t border-gray-200 bg-white p-4">
+        <div className="border-t border-base-300/70 bg-base-200/55 p-4">
             <div className="flex items-end gap-3">
                 {/* Icone azioni */}
                 <div className="flex items-center gap-1 pb-2 relative" ref={emojiPickerRef}>
@@ -125,7 +125,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                             saveCursor()
                             setShowEmojiPicker(prev => !prev)
                         }}
-                        className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-[#2341F0] bg-[#EEF1F7]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                        className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-primary bg-primary/15' : 'text-secondary/60 hover:text-white hover:bg-base-300/60'}`}
                         title="Emoji"
                         disabled={disabled}
                     >
@@ -133,7 +133,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                     </button>
                     <button
                         type="button"
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 text-secondary/60 hover:text-white hover:bg-base-300/60 rounded-full transition-colors"
                         title="Allegato (coming soon)"
                         disabled
                     >
@@ -151,7 +151,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                         placeholder={placeholder}
                         disabled={disabled || sending}
                         rows={1}
-                        className="w-full resize-none border border-gray-300 rounded-2xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-[#2341F0] focus:ring-2 focus:ring-[#2341F0]/20 transition-colors disabled:bg-gray-50 disabled:text-gray-400"
+                        className="w-full resize-none border border-base-300 rounded-2xl px-4 py-3 text-[15px] text-secondary placeholder:text-secondary/50 bg-base-300/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors disabled:bg-base-300/30 disabled:text-secondary/50"
                         style={{ minHeight: '48px', maxHeight: '150px' }}
                     />
                 </div>
@@ -160,7 +160,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                 <button
                     onClick={handleSend}
                     disabled={!text.trim() || sending || disabled}
-                    className="flex items-center justify-center w-12 h-12 bg-[#2341F0] text-white rounded-full hover:bg-[#3B52F5] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-sm"
+                    className="flex items-center justify-center w-12 h-12 bg-primary text-white rounded-full hover:bg-brand-700 disabled:bg-base-300 disabled:text-secondary/50 disabled:cursor-not-allowed transition-colors shadow-sm"
                     title="Invia messaggio"
                 >
                     <Send size={20} className={sending ? 'animate-pulse' : ''} />
@@ -168,8 +168,8 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
             </div>
 
             {/* Hint */}
-            <p className="text-[11px] text-gray-400 mt-2 text-center">
-                Premi <kbd className="px-1 py-0.5 bg-gray-100 rounded text-gray-500">Invio</kbd> per inviare, <kbd className="px-1 py-0.5 bg-gray-100 rounded text-gray-500">Shift+Invio</kbd> per nuova riga
+            <p className="text-[11px] glass-quiet-text mt-2 text-center">
+                Premi <kbd className="px-1 py-0.5 bg-base-300/80 rounded text-secondary">Invio</kbd> per inviare, <kbd className="px-1 py-0.5 bg-base-300/80 rounded text-secondary">Shift+Invio</kbd> per nuova riga
             </p>
         </div>
     )

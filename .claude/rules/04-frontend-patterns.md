@@ -393,3 +393,31 @@ I widget in `components/dashboard-widgets/` devono usare lo stesso linguaggio vi
 Regole:
 - Non introdurre nuove card `bg-white` / `text-gray-*` nei widget dashboard principali.
 - Stati semantici restano DaisyUI (`success`, `warning`, `error`, `info`) senza creare palette custom parallele.
+
+## Opportunities UX — Agent Flow & Tab Alias (Marzo 2026)
+
+La pagina `app/(main)/opportunities/page.tsx` usa ora un flusso candidatura agente non bloccante:
+
+- ❌ vietato usare `prompt()` per selezionare assistiti
+- ✅ usare modal inline con lista assistiti + submit esplicito
+- lo stato submit deve disabilitare il bottone per evitare doppio invio
+
+Compatibilità tab:
+- `?tab=clubs` e `?tab=my-clubs` devono aprire la stessa vista club (alias legacy supportato)
+
+Ruoli:
+- confrontare i ruoli sempre normalizzati lowercase (`agent`, `player`, ecc.)
+- evitare confronti case-sensitive con label UI capitalizzate
+
+## Messages UX — Glass Split View (Marzo 2026)
+
+La pagina `app/(main)/messages/page.tsx` usa ora una shell dark glass coerente con Home/Dashboard:
+
+- contenitore pagina: `glass-page-bg`
+- split panel lista/chat: `glass-panel` con bordi `base-300`
+- `ConversationList`, `ChatHeader`, `MessageInput` allineati a `glass-widget`/`glass-widget-header`
+
+Regole:
+- preservare deep-link `?chat=<peerId>`
+- mantenere comportamento responsive (mobile toggle list/chat)
+- evitare nuovi hardcoded `bg-white` / `text-gray-*` nei componenti messaggistica principali

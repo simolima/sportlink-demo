@@ -228,14 +228,14 @@ export default function ChatPanel({
     // Placeholder se nessuna chat selezionata
     if (!peerId) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center bg-[#FAFBFC] text-center p-8">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <MessageSquare size={40} className="text-gray-400" />
+            <div className="flex-1 flex flex-col items-center justify-center bg-base-200/35 text-center p-8">
+                <div className="w-20 h-20 bg-base-300/70 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare size={40} className="text-secondary/60" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                     I tuoi messaggi
                 </h3>
-                <p className="text-gray-500 max-w-sm">
+                <p className="glass-subtle-text max-w-sm">
                     Seleziona una conversazione dalla lista per iniziare a chattare, oppure avvia una nuova chat.
                 </p>
             </div>
@@ -245,7 +245,7 @@ export default function ChatPanel({
     const messageGroups = groupMessagesByDay(messages)
 
     return (
-        <div className="flex-1 flex flex-col bg-white h-full">
+        <div className="flex-1 flex flex-col bg-transparent h-full">
             {/* Header */}
             <ChatHeader
                 peerId={peerId}
@@ -257,30 +257,30 @@ export default function ChatPanel({
             />
 
             {/* Area messaggi */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#FAFBFC]">
+            <div className="flex-1 overflow-y-auto px-4 py-4 bg-base-200/35">
                 {loading ? (
                     <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin w-8 h-8 border-2 border-[#2341F0] border-t-transparent rounded-full" />
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
                     </div>
                 ) : error ? (
-                    <div className="flex items-center justify-center h-full text-red-500">
+                    <div className="flex items-center justify-center h-full text-error">
                         {error}
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center">
-                        <p className="text-gray-500">Nessun messaggio ancora.</p>
-                        <p className="text-sm text-gray-400 mt-1">Scrivi il primo messaggio!</p>
+                        <p className="glass-subtle-text">Nessun messaggio ancora.</p>
+                        <p className="text-sm glass-quiet-text mt-1">Scrivi il primo messaggio!</p>
                     </div>
                 ) : (
                     messageGroups.map(group => (
                         <div key={group.date}>
                             {/* Separatore giorno */}
                             <div className="flex items-center gap-3 my-4">
-                                <div className="flex-1 h-px bg-gray-200" />
-                                <span className="text-xs text-gray-400 font-medium uppercase">
+                                <div className="flex-1 h-px bg-base-300/80" />
+                                <span className="text-xs text-secondary/60 font-medium uppercase">
                                     {group.label}
                                 </span>
-                                <div className="flex-1 h-px bg-gray-200" />
+                                <div className="flex-1 h-px bg-base-300/80" />
                             </div>
 
                             {/* Messaggi del giorno */}

@@ -56,14 +56,14 @@ export default function ConversationListItem({
             className={clsx(
                 'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors relative',
                 isSelected
-                    ? 'bg-[#EEF1F7]'
-                    : 'bg-white hover:bg-gray-50',
-                'border-b border-gray-100'
+                    ? 'bg-primary/20'
+                    : 'bg-transparent hover:bg-base-300/45',
+                'border-b border-base-300/60'
             )}
         >
             {/* Barra selezione sinistra */}
             {isSelected && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#2341F0] rounded-r" />
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r" />
             )}
 
             {/* Avatar */}
@@ -82,7 +82,7 @@ export default function ConversationListItem({
 
                 {/* Badge non letti su avatar */}
                 {hasUnread && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#2341F0] rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-[10px] font-bold text-white">
                             {conversation.unread > 9 ? '9+' : conversation.unread}
                         </span>
@@ -96,7 +96,7 @@ export default function ConversationListItem({
                     {/* Nome */}
                     <span className={clsx(
                         'truncate text-[15px]',
-                        hasUnread ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'
+                        hasUnread ? 'font-semibold text-white' : 'font-medium text-secondary'
                     )}>
                         {displayName}
                     </span>
@@ -104,7 +104,7 @@ export default function ConversationListItem({
                     {/* Orario */}
                     <span className={clsx(
                         'text-xs flex-shrink-0',
-                        hasUnread ? 'text-[#2341F0] font-medium' : 'text-gray-400'
+                        hasUnread ? 'text-primary font-medium' : 'text-secondary/60'
                     )}>
                         {formatTime(conversation.lastMessage.timestamp)}
                     </span>
@@ -113,7 +113,7 @@ export default function ConversationListItem({
                 {/* Preview messaggio */}
                 <p className={clsx(
                     'text-sm truncate mt-0.5',
-                    hasUnread ? 'text-gray-700 font-medium' : 'text-gray-500'
+                    hasUnread ? 'text-secondary font-medium' : 'text-secondary/70'
                 )}>
                     {conversation.lastMessage.text}
                 </p>

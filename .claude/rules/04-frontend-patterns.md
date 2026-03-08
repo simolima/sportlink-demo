@@ -179,6 +179,17 @@ useEffect(() => {
 
 Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa → vedi `design/BRAND_GUIDE.md`.
 
+### Direzione Visuale Attuale — Aurora Gradient (Marzo 2026)
+
+- Base pagina più **neutra/scura** (slate-night) per ridurre affaticamento visivo.
+- Accenti blu/viola usati in modo **selettivo** (CTA, focus, stati attivi), non come riempimento totale delle superfici.
+- `glass-page-bg` mantiene radial gradient morbidi solo come profondità, con saturazione ridotta.
+- Card e pannelli (`glass-widget`, `glass-panel`) devono restare leggibili e separati dal fondo tramite contrasto + border soft.
+- Regola UX: evitare layout “all blue”; usare gerarchia **70/20/10**:
+  - 70% superfici neutrali dark
+  - 20% superfici secondarie (glass)
+  - 10% accenti primari/interazioni
+
 - **Navy** `#10174A` — background principale
 - **Blu Primario** `#3B52F5` — bottoni, link, accenti
 - **Font**: Neulis Sans (Adobe Typekit) + Inter (fallback) — configurato in `globals.css` e `tailwind.config.ts`
@@ -219,6 +230,8 @@ Per shell/dashboard dark mode usare preferibilmente le utility globali già defi
 - `.glass-subtle-text` / `.glass-quiet-text` — livelli testuali secondari su sfondo scuro
 
 Regola: preferire queste utility rispetto a nuovi `bg-white` / `text-gray-*` nelle superfici principali della dashboard dark.
+
+Nelle pagine `messages`, `professionals` e `opportunities`, i componenti principali devono usare le utility glass e non card light legacy.
 
 ### ⚠️ Colori VIETATI
 

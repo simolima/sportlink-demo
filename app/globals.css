@@ -37,9 +37,9 @@ body,
 body {
     font-family: "neulis-sans", Inter, system-ui, sans-serif;
     background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(94, 109, 246, 0.25), transparent 58%),
-        radial-gradient(900px 500px at 90% 0%, rgba(129, 134, 243, 0.2), transparent 55%),
-        linear-gradient(180deg, #151d56 0%, #10174a 55%, #0e1440 100%);
+        radial-gradient(1100px 560px at 8% -14%, rgba(72, 98, 255, 0.14), transparent 60%),
+        radial-gradient(980px 520px at 94% -6%, rgba(130, 104, 255, 0.1), transparent 62%),
+        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
     color: var(--secondary);
     font-size: 1.0625rem;
     line-height: 1.65;
@@ -111,33 +111,33 @@ small {
 
 .glass-page-bg {
     background:
-        radial-gradient(1200px 500px at 0% -10%, rgba(94, 109, 246, 0.22), transparent 58%),
-        radial-gradient(900px 500px at 100% 0%, rgba(129, 134, 243, 0.16), transparent 58%),
-        linear-gradient(180deg, #151d56 0%, #10174a 55%, #0e1440 100%);
+        radial-gradient(1100px 500px at 0% -10%, rgba(72, 98, 255, 0.15), transparent 60%),
+        radial-gradient(920px 460px at 100% -6%, rgba(130, 104, 255, 0.11), transparent 62%),
+        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
 }
 
 .glass-nav {
-    background: linear-gradient(180deg, rgba(32, 43, 112, 0.72) 0%, rgba(26, 35, 96, 0.62) 100%);
+    background: linear-gradient(180deg, rgba(17, 24, 58, 0.86) 0%, rgba(13, 18, 46, 0.78) 100%);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(178, 186, 255, 0.2);
-    box-shadow: 0 8px 24px rgba(8, 12, 38, 0.22);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 8px 24px rgba(5, 8, 24, 0.28);
 }
 
 .glass-panel {
-    background: linear-gradient(145deg, rgba(32, 43, 112, 0.66) 0%, rgba(26, 35, 96, 0.58) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.22);
-    box-shadow: 0 10px 24px rgba(8, 12, 38, 0.2);
+    background: linear-gradient(145deg, rgba(20, 28, 64, 0.74) 0%, rgba(15, 22, 52, 0.66) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(5, 8, 24, 0.24);
 }
 
 .glass-widget {
-    background: linear-gradient(150deg, rgba(32, 43, 112, 0.72) 0%, rgba(26, 35, 96, 0.66) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.2);
-    box-shadow: 0 8px 18px rgba(6, 10, 32, 0.2);
+    background: linear-gradient(150deg, rgba(20, 28, 64, 0.78) 0%, rgba(15, 22, 52, 0.72) 100%);
+    border: 1px solid rgba(178, 186, 255, 0.15);
+    box-shadow: 0 8px 18px rgba(5, 8, 24, 0.24);
 }
 
 .glass-widget-header {
-    background: linear-gradient(180deg, rgba(81, 104, 255, 0.2) 0%, rgba(26, 35, 96, 0.06) 100%);
-    border-bottom: 1px solid rgba(178, 186, 255, 0.2);
+    background: linear-gradient(180deg, rgba(81, 104, 255, 0.14) 0%, rgba(18, 26, 62, 0.18) 100%);
+    border-bottom: 1px solid rgba(178, 186, 255, 0.15);
 }
 
 .glass-subtle-text {

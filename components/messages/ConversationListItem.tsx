@@ -75,7 +75,7 @@ export default function ConversationListItem({
                         className="w-12 h-12 rounded-full object-cover"
                     />
                 ) : (
-                    <div className="w-12 h-12 rounded-full bg-sprinta-blue flex items-center justify-center text-white font-semibold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-primary/80 flex items-center justify-center text-white font-semibold text-lg">
                         {initial}
                     </div>
                 )}

@@ -118,6 +118,44 @@ export default function ChatPanel({
                         if (prev.some(m => String(m.id) === String(incoming.id))) return prev
                         return [...prev, incoming]
                     })
+                    // Marca subito come letto nel DB: il receiver è nella chat e ha visto il messaggio
+                    getAuthHeaders().then(authHeaders => {
+                        fetch('/api/messages', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', ...authHeaders },
+                            body: JSON.stringify({ userId: currentUserId, peerId }),
+                        }).catch(() => { })
+                    })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [peerId, currentUserId])
+
+    // Realtime: doppia spunta istantanea quando il peer legge i nostri messaggi
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const channel = supabase
+            .channel(`read-receipts:${currentUserId}:${peerId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `sender_id=eq.${currentUserId}`,
+                },
+                (payload: { new: Record<string, any> }) => {
+                    const raw = payload.new
+                    if (String(raw.receiver_id) !== String(peerId)) return
+                    if (!raw.is_read) return
+                    setMessages(prev =>
+                        prev.map(m => String(m.id) === String(raw.id) ? { ...m, read: true } : m)
+                    )
                 }
             )
             .subscribe()

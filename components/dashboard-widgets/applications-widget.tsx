@@ -12,11 +12,11 @@ interface ApplicationsWidgetProps {
 }
 
 const STATUS_COLORS: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
-    pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Sospeso' },
-    in_review: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'In Revisione' },
+    pending: { bg: 'bg-warning/20', text: 'text-warning', label: 'In Sospeso' },
+    in_review: { bg: 'bg-primary/20', text: 'text-primary', label: 'In Revisione' },
     accepted: { bg: 'bg-success/10', text: 'text-success', label: 'Accettata' },
-    rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rifiutata' },
-    withdrawn: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Ritirata' }
+    rejected: { bg: 'bg-error/20', text: 'text-error', label: 'Rifiutata' },
+    withdrawn: { bg: 'bg-base-200/75', text: 'text-secondary', label: 'Ritirata' }
 }
 
 export default function ApplicationsWidget({
@@ -29,32 +29,32 @@ export default function ApplicationsWidget({
     const displayedItems = applications.slice(0, maxItems)
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="mb-6">
-                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-                {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+        <div className="glass-widget rounded-2xl overflow-hidden">
+            <div className="glass-widget-header px-6 py-4">
+                <h3 className="text-xl font-bold text-white">{title}</h3>
+                {subtitle && <p className="text-sm glass-subtle-text mt-1">{subtitle}</p>}
             </div>
 
             {displayedItems.length === 0 ? (
-                <div className="py-8 text-center">
-                    <div className="text-gray-400 mb-2">📋</div>
-                    <p className="text-gray-600">{emptyMessage}</p>
+                <div className="py-8 px-6 text-center">
+                    <div className="text-secondary/55 mb-2">📋</div>
+                    <p className="glass-subtle-text">{emptyMessage}</p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 px-6 py-5">
                     {displayedItems.map((app) => {
                         const statusInfo = STATUS_COLORS[app.status as ApplicationStatus]
                         return (
                             <div
                                 key={app.id}
-                                className="p-4 border border-gray-100 rounded-lg hover:shadow-md transition"
+                                className="p-4 border border-base-300 rounded-xl bg-base-300/60 hover:border-primary/35 transition"
                             >
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900">
+                                        <h4 className="font-semibold text-white">
                                             {app.announcement?.title || 'Opportunità'}
                                         </h4>
-                                        <p className="text-sm text-gray-600 mt-1">
+                                        <p className="text-sm glass-subtle-text mt-1">
                                             {app.announcement?.club?.name || 'Club'}
                                         </p>
                                         <div className="mt-2">
@@ -64,7 +64,7 @@ export default function ApplicationsWidget({
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs glass-quiet-text">
                                             {new Date(app.appliedAt).toLocaleDateString('it-IT')}
                                         </p>
                                     </div>
@@ -78,7 +78,7 @@ export default function ApplicationsWidget({
             {applications.length > maxItems && (
                 <Link
                     href="/opportunities"
-                    className="block mt-4 text-center py-2 text-primary hover:text-blue-700 font-semibold text-sm"
+                    className="block mt-1 mb-5 text-center py-2 text-primary hover:text-brand-700 font-semibold text-sm"
                 >
                     Vedi tutte le candidature →
                 </Link>

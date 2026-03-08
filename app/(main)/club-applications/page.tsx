@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MegaphoneIcon, InboxIcon, BuildingOfficeIcon, CalendarIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline'
@@ -47,34 +47,22 @@ export default function ClubApplicationsPage() {
     const [loading, setLoading] = useState(true)
     const [appLoading, setAppLoading] = useState(false)
 
-    useEffect(() => {
-        const id = localStorage.getItem('currentUserId')
-        const activeRole = localStorage.getItem('currentUserRole')
-        const selectedClubStorageKey = getSelectedClubStorageKey(activeRole)
-
-        // Leggi i parametri dalla URL
-        const urlParams = new URLSearchParams(window.location.search)
-        const urlClubId = urlParams.get('clubId')
-        const urlOpportunityId = urlParams.get('opportunityId')
-
-        const club = urlClubId || localStorage.getItem(selectedClubStorageKey) || localStorage.getItem('selectedClubId')
-        if (!id || !club) {
-            router.push('/home')
-            return
+    const fetchApplications = useCallback(async (opportunityId: string | number) => {
+        setAppLoading(true)
+        try {
+            const res = await fetch(`/api/applications?opportunityId=${opportunityId}`)
+            if (res.ok) {
+                const data = await res.json()
+                setApplications(data)
+            }
+        } catch (error) {
+            console.error('Error fetching applications:', error)
+        } finally {
+            setAppLoading(false)
         }
-        setUserId(id)
-        setClubId(club)
+    }, [])
 
-        // Salva il club selezionato se arriva dalla URL
-        if (urlClubId) {
-            localStorage.setItem(selectedClubStorageKey, urlClubId)
-            localStorage.setItem('selectedClubId', urlClubId)
-        }
-
-        fetchOpportunities(club, urlOpportunityId)
-    }, [router])
-
-    const fetchOpportunities = async (club: string, preferredOpportunityId?: string | null) => {
+    const fetchOpportunities = useCallback(async (club: string, preferredOpportunityId?: string | null) => {
         try {
             const res = await fetch(`/api/opportunities?clubId=${club}&activeOnly=false`)
             if (res.ok) {
@@ -95,22 +83,32 @@ export default function ClubApplicationsPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [fetchApplications, showToast])
 
-    const fetchApplications = async (opportunityId: string | number) => {
-        setAppLoading(true)
-        try {
-            const res = await fetch(`/api/applications?opportunityId=${opportunityId}`)
-            if (res.ok) {
-                const data = await res.json()
-                setApplications(data)
-            }
-        } catch (error) {
-            console.error('Error fetching applications:', error)
-        } finally {
-            setAppLoading(false)
+    useEffect(() => {
+        const id = localStorage.getItem('currentUserId')
+        const activeRole = localStorage.getItem('currentUserRole')
+        const selectedClubStorageKey = getSelectedClubStorageKey(activeRole)
+
+        const urlParams = new URLSearchParams(window.location.search)
+        const urlClubId = urlParams.get('clubId')
+        const urlOpportunityId = urlParams.get('opportunityId')
+
+        const club = urlClubId || localStorage.getItem(selectedClubStorageKey) || localStorage.getItem('selectedClubId')
+        if (!id || !club) {
+            router.push('/home')
+            return
         }
-    }
+        setUserId(id)
+        setClubId(club)
+
+        if (urlClubId) {
+            localStorage.setItem(selectedClubStorageKey, urlClubId)
+            localStorage.setItem('selectedClubId', urlClubId)
+        }
+
+        fetchOpportunities(club, urlOpportunityId)
+    }, [fetchOpportunities, router])
 
     const handleOpportunitySelect = (id: string | number) => {
         setSelectedOpportunityId(id)

@@ -3,7 +3,7 @@
 import { ConversationSummary } from '@/lib/types'
 import ConversationListItem from './ConversationListItem'
 import { MessageSquarePlus, Search } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 
 interface User {
     id: string | number
@@ -43,12 +43,12 @@ export default function ConversationList({
     const [search, setSearch] = useState('')
 
     // Helper per ottenere info utente
-    const getUserInfo = (peerId: string) => {
+    const getUserInfo = useCallback((peerId: string) => {
         const user = users.find(u => String(u.id) === String(peerId))
         if (!user) return { name: null, avatar: null }
         const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || null
         return { name, avatar: user.avatarUrl || null }
-    }
+    }, [users])
 
     // Filtra e ordina conversazioni
     const filteredConversations = useMemo(() => {
@@ -71,7 +71,7 @@ export default function ConversationList({
         )
 
         return result
-    }, [conversations, search, users])
+    }, [conversations, search, getUserInfo])
 
     return (
         <div className="flex flex-col h-full bg-white">

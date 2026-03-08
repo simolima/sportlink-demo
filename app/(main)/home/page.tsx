@@ -40,6 +40,31 @@ const MEDICAL_ROLES = ['athletic_trainer', 'nutritionist', 'physio']
 // Ruoli che possono gestire club
 const CLUB_ADMIN_ROLES = ['coach', 'sporting_director', 'athletic_trainer', 'nutritionist', 'physio', 'talent_scout']
 
+type HomeTabId = 'personal' | 'staff' | 'agent' | 'club' | 'studio'
+
+const TAB_META: Record<HomeTabId, { title: string; subtitle: string }> = {
+    personal: {
+        title: 'In primo piano',
+        subtitle: 'Le attività principali del tuo profilo',
+    },
+    staff: {
+        title: 'Opportunità staff',
+        subtitle: 'Contenuti e candidature per il tuo ruolo operativo',
+    },
+    agent: {
+        title: 'Agent workspace',
+        subtitle: 'Roster, mercato e attività di rappresentanza',
+    },
+    club: {
+        title: 'Gestione società',
+        subtitle: 'Controlla candidature, annunci e richieste ingresso',
+    },
+    studio: {
+        title: 'Studio professionale',
+        subtitle: 'Monitora la tua presenza e operatività studio',
+    },
+}
+
 export default function HomePage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
@@ -49,6 +74,7 @@ export default function HomePage() {
     const [isClubAdmin, setIsClubAdmin] = useState(false)
     const [adminClubs, setAdminClubs] = useState<Array<{ id: string; name: string }>>([])
     const [selectedClubId, setSelectedClubId] = useState<string | null>(null)
+    const [activeTab, setActiveTab] = useState<HomeTabId | null>(null)
 
     useEffect(() => {
         const id = localStorage.getItem('currentUserId')
@@ -227,14 +253,6 @@ export default function HomePage() {
         }
     }
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        )
-    }
-
     const isPlayer = PLAYER_ROLES.includes(userRole)
     const isCoach = COACH_ROLES.includes(userRole)
     const isAgent = AGENT_ROLES.includes(userRole)
@@ -245,56 +263,97 @@ export default function HomePage() {
     // Mostra "Gestione Società" solo se il ruolo attivo è pertinente al club
     const showClubAdminSection = (isClubAdmin || isDS) && CLUB_ADMIN_ROLES.includes(userRole)
 
+    const tabs: Array<{ id: HomeTabId; label: string; visible: boolean }> = [
+        { id: 'personal', label: 'Area personale', visible: isPlayer || isCoach || isDS },
+        { id: 'staff', label: 'Opportunità', visible: isStaff },
+        { id: 'agent', label: 'Agent', visible: isAgent },
+        { id: 'club', label: 'Gestione società', visible: showClubAdminSection },
+        { id: 'studio', label: 'Studio', visible: isMedical },
+    ]
+
+    const visibleTabs = tabs.filter((tab) => tab.visible)
+
+    useEffect(() => {
+        if (visibleTabs.length === 0) {
+            setActiveTab(null)
+            return
+        }
+        if (!activeTab || !visibleTabs.some((tab) => tab.id === activeTab)) {
+            setActiveTab(visibleTabs[0].id)
+        }
+    }, [activeTab, visibleTabs])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">
+                <div className="mb-8 glass-panel rounded-2xl p-6 md:p-8">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">
                         Ciao, {userName || 'Utente'}!
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className="glass-subtle-text mt-1">
                         Ecco cosa c'è di nuovo per te oggi
                     </p>
                 </div>
 
+                {visibleTabs.length > 1 && (
+                    <div className="mb-8 flex flex-wrap gap-2 rounded-2xl glass-panel p-2">
+                        {visibleTabs.map((tab) => {
+                            const isActive = activeTab === tab.id
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${isActive
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-secondary hover:text-white hover:bg-base-300/50'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                )}
+
+                {activeTab && (
+                    <div className="mb-6 px-1">
+                        <h2 className="text-xl md:text-2xl font-bold text-white">{TAB_META[activeTab].title}</h2>
+                        <p className="glass-subtle-text text-sm md:text-base mt-1">{TAB_META[activeTab].subtitle}</p>
+                    </div>
+                )}
+
                 {/* Sezione Personale (Player / Coach / DS / Staff) */}
-                {(isPlayer || isCoach || isDS || isStaff) && (
-                    <div className="space-y-6">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
-                            Area Personale
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
-                            <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} clubId={selectedClubId || undefined} professionalRoleId={userRole} />
-                        </div>
+                {(isPlayer || isCoach || isDS) && activeTab === 'personal' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
+                        <YourApplicationsWidget userId={userId!} />
+                        <YourClubWidget userId={userId!} clubId={selectedClubId || undefined} professionalRoleId={userRole} />
                     </div>
                 )}
 
                 {/* Dashboard per Agent */}
-                {isAgent && (
-                    <div className="space-y-6">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
-                            Il tuo lavoro
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <RosterOverviewWidget userId={userId!} />
-                            <AgentMarketWidget userId={userId!} />
-                        </div>
+                {isAgent && activeTab === 'agent' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <RosterOverviewWidget userId={userId!} />
+                        <AgentMarketWidget userId={userId!} />
                     </div>
                 )}
 
                 {/* Dashboard per Sporting Director / Club Admin */}
-                {showClubAdminSection && (
-                    <div className="space-y-6 mt-8">
+                {showClubAdminSection && activeTab === 'club' && (
+                    <div className="space-y-5">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                <span className="w-1.5 h-5 bg-primary rounded-full"></span>
-                                Gestione Società
-                            </h2>
+                            <h2 className="text-lg font-semibold text-white">Club dashboard</h2>
                             {adminClubs.length > 1 && (
                                 <select
                                     value={selectedClubId || ''}
@@ -306,7 +365,7 @@ export default function HomePage() {
                                             localStorage.setItem('selectedClubId', value)
                                         }
                                     }}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm"
+                                    className="px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-200/70 text-secondary shadow-sm"
                                 >
                                     {adminClubs.map((club) => (
                                         <option key={club.id} value={club.id}>{club.name}</option>
@@ -316,7 +375,7 @@ export default function HomePage() {
                         </div>
 
                         {adminClubs.length === 0 || !selectedClubId ? (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-600">
+                            <div className="glass-widget rounded-2xl p-6 glass-subtle-text">
                                 Nessuna società amministrata.
                             </div>
                         ) : (
@@ -331,45 +390,33 @@ export default function HomePage() {
                 )}
 
                 {/* Dashboard per Staff (Athletic Trainer, Nutritionist, Physio/Masseur, Talent Scout) */}
-                {isStaff && (
-                    <div className="space-y-6">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
-                            Opportunità per te
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
-                            <YourApplicationsWidget userId={userId!} />
-                            <YourClubWidget userId={userId!} professionalRoleId={userRole} />
-                        </div>
+                {isStaff && activeTab === 'staff' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <OpportunitiesForYouWidget userId={userId!} userRole={userRole} />
+                        <YourApplicationsWidget userId={userId!} />
+                        <YourClubWidget userId={userId!} professionalRoleId={userRole} />
                     </div>
                 )}
 
                 {/* Studio professionale per Fisioterapisti, Nutrizionisti, Preparatori Atletici */}
-                {isMedical && (
-                    <div className="space-y-6 mt-8">
-                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <span className="w-1.5 h-5 bg-brand-500 rounded-full"></span>
-                            Il tuo Studio Professionale
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <YourStudioWidget userId={userId!} />
-                        </div>
+                {isMedical && activeTab === 'studio' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <YourStudioWidget userId={userId!} />
                     </div>
                 )}
 
                 {/* Se l'utente non ha nessun ruolo specifico */}
-                {!isPlayer && !isCoach && !isAgent && !showClubAdminSection && !isStaff && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {!isPlayer && !isCoach && !isAgent && !showClubAdminSection && !isStaff && !isMedical && (
+                    <div className="glass-widget rounded-2xl p-8 text-center">
+                        <div className="w-16 h-16 bg-base-300/70 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-secondary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-lg font-medium text-white mb-2">
                             Completa il tuo profilo
                         </h3>
-                        <p className="text-gray-600 mb-4">
+                        <p className="glass-subtle-text mb-4">
                             Imposta il tuo ruolo per vedere contenuti personalizzati
                         </p>
                         <button

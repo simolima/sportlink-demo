@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Shield, Check, X, Ban, UserCircle } from 'lucide-react'
 import { useToast } from '@/lib/toast-context'
 import Link from 'next/link'
@@ -32,11 +32,7 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
     const [affiliations, setAffiliations] = useState<Affiliation[]>([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        fetchAffiliations()
-    }, [playerId])
-
-    const fetchAffiliations = async () => {
+    const fetchAffiliations = useCallback(async () => {
         try {
             const res = await fetch(`/api/affiliations?playerId=${playerId}`)
             const data = await res.json()
@@ -54,7 +50,11 @@ export default function PlayerRepresentation({ playerId, isOwnProfile }: PlayerR
         } finally {
             setLoading(false)
         }
-    }
+    }, [playerId])
+
+    useEffect(() => {
+        fetchAffiliations()
+    }, [fetchAffiliations])
 
     const handleAccept = async (affiliationId: string | number) => {
         try {

@@ -69,7 +69,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </div>
@@ -78,17 +78,17 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-white">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                             <BriefcaseIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Mercato</h3>
-                            <p className="text-xs text-gray-500">Opportunità per i tuoi atleti</p>
+                            <h3 className="font-bold text-white">Mercato</h3>
+                            <p className="text-xs glass-subtle-text">Opportunità per i tuoi atleti</p>
                         </div>
                     </div>
                     <Link
@@ -102,37 +102,37 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
             </div>
 
             {/* Content */}
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-base-300/60">
                 {displayOpportunities.length === 0 ? (
                     <div className="px-6 py-8 text-center">
-                        <BriefcaseIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">Nessuna opportunità rilevante</p>
-                        <p className="text-gray-400 text-xs mt-1">Gli annunci appariranno qui quando matchano i ruoli dei tuoi atleti</p>
+                        <BriefcaseIcon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                        <p className="glass-subtle-text text-sm">Nessuna opportunità rilevante</p>
+                        <p className="glass-quiet-text text-xs mt-1">Gli annunci appariranno qui quando matchano i ruoli dei tuoi atleti</p>
                     </div>
                 ) : (
                     displayOpportunities.map((opp) => (
                         <Link
                             key={opp.id}
                             href={`/opportunities`}
-                            className="block px-6 py-4 hover:bg-gray-50 transition"
+                            className="block px-6 py-4 hover:bg-base-300/35 transition"
                         >
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-gray-900 truncate">{opp.title}</h4>
+                                    <h4 className="font-semibold text-white truncate">{opp.title}</h4>
                                     {opp.clubName && (
-                                        <p className="text-sm text-gray-600 mt-0.5">{opp.clubName}</p>
+                                        <p className="text-sm glass-subtle-text mt-0.5">{opp.clubName}</p>
                                     )}
                                     <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
                                         <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full">
                                             {opp.roleRequired}
                                         </span>
                                         {opp.position && (
-                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                                            <span className="px-2 py-0.5 bg-base-300/80 text-secondary rounded-full">
                                                 {opp.position}
                                             </span>
                                         )}
                                         {opp.city && (
-                                            <span className="flex items-center gap-1 text-gray-500">
+                                            <span className="flex items-center gap-1 glass-subtle-text">
                                                 <MapPinIcon className="w-3 h-3" />
                                                 {opp.city}
                                             </span>
@@ -145,7 +145,7 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
                                             <UserIcon className="w-4 h-4" />
                                             {opp.matchingAthletes}
                                         </div>
-                                        <div className="text-xs text-gray-400">match</div>
+                                        <div className="text-xs glass-quiet-text">match</div>
                                     </div>
                                 )}
                             </div>
@@ -156,8 +156,8 @@ export default function AgentMarketWidget({ userId }: AgentMarketWidgetProps) {
 
             {/* Footer */}
             {displayOpportunities.length > 0 && (
-                <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 text-center">
+                <div className="px-6 py-3 bg-base-300/35 border-t border-base-300/60">
+                    <p className="text-xs glass-subtle-text text-center">
                         {opportunities.length} opportunità rilevanti per i tuoi atleti
                     </p>
                 </div>

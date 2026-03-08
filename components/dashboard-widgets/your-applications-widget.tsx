@@ -31,17 +31,17 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
     const hasApplications = applications.length > 0
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
-                            <ClipboardDocumentListIcon className="w-5 h-5 text-brand-600" />
+                        <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
+                            <ClipboardDocumentListIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Le Tue Candidature</h3>
-                            <p className="text-xs text-gray-500">Stato delle tue candidature</p>
+                            <h3 className="font-bold text-white">Le Tue Candidature</h3>
+                            <p className="text-xs glass-subtle-text">Stato delle tue candidature</p>
                         </div>
                     </div>
                     <Link
@@ -57,8 +57,8 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
             {/* Content */}
             {!hasApplications ? (
                 <div className="px-6 py-8 text-center">
-                    <ClipboardDocumentListIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Nessuna candidatura inviata</p>
+                    <ClipboardDocumentListIcon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                    <p className="glass-subtle-text text-sm">Nessuna candidatura inviata</p>
                     <Link
                         href="/opportunities"
                         className="inline-block mt-3 text-sm font-medium text-primary hover:text-primary/80"
@@ -68,24 +68,24 @@ export default function YourApplicationsWidget({ userId }: YourApplicationsWidge
                 </div>
             ) : (
                 <div className="p-6">
-                    <div className="text-xs text-gray-500 mb-3">Ultime candidature inviate</div>
+                    <div className="text-xs glass-subtle-text mb-3">Ultime candidature inviate</div>
                     <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
                         {applications.slice(0, 5).map((app: any) => (
                             <div
                                 key={app.id}
-                                className="min-w-[200px] flex-1 snap-start p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                                className="min-w-[200px] flex-1 snap-start p-3 bg-base-300/65 rounded-xl border border-base-300"
                             >
-                                <div className="text-xs font-semibold text-gray-700 truncate mb-1">
+                                <div className="text-xs font-semibold text-white truncate mb-1">
                                     {app.opportunity?.title || 'Opportunità'}
                                 </div>
-                                <div className="text-xs text-gray-500 leading-snug line-clamp-2 mb-2">
+                                <div className="text-xs glass-subtle-text leading-snug line-clamp-2 mb-2">
                                     {app.message || 'Nessun messaggio'}
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[11px] text-gray-400">
+                                    <span className="text-[11px] glass-quiet-text">
                                         {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('it-IT') : '-'}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-gray-100 border border-gray-200 text-secondary">
+                                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] bg-base-200/65 border border-base-300 text-secondary">
                                         <span className="h-1.5 w-1.5 rounded-full bg-success inline-block"></span>
                                         {app.status || 'pending'}
                                     </span>

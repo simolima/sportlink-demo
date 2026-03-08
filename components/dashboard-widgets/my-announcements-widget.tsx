@@ -51,7 +51,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="glass-widget rounded-2xl overflow-hidden">
                 <div className="px-6 py-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                 </div>
@@ -77,24 +77,24 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
 
     if (!clubId) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-8 text-center text-gray-500">Seleziona una società per vedere gli annunci.</div>
+            <div className="glass-widget rounded-2xl overflow-hidden">
+                <div className="px-6 py-8 text-center glass-subtle-text">Seleziona una società per vedere gli annunci.</div>
             </div>
         )
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="glass-widget rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100">
+            <div className="glass-widget-header px-6 py-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center">
-                            <MegaphoneIcon className="w-5 h-5 text-brand-600" />
+                        <div className="w-10 h-10 bg-primary/25 rounded-lg flex items-center justify-center">
+                            <MegaphoneIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">I Miei Annunci</h3>
-                            <p className="text-xs text-gray-500">{activeAnnouncements.length} annunci attivi</p>
+                            <h3 className="font-bold text-white">I Miei Annunci</h3>
+                            <p className="text-xs glass-subtle-text">{activeAnnouncements.length} annunci attivi</p>
                         </div>
                     </div>
                     {clubId && (
@@ -122,8 +122,8 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
             <div className="px-6 py-5">
                 {displayAnnouncements.length === 0 ? (
                     <div className="text-center">
-                        <MegaphoneIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm mb-4">Nessun annuncio attivo</p>
+                        <MegaphoneIcon className="w-12 h-12 text-secondary/45 mx-auto mb-3" />
+                        <p className="glass-subtle-text text-sm mb-4">Nessun annuncio attivo</p>
                         {clubId && (
                             <Link
                                 href={`/clubs/${clubId}`}
@@ -144,20 +144,20 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
                                 <Link
                                     href={`/club-applications?clubId=${clubId}&opportunityId=${announcement.id}`}
                                     key={announcement.id}
-                                    className={`min-w-[230px] max-w-[260px] snap-start p-4 rounded-lg border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-sm transition bg-white ${expired ? 'bg-red-50 border-red-100' : expiringSoon ? 'bg-amber-50 border-amber-100' : ''}`}
+                                    className={`min-w-[230px] max-w-[260px] snap-start p-4 rounded-xl border border-base-300 hover:shadow-sm transition bg-base-300/65 ${expired ? 'bg-error/20 border-error/40' : expiringSoon ? 'bg-amber-500/15 border-amber-400/40' : ''}`}
                                 >
                                     <div className="flex items-start justify-between gap-2 mb-2">
-                                        <h4 className="font-semibold text-gray-900 leading-snug line-clamp-2">{announcement.title}</h4>
+                                        <h4 className="font-semibold text-white leading-snug line-clamp-2">{announcement.title}</h4>
                                         {expired && <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />}
                                         {expiringSoon && !expired && <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />}
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                                        <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full">{announcement.roleRequired}</span>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs glass-subtle-text">
+                                        <span className="px-2 py-0.5 bg-primary/15 text-primary rounded-full">{announcement.roleRequired}</span>
                                         {announcement.applicationsCount !== undefined && (
-                                            <span className="text-gray-500">{announcement.applicationsCount} candidature</span>
+                                            <span className="glass-subtle-text">{announcement.applicationsCount} candidature</span>
                                         )}
                                     </div>
-                                    <div className={`mt-3 text-xs flex items-center gap-1 ${expired ? 'text-red-600' : expiringSoon ? 'text-amber-600' : 'text-gray-500'}`}>
+                                    <div className={`mt-3 text-xs flex items-center gap-1 ${expired ? 'text-red-300' : expiringSoon ? 'text-amber-300' : 'glass-subtle-text'}`}>
                                         <CalendarIcon className="w-3.5 h-3.5" />
                                         {expired ? 'Scaduto' : `Scade: ${new Date(announcement.expiryDate).toLocaleDateString('it-IT')}`}
                                     </div>
@@ -170,7 +170,7 @@ export default function MyAnnouncementsWidget({ userId, clubId }: MyAnnouncement
 
             {/* Footer */}
             {activeAnnouncements.length > MAX_ANNOUNCEMENTS && (
-                <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                <div className="px-6 py-3 bg-base-300/35 border-t border-base-300/60">
                     <Link
                         href={clubId ? `/clubs/${clubId}` : '/clubs'}
                         className="text-sm text-center block text-orange-600 hover:text-orange-700 font-medium"

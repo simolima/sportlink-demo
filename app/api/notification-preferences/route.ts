@@ -1,26 +1,17 @@
 /**
  * API Route: /api/notification-preferences
- * Migrated from JSON — 15/02/2026
+ * Updated: 2026-03-08 — persists to notification_preferences table.
  *
- * For the MVP, notification preferences return defaults.
- * Future: store in a dedicated notification_preferences table or in profiles.privacy_settings JSONB.
+ * GET  /api/notification-preferences?userId={id}  — read preferences (with DB fallback to defaults)
+ * POST /api/notification-preferences              — upsert preferences (JWT-verified)
  */
 
 export const runtime = 'nodejs'
 
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 import { withCors, handleOptions } from '@/lib/cors'
-
-const DEFAULT_PREFERENCES: Record<string, boolean> = {
-    follower: true,
-    messages: true,
-    applications: true,
-    affiliations: true,
-    club: true,
-    opportunities: true,
-    permissions: true,
-    profile: true
-}
+import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
+import { DEFAULT_PREFERENCES } from '@/lib/notifications-repository'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -35,15 +26,30 @@ export async function GET(req: Request) {
         return withCors(NextResponse.json({ error: 'userId required' }, { status: 400 }))
     }
 
-    // For MVP, always return defaults
-    return withCors(NextResponse.json({
-        userId: String(userId),
-        preferences: DEFAULT_PREFERENCES,
-    }))
+    const { data, error } = await supabaseServer
+        .from('notification_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+    if (error) {
+        return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+    }
+
+    const preferences = data?.preferences
+        ? { ...DEFAULT_PREFERENCES, ...(data.preferences as Record<string, boolean>) }
+        : { ...DEFAULT_PREFERENCES }
+
+    return withCors(NextResponse.json({ userId: String(userId), preferences }))
 }
 
-// POST /api/notification-preferences
+// POST /api/notification-preferences — upsert user preferences
 export async function POST(req: Request) {
+    const authenticatedUserId = await getUserIdFromAuthToken(req)
+    if (!authenticatedUserId) {
+        return withCors(NextResponse.json({ error: 'unauthorized' }, { status: 401 }))
+    }
+
     const body = await req.json()
     const { userId, preferences } = body
 
@@ -51,9 +57,22 @@ export async function POST(req: Request) {
         return withCors(NextResponse.json({ error: 'userId required' }, { status: 400 }))
     }
 
-    // For MVP, accept and echo back (no persistence yet)
-    return withCors(NextResponse.json({
-        userId: String(userId),
-        preferences: { ...DEFAULT_PREFERENCES, ...(preferences || {}) },
-    }))
+    if (String(userId) !== authenticatedUserId) {
+        return withCors(NextResponse.json({ error: 'forbidden_user_mismatch' }, { status: 403 }))
+    }
+
+    const merged = { ...DEFAULT_PREFERENCES, ...(preferences || {}) }
+
+    const { error } = await supabaseServer
+        .from('notification_preferences')
+        .upsert(
+            { user_id: authenticatedUserId, preferences: merged, updated_at: new Date().toISOString() },
+            { onConflict: 'user_id' }
+        )
+
+    if (error) {
+        return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
+    }
+
+    return withCors(NextResponse.json({ userId: authenticatedUserId, preferences: merged }))
 }

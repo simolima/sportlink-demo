@@ -30,7 +30,8 @@ export default function ConversationListItem({
 }: Props) {
     const displayName = peerName || 'Utente'
     const initial = displayName[0]?.toUpperCase() || 'U'
-    const hasUnread = conversation.unread > 0
+    // Non mostrare badge non letti se la conversazione è selezionata (li sto leggendo in live)
+    const hasUnread = !isSelected && conversation.unread > 0
 
     // Formatta data/ora
     const formatTime = (timestamp: string) => {

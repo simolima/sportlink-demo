@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, Settings, Users, MessageSquare, Briefcase, Wifi, WifiOff } from 'lucide-react'
+import { Bell, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, Settings, Users, MessageSquare, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { Notification } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
+import SprintaLoader from '@/components/ui/SprintaLoader'
 import {
   getNotificationDestination,
   getNotificationColor,
@@ -34,10 +35,10 @@ export default function NotificationsPage() {
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const userId = user?.id ? Number(user.id) : null
+  const userId = user?.id ? String(user.id) : null
 
   // Fetch notifiche
-  const fetchNotifications = useCallback(async (uid: number) => {
+  const fetchNotifications = useCallback(async (uid: string) => {
     setLoading(true)
     try {
       const unreadParam = filter === 'unread' ? '&unreadOnly=true' : ''
@@ -54,7 +55,7 @@ export default function NotificationsPage() {
   }, [filter])
 
   // Connessione SSE
-  const connectSSE = useCallback((uid: number) => {
+  const connectSSE = useCallback((uid: string) => {
     if (eventSourceRef.current) {
       eventSourceRef.current.close()
     }
@@ -152,14 +153,13 @@ export default function NotificationsPage() {
   }
 
   const markAllAsRead = async () => {
-    const userId = localStorage.getItem('currentUserId')
     if (!userId) return
 
     try {
       await fetch('/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markAllAsRead: true, userId: parseInt(userId) }),
+        body: JSON.stringify({ markAllAsRead: true, userId }),
       })
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
     } catch (error) {
@@ -430,14 +430,6 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           <Bell size={28} />
           <h1 className="text-2xl font-bold">Notifiche</h1>
-          {/* Indicatore connessione real-time */}
-          <span
-            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isRealtime ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500'}`}
-            title={isRealtime ? 'Connesso in tempo reale' : 'Polling'}
-          >
-            {isRealtime ? <Wifi size={12} /> : <WifiOff size={12} />}
-            {isRealtime ? 'Live' : 'Offline'}
-          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -481,7 +473,9 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Caricamento...</div>
+        <div className="flex justify-center py-12">
+          <SprintaLoader size="md" color="brand" />
+        </div>
       ) : groupedItems.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Bell size={48} className="mx-auto mb-4 opacity-30" />

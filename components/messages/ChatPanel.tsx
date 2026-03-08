@@ -1,13 +1,15 @@
 'use client'
 
 import { Message } from '@/lib/types'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ChatHeader from './ChatHeader'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import { MessageSquare } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase-browser'
+import { playNotificationSound, getSoundVariant } from '@/lib/notification-sound'
+import SprintaLoader from '@/components/ui/SprintaLoader'
 
 interface User {
     id: string | number
@@ -46,7 +48,11 @@ export default function ChatPanel({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [sendError, setSendError] = useState<string | null>(null)
+    const [isPeerTyping, setIsPeerTyping] = useState(false)
     const bottomRef = useRef<HTMLDivElement>(null)
+    const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const lastTypingSentRef = useRef<number>(0)
 
     // Info peer
     const peer = users.find(u => String(u.id) === String(peerId))
@@ -119,6 +125,10 @@ export default function ChatPanel({
                         if (prev.some(m => String(m.id) === String(incoming.id))) return prev
                         return [...prev, incoming]
                     })
+                    // Azzeramento typing indicator quando arriva il messaggio
+                    setIsPeerTyping(false)
+                    // Suono notifica in-chat
+                    playNotificationSound(getSoundVariant('message_received'))
                     // Marca subito come letto nel DB: il receiver è nella chat e ha visto il messaggio
                     getAuthHeaders().then(authHeaders => {
                         fetch('/api/messages', {
@@ -166,10 +176,49 @@ export default function ChatPanel({
         }
     }, [peerId, currentUserId])
 
-    // Auto-scroll
+    // Typing channel — Supabase Broadcast (zero DB writes, ~50ms latency)
+    useEffect(() => {
+        if (!peerId || !currentUserId) return
+
+        const typingChannelId = `typing:${[currentUserId, peerId].sort().join(':')}`
+        const channel = supabase
+            .channel(typingChannelId)
+            .on('broadcast', { event: 'typing' }, (payload: { payload: { userId: string } }) => {
+                if (String(payload.payload.userId) !== String(peerId)) return
+                setIsPeerTyping(true)
+                if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                typingTimeoutRef.current = setTimeout(() => setIsPeerTyping(false), 3000)
+            })
+            .subscribe()
+
+        typingChannelRef.current = channel
+
+        return () => {
+            supabase.removeChannel(channel)
+            typingChannelRef.current = null
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current)
+                typingTimeoutRef.current = null
+            }
+        }
+    }, [peerId, currentUserId])
+
+    // Throttled broadcast typing — fires at most once every 2s
+    const broadcastTyping = useCallback(() => {
+        const now = Date.now()
+        if (now - lastTypingSentRef.current < 2000) return
+        lastTypingSentRef.current = now
+        typingChannelRef.current?.send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: { userId: currentUserId },
+        }).catch(() => { })
+    }, [currentUserId])
+
+    // Auto-scroll su nuovi messaggi e quando il peer inizia a scrivere
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, [messages])
+    }, [messages, isPeerTyping])
 
     // Invia messaggio
     const handleSend = async (text: string) => {
@@ -278,7 +327,7 @@ export default function ChatPanel({
             <div className="flex-1 overflow-y-auto px-4 py-4 bg-base-200/35">
                 {loading ? (
                     <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+                        <SprintaLoader size="md" color="brand" />
                     </div>
                 ) : error ? (
                     <div className="flex items-center justify-center h-full text-error">
@@ -315,6 +364,19 @@ export default function ChatPanel({
                         </div>
                     ))
                 )}
+                {/* Typing indicator */}
+                {isPeerTyping && (
+                    <div className="flex items-center gap-1.5 px-2 py-2">
+                        <span className="text-sm text-secondary/60 italic">
+                            {peerName || 'Contatto'} sta scrivendo
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                            <span className="w-1.5 h-1.5 bg-secondary/50 rounded-full animate-bounce [animation-delay:0ms]" />
+                            <span className="w-1.5 h-1.5 bg-secondary/50 rounded-full animate-bounce [animation-delay:150ms]" />
+                            <span className="w-1.5 h-1.5 bg-secondary/50 rounded-full animate-bounce [animation-delay:300ms]" />
+                        </div>
+                    </div>
+                )}
                 <div ref={bottomRef} />
             </div>
 
@@ -324,7 +386,7 @@ export default function ChatPanel({
                     {sendError}
                 </div>
             )}
-            <MessageInput onSend={handleSend} />
+            <MessageInput onSend={handleSend} onTyping={broadcastTyping} />
         </div>
     )
 }

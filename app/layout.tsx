@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ToastProvider } from '@/lib/toast-context';
 import { AuthProvider } from '@/lib/hooks/useAuth';
+import AuthLoadingGate from '@/components/ui/AuthLoadingGate';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-base-100 text-secondary">
         <AuthProvider>
           <ToastProvider>
-            {children}
+            <AuthLoadingGate>
+              {children}
+            </AuthLoadingGate>
           </ToastProvider>
         </AuthProvider>
       </body>

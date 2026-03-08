@@ -25,9 +25,6 @@ function getAudioContext(): AudioContext | null {
             return null
         }
     }
-    if (_ctx.state === 'suspended') {
-        _ctx.resume().catch(() => { })
-    }
     return _ctx
 }
 
@@ -37,7 +34,10 @@ function getAudioContext(): AudioContext | null {
  */
 export function unlockAudioContext(): void {
     _unlocked = true
-    getAudioContext()
+    const ctx = getAudioContext()
+    if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => { })
+    }
 }
 
 // ============================================================================
@@ -83,9 +83,15 @@ interface ToneOptions {
     delay?: number
 }
 
-function playTone(options: ToneOptions): void {
+async function playTone(options: ToneOptions): Promise<void> {
     const ctx = getAudioContext()
     if (!ctx) return
+
+    // Ensure context is running — required after browser autoplay policy suspends it
+    if (ctx.state === 'suspended') {
+        try { await ctx.resume() } catch { return }
+    }
+    if (ctx.state !== 'running') return
 
     const {
         frequency,
@@ -168,25 +174,25 @@ export function getSoundVariant(notificationType: string): SoundVariant {
  * Riproduce il suono di notifica per la variante specificata.
  * No-op se i suoni sono disabilitati o se siamo in SSR.
  */
-export function playNotificationSound(variant: SoundVariant = 'default'): void {
+export async function playNotificationSound(variant: SoundVariant = 'default'): Promise<void> {
     if (!isSoundEnabled()) return
 
     switch (variant) {
         case 'important':
             // Doppio ding ascendente: La4 (440 Hz) → Re5 (587.33 Hz)
-            playTone({ frequency: 440, duration: 0.55, gain: 0.2, attack: 0.01 })
+            await playTone({ frequency: 440, duration: 0.55, gain: 0.2, attack: 0.01 })
             playTone({ frequency: 587.33, duration: 0.65, gain: 0.18, attack: 0.01, delay: 0.18 })
             break
 
         case 'subtle':
             // Tono breve e leggero
-            playTone({ frequency: 523.25, duration: 0.35, gain: 0.12, attack: 0.015, filterFrequency: 1600 })
+            await playTone({ frequency: 523.25, duration: 0.35, gain: 0.12, attack: 0.015, filterFrequency: 1600 })
             break
 
         case 'default':
         default:
             // Ding singolo caldo (La4)
-            playTone({ frequency: 440, duration: 0.6, gain: 0.2, attack: 0.012 })
+            await playTone({ frequency: 440, duration: 0.6, gain: 0.2, attack: 0.012 })
             break
     }
 }

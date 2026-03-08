@@ -19,12 +19,12 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
     }
 
     return (
-        <div className="bg-gradient-to-b from-brand-50 to-white">
+        <div className="glass-page-bg">
             <div className="max-w-6xl mx-auto px-4 py-12">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                     {/* Logo/Avatar */}
                     <div className="flex-shrink-0">
-                        <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-xl border-4 border-white">
+                        <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-xl border-4 border-base-100">
                             {studio.logoUrl ? (
                                 <img src={studio.logoUrl} alt={studio.name} className="w-full h-full object-cover rounded-2xl" />
                             ) : (
@@ -36,14 +36,14 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                     {/* Info principale */}
                     <div className="flex-1">
                         <div className="flex items-start gap-3 mb-3">
-                            <h1 className="text-4xl font-bold text-gray-900">{studio.name}</h1>
+                            <h1 className="text-4xl font-bold text-base-content">{studio.name}</h1>
                             {studio.owner && (
                                 <CheckBadgeIcon className="h-7 w-7 text-brand-600 flex-shrink-0" title="Profilo verificato" />
                             )}
                         </div>
 
                         {studio.owner && (
-                            <p className="text-xl text-gray-700 mb-2">
+                            <p className="text-xl text-secondary mb-2">
                                 {roleLabels[studio.owner.roleId as keyof typeof roleLabels] || 'Professionista'}
                             </p>
                         )}
@@ -51,14 +51,14 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                         {/* Badge esperienza e lingue */}
                         {mockData && (
                             <div className="flex flex-wrap gap-3 mb-6">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-100 text-brand-800 rounded-full text-sm font-medium">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-primary rounded-full text-sm font-medium border border-primary/20">
                                     🎯 {mockData.yearsOfExperience} anni di esperienza
                                 </span>
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-base-content rounded-full text-sm font-medium border border-base-300">
                                     🌍 {mockData.languages.join(', ')}
                                 </span>
                                 {mockData.workModes.includes('remote') && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-base-content rounded-full text-sm font-medium border border-base-300">
                                         💻 Consulenze online
                                     </span>
                                 )}
@@ -66,7 +66,7 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                         )}
 
                         {/* Contatti in evidenza */}
-                        <div className="flex flex-wrap gap-4 mb-6 text-gray-600">
+                        <div className="flex flex-wrap gap-4 mb-6 text-secondary">
                             {studio.city && (
                                 <div className="flex items-center gap-2">
                                     <MapPinIcon className="h-5 w-5 text-brand-600" />
@@ -74,13 +74,13 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                                 </div>
                             )}
                             {studio.phone && (
-                                <a href={`tel:${studio.phone}`} className="flex items-center gap-2 hover:text-brand-600 transition">
+                                <a href={`tel:${studio.phone}`} className="flex items-center gap-2 hover:text-primary transition">
                                     <PhoneIcon className="h-5 w-5 text-brand-600" />
                                     <span className="text-sm font-medium">{studio.phone}</span>
                                 </a>
                             )}
                             {studio.website && (
-                                <a href={studio.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-600 transition">
+                                <a href={studio.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary transition">
                                     <GlobeAltIcon className="h-5 w-5 text-brand-600" />
                                     <span className="text-sm font-medium">Sito web</span>
                                 </a>
@@ -91,7 +91,7 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                         <div className="flex gap-3">
                             <button
                                 onClick={onBookingClick}
-                                className="px-8 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg flex items-center gap-2"
+                                className="btn btn-primary px-8"
                             >
                                 <CalendarDaysIcon className="h-5 w-5" />
                                 {isAuthenticated ? 'Prenota Visita' : 'Accedi per prenotare'}
@@ -99,7 +99,7 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                             {studio.phone && onCallClick && (
                                 <button
                                     onClick={onCallClick}
-                                    className="px-8 py-3 border-2 border-brand-600 text-brand-600 rounded-lg font-semibold hover:bg-brand-50 transition"
+                                    className="btn btn-outline btn-primary px-8"
                                 >
                                     Chiama ora
                                 </button>

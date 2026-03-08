@@ -197,7 +197,7 @@ export default function AddRolePage() {
                     {/* ── Header + progress ────────────────────────── */}
                     <div className="mb-10">
                         <div className="text-center mb-8">
-                            <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
+                            <h1 className="text-3xl md:text-4xl font-semibold text-base-content mb-3">
                                 {step === 1 && 'Scegli il ruolo'}
                                 {step === 2 && 'Seleziona lo sport'}
                             </h1>
@@ -244,7 +244,7 @@ export default function AddRolePage() {
                     {success ? (
                         <div className="flex flex-col items-center gap-4 py-16">
                             <CheckCircleIcon className="w-16 h-16 text-brand-400" />
-                            <p className="text-xl font-semibold text-white">
+                            <p className="text-xl font-semibold text-base-content">
                                 Profilo aggiunto con successo!
                             </p>
                             <p className="text-secondary">Reindirizzamento alla dashboard...</p>
@@ -263,7 +263,7 @@ export default function AddRolePage() {
                                     ) : (
                                         <>
                                             <div>
-                                                <h2 className="text-xl font-semibold text-white mb-2">
+                                                <h2 className="text-xl font-semibold text-base-content mb-2">
                                                     Seleziona un ruolo
                                                 </h2>
                                                 <p className="text-secondary text-sm">
@@ -285,7 +285,7 @@ export default function AddRolePage() {
                                                         >
                                                             <div className="flex items-center gap-3 mb-2">
                                                                 <Icon className={`w-5 h-5 flex-shrink-0 ${selected ? 'text-primary' : 'text-secondary'}`} />
-                                                                <span className="font-semibold text-white text-lg leading-tight">
+                                                                <span className="font-semibold text-base-content text-lg leading-tight">
                                                                     {ROLE_TRANSLATIONS[roleId]}
                                                                 </span>
                                                             </div>
@@ -305,7 +305,7 @@ export default function AddRolePage() {
                             {step === 2 && (
                                 <div className="space-y-8">
                                     <div>
-                                        <h2 className="text-xl font-semibold text-white mb-2">
+                                        <h2 className="text-xl font-semibold text-base-content mb-2">
                                             Seleziona {selectedRole && isMultiSportRole(selectedRole) ? 'gli sport' : 'uno sport'}
                                         </h2>
                                         <p className="text-secondary text-sm">
@@ -328,7 +328,7 @@ export default function AddRolePage() {
                                                     <div className="flex justify-center mb-3">
                                                         <SportIcon sport={sport} className="w-10 h-10" colored />
                                                     </div>
-                                                    <div className="font-semibold text-white">{sport}</div>
+                                                    <div className="font-semibold text-base-content">{sport}</div>
                                                 </button>
                                             )
                                         })}
@@ -351,7 +351,7 @@ export default function AddRolePage() {
                                                     }`}
                                             >
                                                 <div className="text-4xl mb-3">🌐</div>
-                                                <div className="font-semibold text-white">Multi-sport</div>
+                                                <div className="font-semibold text-base-content">Multi-sport</div>
                                                 <div className="text-xs text-secondary mt-1">Lavoro su più discipline sportive</div>
                                             </button>
                                         </div>
@@ -364,7 +364,7 @@ export default function AddRolePage() {
                                 {step === 1 ? (
                                     <button
                                         onClick={() => router.back()}
-                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-white font-semibold py-3 px-8 order-2 sm:order-1"
+                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-base-content font-semibold py-3 px-8 order-2 sm:order-1"
                                     >
                                         <ArrowLeftIcon className="w-4 h-4 mr-1" />
                                         Indietro
@@ -373,7 +373,7 @@ export default function AddRolePage() {
                                     <button
                                         onClick={goBack}
                                         disabled={saving}
-                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-white font-semibold py-3 px-8 order-2 sm:order-1"
+                                        className="btn btn-outline border-base-300 text-secondary hover:bg-base-300 hover:text-base-content font-semibold py-3 px-8 order-2 sm:order-1"
                                     >
                                         <ArrowLeftIcon className="w-4 h-4 mr-1" />
                                         Indietro

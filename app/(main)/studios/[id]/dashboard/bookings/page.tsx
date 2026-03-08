@@ -145,14 +145,14 @@ export default function StudioDashboardBookingsPage() {
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento prenotazioni...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento prenotazioni...</div>
     }
 
     return (
-        <section className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="space-y-5 glass-widget rounded-2xl p-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Prenotazioni</h1>
-                <p className="mt-1 text-sm text-gray-600">Controlla e aggiorna lo stato degli appuntamenti.</p>
+                <h1 className="text-2xl font-bold text-base-content">Prenotazioni</h1>
+                <p className="mt-1 text-sm text-secondary">Controlla e aggiorna lo stato degli appuntamenti.</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -169,22 +169,22 @@ export default function StudioDashboardBookingsPage() {
 
             <div className="space-y-2">
                 {visibleBookings.length === 0 && (
-                    <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                    <p className="rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-secondary">
                         Nessuna prenotazione per questo filtro.
                     </p>
                 )}
 
                 {visibleBookings.map((booking) => (
-                    <div key={booking.id} className="grid gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 md:grid-cols-[1fr,auto]">
+                    <div key={booking.id} className="grid gap-3 rounded-xl border border-base-300 bg-base-100 p-4 md:grid-cols-[1fr,auto]">
                         <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-base-content">
                                 {booking.client?.firstName || 'Cliente'} {booking.client?.lastName || ''}
                             </p>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 text-sm text-secondary">
                                 {new Date(booking.startTime).toLocaleString('it-IT')} - {new Date(booking.endTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                             </p>
-                            {booking.serviceType && <p className="text-sm text-gray-600">Servizio: {booking.serviceType}</p>}
-                            {booking.notes && <p className="text-xs text-gray-500">{booking.notes}</p>}
+                            {booking.serviceType && <p className="text-sm text-secondary">Servizio: {booking.serviceType}</p>}
+                            {booking.notes && <p className="text-xs text-secondary">{booking.notes}</p>}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
@@ -214,32 +214,32 @@ export default function StudioDashboardBookingsPage() {
                 ))}
             </div>
 
-            {message && <p className="text-sm text-gray-600">{message}</p>}
+            {message && <p className="text-sm text-secondary">{message}</p>}
 
             {rescheduleTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-                        <h3 className="text-lg font-semibold text-gray-900">Riprogramma prenotazione</h3>
-                        <p className="mt-1 text-sm text-gray-600">Seleziona nuovo orario per l'appuntamento confermato.</p>
+                    <div className="glass-widget w-full max-w-md rounded-xl p-5">
+                        <h3 className="text-lg font-semibold text-base-content">Riprogramma prenotazione</h3>
+                        <p className="mt-1 text-sm text-secondary">Seleziona nuovo orario per l'appuntamento confermato.</p>
 
                         <div className="mt-4 space-y-3">
                             <label className="block text-sm">
-                                <span className="mb-1 block text-gray-600">Inizio</span>
+                                <span className="mb-1 block text-secondary">Inizio</span>
                                 <input
                                     type="datetime-local"
                                     value={rescheduleStart}
                                     onChange={(e) => setRescheduleStart(e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+                                    className="input input-bordered w-full"
                                 />
                             </label>
 
                             <label className="block text-sm">
-                                <span className="mb-1 block text-gray-600">Fine</span>
+                                <span className="mb-1 block text-secondary">Fine</span>
                                 <input
                                     type="datetime-local"
                                     value={rescheduleEnd}
                                     onChange={(e) => setRescheduleEnd(e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+                                    className="input input-bordered w-full"
                                 />
                             </label>
                         </div>

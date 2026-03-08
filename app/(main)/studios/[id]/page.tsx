@@ -181,8 +181,8 @@ export default function StudioDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
+            <div className="glass-page-bg min-h-screen flex items-center justify-center">
+                <div className="loading loading-spinner loading-lg text-primary" />
             </div>
         )
     }
@@ -223,23 +223,23 @@ export default function StudioDetailPage() {
     } : null
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="glass-page-bg min-h-screen">
             {/* Admin controls sticky bar */}
             {isOwner && (
-                <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+                <div className="bg-base-100/90 backdrop-blur border-b border-base-300 sticky top-0 z-40 shadow-sm">
                     <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-                        <span className="text-sm text-gray-600 font-medium">Modalità Gestione Studio</span>
+                        <span className="text-sm text-secondary font-medium">Modalità Gestione Studio</span>
                         <div className="flex items-center gap-2">
                             <Link
                                 href={`/studios/${studioId}/dashboard/overview`}
-                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition"
+                                className="btn btn-primary btn-sm"
                             >
                                 <ChartBarIcon className="h-4 w-4" />
                                 Dashboard
                             </Link>
                             <Link
                                 href={`/studios/${studioId}/dashboard/settings`}
-                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 transition"
+                                className="btn btn-ghost btn-sm"
                             >
                                 <PencilSquareIcon className="h-4 w-4" />
                                 Modifica
@@ -288,11 +288,11 @@ export default function StudioDetailPage() {
             {/* Modal prenotazione */}
             {showBookingForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Prenota una visita</h2>
+                    <div className="glass-widget rounded-2xl w-full max-w-md p-6">
+                        <h2 className="text-xl font-bold text-base-content mb-4">Prenota una visita</h2>
                         <form onSubmit={handleBook} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Servizio <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-base-content mb-1">Servizio <span className="text-red-500">*</span></label>
                                 {appointmentTypes.length > 0 ? (
                                     <select
                                         value={bookingData.appointmentTypeId}
@@ -309,7 +309,7 @@ export default function StudioDetailPage() {
                                             }))
                                             loadSlotsForAppointmentType(selectedId)
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
+                                        className="select select-bordered w-full"
                                         required
                                     >
                                         <option value="">Seleziona servizio...</option>
@@ -318,26 +318,26 @@ export default function StudioDetailPage() {
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="text-sm text-gray-500">Nessun servizio disponibile al momento.</p>
+                                    <p className="text-sm text-secondary">Nessun servizio disponibile al momento.</p>
                                 )}
                             </div>
 
                             {bookingData.appointmentTypeId && (
-                                <div className="space-y-2 rounded-lg border border-gray-200 p-3">
+                                <div className="space-y-2 rounded-lg border border-base-300 bg-base-100 p-3">
                                     <div className="flex items-center justify-between">
-                                        <p className="text-sm font-semibold text-gray-800">Slot disponibili (14 giorni)</p>
-                                        {slotsLoading && <span className="text-xs text-gray-500">Caricamento...</span>}
+                                        <p className="text-sm font-semibold text-base-content">Slot disponibili (14 giorni)</p>
+                                        {slotsLoading && <span className="text-xs text-secondary">Caricamento...</span>}
                                     </div>
                                     {firstAvailableLabel && (
-                                        <p className="text-xs text-brand-700">Prima disponibilità: {firstAvailableLabel}</p>
+                                        <p className="text-xs text-primary">Prima disponibilità: {firstAvailableLabel}</p>
                                     )}
                                     <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
                                         {Object.entries(availableByDay).map(([date, slots]) => (
                                             <div key={date}>
-                                                <p className="text-xs font-semibold text-gray-600 mb-1">{date}</p>
+                                                <p className="text-xs font-semibold text-secondary mb-1">{date}</p>
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {slots.length === 0 ? (
-                                                        <span className="text-xs text-gray-400">Nessuno slot</span>
+                                                        <span className="text-xs text-secondary">Nessuno slot</span>
                                                     ) : slots.map((slot, index) => {
                                                         const isSelected = bookingData.selectedDate === date && bookingData.startTime.endsWith(`${slot.startTime}:00`)
                                                         return (
@@ -346,8 +346,8 @@ export default function StudioDetailPage() {
                                                                 type="button"
                                                                 onClick={() => handleSelectSlot(date, slot)}
                                                                 className={`px-2 py-1 rounded-md text-xs border transition ${isSelected
-                                                                    ? 'bg-brand-600 border-brand-600 text-white'
-                                                                    : 'border-gray-300 text-gray-700 hover:border-brand-500 hover:text-brand-700'}`}
+                                                                    ? 'bg-primary border-primary text-primary-content'
+                                                                    : 'border-base-300 text-base-content hover:border-primary hover:text-primary'}`}
                                                             >
                                                                 {slot.startTime}
                                                             </button>
@@ -357,34 +357,34 @@ export default function StudioDetailPage() {
                                             </div>
                                         ))}
                                         {Object.keys(availableByDay).length === 0 && !slotsLoading && (
-                                            <p className="text-xs text-gray-500">Seleziona un servizio per vedere gli slot.</p>
+                                            <p className="text-xs text-secondary">Seleziona un servizio per vedere gli slot.</p>
                                         )}
                                     </div>
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                                <label className="block text-sm font-medium text-base-content mb-1">Note</label>
                                 <textarea
                                     value={bookingData.notes}
                                     onChange={e => setBookingData(p => ({ ...p, notes: e.target.value }))}
                                     placeholder="Descrivi brevemente il motivo della visita..."
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none resize-none"
+                                    className="textarea textarea-bordered w-full resize-none"
                                 />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowBookingForm(false)}
-                                    className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                    className="btn btn-ghost flex-1"
                                 >
                                     Annulla
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={bookingLoading || !bookingData.startTime || !bookingData.endTime || !bookingData.appointmentTypeId}
-                                    className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-semibold disabled:opacity-60"
+                                    className="btn btn-primary flex-1"
                                 >
                                     {bookingLoading ? 'Invio...' : 'Invia richiesta'}
                                 </button>

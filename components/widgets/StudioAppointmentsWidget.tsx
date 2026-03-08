@@ -141,15 +141,15 @@ export default async function StudioAppointmentsWidget({ userId, activeRole }: P
     const title = isProfessional ? 'Appuntamenti con i Clienti' : 'I Tuoi Appuntamenti'
 
     return (
-        <div className="card bg-white border border-base-200 shadow-sm">
+        <div className="glass-widget">
             <div className="card-body p-5">
                 <div className="flex items-center gap-2 mb-4">
                     <ClockIcon className="h-5 w-5 text-brand-600" />
-                    <h2 className="card-title text-base font-semibold text-gray-800">{title}</h2>
+                    <h2 className="card-title text-base font-semibold text-base-content">{title}</h2>
                 </div>
 
                 {appointments.length === 0 ? (
-                    <p className="text-sm text-gray-400">Nessun appuntamento in programma.</p>
+                    <p className="text-sm text-secondary">Nessun appuntamento in programma.</p>
                 ) : (
                     <ul className="space-y-3">
                         {appointments.map((appt) => {
@@ -160,13 +160,13 @@ export default async function StudioAppointmentsWidget({ userId, activeRole }: P
                             return (
                                 <li
                                     key={appt.id}
-                                    className="flex items-start gap-3 rounded-lg border border-base-100 bg-gray-50 px-3 py-2.5"
+                                    className="flex items-start gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2.5"
                                 >
                                     <div className="flex-shrink-0 text-center min-w-[2.5rem]">
                                         <p className="text-xs font-bold uppercase text-brand-600">
                                             {start.toLocaleDateString('it-IT', { weekday: 'short' })}
                                         </p>
-                                        <p className="text-lg font-bold leading-none text-gray-800">
+                                        <p className="text-lg font-bold leading-none text-base-content">
                                             {start.getDate()}
                                         </p>
                                     </div>
@@ -176,25 +176,25 @@ export default async function StudioAppointmentsWidget({ userId, activeRole }: P
                                                 {STATUS_LABELS[appt.status]}
                                             </span>
                                             {appt.serviceType && (
-                                                <span className="text-xs text-gray-500">{appt.serviceType}</span>
+                                                <span className="text-xs text-secondary">{appt.serviceType}</span>
                                             )}
                                         </div>
                                         {appt.isExternalBlocker ? (
-                                            <p className="flex items-center gap-1 text-sm font-medium text-gray-500 italic">
-                                                <LockClosedIcon className="h-3.5 w-3.5 text-gray-400" />
+                                            <p className="flex items-center gap-1 text-sm font-medium text-secondary italic">
+                                                <LockClosedIcon className="h-3.5 w-3.5 text-secondary" />
                                                 Non disponibile
                                             </p>
                                         ) : (
-                                            <p className="flex items-center gap-1 text-sm font-medium text-gray-700">
-                                                <UserIcon className="h-3.5 w-3.5 text-gray-400" />
+                                            <p className="flex items-center gap-1 text-sm font-medium text-base-content">
+                                                <UserIcon className="h-3.5 w-3.5 text-secondary" />
                                                 {appt.clientName}
                                             </p>
                                         )}
                                     </div>
-                                    <p className="flex-shrink-0 text-xs text-gray-400 mt-0.5 text-right">
+                                    <p className="flex-shrink-0 text-xs text-secondary mt-0.5 text-right">
                                         {start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                                         <br />
-                                        <span className="text-gray-300">{durationMins} min</span>
+                                        <span className="text-secondary/70">{durationMins} min</span>
                                     </p>
                                 </li>
                             )

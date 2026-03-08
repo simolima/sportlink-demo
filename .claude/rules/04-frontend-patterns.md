@@ -177,24 +177,25 @@ useEffect(() => {
 
 ## Tema Colori — Brand Navy & Blu
 
-Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa → vedi `design/BRAND_GUIDE.md`.
+Il progetto usa un sistema **dual theme** (light + dark) con default visuale **light-first**.
+Per la palette completa → vedi `design/BRAND_GUIDE.md`.
 
-### Direzione Visuale Attuale — Aurora Gradient (Marzo 2026)
+### Direzione Visuale Attuale — Minimal Clean Dual Theme (Marzo 2026)
 
-- Base pagina più **neutra/scura** (slate-night) per ridurre affaticamento visivo.
-- Accenti blu/viola usati in modo **selettivo** (CTA, focus, stati attivi), non come riempimento totale delle superfici.
-- `glass-page-bg` mantiene radial gradient morbidi solo come profondità, con saturazione ridotta.
-- Card e pannelli (`glass-widget`, `glass-panel`) devono restare leggibili e separati dal fondo tramite contrasto + border soft.
+- L'interfaccia default usa superfici chiare/neutrali per ridurre affaticamento visivo.
+- Gli accenti brand blu restano selettivi (CTA, focus, stati attivi).
+- `glass-page-bg`, `glass-panel` e `glass-widget` sono utility **token-based**: si adattano automaticamente al tema attivo (`sprinta-light` / `sprinta-dark`).
 - Regola UX: evitare layout “all blue”; usare gerarchia **70/20/10**:
-  - 70% superfici neutrali dark
+  - 70% superfici neutrali
   - 20% superfici secondarie (glass)
   - 10% accenti primari/interazioni
 
-- **Navy** `#10174A` — background principale
+- **Light base** `#F8FAFC` — background principale default
+- **Navy** `#10174A` — background principale in dark mode
 - **Blu Primario** `#3B52F5` — bottoni, link, accenti
 - **Font**: Neulis Sans (Adobe Typekit) + Inter (fallback) — configurato in `globals.css` e `tailwind.config.ts`
 
-### Classi DaisyUI (tema `sprinta`)
+### Classi DaisyUI (temi `sprinta-light` / `sprinta-dark`)
 
 ```tsx
 // Bottoni
@@ -202,10 +203,11 @@ Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa 
 "btn btn-ghost"                            // trasparente, testo secondario
 
 // Sfondo e testo
-"bg-base-100"                              // Navy #10174A
-"bg-base-200"                              // Navy dark #141B4D
-"bg-base-300"                              // Navy darker #1A2360
-"text-secondary"                           // #B2BAFF (testo principale su scuro)
+"bg-base-100"                              // background base adattivo per tema
+"bg-base-200"                              // superficie secondaria adattiva
+"bg-base-300"                              // superficie terziaria adattiva
+"text-base-content"                        // testo primario adattivo
+"text-secondary"                           // testo secondario adattivo
 "text-primary"                             // #3B52F5
 
 // Input focus
@@ -220,16 +222,23 @@ Il progetto usa un **tema scuro** con palette navy/blu. Per la palette completa 
 
 ### Utility visuali condivise (`app/globals.css`)
 
-Per shell/dashboard dark mode usare preferibilmente le utility globali già definite:
+Per shell/dashboard usare preferibilmente le utility globali già definite:
 
 - `.glass-page-bg` — sfondo pagina stratificato (radial + linear gradient)
 - `.glass-nav` — navbar traslucida con blur e border soft
 - `.glass-panel` — pannelli hero/header principali
-- `.glass-widget` — card widget dark layered
+- `.glass-widget` — card widget layered adattiva
 - `.glass-widget-header` — header sezione/card coerente
-- `.glass-subtle-text` / `.glass-quiet-text` — livelli testuali secondari su sfondo scuro
+- `.glass-subtle-text` / `.glass-quiet-text` — livelli testuali secondari adattivi
 
-Regola: preferire queste utility rispetto a nuovi `bg-white` / `text-gray-*` nelle superfici principali della dashboard dark.
+Regola: preferire queste utility rispetto a hardcode `bg-white` / `text-gray-*` / `text-white` nelle superfici principali.
+
+### Toggle Tema Globale
+
+- La preferenza tema è salvata in `localStorage` con chiave `sprinta-theme`.
+- L'attributo globale `data-theme` viene impostato su `<html>` (`sprinta-light` oppure `sprinta-dark`).
+- Il toggle UI è in `components/ui/theme-toggle.tsx` e viene mostrato in `components/navbar.tsx`.
+- Prima dell'hydration, il tema viene inizializzato in `app/layout.tsx` via script inline per evitare flash/mismatch visivo.
 
 Nelle pagine `messages`, `professionals` e `opportunities`, i componenti principali devono usare le utility glass e non card light legacy.
 
@@ -285,9 +294,10 @@ app/
 
 components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo
-  navbar.tsx  → navigazione (brand theme navy/blu, dinamica in base a auth)
+  navbar.tsx  → navigazione con toggle tema + auth context
   avatar.tsx  → componente avatar riutilizzabile
   ui/
+    theme-toggle.tsx → ⭐ Client Component: switch tema light/dark
     RoleSwitcher.tsx  → ⭐ Client Component: dropdown ruolo attivo (DaisyUI)
   widgets/    → ⭐ SERVER Components (async, nessuna direttiva 'use client')
     TeamEventsWidget.tsx

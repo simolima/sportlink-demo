@@ -32,10 +32,10 @@ export default function StudioDashboardLayout({ children }: { children: React.Re
     ]
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="glass-page-bg min-h-screen">
             <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px,1fr]">
-                <aside className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-20 lg:h-fit">
-                    <p className="mb-4 text-sm font-semibold text-gray-700">Dashboard Studio</p>
+                <aside className="glass-widget rounded-2xl p-4 lg:sticky lg:top-20 lg:h-fit">
+                    <p className="mb-4 text-sm font-semibold text-base-content">Dashboard Studio</p>
                     <nav className="space-y-1">
                         {items.map(({ href, label, icon: Icon }) => {
                             const isActive = pathname === href
@@ -44,8 +44,8 @@ export default function StudioDashboardLayout({ children }: { children: React.Re
                                     key={href}
                                     href={href}
                                     className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${isActive
-                                        ? 'bg-brand-600 text-white'
-                                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                        ? 'bg-primary text-primary-content'
+                                        : 'text-secondary hover:bg-base-200 hover:text-base-content'
                                         }`}
                                 >
                                     <Icon className="h-4 w-4" />
@@ -54,10 +54,10 @@ export default function StudioDashboardLayout({ children }: { children: React.Re
                             )
                         })}
                     </nav>
-                    <div className="mt-6 border-t border-gray-200 pt-4">
+                    <div className="mt-6 border-t border-base-300 pt-4">
                         <Link
                             href={`/studios/${studioId}`}
-                            className="text-xs text-gray-500 hover:text-gray-700"
+                            className="text-xs text-secondary hover:text-base-content"
                         >
                             Vai alla pagina pubblica dello studio
                         </Link>

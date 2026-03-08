@@ -13,19 +13,53 @@
 
 :root {
     --white: #FFFFFF;
-    --navy: #10174A;
-    --navy-light: #141B4D;
-    --navy-lighter: #1A2360;
+    --surface-1: #F8FAFC;
+    --surface-2: #EEF2FF;
+    --surface-3: #E2E8F0;
+    --surface-4: #CBD5E1;
+    --blue: #3B52F5;
+    --blue-hover: #5168FF;
+    --secondary: #334155;
+    --base-content: #0F172A;
+    --app-bg: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #eef2ff 100%);
+    --glass-page-bg:
+        radial-gradient(900px 450px at 0% -10%, rgba(59, 82, 245, 0.08), transparent 60%),
+        radial-gradient(780px 420px at 100% -6%, rgba(81, 104, 255, 0.07), transparent 62%),
+        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 58%, #eef2ff 100%);
+    --glass-nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.82) 100%);
+    --glass-border: rgba(148, 163, 184, 0.3);
+    --glass-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --glass-panel-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.84) 0%, rgba(241, 245, 249, 0.8) 100%);
+    --glass-widget-bg: linear-gradient(150deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.82) 100%);
+    --glass-widget-header-bg: linear-gradient(180deg, rgba(59, 82, 245, 0.08) 0%, rgba(248, 250, 252, 0.7) 100%);
+    --glass-subtle-text: rgba(51, 65, 85, 0.86);
+    --glass-quiet-text: rgba(71, 85, 105, 0.76);
+    --radius: 12px;
+}
+
+[data-theme='sprinta-dark'] {
     --surface-1: #10174A;
     --surface-2: #141B4D;
     --surface-3: #1A2360;
     --surface-4: #202b70;
-    --navy-dark: #141B4D;
-    --navy-darker: #1A2360;
-    --blue: #3B52F5;
-    --blue-hover: #5168FF;
     --secondary: #B2BAFF;
-    --radius: 12px;
+    --base-content: #EEF2FF;
+    --app-bg:
+        radial-gradient(1100px 560px at 8% -14%, rgba(72, 98, 255, 0.14), transparent 60%),
+        radial-gradient(980px 520px at 94% -6%, rgba(130, 104, 255, 0.1), transparent 62%),
+        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
+    --glass-page-bg:
+        radial-gradient(1100px 500px at 0% -10%, rgba(72, 98, 255, 0.15), transparent 60%),
+        radial-gradient(920px 460px at 100% -6%, rgba(130, 104, 255, 0.11), transparent 62%),
+        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
+    --glass-nav-bg: linear-gradient(180deg, rgba(17, 24, 58, 0.86) 0%, rgba(13, 18, 46, 0.78) 100%);
+    --glass-border: rgba(178, 186, 255, 0.16);
+    --glass-shadow: 0 8px 24px rgba(5, 8, 24, 0.28);
+    --glass-panel-bg: linear-gradient(145deg, rgba(20, 28, 64, 0.74) 0%, rgba(15, 22, 52, 0.66) 100%);
+    --glass-widget-bg: linear-gradient(150deg, rgba(20, 28, 64, 0.78) 0%, rgba(15, 22, 52, 0.72) 100%);
+    --glass-widget-header-bg: linear-gradient(180deg, rgba(81, 104, 255, 0.14) 0%, rgba(18, 26, 62, 0.18) 100%);
+    --glass-subtle-text: rgba(178, 186, 255, 0.78);
+    --glass-quiet-text: rgba(178, 186, 255, 0.6);
 }
 
 html,
@@ -36,11 +70,8 @@ body,
 
 body {
     font-family: "neulis-sans", Inter, system-ui, sans-serif;
-    background:
-        radial-gradient(1100px 560px at 8% -14%, rgba(72, 98, 255, 0.14), transparent 60%),
-        radial-gradient(980px 520px at 94% -6%, rgba(130, 104, 255, 0.1), transparent 62%),
-        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
-    color: var(--secondary);
+    background: var(--app-bg);
+    color: var(--base-content);
     font-size: 1.0625rem;
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
@@ -110,42 +141,39 @@ small {
 }
 
 .glass-page-bg {
-    background:
-        radial-gradient(1100px 500px at 0% -10%, rgba(72, 98, 255, 0.15), transparent 60%),
-        radial-gradient(920px 460px at 100% -6%, rgba(130, 104, 255, 0.11), transparent 62%),
-        linear-gradient(180deg, #0d112c 0%, #0b1027 58%, #090d22 100%);
+    background: var(--glass-page-bg);
 }
 
 .glass-nav {
-    background: linear-gradient(180deg, rgba(17, 24, 58, 0.86) 0%, rgba(13, 18, 46, 0.78) 100%);
+    background: var(--glass-nav-bg);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(178, 186, 255, 0.16);
-    box-shadow: 0 8px 24px rgba(5, 8, 24, 0.28);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 .glass-panel {
-    background: linear-gradient(145deg, rgba(20, 28, 64, 0.74) 0%, rgba(15, 22, 52, 0.66) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.16);
-    box-shadow: 0 10px 24px rgba(5, 8, 24, 0.24);
+    background: var(--glass-panel-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 .glass-widget {
-    background: linear-gradient(150deg, rgba(20, 28, 64, 0.78) 0%, rgba(15, 22, 52, 0.72) 100%);
-    border: 1px solid rgba(178, 186, 255, 0.15);
-    box-shadow: 0 8px 18px rgba(5, 8, 24, 0.24);
+    background: var(--glass-widget-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 .glass-widget-header {
-    background: linear-gradient(180deg, rgba(81, 104, 255, 0.14) 0%, rgba(18, 26, 62, 0.18) 100%);
-    border-bottom: 1px solid rgba(178, 186, 255, 0.15);
+    background: var(--glass-widget-header-bg);
+    border-bottom: 1px solid var(--glass-border);
 }
 
 .glass-subtle-text {
-    color: rgba(178, 186, 255, 0.78);
+    color: var(--glass-subtle-text);
 }
 
 .glass-quiet-text {
-    color: rgba(178, 186, 255, 0.6);
+    color: var(--glass-quiet-text);
 }
 
 /* Button styles */

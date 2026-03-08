@@ -172,21 +172,21 @@ export default function StudioDashboardServicesPage() {
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento servizi...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento servizi...</div>
     }
 
     return (
-        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="space-y-6 glass-widget rounded-2xl p-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Servizi</h1>
-                <p className="mt-1 text-sm text-gray-600">Gestisci tipi di appuntamento e opzioni di prenotazione.</p>
+                <h1 className="text-2xl font-bold text-base-content">Servizi</h1>
+                <p className="mt-1 text-sm text-secondary">Gestisci tipi di appuntamento e opzioni di prenotazione.</p>
             </div>
 
-            <form onSubmit={handleCreate} className="grid gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 md:grid-cols-2">
+            <form onSubmit={handleCreate} className="grid gap-3 rounded-xl border border-base-300 bg-base-100 p-4 md:grid-cols-2">
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Nome servizio</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Nome servizio</span>
                     <input
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         placeholder="Es. Prima valutazione"
                         value={form.name}
                         onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -195,9 +195,9 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Descrizione servizio</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Descrizione servizio</span>
                     <input
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         placeholder="Breve descrizione del servizio"
                         value={form.description}
                         onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -205,10 +205,10 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Durata appuntamento (minuti)</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Durata appuntamento (minuti)</span>
                     <input
                         type="number"
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         min={15}
                         max={480}
                         placeholder="60"
@@ -218,10 +218,10 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Buffer prima (minuti)</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Buffer prima (minuti)</span>
                     <input
                         type="number"
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         min={0}
                         max={60}
                         placeholder="0"
@@ -231,10 +231,10 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Buffer dopo (minuti)</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Buffer dopo (minuti)</span>
                     <input
                         type="number"
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         min={0}
                         max={60}
                         placeholder="0"
@@ -244,10 +244,10 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Prezzo (EUR)</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Prezzo (EUR)</span>
                     <input
                         type="number"
-                        className="input input-bordered bg-white"
+                        className="input input-bordered"
                         min={0}
                         placeholder="Es. 50"
                         value={form.priceAmount}
@@ -256,9 +256,9 @@ export default function StudioDashboardServicesPage() {
                 </label>
 
                 <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-gray-600">Colore servizio</span>
+                    <span className="label-text mb-1 block text-sm text-secondary">Colore servizio</span>
                     <select
-                        className="select select-bordered w-full bg-white"
+                        className="select select-bordered w-full"
                         value={form.colorHex}
                         onChange={(e) => setForm((prev) => ({ ...prev, colorHex: e.target.value }))}
                     >
@@ -268,8 +268,8 @@ export default function StudioDashboardServicesPage() {
                             </option>
                         ))}
                     </select>
-                    <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2">
-                        <p className="mb-2 text-xs text-gray-500">Palette rapida</p>
+                    <div className="mt-2 rounded-lg border border-base-300 bg-base-100 p-2">
+                        <p className="mb-2 text-xs text-secondary">Palette rapida</p>
                         <div className="flex flex-wrap gap-2">
                             {SERVICE_COLOR_PRESETS.map((preset) => {
                                 const isSelected = form.colorHex === preset.value
@@ -279,7 +279,7 @@ export default function StudioDashboardServicesPage() {
                                         type="button"
                                         title={`${preset.label} (${preset.value})`}
                                         aria-label={`Seleziona ${preset.label}`}
-                                        className={`h-7 w-7 rounded-full border-2 transition hover:scale-105 ${isSelected ? 'border-gray-900 shadow-sm' : 'border-white shadow'
+                                        className={`h-7 w-7 rounded-full border-2 transition hover:scale-105 ${isSelected ? 'border-base-content shadow-sm' : 'border-base-100 shadow'
                                             }`}
                                         style={{ backgroundColor: preset.value }}
                                         onClick={() => setForm((prev) => ({ ...prev, colorHex: preset.value }))}
@@ -295,22 +295,22 @@ export default function StudioDashboardServicesPage() {
             </form>
 
             <div className="space-y-2">
-                {services.length === 0 && <p className="text-sm text-gray-600">Nessun servizio creato.</p>}
+                {services.length === 0 && <p className="text-sm text-secondary">Nessun servizio creato.</p>}
                 {services.map((service) => (
-                    <div key={service.id} className="grid gap-2 rounded-xl border border-gray-200 bg-gray-50 p-4 md:grid-cols-[1fr,auto]">
+                    <div key={service.id} className="grid gap-2 rounded-xl border border-base-300 bg-base-100 p-4 md:grid-cols-[1fr,auto]">
                         <div>
                             <div className="flex items-center gap-2">
                                 <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: service.color_hex }} />
-                                <p className="font-semibold text-gray-900">{service.name}</p>
+                                <p className="font-semibold text-base-content">{service.name}</p>
                                 <span className={`badge ${service.is_active ? 'badge-info' : 'badge-ghost'}`}>
                                     {service.is_active ? 'Attivo' : 'Inattivo'}
                                 </span>
                             </div>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 text-sm text-secondary">
                                 {service.duration_minutes} min | buffer {service.buffer_before_minutes}/{service.buffer_after_minutes} min
                             </p>
                             {service.price_amount !== null && (
-                                <p className="text-sm text-gray-600">Prezzo: {service.price_amount} EUR</p>
+                                <p className="text-sm text-secondary">Prezzo: {service.price_amount} EUR</p>
                             )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function StudioDashboardServicesPage() {
                 ))}
             </div>
 
-            {message && <p className="text-sm text-gray-600">{message}</p>}
+            {message && <p className="text-sm text-secondary">{message}</p>}
         </section>
     )
 }

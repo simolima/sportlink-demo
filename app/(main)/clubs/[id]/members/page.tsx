@@ -104,7 +104,7 @@ export default function ClubMembersPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 text-base-content">
         <div className="text-center py-12">Caricamento...</div>
       </div>
     )
@@ -113,11 +113,11 @@ export default function ClubMembersPage() {
   if (!isAdmin) return null
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 text-base-content">
       <div className="mb-6">
         <button
           onClick={() => router.back()}
-          className="text-blue-600 hover:underline mb-4"
+          className="text-primary hover:underline mb-4"
         >
           ← Torna al club
         </button>
@@ -125,17 +125,17 @@ export default function ClubMembersPage() {
           <Users size={32} />
           <h1 className="text-3xl font-bold">Gestione Membri</h1>
         </div>
-        <p className="text-gray-600">{club?.name}</p>
+        <p className="glass-subtle-text">{club?.name}</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow border">
-        <div className="p-4 border-b">
+      <div className="glass-widget rounded-lg border border-base-300/70">
+        <div className="p-4 border-b border-base-300/70">
           <h2 className="font-semibold text-lg">{members.length} Membri</h2>
         </div>
 
-        <div className="divide-y">
+        <div className="divide-y divide-base-300/60">
           {members.map((member) => (
-            <div key={member.id} className="p-4 hover:bg-gray-50 transition-colors">
+            <div key={member.id} className="p-4 hover:bg-base-200/60 transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
                   <img
@@ -144,18 +144,18 @@ export default function ClubMembersPage() {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-base-content">
                       {member.user?.firstName} {member.user?.lastName}
                     </h3>
-                    <p className="text-sm text-gray-600">{member.role}</p>
+                    <p className="text-sm glass-subtle-text">{member.role}</p>
                     {member.position && (
-                      <p className="text-xs text-gray-500">{member.position}</p>
+                      <p className="text-xs glass-quiet-text">{member.position}</p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Permessi:</p>
+                  <p className="text-sm font-medium text-secondary mb-2">Permessi:</p>
                   <div className="flex flex-wrap gap-2">
                     {CLUB_PERMISSIONS.map((permission) => (
                       <label

@@ -14,7 +14,7 @@ export default function StudioTrustBar({ mockData }: Props) {
     const verifiedReviewsCount = mockData.reviews.filter(r => r.verified).length
 
     return (
-        <div className="bg-white border-y border-gray-100 py-6">
+        <div className="bg-base-100 border-y border-base-300 py-6">
             <div className="max-w-6xl mx-auto px-4">
                 <div className="flex flex-wrap justify-center md:justify-around items-center gap-8">
                     {/* Esperienza */}
@@ -22,16 +22,16 @@ export default function StudioTrustBar({ mockData }: Props) {
                         <div className="text-3xl font-bold text-brand-600 mb-1">
                             {mockData.yearsOfExperience}+
                         </div>
-                        <div className="text-sm text-gray-600 uppercase tracking-wide">Anni di esperienza</div>
+                        <div className="text-sm text-secondary uppercase tracking-wide">Anni di esperienza</div>
                     </div>
 
                     {/* Recensioni */}
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <span className="text-3xl font-bold text-gray-900">{avgRating}</span>
+                            <span className="text-3xl font-bold text-base-content">{avgRating}</span>
                             <StarIcon className="h-6 w-6 text-yellow-500" />
                         </div>
-                        <div className="text-sm text-gray-600 uppercase tracking-wide">
+                        <div className="text-sm text-secondary uppercase tracking-wide">
                             {mockData.reviews.length} recensioni ({verifiedReviewsCount} verificate)
                         </div>
                     </div>
@@ -40,9 +40,9 @@ export default function StudioTrustBar({ mockData }: Props) {
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <LanguageIcon className="h-8 w-8 text-brand-600" />
-                            <span className="text-3xl font-bold text-gray-900">{mockData.languages.length}</span>
+                            <span className="text-3xl font-bold text-base-content">{mockData.languages.length}</span>
                         </div>
-                        <div className="text-sm text-gray-600 uppercase tracking-wide">Lingue parlate</div>
+                        <div className="text-sm text-secondary uppercase tracking-wide">Lingue parlate</div>
                     </div>
 
                     {/* Modalità lavoro */}
@@ -50,7 +50,7 @@ export default function StudioTrustBar({ mockData }: Props) {
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <ChatBubbleLeftRightIcon className="h-8 w-8 text-brand-600" />
                         </div>
-                        <div className="text-sm text-gray-600 uppercase tracking-wide">
+                        <div className="text-sm text-secondary uppercase tracking-wide">
                             {mockData.workModes.includes('in-person') && 'In presenza'}
                             {mockData.workModes.includes('remote') && mockData.workModes.includes('in-person') && ' • '}
                             {mockData.workModes.includes('remote') && 'Online'}

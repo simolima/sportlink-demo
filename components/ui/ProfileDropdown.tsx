@@ -98,12 +98,12 @@ export default function ProfileDropdown() {
             {/* Trigger */}
             <button
                 onClick={() => setOpen(o => !o)}
-                className="flex items-center gap-2 text-white/70 hover:text-white transition"
+                className="flex items-center gap-2 text-secondary hover:text-base-content transition"
                 aria-haspopup="true"
                 aria-expanded={open}
             >
                 {isPending ? (
-                    <ArrowPathIcon className="w-5 h-5 animate-spin text-white" />
+                    <ArrowPathIcon className="w-5 h-5 animate-spin text-base-content" />
                 ) : user.avatarUrl ? (
                     <Avatar src={user.avatarUrl} alt={user.firstName} size="xs" />
                 ) : (
@@ -116,9 +116,9 @@ export default function ProfileDropdown() {
 
             {/* Dropdown */}
             {open && (
-                <div className="absolute right-0 mt-2 w-72 rounded-xl border border-base-200 bg-white shadow-lg z-50 py-2">
+                <div className="absolute right-0 mt-2 w-72 rounded-xl border border-base-300 bg-base-100 shadow-lg z-50 py-2">
                     {/* Header: utente + ruolo attivo */}
-                    <div className="px-4 py-3 border-b border-base-200">
+                    <div className="px-4 py-3 border-b border-base-300">
                         <div className="flex items-center gap-3">
                             {user.avatarUrl ? (
                                 <Avatar src={user.avatarUrl} alt={user.firstName} size="sm" />
@@ -128,7 +128,7 @@ export default function ProfileDropdown() {
                                 </div>
                             )}
                             <div className="min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                <p className="text-sm font-semibold text-base-content truncate">
                                     {user.firstName} {user.lastName}
                                 </p>
                                 <p className="text-xs text-brand-600 font-medium">
@@ -141,7 +141,7 @@ export default function ProfileDropdown() {
                     {/* Profili / Ruoli — mostra tutti, evidenzia quello attivo */}
                     {roles.length > 0 && (
                         <div className="py-1">
-                            <p className="px-4 py-1.5 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                            <p className="px-4 py-1.5 text-[10px] uppercase tracking-wider text-secondary font-semibold">
                                 {otherRoles.length > 0 ? 'I tuoi profili' : 'Profilo attivo'}
                             </p>
                             {roles.map((r) => {
@@ -160,18 +160,18 @@ export default function ProfileDropdown() {
                                         disabled={isPending && !isActive}
                                         className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left transition-colors ${isActive
                                             ? 'bg-brand-50 text-brand-700 font-medium'
-                                            : 'text-gray-700 hover:bg-gray-50'
+                                            : 'text-base-content/85 hover:bg-base-200'
                                             }`}
                                     >
                                         {isActive ? (
                                             <CheckCircleIcon className="w-4 h-4 text-brand-600 shrink-0" />
                                         ) : (
-                                            <ArrowsRightLeftIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                                            <ArrowsRightLeftIcon className="w-4 h-4 text-secondary shrink-0" />
                                         )}
                                         <span className="truncate">
                                             {label}
                                             {formatSports(r.sport_names) && (
-                                                <span className={isActive ? 'text-brand-500' : 'text-gray-400'}> · {formatSports(r.sport_names)}</span>
+                                                <span className={isActive ? 'text-brand-500' : 'text-secondary'}> · {formatSports(r.sport_names)}</span>
                                             )}
                                         </span>
                                         {isPending && !isActive && (
@@ -183,15 +183,15 @@ export default function ProfileDropdown() {
                         </div>
                     )}
 
-                    <div className="border-t border-base-200 my-1" />
+                    <div className="border-t border-base-300 my-1" />
 
                     {/* Visualizza profilo */}
                     <Link
                         href={`/profile/${user.id}`}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-base-content/85 hover:bg-base-200 transition-colors"
                     >
-                        <UserCircleIcon className="w-4 h-4 text-gray-400" />
+                        <UserCircleIcon className="w-4 h-4 text-secondary" />
                         Visualizza profilo
                     </Link>
 
@@ -205,7 +205,7 @@ export default function ProfileDropdown() {
                         Aggiungi nuovo profilo
                     </Link>
 
-                    <div className="border-t border-base-200 my-1" />
+                    <div className="border-t border-base-300 my-1" />
 
                     {/* Logout */}
                     <button

@@ -138,7 +138,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                     )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="badge badge-sm bg-brand-600/20 text-brand-300 border-0 font-medium">
+                    <span className="badge badge-sm bg-primary/15 text-primary border-0 font-medium">
                         {members.length} {members.length === 1 ? 'membro' : 'membri'}
                     </span>
                     {isExpanded ? (
@@ -176,7 +176,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                         <div>
                             <p className="text-xs font-semibold text-base-content/40 uppercase tracking-wide mb-2">
                                 Giocatori
-                                <span className="ml-1.5 badge badge-xs bg-brand-600/20 text-brand-300 border-0 font-normal">
+                                <span className="ml-1.5 badge badge-xs bg-primary/15 text-primary border-0 font-normal">
                                     {players.length}
                                 </span>
                             </p>
@@ -217,7 +217,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                     setErrorMsg(null)
                                 }}
                                 disabled={availableMembers.length === 0}
-                                className="btn btn-sm btn-outline border-brand-600 text-brand-600 hover:bg-brand-50 hover:border-brand-600 w-full gap-1.5 disabled:opacity-50"
+                                className="btn btn-sm btn-outline border-primary text-primary hover:bg-primary/10 hover:border-primary w-full gap-1.5 disabled:opacity-50"
                             >
                                 <PlusIcon className="h-4 w-4" />
                                 {availableMembers.length === 0
@@ -232,7 +232,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                     <select
                                         value={selectedProfileId}
                                         onChange={(e) => setSelectedProfileId(e.target.value)}
-                                        className="select select-bordered select-sm flex-1 focus:border-brand-500 focus:outline-none text-sm"
+                                        className="select select-bordered select-sm flex-1 focus:border-primary focus:outline-none text-sm"
                                         aria-label="Seleziona membro"
                                     >
                                         <option value="">-- Seleziona membro --</option>
@@ -250,7 +250,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                             setSelectedRole(e.target.value as TeamMemberRole)
                                             if (e.target.value !== 'player') setJerseyNumber('')
                                         }}
-                                        className="select select-bordered select-sm focus:border-brand-500 focus:outline-none text-sm"
+                                        className="select select-bordered select-sm focus:border-primary focus:outline-none text-sm"
                                         aria-label="Ruolo in squadra"
                                     >
                                         {(
@@ -275,7 +275,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                         value={jerseyNumber}
                                         onChange={(e) => setJerseyNumber(e.target.value)}
                                         placeholder="N° maglia (opzionale)"
-                                        className="input input-bordered input-sm w-full focus:border-brand-500 focus:outline-none text-sm"
+                                        className="input input-bordered input-sm w-full focus:border-primary focus:outline-none text-sm"
                                         aria-label="Numero di maglia"
                                     />
                                 )}
@@ -298,7 +298,7 @@ export default function TeamRosterCard({ team, members, availableMembers, userId
                                         type="button"
                                         onClick={handleAdd}
                                         disabled={isPendingAdd || !selectedProfileId}
-                                        className="btn btn-sm bg-brand-600 text-white hover:bg-brand-700 border-0 flex-1 gap-1.5"
+                                        className="btn btn-sm bg-primary text-white hover:bg-primary-hover border-0 flex-1 gap-1.5"
                                     >
                                         {isPendingAdd && (
                                             <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
@@ -364,7 +364,7 @@ function MemberRow({
             </span>
 
             {/* Badge ruolo */}
-            <span className="badge badge-sm bg-brand-600/20 text-brand-300 border-0 text-xs flex-shrink-0">
+            <span className="badge badge-sm bg-primary/15 text-primary border-0 text-xs flex-shrink-0">
                 {TEAM_MEMBER_ROLE_LABELS[member.role]}
             </span>
 

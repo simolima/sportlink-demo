@@ -171,62 +171,62 @@ export default function ClubApplicationsPage() {
             case 'rejected':
                 return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Rifiutata</span>
             default:
-                return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{status}</span>
+                return <span className="px-2 py-1 bg-base-200 text-secondary text-xs font-medium rounded-full">{status}</span>
         }
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg text-base-content">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Gestione Candidature</h1>
-                    <p className="text-gray-600 mt-1">Monitora le candidature ricevute per gli annunci della tua società</p>
+                    <h1 className="text-3xl font-bold text-base-content">Gestione Candidature</h1>
+                    <p className="glass-subtle-text mt-1">Monitora le candidature ricevute per gli annunci della tua società</p>
                 </div>
 
                 {/* Layout a 2 colonne */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Annunci */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white">
+                        <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 overflow-hidden">
+                            <div className="px-6 py-4 border-b border-base-300/60 glass-widget-header">
                                 <div className="flex items-center gap-2">
-                                    <MegaphoneIcon className="w-5 h-5 text-orange-600" />
-                                    <h2 className="font-bold text-gray-900">Annunci ({opportunities.length})</h2>
+                                    <MegaphoneIcon className="w-5 h-5 text-primary" />
+                                    <h2 className="font-bold text-base-content">Annunci ({opportunities.length})</h2>
                                 </div>
                             </div>
 
-                            <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
+                            <div className="divide-y divide-base-300/60 max-h-[600px] overflow-y-auto">
                                 {opportunities.length === 0 ? (
                                     <div className="px-6 py-8 text-center">
-                                        <MegaphoneIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                        <p className="text-gray-500 text-sm">Nessun annuncio creato</p>
+                                        <MegaphoneIcon className="w-12 h-12 text-secondary/50 mx-auto mb-3" />
+                                        <p className="glass-subtle-text text-sm">Nessun annuncio creato</p>
                                     </div>
                                 ) : (
                                     opportunities.map((opp) => (
                                         <button
                                             key={opp.id}
                                             onClick={() => handleOpportunitySelect(opp.id)}
-                                            className={`w-full text-left px-6 py-4 hover:bg-gray-50 transition border-l-4 ${selectedOpportunityId?.toString() === opp.id.toString()
-                                                ? 'border-l-orange-600 bg-orange-50'
+                                            className={`w-full text-left px-6 py-4 hover:bg-base-200/70 transition border-l-4 ${selectedOpportunityId?.toString() === opp.id.toString()
+                                                ? 'border-l-primary bg-primary/10'
                                                 : 'border-l-transparent'
                                                 }`}
                                         >
-                                            <h4 className="font-semibold text-gray-900 text-sm line-clamp-2">{opp.title}</h4>
-                                            <p className="text-xs text-gray-500 mt-1">{opp.sport}</p>
+                                            <h4 className="font-semibold text-base-content text-sm line-clamp-2">{opp.title}</h4>
+                                            <p className="text-xs glass-subtle-text mt-1">{opp.sport}</p>
                                             <div className="flex items-center justify-between mt-2">
-                                                <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                                                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                                                     {opp.applicationsCount} candidature
                                                 </span>
-                                                <span className="text-xs text-gray-400">
+                                                <span className="text-xs glass-quiet-text">
                                                     Scade: {new Date(opp.expiryDate).toLocaleDateString('it-IT', { month: 'short', day: 'numeric' })}
                                                 </span>
                                             </div>
@@ -240,49 +240,49 @@ export default function ClubApplicationsPage() {
                     {/* Right: Candidature per annuncio selezionato */}
                     <div className="lg:col-span-2">
                         {!selectedOpportunity ? (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                                <MegaphoneIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-600">Seleziona un annuncio per vedere le candidature</p>
+                            <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 p-12 text-center">
+                                <MegaphoneIcon className="w-16 h-16 text-secondary/50 mx-auto mb-4" />
+                                <p className="glass-subtle-text">Seleziona un annuncio per vedere le candidature</p>
                             </div>
                         ) : (
                             <div className="space-y-6">
                                 {/* Header annuncio selezionato */}
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedOpportunity.title}</h2>
-                                    <p className="text-gray-600 mb-4">{selectedOpportunity.type} • {selectedOpportunity.sport}</p>
-                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 p-6">
+                                    <h2 className="text-2xl font-bold text-base-content mb-2">{selectedOpportunity.title}</h2>
+                                    <p className="glass-subtle-text mb-4">{selectedOpportunity.type} • {selectedOpportunity.sport}</p>
+                                    <div className="flex items-center gap-4 text-sm glass-subtle-text">
                                         <span className="flex items-center gap-1">
                                             <CalendarIcon className="w-4 h-4" />
                                             Scade: {new Date(selectedOpportunity.expiryDate).toLocaleDateString('it-IT')}
                                         </span>
-                                        <span className="font-semibold text-orange-600">{stats.total} candidature ricevute</span>
+                                        <span className="font-semibold text-primary">{stats.total} candidature ricevute</span>
                                     </div>
                                 </div>
 
                                 {/* Stats */}
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                                    <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs text-gray-600">In Revisione</p>
+                                                <p className="text-xs glass-subtle-text">In Revisione</p>
                                                 <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
                                             </div>
                                             <ClockIcon className="w-8 h-8 text-amber-400" />
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                                    <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs text-gray-600">Accettate</p>
+                                                <p className="text-xs glass-subtle-text">Accettate</p>
                                                 <p className="text-2xl font-bold text-success">{stats.accepted}</p>
                                             </div>
                                             <CheckCircleIcon className="w-8 h-8 text-success" />
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                                    <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs text-gray-600">Rifiutate</p>
+                                                <p className="text-xs glass-subtle-text">Rifiutate</p>
                                                 <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
                                             </div>
                                             <XCircleIcon className="w-8 h-8 text-red-400" />
@@ -291,11 +291,11 @@ export default function ClubApplicationsPage() {
                                 </div>
 
                                 {/* Applications List */}
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/10 to-white">
+                                <div className="glass-widget rounded-xl shadow-sm border border-base-300/70 overflow-hidden">
+                                    <div className="px-6 py-4 border-b border-base-300/60 glass-widget-header">
                                         <div className="flex items-center gap-2">
                                             <InboxIcon className="w-5 h-5 text-primary" />
-                                            <h3 className="font-bold text-gray-900">Candidature ({appLoading ? '...' : stats.total})</h3>
+                                            <h3 className="font-bold text-base-content">Candidature ({appLoading ? '...' : stats.total})</h3>
                                         </div>
                                     </div>
 
@@ -305,13 +305,13 @@ export default function ClubApplicationsPage() {
                                         </div>
                                     ) : applications.length === 0 ? (
                                         <div className="px-6 py-8 text-center">
-                                            <InboxIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                            <p className="text-gray-500 text-sm">Nessuna candidatura ricevuta</p>
+                                            <InboxIcon className="w-12 h-12 text-secondary/50 mx-auto mb-3" />
+                                            <p className="glass-subtle-text text-sm">Nessuna candidatura ricevuta</p>
                                         </div>
                                     ) : (
-                                        <div className="divide-y divide-gray-100">
+                                        <div className="divide-y divide-base-300/60">
                                             {applications.map((app) => (
-                                                <div key={app.id} className="px-6 py-4 hover:bg-gray-50 transition">
+                                                <div key={app.id} className="px-6 py-4 hover:bg-base-200/70 transition">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-3 mb-2">
@@ -322,15 +322,15 @@ export default function ClubApplicationsPage() {
                                                                         className="w-10 h-10 rounded-full object-cover"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-10 h-10 rounded-full bg-sprinta-blue flex items-center justify-center text-white text-sm font-bold">
+                                                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
                                                                         {app.player?.firstName?.charAt(0) || '?'}{app.player?.lastName?.charAt(0) || ''}
                                                                     </div>
                                                                 )}
                                                                 <div>
-                                                                    <h4 className="font-semibold text-gray-900 text-sm">
+                                                                    <h4 className="font-semibold text-base-content text-sm">
                                                                         {app.player?.firstName || ''} {app.player?.lastName || ''}
                                                                     </h4>
-                                                                    <p className="text-xs text-gray-500">
+                                                                    <p className="text-xs glass-subtle-text">
                                                                         {app.player?.professionalRole}
                                                                         {app.agent && (
                                                                             <span className="ml-1 font-medium text-amber-600">
@@ -340,7 +340,7 @@ export default function ClubApplicationsPage() {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <p className="text-xs text-gray-500 mt-1">
+                                                            <p className="text-xs glass-subtle-text mt-1">
                                                                 Candidato il {new Date(app.appliedAt).toLocaleDateString('it-IT')}
                                                             </p>
                                                         </div>

@@ -400,13 +400,13 @@ export default function ProfessionalsPage() {
     }
 
     return (
-        <main className="min-h-screen glass-page-bg">
+        <main className="min-h-screen glass-page-bg text-base-content">
             {/* Header */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                 <div className="glass-panel rounded-2xl p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-2">
                         <SparklesIcon className="w-8 h-8 text-primary" />
-                        <h1 className="text-3xl font-extrabold text-white">
+                        <h1 className="text-3xl font-extrabold text-base-content">
                             Scopri Professionisti
                         </h1>
                     </div>
@@ -477,7 +477,7 @@ export default function ProfessionalsPage() {
                     <div className="lg:col-span-3">
                         {/* Results Info */}
                         <div className="mb-6 flex items-center justify-between glass-widget rounded-2xl px-4 py-3">
-                            <h2 className="text-lg font-semibold text-white">
+                            <h2 className="text-lg font-semibold text-base-content">
                                 {total} professionisti trovati
                             </h2>
                             {hasActiveFilters && (
@@ -543,7 +543,7 @@ export default function ProfessionalsPage() {
                         {!loading && professionals.length === 0 && !error && (
                             <div className="text-center py-16 glass-widget rounded-2xl">
                                 <SparklesIcon className="w-16 h-16 text-secondary/55 mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-white mb-2">
+                                <h3 className="text-xl font-semibold text-base-content mb-2">
                                     Nessun professionista trovato
                                 </h3>
                                 <p className="glass-subtle-text">
@@ -572,7 +572,7 @@ export default function ProfessionalsPage() {
                                     <button
                                         onClick={() => fetchProfessionals(Math.max(0, offset - limit))}
                                         disabled={offset === 0 || loading}
-                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-base-content font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Precedenti
                                     </button>
@@ -584,7 +584,7 @@ export default function ProfessionalsPage() {
                                     <button
                                         onClick={() => fetchProfessionals(offset + limit)}
                                         disabled={!hasMore || loading}
-                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-base-300/80 hover:bg-base-300 disabled:opacity-50 text-secondary hover:text-base-content font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                                     >
                                         Successivi
                                     </button>

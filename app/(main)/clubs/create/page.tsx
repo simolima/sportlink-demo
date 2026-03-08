@@ -188,21 +188,21 @@ export default function CreateClubPage() {
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen glass-page-bg py-12 px-4 text-base-content">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="glass-widget rounded-lg border border-base-300/70 p-8">
           <div className="flex items-center gap-3 mb-6">
-            <Building2 size={32} className="text-brand-600" />
+            <Building2 size={32} className="text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Crea una Società</h1>
-              <p className="text-gray-600">Compila i campi per creare la tua società sportiva</p>
+              <h1 className="text-3xl font-bold text-base-content">Crea una Società</h1>
+              <p className="glass-subtle-text">Compila i campi per creare la tua società sportiva</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Nome */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-secondary mb-2">
                 Nome Società <span className="text-red-500">*</span>
               </label>
               <input
@@ -210,7 +210,7 @@ export default function CreateClubPage() {
                 required
                 value={formData.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="es. AC Milano Calcio"
               />
             </div>
@@ -239,18 +239,18 @@ export default function CreateClubPage() {
                       {matchingOrgs.slice(0, 4).map((org) => (
                         <div
                           key={org.id}
-                          className="flex items-center justify-between bg-white border border-amber-100 rounded-md px-3 py-2"
+                          className="flex items-center justify-between bg-base-100 border border-amber-200/70 rounded-md px-3 py-2"
                         >
                           <div>
-                            <span className="text-sm font-medium text-gray-900">{org.name}</span>
+                            <span className="text-sm font-medium text-base-content">{org.name}</span>
                             {org.city && (
-                              <span className="text-xs text-gray-500 ml-2">— {org.city}</span>
+                              <span className="text-xs glass-subtle-text ml-2">— {org.city}</span>
                             )}
                           </div>
                           <button
                             type="button"
                             onClick={() => handleLinkOrg(org.id)}
-                            className="flex items-center gap-1 text-xs font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded px-2 py-1 transition-colors"
+                            className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded px-2 py-1 transition-colors"
                           >
                             <Link2 size={12} />
                             Collega
@@ -261,7 +261,7 @@ export default function CreateClubPage() {
                     <button
                       type="button"
                       onClick={handleCreateNew}
-                      className="flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-gray-900 underline underline-offset-2 transition-colors"
+                      className="flex items-center gap-1 text-xs font-medium glass-subtle-text hover:text-base-content underline underline-offset-2 transition-colors"
                     >
                       <PlusCircle size={12} />
                       No, crea una nuova organizzazione
@@ -274,8 +274,8 @@ export default function CreateClubPage() {
             {/* Stato scelta org (feedback visivo) */}
             {orgChoiceMade && (
               <div className={`flex items-center gap-2 text-xs rounded-md px-3 py-2 ${selectedOrgId === 'new'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'bg-brand-50 text-brand-700 border border-brand-100'
+                ? 'bg-info/10 text-info border border-info/20'
+                : 'bg-primary/10 text-primary border border-primary/20'
                 }`}>
                 {selectedOrgId === 'new' ? (
                   <>
@@ -301,21 +301,21 @@ export default function CreateClubPage() {
 
             {/* Descrizione */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-secondary mb-2">
                 Descrizione
               </label>
               <textarea
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Descrivi la tua società..."
               />
             </div>
 
             {/* Sport (multi-select) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-secondary mb-2">
                 Sport <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -325,8 +325,8 @@ export default function CreateClubPage() {
                     type="button"
                     onClick={() => toggleSport(sport)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${formData.sports.includes(sport)
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-primary text-white'
+                      : 'bg-base-200 text-secondary hover:bg-base-300'
                       }`}
                   >
                     {sport}
@@ -337,7 +337,7 @@ export default function CreateClubPage() {
 
             {/* Indirizzo con Google Maps Autocomplete */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-secondary mb-2">
                 Indirizzo sede
               </label>
               <AddressAutocomplete
@@ -357,7 +357,7 @@ export default function CreateClubPage() {
             {/* Città */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Città <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -365,7 +365,7 @@ export default function CreateClubPage() {
                   required
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="es. Milano"
                 />
               </div>
@@ -374,7 +374,7 @@ export default function CreateClubPage() {
             {/* Anno fondazione e Website */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Anno di Fondazione
                 </label>
                 <input
@@ -383,19 +383,19 @@ export default function CreateClubPage() {
                   max={new Date().getFullYear()}
                   value={formData.foundedYear}
                   onChange={(e) => setFormData({ ...formData, foundedYear: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="es. 1899"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Sito Web
                 </label>
                 <input
                   type="url"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="https://esempio.com"
                 />
               </div>
@@ -406,14 +406,14 @@ export default function CreateClubPage() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 border border-base-300 text-secondary rounded-lg hover:bg-base-200 transition-colors"
               >
                 Annulla
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creazione in corso...' : 'Crea Società'}
               </button>

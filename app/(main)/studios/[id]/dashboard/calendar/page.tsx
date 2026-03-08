@@ -264,22 +264,22 @@ export default function StudioDashboardCalendarPage() {
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento impostazioni calendario...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento impostazioni calendario...</div>
     }
 
     return (
-        <section className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="space-y-5 glass-widget rounded-2xl p-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Google Calendar</h1>
-                <p className="mt-1 text-sm text-gray-600">Connetti, seleziona il calendario, sincronizza e disconnetti.</p>
+                <h1 className="text-2xl font-bold text-base-content">Google Calendar</h1>
+                <p className="mt-1 text-sm text-secondary">Connetti, seleziona il calendario, sincronizza e disconnetti.</p>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm text-gray-900">
+            <div className="rounded-xl border border-base-300 bg-base-100 p-4">
+                <p className="text-sm text-base-content">
                     Stato: <span className="font-semibold">{status?.connected ? 'Connesso' : 'Disconnesso'}</span>
                 </p>
                 {status?.selectedCalendar && (
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-secondary">
                         Calendario selezionato: {status.selectedCalendar.name}
                     </p>
                 )}
@@ -293,9 +293,9 @@ export default function StudioDashboardCalendarPage() {
                 <>
                     <div className="grid gap-3 md:grid-cols-[1fr,auto]">
                         <label className="form-control">
-                            <span className="label-text mb-1 block text-sm text-gray-600">Calendario da sincronizzare</span>
+                            <span className="label-text mb-1 block text-sm text-secondary">Calendario da sincronizzare</span>
                             <select
-                                className="select select-bordered bg-white w-full"
+                                className="select select-bordered w-full"
                                 value={selectedCalendarId}
                                 onChange={(e) => setSelectedCalendarId(e.target.value)}
                             >
@@ -324,17 +324,17 @@ export default function StudioDashboardCalendarPage() {
             )}
 
             {message && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                <div className="rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-secondary">
                     {message}
                 </div>
             )}
 
-            <div className="rounded-xl border border-gray-200 bg-white p-2">
+            <div className="rounded-xl border border-base-300 bg-base-100 p-2">
                 <div className="mb-3 flex items-center justify-between px-2">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-secondary">
                         Vista unificata appuntamenti e impegni esterni. Seleziona uno slot per marcarlo come occupato personale.
                     </p>
-                    {eventsLoading && <span className="text-xs text-gray-500">Aggiornamento...</span>}
+                    {eventsLoading && <span className="text-xs text-secondary">Aggiornamento...</span>}
                 </div>
 
                 <FullCalendar

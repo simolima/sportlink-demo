@@ -68,27 +68,27 @@ export default function ClubsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sprinta-blue mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Caricamento società...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 glass-subtle-text">Caricamento società...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg text-base-content">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Club</h1>
-                        <p className="text-gray-600">Esplora i club sportivi e scopri opportunità di carriera</p>
+                        <h1 className="text-3xl font-bold text-base-content mb-2">Club</h1>
+                        <p className="glass-subtle-text">Esplora i club sportivi e scopri opportunità di carriera</p>
                     </div>
                     <button
                         onClick={() => router.push('/clubs/create')}
-                        className={`px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition flex items-center gap-2 ${!isSportingDirector ? 'hidden' : ''}`}
+                        className={`px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition flex items-center gap-2 ${!isSportingDirector ? 'hidden' : ''}`}
                     >
                         <BuildingOffice2Icon className="h-5 w-5" />
                         Crea Società
@@ -96,17 +96,17 @@ export default function ClubsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="glass-widget rounded-lg border border-base-300/70 p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Search */}
                         <div className="relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Cerca società..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
 
@@ -114,7 +114,7 @@ export default function ClubsPage() {
                         <select
                             value={selectedSport}
                             onChange={(e) => setSelectedSport(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="px-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                             <option value="all">Tutti gli sport</option>
                             {SUPPORTED_SPORTS.map((sport) => (
@@ -124,28 +124,28 @@ export default function ClubsPage() {
 
                         {/* City Filter */}
                         <div className="relative">
-                            <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Filtra per città..."
                                 value={selectedCity}
                                 onChange={(e) => setSelectedCity(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-base-300 bg-base-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                         </div>
                     </div>
 
-                    <div className="mt-4 text-sm text-gray-600">
+                    <div className="mt-4 text-sm glass-subtle-text">
                         Trovati <span className="font-semibold">{filteredClubs.length}</span> risultati
                     </div>
                 </div>
 
                 {/* Clubs Grid */}
                 {filteredClubs.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                        <BuildingOffice2Icon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna società trovata</h3>
-                        <p className="text-gray-600">Prova a modificare i filtri di ricerca</p>
+                    <div className="glass-widget rounded-lg border border-base-300/70 p-12 text-center">
+                        <BuildingOffice2Icon className="h-16 w-16 text-secondary/60 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-base-content mb-2">Nessuna società trovata</h3>
+                        <p className="glass-subtle-text">Prova a modificare i filtri di ricerca</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -153,7 +153,7 @@ export default function ClubsPage() {
                             <div
                                 key={club.id}
                                 onClick={() => handleClubClick(club.id)}
-                                className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-[1.025] transition-all cursor-pointer overflow-hidden border border-primary/20 group"
+                                className="glass-widget rounded-2xl hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden border border-base-300/70 group"
                             >
                                 {/* Cover Image */}
                                 <div className="h-40 bg-primary/10 relative">
@@ -177,7 +177,7 @@ export default function ClubsPage() {
 
                                 {/* Logo */}
                                 <div className="px-6 -mt-14 mb-4 relative z-10">
-                                    <div className="w-24 h-24 bg-white rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center">
+                                    <div className="w-24 h-24 bg-base-100 rounded-full border-4 border-base-100 shadow-xl overflow-hidden flex items-center justify-center">
                                         {club.logoUrl ? (
                                             <img
                                                 src={club.logoUrl}
@@ -185,7 +185,7 @@ export default function ClubsPage() {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <BuildingOffice2Icon className="h-12 w-12 text-gray-400" />
+                                            <BuildingOffice2Icon className="h-12 w-12 text-secondary/70" />
                                         )}
                                     </div>
                                 </div>
@@ -193,19 +193,19 @@ export default function ClubsPage() {
                                 {/* Content */}
                                 <div className="px-6 pb-6">
                                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                        <h3 className="text-xl font-bold text-gray-900 mb-0 group-hover:text-primary transition-colors">{club.name}</h3>
+                                        <h3 className="text-xl font-bold text-base-content mb-0 group-hover:text-primary transition-colors">{club.name}</h3>
                                         {club.sports && club.sports.length > 0 && (
                                             <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded ml-1 border border-primary/20">
                                                 {club.sports.join(', ')}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex items-center text-sm text-gray-600 mb-3">
+                                    <div className="flex items-center text-sm glass-subtle-text mb-3">
                                         <MapPinIcon className="h-4 w-4 mr-1" />
                                         {club.city}
                                     </div>
 
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                    <p className="glass-subtle-text text-sm mb-4 line-clamp-2">
                                         {club.description}
                                     </p>
 
@@ -214,12 +214,12 @@ export default function ClubsPage() {
                                         <div className="flex items-center gap-1">
                                             <UserGroupIcon className="h-4 w-4 text-primary mr-1" />
                                             <span className="font-bold text-secondary">{club.followersCount || 0}</span>
-                                            <span className="text-gray-600">follower</span>
+                                            <span className="glass-subtle-text">follower</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <BriefcaseIcon className="h-4 w-4 text-primary mr-1" />
                                             <span className="font-bold text-secondary">{club.membersCount || 0}</span>
-                                            <span className="text-gray-600">membri</span>
+                                            <span className="glass-subtle-text">membri</span>
                                         </div>
                                     </div>
                                 </div>

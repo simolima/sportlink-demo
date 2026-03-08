@@ -85,7 +85,7 @@ export default function ReportInjuryModal({ athleteId }: Props) {
             <button
                 type="button"
                 onClick={openModal}
-                className="btn btn-sm gap-1.5 border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 bg-white"
+                className="btn btn-sm gap-1.5 border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 bg-base-100"
             >
                 <ExclamationTriangleIcon className="h-4 w-4" />
                 Segnala Infortunio
@@ -100,8 +100,8 @@ export default function ReportInjuryModal({ athleteId }: Props) {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-5">
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900">Segnala Infortunio</h3>
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <h3 className="text-lg font-bold text-base-content">Segnala Infortunio</h3>
+                            <p className="text-xs text-secondary mt-0.5">
                                 Solo informazioni funzionali — nessun dato clinico.
                             </p>
                         </div>
@@ -143,7 +143,7 @@ export default function ReportInjuryModal({ athleteId }: Props) {
                             <div>
                                 <label className="label pb-1">
                                     <span className="label-text font-medium">Parte del corpo</span>
-                                    <span className="label-text-alt text-gray-400">opz.</span>
+                                    <span className="label-text-alt text-secondary">opz.</span>
                                 </label>
                                 <input
                                     {...register('bodyPart')}
@@ -194,7 +194,7 @@ export default function ReportInjuryModal({ athleteId }: Props) {
                             <div>
                                 <label className="label pb-1">
                                     <span className="label-text font-medium">Rientro stimato</span>
-                                    <span className="label-text-alt text-gray-400">opz.</span>
+                                    <span className="label-text-alt text-secondary">opz.</span>
                                 </label>
                                 <input
                                     type="date"
@@ -213,7 +213,7 @@ export default function ReportInjuryModal({ athleteId }: Props) {
                         <div>
                             <label className="label pb-1">
                                 <span className="label-text font-medium">Note</span>
-                                <span className="label-text-alt text-gray-400">opz. — max 800 caratteri</span>
+                                <span className="label-text-alt text-secondary">opz. — max 800 caratteri</span>
                             </label>
                             <textarea
                                 {...register('notes')}

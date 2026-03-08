@@ -116,7 +116,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     <div className="relative">
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className={`relative p-2 hover:bg-white/10 rounded-full transition-colors text-white ${hasNewNotification ? 'animate-pulse' : ''}`}
+        className={`relative p-2 hover:bg-base-300/50 rounded-full transition-colors text-base-content ${hasNewNotification ? 'animate-pulse' : ''}`}
         title="Notifiche"
       >
         <Bell size={20} />
@@ -133,13 +133,13 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
             className="fixed inset-0 z-10"
             onClick={() => setShowDropdown(false)}
           />
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-20 max-h-96 overflow-y-auto">
-            <div className="p-3 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-sm">Notifiche</h3>
+          <div className="absolute right-0 mt-2 w-80 bg-base-100 rounded-lg shadow-xl border border-base-300 z-20 max-h-96 overflow-y-auto">
+            <div className="p-3 border-b border-base-300 flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-base-content">Notifiche</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleToggleSound}
-                  className="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500"
+                  className="p-1 rounded hover:bg-base-200 transition-colors text-secondary"
                   title={soundEnabled ? 'Disabilita suono' : 'Abilita suono'}
                   aria-label={soundEnabled ? 'Disabilita suono notifiche' : 'Abilita suono notifiche'}
                 >
@@ -156,15 +156,15 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
             </div>
 
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 text-sm">
+              <div className="p-6 text-center text-secondary text-sm">
                 Nessuna nuova notifica
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-base-300/70">
                 {notifications.slice(0, 5).map((notif) => (
                   <div
                     key={notif.id}
-                    className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="p-3 hover:bg-base-200 cursor-pointer transition-colors"
                     onClick={async () => {
                       await markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id))
                       setShowDropdown(false)
@@ -177,9 +177,9 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                     <div className="flex items-start gap-2">
                       <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getNotificationDotColor(notif.type)}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{notif.title}</p>
-                        <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="font-semibold text-sm text-base-content">{notif.title}</p>
+                        <p className="text-xs text-secondary mt-1">{notif.message}</p>
+                        <p className="text-xs glass-quiet-text mt-1">
                           {new Date(notif.createdAt).toLocaleDateString('it-IT', {
                             day: 'numeric',
                             month: 'short',

@@ -324,10 +324,10 @@ export default function ClubDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sprinta-blue mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Caricamento...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 glass-subtle-text">Caricamento...</p>
                 </div>
             </div>
         )
@@ -335,13 +335,13 @@ export default function ClubDetailPage() {
 
     if (!club) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen glass-page-bg flex items-center justify-center">
                 <div className="text-center">
-                    <BuildingOffice2Icon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Società non trovata</h3>
+                    <BuildingOffice2Icon className="h-16 w-16 text-secondary/60 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-base-content mb-2">Società non trovata</h3>
                     <button
                         onClick={() => router.push('/clubs')}
-                        className="text-sprinta-blue hover:text-sprinta-blue-hover"
+                        className="text-primary hover:text-primary-hover"
                     >
                         Torna alla lista
                     </button>
@@ -351,13 +351,13 @@ export default function ClubDetailPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg text-base-content">
             {/* Back Button */}
-            <div className="bg-white border-b border-gray-200">
+            <div className="glass-nav border-b border-base-300/70">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <button
                         onClick={() => router.push('/clubs')}
-                        className="flex items-center text-gray-600 hover:text-gray-900"
+                        className="flex items-center text-secondary hover:text-base-content"
                     >
                         <ArrowLeftIcon className="h-5 w-5 mr-2" />
                         Torna alle società
@@ -379,11 +379,11 @@ export default function ClubDetailPage() {
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Logo & Header */}
-                <div className="bg-white rounded-lg shadow-sm -mt-20 relative mb-6 p-6">
+                <div className="glass-widget rounded-lg border border-base-300/70 -mt-20 relative mb-6 p-6">
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between">
                         <div className="flex items-end mb-4 md:mb-0">
                             {/* Logo */}
-                            <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden -mt-16 mr-6">
+                            <div className="w-32 h-32 bg-base-100 rounded-full border-4 border-base-100 shadow-lg overflow-hidden -mt-16 mr-6">
                                 {club.logoUrl ? (
                                     <img
                                         src={club.logoUrl}
@@ -391,8 +391,8 @@ export default function ClubDetailPage() {
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <BuildingOffice2Icon className="h-16 w-16 text-gray-400" />
+                                    <div className="w-full h-full bg-base-300 flex items-center justify-center">
+                                        <BuildingOffice2Icon className="h-16 w-16 text-secondary/70" />
                                     </div>
                                 )}
                             </div>
@@ -400,12 +400,12 @@ export default function ClubDetailPage() {
                             {/* Name & Info */}
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <h1 className="text-3xl font-bold text-gray-900">{club.name}</h1>
+                                    <h1 className="text-3xl font-bold text-base-content">{club.name}</h1>
                                     {club.verified && (
                                         <CheckBadgeIcon className="h-6 w-6 text-blue-500" />
                                     )}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4 text-gray-600">
+                                <div className="flex flex-wrap items-center gap-4 glass-subtle-text">
                                     <div className="flex items-center">
                                         <MapPinIcon className="h-5 w-5 mr-1" />
                                         {club.city}
@@ -434,7 +434,7 @@ export default function ClubDetailPage() {
                             {isAdmin && (
                                 <button
                                     onClick={() => router.push(`/clubs/${clubId}/applications`)}
-                                    className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                    className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-colors flex items-center gap-2"
                                 >
                                     <BriefcaseIcon className="h-5 w-5" />
                                     Candidature
@@ -443,15 +443,15 @@ export default function ClubDetailPage() {
                             <button
                                 onClick={handleFollow}
                                 className={`px-6 py-2 rounded-lg font-medium transition-all ${following
-                                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    : 'bg-sprinta-blue text-white hover:bg-sprinta-blue-hover'
+                                    ? 'bg-base-300 text-secondary hover:bg-base-200'
+                                    : 'bg-primary text-white hover:bg-primary-hover'
                                     }`}
                             >
                                 {following ? 'Seguito' : 'Segui'}
                             </button>
                             <button
                                 onClick={handleContact}
-                                className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="px-6 py-2 border border-base-300 rounded-lg font-medium text-secondary hover:bg-base-200 transition-colors"
                             >
                                 Contatta
                             </button>
@@ -462,7 +462,7 @@ export default function ClubDetailPage() {
                                     ? 'bg-success/10 text-success border border-success/20 cursor-default'
                                     : pendingRequests.some(r => r.userId?.toString() === currentUserId && r.status === 'pending')
                                         ? 'bg-yellow-50 text-yellow-700 border border-yellow-200 cursor-default'
-                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                        : 'bg-base-100 text-secondary border border-base-300 hover:bg-base-200'
                                     }`}
                             >
                                 {members.some(m => m.userId?.toString() === currentUserId)
@@ -477,33 +477,33 @@ export default function ClubDetailPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100">
+                    <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-base-300/70">
                         <div className="text-center">
-                            <UserGroupIcon className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                            <div className="text-2xl font-bold text-gray-900">{club.followersCount || 0}</div>
-                            <div className="text-sm text-gray-600">Follower</div>
+                            <UserGroupIcon className="h-6 w-6 text-secondary/70 mx-auto mb-1" />
+                            <div className="text-2xl font-bold text-base-content">{club.followersCount || 0}</div>
+                            <div className="text-sm glass-subtle-text">Follower</div>
                         </div>
                         <div className="text-center">
-                            <UserGroupIcon className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                            <div className="text-2xl font-bold text-gray-900">{club.membersCount || 0}</div>
-                            <div className="text-sm text-gray-600">Membri</div>
+                            <UserGroupIcon className="h-6 w-6 text-secondary/70 mx-auto mb-1" />
+                            <div className="text-2xl font-bold text-base-content">{club.membersCount || 0}</div>
+                            <div className="text-sm glass-subtle-text">Membri</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="border-b border-gray-200 mb-6">
+                <div className="border-b border-base-300/70 mb-6">
                     <nav className="-mb-px flex gap-8" aria-label="Tabs">
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'info' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'info' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-base-content hover:border-base-300'}`}
                             onClick={() => setActiveTab('info')}
                         >Info</button>
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'annunci' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'annunci' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-base-content hover:border-base-300'}`}
                             onClick={() => setActiveTab('annunci')}
                         >Annunci</button>
                         <button
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'membri' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'membri' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-base-content hover:border-base-300'}`}
                             onClick={() => setActiveTab('membri')}
                         >Rosa / Membri</button>
                     </nav>
@@ -515,24 +515,24 @@ export default function ClubDetailPage() {
                         {/* Left Column - Main Info */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Description */}
-                            <div className="bg-white rounded-lg shadow-sm p-6">
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Chi Siamo</h2>
-                                <p className="text-gray-700 leading-relaxed">{club.description}</p>
+                            <div className="glass-widget rounded-lg border border-base-300/70 p-6">
+                                <h2 className="text-xl font-bold text-base-content mb-4">Chi Siamo</h2>
+                                <p className="text-secondary leading-relaxed">{club.description}</p>
                             </div>
                         </div>
                         {/* Right Column - Contact & Info */}
                         <div className="space-y-6">
                             {/* Google Maps - Dove siamo */}
                             {(club as any).address && (
-                                <div className="bg-white rounded-lg shadow-sm p-6">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <div className="glass-widget rounded-lg border border-base-300/70 p-6">
+                                    <h2 className="text-xl font-bold text-base-content mb-4 flex items-center gap-2">
                                         <MapPinIcon className="h-5 w-5 text-brand-600" />
                                         Dove siamo
                                     </h2>
-                                    <p className="text-sm text-gray-600 mb-3">{(club as any).address}</p>
+                                    <p className="text-sm glass-subtle-text mb-3">{(club as any).address}</p>
                                     {/* Mappa embed Google Maps */}
                                     {(club as any).addressLat && (club as any).addressLng ? (
-                                        <div className="rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                        <div className="rounded-lg overflow-hidden border border-base-300/70 mb-3">
                                             <iframe
                                                 title="Posizione sede"
                                                 width="100%"
@@ -545,7 +545,7 @@ export default function ClubDetailPage() {
                                             />
                                         </div>
                                     ) : (
-                                        <div className="rounded-lg overflow-hidden border border-gray-200 mb-3">
+                                        <div className="rounded-lg overflow-hidden border border-base-300/70 mb-3">
                                             <iframe
                                                 title="Posizione sede"
                                                 width="100%"
@@ -574,24 +574,24 @@ export default function ClubDetailPage() {
                                 </div>
                             )}
                             {/* Contact Info */}
-                            <div className="bg-white rounded-lg shadow-sm p-6">
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Contatti</h2>
+                            <div className="glass-widget rounded-lg border border-base-300/70 p-6">
+                                <h2 className="text-xl font-bold text-base-content mb-4">Contatti</h2>
                                 <div className="space-y-3">
                                     {club.email && (
                                         <a
                                             href={`mailto:${club.email}`}
-                                            className="flex items-center text-sprinta-text-secondary hover:text-sprinta-primary transition-colors"
+                                            className="flex items-center text-secondary hover:text-primary transition-colors"
                                         >
-                                            <EnvelopeIcon className="h-5 w-5 mr-3 text-sprinta-text-secondary" />
+                                            <EnvelopeIcon className="h-5 w-5 mr-3 text-secondary" />
                                             {club.email}
                                         </a>
                                     )}
                                     {club.phone && (
                                         <a
                                             href={`tel:${club.phone}`}
-                                            className="flex items-center text-sprinta-text-secondary hover:text-sprinta-primary transition-colors"
+                                            className="flex items-center text-secondary hover:text-primary transition-colors"
                                         >
-                                            <PhoneIcon className="h-5 w-5 mr-3 text-sprinta-text-secondary" />
+                                            <PhoneIcon className="h-5 w-5 mr-3 text-secondary" />
                                             {club.phone}
                                         </a>
                                     )}
@@ -600,9 +600,9 @@ export default function ClubDetailPage() {
                                             href={club.website}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center text-sprinta-text-secondary hover:text-sprinta-primary transition-colors"
+                                            className="flex items-center text-secondary hover:text-primary transition-colors"
                                         >
-                                            <GlobeAltIcon className="h-5 w-5 mr-3 text-sprinta-text-secondary" />
+                                            <GlobeAltIcon className="h-5 w-5 mr-3 text-secondary" />
                                             Sito Web
                                         </a>
                                     )}
@@ -610,15 +610,15 @@ export default function ClubDetailPage() {
                             </div>
                             {/* Social Media */}
                             {club.socialMedia && (
-                                <div className="bg-white rounded-lg shadow-sm p-6">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Social Media</h2>
+                                <div className="glass-widget rounded-lg border border-base-300/70 p-6">
+                                    <h2 className="text-xl font-bold text-base-content mb-4">Social Media</h2>
                                     <div className="space-y-3">
                                         {club.socialMedia.facebook && (
                                             <a
                                                 href={club.socialMedia.facebook}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block text-gray-700 hover:text-blue-600 transition-colors"
+                                                className="block text-secondary hover:text-primary transition-colors"
                                             >
                                                 Facebook
                                             </a>
@@ -628,7 +628,7 @@ export default function ClubDetailPage() {
                                                 href={club.socialMedia.instagram}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block text-gray-700 hover:text-pink-600 transition-colors"
+                                                className="block text-secondary hover:text-primary transition-colors"
                                             >
                                                 Instagram
                                             </a>
@@ -638,7 +638,7 @@ export default function ClubDetailPage() {
                                                 href={club.socialMedia.twitter}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block text-gray-700 hover:text-blue-400 transition-colors"
+                                                className="block text-secondary hover:text-primary transition-colors"
                                             >
                                                 Twitter
                                             </a>
@@ -647,19 +647,19 @@ export default function ClubDetailPage() {
                                 </div>
                             )}
                             {/* Opportunities CTA */}
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                            <div className="glass-widget rounded-lg p-6 border border-primary/20">
                                 <div className="flex items-center justify-between mb-3">
-                                    <BriefcaseIcon className="h-8 w-8 text-blue-600" />
+                                    <BriefcaseIcon className="h-8 w-8 text-primary" />
                                 </div>
-                                <h3 className="font-bold text-gray-900 mb-2">
+                                <h3 className="font-bold text-base-content mb-2">
                                     Opportunità
                                 </h3>
-                                <p className="text-sm text-gray-600 mb-4">
+                                <p className="text-sm glass-subtle-text mb-4">
                                     Scopri le opportunità disponibili con questa società
                                 </p>
                                 <button
                                     onClick={() => router.push('/opportunities')}
-                                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
                                 >
                                     Vedi Opportunità
                                 </button>
@@ -668,30 +668,30 @@ export default function ClubDetailPage() {
                     </div>
                 )}
                 {activeTab === 'annunci' && (
-                    <div className="bg-white rounded-lg shadow-sm p-8 min-h-[200px]">
+                    <div className="glass-widget rounded-lg border border-base-300/70 p-8 min-h-[200px]">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-900">Opportunità</h2>
+                            <h2 className="text-xl font-bold text-base-content">Opportunità</h2>
                             {isAdmin && (
-                                <button onClick={() => router.push(`/opportunities/new?clubId=${clubId}`)} className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 font-semibold text-sm">
+                                <button onClick={() => router.push(`/opportunities/new?clubId=${clubId}`)} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover font-semibold text-sm">
                                     Crea Opportunità
                                 </button>
                             )}
                         </div>
                         {loadingAnnouncements ? (
-                            <div className="text-gray-500">Caricamento annunci...</div>
+                            <div className="glass-subtle-text">Caricamento annunci...</div>
                         ) : announcements.length === 0 ? (
-                            <div className="text-gray-500">Nessuna opportunità pubblicata dal club.</div>
+                            <div className="glass-subtle-text">Nessuna opportunità pubblicata dal club.</div>
                         ) : (
-                            <ul className="divide-y divide-gray-100">
+                            <ul className="divide-y divide-base-300/60">
                                 {announcements.map(a => (
                                     <li key={a.id} className="py-4">
                                         <div className="flex items-center gap-4">
                                             <BriefcaseIcon className="h-7 w-7 text-primary" />
                                             <div className="flex-1">
-                                                <div className="font-semibold text-gray-900 text-lg">{a.title}</div>
-                                                <div className="text-xs text-gray-500 mb-1">{a.type} • {a.sport} • {a.roleRequired}</div>
-                                                <div className="text-sm text-gray-700 line-clamp-2">{a.description}</div>
-                                                <div className="text-xs text-gray-400 mt-1">Scadenza: {a.expiryDate}</div>
+                                                <div className="font-semibold text-base-content text-lg">{a.title}</div>
+                                                <div className="text-xs glass-subtle-text mb-1">{a.type} • {a.sport} • {a.roleRequired}</div>
+                                                <div className="text-sm text-secondary line-clamp-2">{a.description}</div>
+                                                <div className="text-xs glass-quiet-text mt-1">Scadenza: {a.expiryDate}</div>
                                             </div>
                                         </div>
                                     </li>
@@ -701,8 +701,8 @@ export default function ClubDetailPage() {
                     </div>
                 )}
                 {activeTab === 'membri' && (
-                    <div className="bg-white rounded-lg shadow-sm p-8 min-h-[200px]">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Rosa / Membri</h2>
+                    <div className="glass-widget rounded-lg border border-base-300/70 p-8 min-h-[200px]">
+                        <h2 className="text-xl font-bold text-base-content mb-4">Rosa / Membri</h2>
                         {isAdmin && (
                             <div className="mb-6 p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
                                 <div className="flex items-center justify-between mb-3">

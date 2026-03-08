@@ -64,10 +64,10 @@ function SoundSettingsBlock() {
     }
 
     return (
-        <div className="border rounded-lg p-4 bg-white border-gray-200 mb-8">
+        <div className="border rounded-lg p-4 bg-base-100 border-base-300 mb-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-base-200 text-secondary">
                         {soundOn ? (
                             <SpeakerWaveIcon className="w-5 h-5" />
                         ) : (
@@ -75,8 +75,8 @@ function SoundSettingsBlock() {
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900">Suono notifiche</h3>
-                        <p className="text-sm text-gray-500">
+                        <h3 className="font-semibold text-base-content">Suono notifiche</h3>
+                        <p className="text-sm text-secondary">
                             Riproduci un suono al ricevimento di nuove notifiche
                         </p>
                     </div>
@@ -84,7 +84,7 @@ function SoundSettingsBlock() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handlePreview}
-                        className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                        className="text-xs text-secondary hover:text-base-content px-2 py-1 rounded hover:bg-base-200 transition-colors"
                         aria-label="Anteprima suono notifica"
                     >
                         Prova
@@ -92,7 +92,7 @@ function SoundSettingsBlock() {
                     <button
                         onClick={handleToggle}
                         aria-label={soundOn ? 'Disabilita suono notifiche' : 'Abilita suono notifiche'}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${soundOn ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${soundOn ? 'bg-primary' : 'bg-base-300'}`}
                     >
                         <span
                             className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${soundOn ? 'left-7' : 'left-1'}`}
@@ -182,7 +182,7 @@ export default function NotificationSettingsPage() {
     if (authLoading || loading) {
         return (
             <div className="max-w-2xl mx-auto p-6">
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-secondary">
                     <Loader2 className="animate-spin mx-auto mb-4" size={32} />
                     <p>Caricamento...</p>
                 </div>
@@ -196,7 +196,7 @@ export default function NotificationSettingsPage() {
             <div className="flex items-center gap-4 mb-8">
                 <Link
                     href="/notifications"
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-base-200 rounded-lg transition-colors"
                     aria-label="Torna alle notifiche"
                 >
                     <ArrowLeftIcon className="w-6 h-6" />
@@ -205,7 +205,7 @@ export default function NotificationSettingsPage() {
                     <BellIcon className="w-7 h-7" />
                     <div>
                         <h1 className="text-2xl font-bold">Impostazioni Notifiche</h1>
-                        <p className="text-sm text-gray-500">Scegli quali notifiche ricevere</p>
+                        <p className="text-sm text-secondary">Scegli quali notifiche ricevere</p>
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@ export default function NotificationSettingsPage() {
             <SoundSettingsBlock />
 
             {/* Section heading */}
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <h2 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">
                 Categorie
             </h2>
 
@@ -222,13 +222,13 @@ export default function NotificationSettingsPage() {
             <div className="flex gap-2 mb-4">
                 <button
                     onClick={enableAll}
-                    className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
+                    className="text-sm text-primary hover:text-brand-700 px-3 py-1 rounded hover:bg-primary/10 transition-colors"
                 >
                     Abilita tutte
                 </button>
                 <button
                     onClick={disableAll}
-                    className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 rounded hover:bg-gray-100 transition-colors"
+                    className="text-sm text-secondary hover:text-base-content px-3 py-1 rounded hover:bg-base-200 transition-colors"
                 >
                     Disabilita tutte
                 </button>
@@ -239,19 +239,19 @@ export default function NotificationSettingsPage() {
                 {(Object.keys(NOTIFICATION_CATEGORIES) as NotificationCategory[]).map((category) => (
                     <div
                         key={category}
-                        className={`border rounded-lg p-4 transition-all ${preferences[category] ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'
+                        className={`border rounded-lg p-4 transition-all ${preferences[category] ? 'bg-base-100 border-base-300' : 'bg-base-200/70 border-base-300/70'
                             }`}
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+                                <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-base-200 text-secondary">
                                     {CATEGORY_ICONS[category]}
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900">
+                                    <h3 className="font-semibold text-base-content">
                                         {CATEGORY_TRANSLATIONS[category]}
                                     </h3>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-secondary">
                                         {CATEGORY_DESCRIPTIONS[category]}
                                     </p>
                                 </div>
@@ -261,7 +261,7 @@ export default function NotificationSettingsPage() {
                             <button
                                 onClick={() => toggleCategory(category)}
                                 aria-label={`${preferences[category] ? 'Disabilita' : 'Abilita'} notifiche ${CATEGORY_TRANSLATIONS[category]}`}
-                                className={`relative w-12 h-6 rounded-full transition-colors ${preferences[category] ? 'bg-blue-600' : 'bg-gray-300'
+                                className={`relative w-12 h-6 rounded-full transition-colors ${preferences[category] ? 'bg-primary' : 'bg-base-300'
                                     }`}
                             >
                                 <span
@@ -275,8 +275,8 @@ export default function NotificationSettingsPage() {
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
-                <p className="text-sm text-blue-800">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
+                <p className="text-sm text-primary">
                     <strong>Nota:</strong> Se disabiliti una categoria, non riceverai più notifiche di quel tipo.
                     Le notifiche già ricevute rimarranno visibili nella tua lista.
                 </p>
@@ -287,7 +287,7 @@ export default function NotificationSettingsPage() {
                 <button
                     onClick={savePreferences}
                     disabled={saving}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     {saving ? (
                         <>

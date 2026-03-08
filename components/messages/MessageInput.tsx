@@ -3,6 +3,7 @@
 import { Paperclip, Send, Smile } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 // Lazy-load emoji-mart: ~350KB caricati solo al primo click su Smile
 const EmojiPicker = dynamic(
@@ -25,6 +26,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const emojiPickerRef = useRef<HTMLDivElement>(null)
     const cursorPosRef = useRef<number>(0)
+    const { theme } = useTheme()
 
     // Preload emoji data in background (non blocca il render)
     useEffect(() => {
@@ -110,7 +112,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                                 data={emojiData}
                                 onEmojiSelect={onEmojiSelect}
                                 locale="it"
-                                theme="dark"
+                                theme={theme === 'sprinta-dark' ? 'dark' : 'light'}
                                 previewEmoji="soccer"
                                 previewPosition="none"
                                 skinTonePosition="search"
@@ -125,7 +127,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                             saveCursor()
                             setShowEmojiPicker(prev => !prev)
                         }}
-                        className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-primary bg-primary/15' : 'text-secondary/60 hover:text-white hover:bg-base-300/60'}`}
+                        className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-primary bg-primary/15' : 'text-secondary hover:text-base-content hover:bg-base-300/60'}`}
                         title="Emoji"
                         aria-label="Apri selettore emoji"
                         disabled={disabled}
@@ -134,7 +136,7 @@ export default function MessageInput({ onSend, disabled = false, placeholder = '
                     </button>
                     <button
                         type="button"
-                        className="p-2 text-secondary/60 hover:text-white hover:bg-base-300/60 rounded-full transition-colors"
+                        className="p-2 text-secondary hover:text-base-content hover:bg-base-300/60 rounded-full transition-colors"
                         title="Allegato (coming soon)"
                         aria-label="Allegato non disponibile"
                         disabled

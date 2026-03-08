@@ -4,6 +4,9 @@ node_modules/
 .env*.local
 /.next/
 
+# Playwright MCP logs
+/.playwright-mcp/
+
 # Next.js build output
 /out/
 /build/

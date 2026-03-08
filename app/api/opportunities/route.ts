@@ -10,6 +10,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
+import { isNotificationTypeEnabled } from '@/lib/notifications-repository'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -165,6 +166,42 @@ export async function POST(request: Request) {
             console.error('POST /api/opportunities error:', error)
             return withCors(NextResponse.json({ error: error.message }, { status: 500 }))
         }
+
+        // Notify compatible athletes (fire-and-forget)
+        // Match by sport_id and role_id, cap at 100 recipients, exclude the creator
+        ; (async () => {
+            try {
+                const { data: club } = await supabaseServer
+                    .from('clubs')
+                    .select('name')
+                    .eq('id', data.club_id)
+                    .single()
+
+                const { data: compatibleProfiles } = await supabaseServer
+                    .from('profile_sports')
+                    .select('user_id')
+                    .eq('sport_id', data.sport_id)
+                    .eq('role_id', data.role_id)
+                    .is('deleted_at', null)
+                    .neq('user_id', data.created_by)
+                    .limit(100)
+
+                for (const profile of compatibleProfiles || []) {
+                    const enabled = await isNotificationTypeEnabled(profile.user_id, 'new_opportunity')
+                    if (!enabled) continue
+                    await supabaseServer.from('notifications').insert({
+                        user_id: profile.user_id,
+                        type: 'new_opportunity',
+                        title: 'Nuova opportunità per te',
+                        message: `${club?.name || 'Un club'} cerca profili come il tuo: ${data.title}`,
+                        metadata: { opportunityId: data.id, clubId: data.club_id, clubName: club?.name || '' },
+                        is_read: false,
+                    })
+                }
+            } catch (e) {
+                console.error('new_opportunity notify error:', e)
+            }
+        })()
 
         return withCors(NextResponse.json({
             id: data.id,

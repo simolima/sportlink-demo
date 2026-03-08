@@ -12,7 +12,7 @@ import { supabaseServer } from './supabase-server'
 
 // Re-export type mapping for backward compat
 export const TYPE_TO_CATEGORY: Record<string, string> = {
-    'new_follower': 'follower',
+    'new_follower': 'follower',  // category kept for legacy data; category removed from UI
     'message_received': 'messages',
     'new_application': 'applications',
     'candidacy_accepted': 'applications',
@@ -34,14 +34,13 @@ export const TYPE_TO_CATEGORY: Record<string, string> = {
 }
 
 export const DEFAULT_PREFERENCES: Record<string, boolean> = {
-    follower: true,
     messages: true,
     applications: true,
     affiliations: true,
     club: true,
     opportunities: true,
-    permissions: true,
-    profile: true
+    profile: true,
+    permissions: true
 }
 
 // ============================================================================

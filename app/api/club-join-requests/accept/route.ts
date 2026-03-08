@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { resolveMembershipProfessionalRoleId } from '@/lib/club-membership-scope'
+import { isNotificationTypeEnabled } from '@/lib/notifications-repository'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -99,6 +100,31 @@ export async function POST(request: Request) {
             console.error('Create membership error:', memberErr)
             return withCors(NextResponse.json({ error: memberErr.message }, { status: 500 }))
         }
+
+        // Notify the requester (fire-and-forget)
+        ; (async () => {
+            try {
+                const enabled = await isNotificationTypeEnabled(joinReq.user_id, 'club_join_accepted')
+                if (!enabled) return
+
+                const { data: club } = await supabaseServer
+                    .from('clubs')
+                    .select('name')
+                    .eq('id', joinReq.club_id)
+                    .single()
+
+                await supabaseServer.from('notifications').insert({
+                    user_id: joinReq.user_id,
+                    type: 'club_join_accepted',
+                    title: 'Richiesta accettata',
+                    message: `La tua richiesta di ingresso in ${club?.name || 'il club'} è stata accettata`,
+                    metadata: { requestId: requestId, clubId: joinReq.club_id },
+                    is_read: false,
+                })
+            } catch (e) {
+                console.error('club_join_accepted notify error:', e)
+            }
+        })()
 
         return withCors(NextResponse.json({
             success: true,

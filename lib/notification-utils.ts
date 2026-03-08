@@ -19,12 +19,12 @@ import { Notification, NotificationType } from './types'
  * Categorie di notifiche per le preferenze utente
  */
 export const NOTIFICATION_CATEGORIES = {
-    follower: ['new_follower'],
     messages: ['message_received'],
     applications: ['new_application', 'candidacy_accepted', 'candidacy_rejected', 'application_received', 'application_status_changed'],
     affiliations: ['affiliation_request', 'affiliation_accepted', 'affiliation_rejected', 'affiliation_removed'],
     club: ['club_join_request', 'club_join_accepted', 'club_join_rejected'],
     opportunities: ['new_opportunity'],
+    profile: ['profile_verified', 'added_to_favorites'],
     permissions: ['permission_granted', 'permission_revoked']
 } as const
 
@@ -34,12 +34,12 @@ export type NotificationCategory = keyof typeof NOTIFICATION_CATEGORIES
  * Traduzione delle categorie per l'UI
  */
 export const CATEGORY_TRANSLATIONS: Record<NotificationCategory, string> = {
-    follower: 'Nuovi follower',
     messages: 'Messaggi',
     applications: 'Candidature',
     affiliations: 'Affiliazioni',
     club: 'Richieste club',
     opportunities: 'Opportunità',
+    profile: 'Profilo',
     permissions: 'Permessi'
 }
 
@@ -47,12 +47,12 @@ export const CATEGORY_TRANSLATIONS: Record<NotificationCategory, string> = {
  * Descrizioni delle categorie per l'UI
  */
 export const CATEGORY_DESCRIPTIONS: Record<NotificationCategory, string> = {
-    follower: 'Notifiche quando qualcuno inizia a seguirti',
     messages: 'Notifiche per nuovi messaggi ricevuti',
     applications: 'Notifiche sulle candidature (inviate e ricevute)',
     affiliations: 'Notifiche sulle affiliazioni agente-giocatore',
     club: 'Notifiche sulle richieste di ingresso nei club',
-    opportunities: 'Notifiche su nuove opportunità disponibili',
+    opportunities: 'Notifiche su nuove opportunità di lavoro compatibili con il tuo profilo',
+    profile: 'Notifiche quando qualcuno endorsa il tuo profilo o ti aggiunge ai preferiti',
     permissions: 'Notifiche sui permessi concessi o revocati'
 }
 
@@ -370,12 +370,12 @@ export interface NotificationPreferences {
  * Preferenze di default (tutte abilitate)
  */
 export const DEFAULT_NOTIFICATION_PREFERENCES: Record<NotificationCategory, boolean> = {
-    follower: true,
     messages: true,
     applications: true,
     affiliations: true,
     club: true,
     opportunities: true,
+    profile: true,
     permissions: true
 }
 

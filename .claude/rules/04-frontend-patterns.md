@@ -309,7 +309,7 @@ app/(main)/studios/[id]/dashboard/
   layout.tsx                 → sidebar e navigazione sezioni
   page.tsx                   → redirect compatibilità (`?tab=...` → nuova route)
   overview/page.tsx          → KPI + quick actions
-  calendar/page.tsx          → OAuth Google + selezione calendario + sync/disconnect
+  calendar/page.tsx          → OAuth Google + selezione calendario + sync/disconnect + FullCalendar (month/week/day)
   availability/page.tsx      → regole settimanali + blackout dates
   services/page.tsx          → CRUD tipi appuntamento
   bookings/page.tsx          → lista prenotazioni + cambio stato
@@ -320,6 +320,8 @@ Regole:
 - I fetch autenticati in dashboard studio usano sempre `getAuthHeaders()`.
 - Link legacy `?tab=edit|appointments|clients` devono continuare a funzionare via redirect in `dashboard/page.tsx`.
 - Le callback OAuth Google reindirizzano a `/studios/[id]/dashboard/calendar?connected=true`.
+- La vista calendario usa `FullCalendar` con switch mese/settimana/giorno e legge eventi da `/api/studios/[id]/calendar-events`.
+- La selezione di uno slot libero in calendar crea un blocco personale su `studio_external_events` via `/api/studios/[id]/external-blockers`.
 
 ---
 

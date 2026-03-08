@@ -202,7 +202,7 @@ const fallbackPoll = setInterval(async () => {
 }, 30_000) // ogni 30 secondi
 ```
 
-## Lista Endpoint Esistenti (35 routes)
+## Lista Endpoint Esistenti (35+ routes)
 
 ### `/api/club-memberships` — Role Scope (Marzo 2026)
 
@@ -242,5 +242,18 @@ const fallbackPoll = setInterval(async () => {
 | `/api/organization-requests` | Richieste organizzazione |
 | `/api/organization-requests/[id]/approve` | Approvazione |
 | `/api/lookup/positions` | Lookup posizioni per sport+ruolo (supporta alias Pallavolo/Volley) |
+| `/api/studios/[id]/appointment-types` | Catalogo servizi studio (GET/POST) |
+| `/api/studios/[id]/appointment-types/[typeId]` | Servizio singolo (PATCH/DELETE) |
+| `/api/studios/[id]/availability` | Regole disponibilità settimanali (GET/POST) |
+| `/api/studios/[id]/available-slots` | Slot prenotabili per servizio+data (GET, supporta ricerca multi-giorno) |
+| `/api/studios/[id]/appointments` | Appuntamenti studio (GET/POST) |
+| `/api/studios/[id]/appointments/[apptId]` | Appuntamento singolo (PATCH/DELETE) |
+| `/api/studios/[id]/google-calendar` | Stato connessione + selezione calendario + disconnect |
+| `/api/studios/[id]/google-auth/initiate` | Avvio OAuth Google Calendar |
+| `/api/studios/[id]/google-auth/callback` | Callback OAuth Google Calendar |
+| `/api/studios/[id]/google-calendars` | Lista calendari Google disponibili |
+| `/api/studios/[id]/sync-google` | Sync manuale Google Calendar -> cache eventi esterni |
+| `/api/studios/[id]/calendar-events` | Feed eventi aggregato (appointments + external events) |
+| `/api/studios/[id]/external-blockers` | Creazione blocchi orari manuali (occupato personale) |
 | `/api/studios/[id]/reviews` | Recensioni studio (GET/POST) |
 | `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH/DELETE) |

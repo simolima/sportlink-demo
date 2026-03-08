@@ -17,6 +17,12 @@ type Booking = {
     }
 }
 
+function toDateTimeLocalValue(isoString: string): string {
+    const date = new Date(isoString)
+    const pad = (value: number) => String(value).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 const FILTERS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'] as const
 const STATUS_LABELS: Record<(typeof FILTERS)[number], string> = {
     all: 'Tutte',
@@ -35,6 +41,9 @@ export default function StudioDashboardBookingsPage() {
     const [loading, setLoading] = useState(true)
     const [workingId, setWorkingId] = useState<string | null>(null)
     const [message, setMessage] = useState('')
+    const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null)
+    const [rescheduleStart, setRescheduleStart] = useState('')
+    const [rescheduleEnd, setRescheduleEnd] = useState('')
 
     useEffect(() => {
         async function loadBookings() {
@@ -80,6 +89,56 @@ export default function StudioDashboardBookingsPage() {
             }
 
             setBookings((prev) => prev.map((item) => (item.id === bookingId ? { ...item, status: data.status } : item)))
+        } finally {
+            setWorkingId(null)
+        }
+    }
+
+    const openRescheduleModal = (booking: Booking) => {
+        setRescheduleTarget(booking)
+        setRescheduleStart(toDateTimeLocalValue(booking.startTime))
+        setRescheduleEnd(toDateTimeLocalValue(booking.endTime))
+    }
+
+    const handleReschedule = async () => {
+        if (!rescheduleTarget) return
+        if (!rescheduleStart || !rescheduleEnd) {
+            setMessage('Inserisci data e ora di inizio/fine per riprogrammare.')
+            return
+        }
+
+        setWorkingId(rescheduleTarget.id)
+        setMessage('')
+
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/studios/${studioId}/appointments/${rescheduleTarget.id}`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({
+                    startTime: new Date(rescheduleStart).toISOString(),
+                    endTime: new Date(rescheduleEnd).toISOString(),
+                }),
+            })
+
+            const data = await res.json()
+            if (!res.ok) {
+                setMessage(data.error || 'Impossibile riprogrammare la prenotazione')
+                return
+            }
+
+            setBookings((prev) => prev.map((item) => (
+                item.id === rescheduleTarget.id
+                    ? { ...item, startTime: data.startTime, endTime: data.endTime }
+                    : item
+            )))
+
+            setRescheduleTarget(null)
+            setMessage('Prenotazione riprogrammata con successo.')
         } finally {
             setWorkingId(null)
         }
@@ -141,9 +200,14 @@ export default function StudioDashboardBookingsPage() {
                                 </>
                             )}
                             {booking.status === 'confirmed' && (
-                                <button className="btn btn-xs btn-info" onClick={() => updateStatus(booking.id, 'completed')} disabled={workingId === booking.id}>
-                                    Completa
-                                </button>
+                                <>
+                                    <button className="btn btn-xs btn-info" onClick={() => updateStatus(booking.id, 'completed')} disabled={workingId === booking.id}>
+                                        Completa
+                                    </button>
+                                    <button className="btn btn-xs btn-outline" onClick={() => openRescheduleModal(booking)} disabled={workingId === booking.id}>
+                                        Riprogramma
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -151,6 +215,54 @@ export default function StudioDashboardBookingsPage() {
             </div>
 
             {message && <p className="text-sm text-gray-600">{message}</p>}
+
+            {rescheduleTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+                        <h3 className="text-lg font-semibold text-gray-900">Riprogramma prenotazione</h3>
+                        <p className="mt-1 text-sm text-gray-600">Seleziona nuovo orario per l'appuntamento confermato.</p>
+
+                        <div className="mt-4 space-y-3">
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">Inizio</span>
+                                <input
+                                    type="datetime-local"
+                                    value={rescheduleStart}
+                                    onChange={(e) => setRescheduleStart(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+                                />
+                            </label>
+
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">Fine</span>
+                                <input
+                                    type="datetime-local"
+                                    value={rescheduleEnd}
+                                    onChange={(e) => setRescheduleEnd(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+                                />
+                            </label>
+                        </div>
+
+                        <div className="mt-5 flex gap-2">
+                            <button
+                                className="btn btn-ghost flex-1"
+                                onClick={() => setRescheduleTarget(null)}
+                                disabled={workingId === rescheduleTarget.id}
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                className="btn btn-primary flex-1"
+                                onClick={handleReschedule}
+                                disabled={workingId === rescheduleTarget.id}
+                            >
+                                Salva orario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     )
 }

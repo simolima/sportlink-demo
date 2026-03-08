@@ -97,21 +97,38 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             )
         }
 
-        // 3. Upsert rules (update if exists, insert if not)
-        const { data, error } = await supabaseServer
+        // 3. Check if a record already exists, then UPDATE or INSERT
+        const { data: existing } = await supabaseServer
             .from('studio_availability_rules')
-            .upsert(
-                {
+            .select('id')
+            .eq('professional_studio_id', studioId)
+            .is('deleted_at', null)
+            .single()
+
+        let data, error
+        if (existing) {
+            // UPDATE existing record
+            ; ({ data, error } = await supabaseServer
+                .from('studio_availability_rules')
+                .update({
+                    weekly_schedule: weeklySchedule,
+                    timezone: timezone || 'Europe/Rome',
+                })
+                .eq('id', existing.id)
+                .select()
+                .single())
+        } else {
+            // INSERT new record
+            ; ({ data, error } = await supabaseServer
+                .from('studio_availability_rules')
+                .insert({
                     professional_studio_id: studioId,
                     weekly_schedule: weeklySchedule,
                     timezone: timezone || 'Europe/Rome',
-                },
-                {
-                    onConflict: 'professional_studio_id',
-                }
-            )
-            .select()
-            .single()
+                })
+                .select()
+                .single())
+        }
 
         if (error) {
             throw new Error(`Failed to save availability rules: ${error.message}`)

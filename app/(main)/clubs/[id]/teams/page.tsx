@@ -12,13 +12,13 @@ import TeamManagementWidget from '@/components/club-admin/TeamManagementWidget'
 function TeamManagementSkeleton() {
     return (
         <div className="space-y-4 animate-pulse">
-            <div className="h-6 w-40 rounded bg-gray-200" />
+            <div className="h-6 w-40 rounded bg-base-300" />
             {[1, 2].map((i) => (
-                <div key={i} className="card bg-white border border-base-200 shadow-sm p-5">
-                    <div className="h-5 w-32 rounded bg-gray-200 mb-4" />
+                <div key={i} className="card glass-widget border border-base-300/70 shadow-sm p-5">
+                    <div className="h-5 w-32 rounded bg-base-300 mb-4" />
                     <div className="space-y-2">
-                        <div className="h-4 w-full rounded bg-gray-100" />
-                        <div className="h-4 w-3/4 rounded bg-gray-100" />
+                        <div className="h-4 w-full rounded bg-base-200" />
+                        <div className="h-4 w-3/4 rounded bg-base-200" />
                     </div>
                 </div>
             ))}
@@ -90,7 +90,7 @@ export default function ClubTeamsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen glass-page-bg">
                 <div className="mx-auto max-w-5xl px-4 py-8">
                     <TeamManagementSkeleton />
                 </div>
@@ -101,12 +101,12 @@ export default function ClubTeamsPage() {
     if (!isAdmin || !userId) return null
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen glass-page-bg text-base-content">
             <div className="mx-auto max-w-5xl px-4 py-8">
                 {/* ── Breadcrumb / Back ── */}
                 <Link
                     href={`/clubs/${clubId}`}
-                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-base-content mb-6 transition-colors"
                 >
                     <ArrowLeftIcon className="h-4 w-4" />
                     Torna alla scheda club
@@ -115,11 +115,11 @@ export default function ClubTeamsPage() {
                 {/* ── Header ── */}
                 <div className="mb-6 flex items-center gap-3">
                     <div className="rounded-full bg-brand-100 p-2">
-                        <UserGroupIcon className="h-6 w-6 text-brand-600" />
+                        <UserGroupIcon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Gestione Squadre</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
+                        <h1 className="text-2xl font-bold text-base-content">Gestione Squadre</h1>
+                        <p className="text-sm glass-subtle-text mt-0.5">
                             Organizza i tesserati in squadre e gestisci la rosa.
                         </p>
                     </div>

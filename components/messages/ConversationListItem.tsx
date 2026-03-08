@@ -96,7 +96,7 @@ export default function ConversationListItem({
                     {/* Nome */}
                     <span className={clsx(
                         'truncate text-[15px]',
-                        hasUnread ? 'font-semibold text-white' : 'font-medium text-secondary'
+                        hasUnread ? 'font-semibold text-base-content' : 'font-medium text-secondary'
                     )}>
                         {displayName}
                     </span>
@@ -113,7 +113,7 @@ export default function ConversationListItem({
                 {/* Preview messaggio */}
                 <p className={clsx(
                     'text-sm truncate mt-0.5',
-                    hasUnread ? 'text-secondary font-medium' : 'text-secondary/70'
+                    hasUnread ? 'text-base-content/85 font-medium' : 'text-secondary/80'
                 )}>
                     {conversation.lastMessage.text}
                 </p>

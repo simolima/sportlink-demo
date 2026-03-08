@@ -87,14 +87,14 @@ export default function StudioDashboardOverviewPage() {
     }, [appointments])
 
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento panoramica...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento panoramica...</div>
     }
 
     return (
         <section className="space-y-6">
-            <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h1 className="text-2xl font-bold text-gray-900">{studio?.name || 'Studio'}</h1>
-                <p className="mt-1 text-sm text-gray-600">Panoramica operativa della settimana</p>
+            <header className="glass-widget rounded-2xl p-6">
+                <h1 className="text-2xl font-bold text-base-content">{studio?.name || 'Studio'}</h1>
+                <p className="mt-1 text-sm text-secondary">Panoramica operativa della settimana</p>
             </header>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -105,9 +105,9 @@ export default function StudioDashboardOverviewPage() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm font-semibold text-gray-900">Google Calendar</p>
-                    <p className="mt-2 text-sm text-gray-600">
+                <div className="glass-widget rounded-2xl p-5">
+                    <p className="text-sm font-semibold text-base-content">Google Calendar</p>
+                    <p className="mt-2 text-sm text-secondary">
                         Stato connessione: {calendarConnected ? 'Connesso' : 'Non connesso'}
                     </p>
                     <Link
@@ -118,24 +118,24 @@ export default function StudioDashboardOverviewPage() {
                     </Link>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm font-semibold text-gray-900">Azioni rapide</p>
+                <div className="glass-widget rounded-2xl p-5">
+                    <p className="text-sm font-semibold text-base-content">Azioni rapide</p>
                     <div className="mt-4 flex flex-wrap gap-2">
                         <Link
                             href={`/studios/${studioId}/dashboard/bookings`}
-                            className="inline-flex items-center rounded-full border border-brand-600 bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700"
+                            className="btn btn-primary btn-sm rounded-full"
                         >
                             Gestisci prenotazioni
                         </Link>
                         <Link
                             href={`/studios/${studioId}/dashboard/availability`}
-                            className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                            className="btn btn-outline btn-primary btn-sm rounded-full"
                         >
                             Modifica disponibilità
                         </Link>
                         <Link
                             href={`/studios/${studioId}/dashboard/services`}
-                            className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                            className="btn btn-outline btn-primary btn-sm rounded-full"
                         >
                             Catalogo servizi
                         </Link>
@@ -148,9 +148,9 @@ export default function StudioDashboardOverviewPage() {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+        <div className="glass-widget rounded-2xl p-5">
+            <p className="text-xs uppercase tracking-wide text-secondary">{label}</p>
+            <p className="mt-2 text-3xl font-bold text-base-content">{value}</p>
         </div>
     )
 }

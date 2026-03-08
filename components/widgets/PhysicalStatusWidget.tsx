@@ -105,13 +105,13 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
         : injuries
 
     return (
-        <div className="card bg-white border border-base-200 shadow-sm">
+        <div className="glass-widget">
             <div className="card-body p-5 space-y-4">
                 {/* ── Header ── */}
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <HeartIcon className="h-5 w-5 text-red-500 flex-shrink-0" />
-                        <h2 className="font-semibold text-gray-800 text-base">Stato Fisico</h2>
+                        <h2 className="font-semibold text-base-content text-base">Stato Fisico</h2>
                     </div>
                     {canReport && <ReportInjuryModal athleteId={athleteId} />}
                 </div>
@@ -119,19 +119,19 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                 {/* ── Stato attuale ── */}
                 <div
                     className={`rounded-xl p-4 flex items-center gap-4 ${isAvailable
-                            ? 'bg-brand-50 border border-brand-100'
-                            : currentInjury?.status === 'Recovering'
-                                ? 'bg-yellow-50 border border-yellow-100'
-                                : 'bg-red-50 border border-red-100'
+                        ? 'bg-brand-50 border border-brand-100'
+                        : currentInjury?.status === 'Recovering'
+                            ? 'bg-yellow-50 border border-yellow-100'
+                            : 'bg-red-50 border border-red-100'
                         }`}
                 >
                     {/* Icona grande */}
                     <div
                         className={`rounded-full p-3 flex-shrink-0 ${isAvailable
-                                ? 'bg-brand-100'
-                                : currentInjury?.status === 'Recovering'
-                                    ? 'bg-yellow-100'
-                                    : 'bg-red-100'
+                            ? 'bg-brand-100'
+                            : currentInjury?.status === 'Recovering'
+                                ? 'bg-yellow-100'
+                                : 'bg-red-100'
                             }`}
                     >
                         {isAvailable ? (
@@ -145,7 +145,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
 
                     {/* Testo stato */}
                     <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-0.5">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-secondary mb-0.5">
                             Stato Attuale
                         </p>
                         {isAvailable ? (
@@ -154,8 +154,8 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                             <>
                                 <p
                                     className={`text-lg font-bold ${currentInjury?.status === 'Recovering'
-                                            ? 'text-yellow-700'
-                                            : 'text-red-700'
+                                        ? 'text-yellow-700'
+                                        : 'text-red-700'
                                         }`}
                                 >
                                     {currentInjury?.status === 'Recovering'
@@ -165,7 +165,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
 
                                 <div className="mt-1 flex flex-wrap items-center gap-2">
                                     {/* Tipo e parte */}
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-secondary">
                                         {currentInjury?.injury_type}
                                         {currentInjury?.body_part &&
                                             ` — ${currentInjury?.body_part}`}
@@ -182,9 +182,9 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
 
                                 {/* Data rientro stimata */}
                                 {currentInjury?.expected_return_date && (
-                                    <p className="text-sm text-gray-500 mt-1">
+                                    <p className="text-sm text-secondary mt-1">
                                         Rientro stimato:{' '}
-                                        <span className="font-semibold text-gray-700">
+                                        <span className="font-semibold text-base-content">
                                             {formatDate(currentInjury.expected_return_date)}
                                         </span>
                                     </p>
@@ -204,7 +204,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
 
                 {/* ── Nessuno storico ── */}
                 {injuries.length === 0 && (
-                    <p className="text-sm text-gray-400 text-center py-2">
+                    <p className="text-sm text-secondary text-center py-2">
                         Nessun infortunio registrato.
                     </p>
                 )}
@@ -212,7 +212,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                 {/* ── Cronologia ── */}
                 {historyInjuries.length > 0 && (
                     <div>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                        <p className="text-xs font-semibold text-secondary uppercase tracking-wide mb-2">
                             Storico
                         </p>
 
@@ -227,7 +227,7 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                                                    <span className="text-sm font-medium text-gray-800">
+                                                    <span className="text-sm font-medium text-base-content">
                                                         {injury.injury_type}
                                                         {injury.body_part && ` — ${injury.body_part}`}
                                                     </span>
@@ -237,13 +237,13 @@ export default async function PhysicalStatusWidget({ athleteId, canReport = true
                                                         {injury.severity}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-gray-400">
+                                                <p className="text-xs text-secondary">
                                                     {formatDate(injury.start_date)}
                                                     {injury.expected_return_date &&
                                                         ` → ${formatDate(injury.expected_return_date)}`}
                                                 </p>
                                                 {injury.notes && (
-                                                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                                                    <p className="text-xs text-secondary mt-0.5 line-clamp-1">
                                                         {injury.notes}
                                                     </p>
                                                 )}

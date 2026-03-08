@@ -42,25 +42,25 @@ export default function StudiosPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
+            <div className="glass-page-bg min-h-screen flex items-center justify-center">
+                <div className="loading loading-spinner loading-lg text-primary" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="glass-page-bg min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Studi Professionali</h1>
-                        <p className="text-gray-600">Fisioterapisti, nutrizionisti e preparatori atletici</p>
+                        <h1 className="text-3xl font-bold text-base-content mb-2">Studi Professionali</h1>
+                        <p className="text-secondary">Fisioterapisti, nutrizionisti e preparatori atletici</p>
                     </div>
                     {isMedical && (
                         <button
                             onClick={() => router.push('/studios/create')}
-                            className="px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition flex items-center gap-2"
+                            className="btn btn-primary"
                         >
                             <BuildingOffice2Icon className="h-5 w-5" />
                             Crea Studio
@@ -69,26 +69,26 @@ export default function StudiosPage() {
                 </div>
 
                 {/* Filtri */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="glass-widget rounded-2xl p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Cerca studio..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
+                                className="input input-bordered w-full pl-10"
                             />
                         </div>
                         <div className="relative">
-                            <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Filtra per città..."
                                 value={city}
                                 onChange={e => setCity(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-brand-500 focus:outline-none"
+                                className="input input-bordered w-full pl-10"
                             />
                         </div>
                     </div>
@@ -97,9 +97,9 @@ export default function StudiosPage() {
                 {/* Lista */}
                 {filtered.length === 0 ? (
                     <div className="text-center py-16">
-                        <BuildingOffice2Icon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-700">Nessuno studio trovato</h3>
-                        <p className="text-gray-500 mt-1">Prova a cambiare i filtri di ricerca</p>
+                        <BuildingOffice2Icon className="h-16 w-16 text-secondary/60 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-base-content">Nessuno studio trovato</h3>
+                        <p className="text-secondary mt-1">Prova a cambiare i filtri di ricerca</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,7 +107,7 @@ export default function StudiosPage() {
                             <Link
                                 key={studio.id}
                                 href={`/studios/${studio.id}`}
-                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-100"
+                                className="glass-widget rounded-xl transition hover:-translate-y-0.5 overflow-hidden"
                             >
                                 {/* Logo o placeholder */}
                                 <div className="h-32 bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
@@ -118,41 +118,41 @@ export default function StudiosPage() {
                                     )}
                                 </div>
                                 <div className="p-4">
-                                    <h3 className="font-bold text-gray-900 text-lg">{studio.name}</h3>
+                                    <h3 className="font-bold text-base-content text-lg">{studio.name}</h3>
                                     {studio.owner && (
-                                        <p className="text-sm text-brand-600 font-medium mt-0.5">
+                                        <p className="text-sm text-primary font-medium mt-0.5">
                                             {studio.owner.firstName} {studio.owner.lastName}
                                         </p>
                                     )}
                                     {studio.city && (
-                                        <div className="flex items-center gap-1 text-gray-500 text-sm mt-2">
+                                        <div className="flex items-center gap-1 text-secondary text-sm mt-2">
                                             <MapPinIcon className="h-4 w-4 flex-shrink-0" />
                                             <span>{studio.city}</span>
                                         </div>
                                     )}
                                     {studio.description && (
-                                        <p className="text-gray-600 text-sm mt-2 line-clamp-2">{studio.description}</p>
+                                        <p className="text-secondary text-sm mt-2 line-clamp-2">{studio.description}</p>
                                     )}
                                     {studio.servicesOffered.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-3">
                                             {studio.servicesOffered.slice(0, 3).map((s, i) => (
-                                                <span key={i} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full border border-brand-100">
+                                                <span key={i} className="badge badge-outline border-primary/30 text-primary bg-base-100 px-2 py-0.5">
                                                     {s}
                                                 </span>
                                             ))}
                                             {studio.servicesOffered.length > 3 && (
-                                                <span className="text-xs text-gray-400">+{studio.servicesOffered.length - 3}</span>
+                                                <span className="text-xs text-secondary">+{studio.servicesOffered.length - 3}</span>
                                             )}
                                         </div>
                                     )}
-                                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100">
+                                    <div className="flex gap-3 mt-3 pt-3 border-t border-base-300">
                                         {studio.phone && (
-                                            <span className="flex items-center gap-1 text-xs text-gray-500">
+                                            <span className="flex items-center gap-1 text-xs text-secondary">
                                                 <PhoneIcon className="h-3.5 w-3.5" /> {studio.phone}
                                             </span>
                                         )}
                                         {studio.website && (
-                                            <span className="flex items-center gap-1 text-xs text-gray-500">
+                                            <span className="flex items-center gap-1 text-xs text-secondary">
                                                 <GlobeAltIcon className="h-3.5 w-3.5" /> Sito web
                                             </span>
                                         )}

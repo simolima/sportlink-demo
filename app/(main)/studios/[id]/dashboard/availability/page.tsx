@@ -168,20 +168,20 @@ export default function StudioDashboardAvailabilityPage() {
     }
 
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento disponibilità...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento disponibilità...</div>
     }
 
     return (
-        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="space-y-6 glass-widget rounded-2xl p-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Disponibilità</h1>
-                <p className="mt-1 text-sm text-gray-600">Gestisci orari settimanali e periodi di indisponibilità.</p>
+                <h1 className="text-2xl font-bold text-base-content">Disponibilità</h1>
+                <p className="mt-1 text-sm text-secondary">Gestisci orari settimanali e periodi di indisponibilità.</p>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <label className="mb-2 block text-sm font-semibold text-gray-900">Fuso orario</label>
+            <div className="rounded-xl border border-base-300 bg-base-100 p-4">
+                <label className="mb-2 block text-sm font-semibold text-base-content">Fuso orario</label>
                 <select
-                    className="select select-bordered bg-white w-full max-w-sm"
+                    className="select select-bordered w-full max-w-sm"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                 >
@@ -191,14 +191,14 @@ export default function StudioDashboardAvailabilityPage() {
                 </select>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm font-semibold text-gray-900">Programmazione settimanale</p>
+            <div className="space-y-3 rounded-xl border border-base-300 bg-base-100 p-4">
+                <p className="text-sm font-semibold text-base-content">Programmazione settimanale</p>
                 {DAYS.map((day) => (
-                    <div key={day} className="rounded-lg border border-gray-200 bg-white p-3">
+                    <div key={day} className="rounded-lg border border-base-300 bg-base-100 p-3">
                         <div className="mb-2 flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900">{DAY_LABELS[day]}</p>
+                            <p className="text-sm font-medium text-base-content">{DAY_LABELS[day]}</p>
                             <button
-                                className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+                                className="btn btn-outline btn-primary btn-xs rounded-full"
                                 onClick={() => addRange(day)}
                                 type="button"
                             >
@@ -210,19 +210,19 @@ export default function StudioDashboardAvailabilityPage() {
                             {(weeklySchedule[day] || []).map((range, index) => (
                                 <div key={`${day}-${index}`} className="grid gap-2 sm:grid-cols-[1fr,1fr,auto]">
                                     <label className="form-control">
-                                        <span className="label-text mb-1 block text-xs text-gray-600">Da</span>
+                                        <span className="label-text mb-1 block text-xs text-secondary">Da</span>
                                         <input
                                             type="time"
-                                            className="input input-bordered bg-white"
+                                            className="input input-bordered"
                                             value={range.start}
                                             onChange={(e) => updateRange(day, index, 'start', e.target.value)}
                                         />
                                     </label>
                                     <label className="form-control">
-                                        <span className="label-text mb-1 block text-xs text-gray-600">A</span>
+                                        <span className="label-text mb-1 block text-xs text-secondary">A</span>
                                         <input
                                             type="time"
-                                            className="input input-bordered bg-white"
+                                            className="input input-bordered"
                                             value={range.end}
                                             onChange={(e) => updateRange(day, index, 'end', e.target.value)}
                                         />
@@ -233,7 +233,7 @@ export default function StudioDashboardAvailabilityPage() {
                                 </div>
                             ))}
                             {(weeklySchedule[day] || []).length === 0 && (
-                                <p className="text-xs text-gray-500">Nessuna fascia configurata.</p>
+                                <p className="text-xs text-secondary">Nessuna fascia configurata.</p>
                             )}
                         </div>
                     </div>
@@ -244,32 +244,32 @@ export default function StudioDashboardAvailabilityPage() {
                 </button>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm font-semibold text-gray-900">Periodi di indisponibilità</p>
+            <div className="space-y-3 rounded-xl border border-base-300 bg-base-100 p-4">
+                <p className="text-sm font-semibold text-base-content">Periodi di indisponibilità</p>
                 <div className="grid gap-2 md:grid-cols-4">
                     <label className="form-control">
-                        <span className="label-text mb-1 block text-sm text-gray-600">Data inizio</span>
+                        <span className="label-text mb-1 block text-sm text-secondary">Data inizio</span>
                         <input
                             type="date"
-                            className="input input-bordered bg-white"
+                            className="input input-bordered"
                             value={newBlackout.startDate}
                             onChange={(e) => setNewBlackout((prev) => ({ ...prev, startDate: e.target.value }))}
                         />
                     </label>
                     <label className="form-control">
-                        <span className="label-text mb-1 block text-sm text-gray-600">Data fine</span>
+                        <span className="label-text mb-1 block text-sm text-secondary">Data fine</span>
                         <input
                             type="date"
-                            className="input input-bordered bg-white"
+                            className="input input-bordered"
                             value={newBlackout.endDate}
                             onChange={(e) => setNewBlackout((prev) => ({ ...prev, endDate: e.target.value }))}
                         />
                     </label>
                     <label className="form-control">
-                        <span className="label-text mb-1 block text-sm text-gray-600">Motivo</span>
+                        <span className="label-text mb-1 block text-sm text-secondary">Motivo</span>
                         <input
                             type="text"
-                            className="input input-bordered bg-white"
+                            className="input input-bordered"
                             placeholder="Motivo (opzionale)"
                             value={newBlackout.reason}
                             onChange={(e) => setNewBlackout((prev) => ({ ...prev, reason: e.target.value }))}
@@ -283,12 +283,12 @@ export default function StudioDashboardAvailabilityPage() {
                 </div>
 
                 <div className="space-y-2">
-                    {blackouts.length === 0 && <p className="text-sm text-gray-600">Nessun periodo di indisponibilità.</p>}
+                    {blackouts.length === 0 && <p className="text-sm text-secondary">Nessun periodo di indisponibilità.</p>}
                     {blackouts.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
+                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-base-300 bg-base-100 px-3 py-2">
                             <div>
-                                <p className="text-sm font-medium text-gray-900">{item.start_date} - {item.end_date}</p>
-                                {item.reason && <p className="text-xs text-gray-600">{item.reason}</p>}
+                                <p className="text-sm font-medium text-base-content">{item.start_date} - {item.end_date}</p>
+                                {item.reason && <p className="text-xs text-secondary">{item.reason}</p>}
                             </div>
                             <button className="btn btn-xs btn-error btn-outline" onClick={() => deleteBlackout(item.id)}>
                                 Elimina
@@ -298,7 +298,7 @@ export default function StudioDashboardAvailabilityPage() {
                 </div>
             </div>
 
-            {message && <p className="text-sm text-gray-600">{message}</p>}
+            {message && <p className="text-sm text-secondary">{message}</p>}
         </section>
     )
 }

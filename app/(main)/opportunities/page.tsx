@@ -413,11 +413,11 @@ export default function OpportunitiesPage() {
   }
 
   return (
-    <div className="min-h-screen glass-page-bg">
+    <div className="min-h-screen glass-page-bg text-base-content">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 glass-panel rounded-2xl p-6 md:p-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Opportunità</h1>
+          <h1 className="text-3xl font-bold text-base-content mb-2">Opportunità</h1>
           <p className="glass-subtle-text">Trova opportunità per la tua carriera o gestisci quelle dei tuoi club</p>
         </div>
 
@@ -429,7 +429,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setMainTab('career')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'career'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-secondary hover:text-white hover:border-base-300'
+                  : 'border-transparent text-secondary hover:text-base-content hover:border-base-300'
                   }`}
               >
                 <Briefcase size={18} className="inline mr-2" />
@@ -439,7 +439,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setMainTab('clubs')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition ${mainTab === 'clubs'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-secondary hover:text-white hover:border-base-300'
+                  : 'border-transparent text-secondary hover:text-base-content hover:border-base-300'
                   }`}
               >
                 <Building2 size={18} className="inline mr-2" />
@@ -463,7 +463,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setCareerSubTab('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'all'
                   ? 'bg-primary text-white'
-                  : 'glass-widget text-secondary hover:text-white hover:bg-base-300/60'
+                  : 'glass-widget text-secondary hover:text-base-content hover:bg-base-300/60'
                   }`}
               >
                 Tutte le opportunità
@@ -472,7 +472,7 @@ export default function OpportunitiesPage() {
                 onClick={() => setCareerSubTab('applications')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${careerSubTab === 'applications'
                   ? 'bg-primary text-white'
-                  : 'glass-widget text-secondary hover:text-white hover:bg-base-300/60'
+                  : 'glass-widget text-secondary hover:text-base-content hover:bg-base-300/60'
                   }`}
               >
                 Le mie candidature
@@ -619,13 +619,13 @@ export default function OpportunitiesPage() {
                               </div>
                             )}
                             <div>
-                              <h3 className="font-semibold text-white">{announcement.club.name}</h3>
+                              <h3 className="font-semibold text-base-content">{announcement.club.name}</h3>
                               <p className="text-sm glass-subtle-text">{announcement.sport}</p>
                             </div>
                           </div>
                         )}
 
-                        <h4 className="text-lg font-bold text-white mb-2">{announcement.title}</h4>
+                        <h4 className="text-lg font-bold text-base-content mb-2">{announcement.title}</h4>
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span className="inline-block px-3 py-1 bg-secondary/10 text-primary text-xs font-medium rounded-full">
                             {announcement.type}
@@ -719,7 +719,7 @@ export default function OpportunitiesPage() {
             {userClubs.length === 0 ? (
               <div className="glass-widget rounded-2xl p-12 text-center">
                 <Building2 size={48} className="mx-auto mb-4 text-secondary/60" />
-                <h3 className="text-lg font-semibold text-white mb-2">Nessun club gestito</h3>
+                <h3 className="text-lg font-semibold text-base-content mb-2">Nessun club gestito</h3>
                 <p className="glass-subtle-text mb-6">
                   Non sei Admin o Manager di nessun club. Quando avrai un ruolo di gestione in un club, potrai creare e gestire le opportunità qui.
                 </p>
@@ -764,7 +764,7 @@ export default function OpportunitiesPage() {
                               </div>
                             )}
                             <div>
-                              <h3 className="font-semibold text-white">{club?.name}</h3>
+                              <h3 className="font-semibold text-base-content">{club?.name}</h3>
                               <p className="text-sm glass-subtle-text">
                                 {opportunities.length} opportunità attiv{opportunities.length === 1 ? 'a' : 'e'}
                               </p>
@@ -792,7 +792,7 @@ export default function OpportunitiesPage() {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="font-medium text-white">{opp.title}</h4>
+                                    <h4 className="font-medium text-base-content">{opp.title}</h4>
                                     <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
                                       {opp.type}
                                     </span>
@@ -863,7 +863,7 @@ export default function OpportunitiesPage() {
             aria-labelledby="agent-application-title"
           >
             <div className="glass-widget-header px-6 py-4 border-b border-base-300/70">
-              <h3 id="agent-application-title" className="text-lg font-semibold text-white">Candida un assistito</h3>
+              <h3 id="agent-application-title" className="text-lg font-semibold text-base-content">Candida un assistito</h3>
               <p className="text-sm glass-subtle-text mt-1 line-clamp-2">
                 Seleziona il giocatore da candidare per “{agentApplyTarget.title}”
               </p>
@@ -882,7 +882,7 @@ export default function OpportunitiesPage() {
                       : 'border-base-300/70 hover:border-primary/40 hover:bg-base-300/50'
                       }`}
                   >
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-base-content">
                       {player.firstName} {player.lastName}
                     </p>
                     <p className="text-sm glass-subtle-text mt-1">
@@ -898,7 +898,7 @@ export default function OpportunitiesPage() {
                 type="button"
                 onClick={closeAgentApplicationModal}
                 disabled={submittingAgentApplication}
-                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-white hover:bg-base-300/60 disabled:opacity-60"
+                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-base-content hover:bg-base-300/60 disabled:opacity-60"
               >
                 Annulla
               </button>
@@ -924,7 +924,7 @@ export default function OpportunitiesPage() {
             aria-labelledby="pending-action-title"
           >
             <div className="glass-widget-header border-b border-base-300/70 px-5 py-4">
-              <h3 id="pending-action-title" className="text-lg font-semibold text-white">{pendingAction.title}</h3>
+              <h3 id="pending-action-title" className="text-lg font-semibold text-base-content">{pendingAction.title}</h3>
               <p className="text-sm glass-subtle-text mt-1">{pendingAction.description}</p>
             </div>
 
@@ -933,7 +933,7 @@ export default function OpportunitiesPage() {
                 type="button"
                 onClick={closePendingActionModal}
                 disabled={submittingPendingAction}
-                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-white hover:bg-base-300/60 disabled:opacity-60"
+                className="px-4 py-2 rounded-lg border border-base-300 text-secondary hover:text-base-content hover:bg-base-300/60 disabled:opacity-60"
               >
                 Annulla
               </button>

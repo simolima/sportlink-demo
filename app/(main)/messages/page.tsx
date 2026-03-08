@@ -121,7 +121,7 @@ export default function MessagesPage() {
     const existingPeerIds = conversations.map(c => c.peerId)
 
     return (
-        <div className="h-[calc(100vh-64px)] glass-page-bg px-3 py-3 md:px-4 md:py-4">
+        <div className="h-[calc(100vh-64px)] glass-page-bg text-base-content px-3 py-3 md:px-4 md:py-4">
             <div className="w-full h-full glass-panel rounded-2xl overflow-hidden border border-base-300/60 flex">
                 {/* Lista conversazioni - Desktop: sempre visibile, Mobile: solo se mobileView === 'list' */}
                 <div className={`

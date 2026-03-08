@@ -240,7 +240,7 @@ export default function NotificationsPage() {
     return (
       <div
         key={notif.id}
-        className={`border rounded-lg p-4 transition-all ${notif.read ? 'bg-white' : 'bg-blue-50 border-blue-200'
+        className={`border rounded-lg p-4 transition-all ${notif.read ? 'bg-base-100 border-base-300/70' : 'bg-primary/10 border-primary/30'
           } ${isClickable ? 'cursor-pointer hover:shadow-md' : ''} ${isNested ? 'ml-4 border-l-4 border-l-blue-300' : ''
           }`}
         onClick={() => isClickable && handleNotificationClick(notif)}
@@ -259,21 +259,21 @@ export default function NotificationsPage() {
 
               {/* Indicatore non letta */}
               {!notif.read && (
-                <span className="flex items-center gap-1 text-xs font-semibold text-blue-600">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                  <span className="w-2 h-2 bg-primary rounded-full" />
                   Non letta
                 </span>
               )}
 
               {/* Icona link se cliccabile */}
               {isClickable && (
-                <ExternalLink size={14} className="text-gray-400" />
+                <ExternalLink size={14} className="text-secondary" />
               )}
             </div>
 
-            <h3 className="font-semibold text-gray-900">{notif.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
-            <p className="text-xs text-gray-400 mt-2">
+            <h3 className="font-semibold text-base-content">{notif.title}</h3>
+            <p className="text-sm text-secondary mt-1">{notif.message}</p>
+            <p className="text-xs glass-quiet-text mt-2">
               {new Date(notif.createdAt).toLocaleDateString('it-IT', {
                 day: 'numeric',
                 month: 'long',
@@ -289,7 +289,7 @@ export default function NotificationsPage() {
             {!notif.read && (
               <button
                 onClick={() => markAsRead(typeof notif.id === 'number' ? notif.id : parseInt(notif.id as string))}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-base-200 rounded-lg transition-colors"
                 title="Segna come letta"
               >
                 <Check size={18} className="text-brand-600" />
@@ -297,7 +297,7 @@ export default function NotificationsPage() {
             )}
             <button
               onClick={() => deleteNotification(typeof notif.id === 'number' ? notif.id : parseInt(notif.id as string))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-base-200 rounded-lg transition-colors"
               title="Elimina"
             >
               <Trash2 size={18} className="text-red-600" />
@@ -317,14 +317,14 @@ export default function NotificationsPage() {
       <div key={group.id} className="space-y-2">
         {/* Header del gruppo */}
         <div
-          className={`border rounded-lg p-4 transition-all ${group.hasUnread ? 'bg-blue-50 border-blue-200' : 'bg-white'
+          className={`border rounded-lg p-4 transition-all ${group.hasUnread ? 'bg-primary/10 border-primary/30' : 'bg-base-100 border-base-300/70'
             } cursor-pointer hover:shadow-md`}
           onClick={() => handleGroupClick(group)}
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1">
               {/* Icona gruppo */}
-              <div className="p-2 bg-gray-100 rounded-lg">
+              <div className="p-2 bg-base-200 rounded-lg">
                 {getGroupIcon(group.notificationType)}
               </div>
 
@@ -340,33 +340,33 @@ export default function NotificationsPage() {
                   </span>
 
                   {/* Badge conteggio */}
-                  <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                  <span className="text-xs font-bold bg-base-300 text-base-content px-2 py-1 rounded-full">
                     {group.count} notifiche
                   </span>
 
                   {/* Indicatore non lette */}
                   {group.hasUnread && (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-blue-600">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                    <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <span className="w-2 h-2 bg-primary rounded-full" />
                       Non lette
                     </span>
                   )}
 
                   {/* Icona navigazione/espansione */}
                   {canNavigate ? (
-                    <ExternalLink size={14} className="text-gray-400" />
+                    <ExternalLink size={14} className="text-secondary" />
                   ) : (
                     isExpanded ? (
-                      <ChevronUp size={14} className="text-gray-400" />
+                      <ChevronUp size={14} className="text-secondary" />
                     ) : (
-                      <ChevronDown size={14} className="text-gray-400" />
+                      <ChevronDown size={14} className="text-secondary" />
                     )
                   )}
                 </div>
 
-                <h3 className="font-semibold text-gray-900">{group.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{group.message}</p>
-                <p className="text-xs text-gray-400 mt-2">
+                <h3 className="font-semibold text-base-content">{group.title}</h3>
+                <p className="text-sm text-secondary mt-1">{group.message}</p>
+                <p className="text-xs glass-quiet-text mt-2">
                   {new Date(group.createdAt).toLocaleDateString('it-IT', {
                     day: 'numeric',
                     month: 'long',
@@ -383,7 +383,7 @@ export default function NotificationsPage() {
               {group.hasUnread && (
                 <button
                   onClick={() => markGroupAsRead(group)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-base-200 rounded-lg transition-colors"
                   title="Segna tutte come lette"
                 >
                   <Check size={18} className="text-brand-600" />
@@ -392,13 +392,13 @@ export default function NotificationsPage() {
               {!canNavigate && (
                 <button
                   onClick={() => toggleGroupExpand(group.id)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-base-200 rounded-lg transition-colors"
                   title={isExpanded ? 'Comprimi' : 'Espandi'}
                 >
                   {isExpanded ? (
-                    <ChevronUp size={18} className="text-gray-600" />
+                    <ChevronUp size={18} className="text-secondary" />
                   ) : (
-                    <ChevronDown size={18} className="text-gray-600" />
+                    <ChevronDown size={18} className="text-secondary" />
                   )}
                 </button>
               )}
@@ -420,7 +420,7 @@ export default function NotificationsPage() {
     <div className="max-w-4xl mx-auto p-6">
       {/* Banner nuova notifica */}
       {showNewBanner && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-primary text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
           <Bell size={18} />
           Nuova notifica ricevuta!
         </div>
@@ -443,14 +443,14 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/notifications/settings"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="text-sm text-secondary hover:text-base-content flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors"
           >
             <Settings size={16} />
             Impostazioni
           </Link>
           <button
             onClick={markAllAsRead}
-            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+            className="text-sm text-primary hover:underline flex items-center gap-1"
           >
             <Check size={16} />
             Segna tutte come lette
@@ -463,8 +463,8 @@ export default function NotificationsPage() {
         <button
           onClick={() => setFilter('all')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-primary text-white'
+            : 'bg-base-200 text-base-content hover:bg-base-300'
             }`}
         >
           Tutte
@@ -472,8 +472,8 @@ export default function NotificationsPage() {
         <button
           onClick={() => setFilter('unread')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-primary text-white'
+            : 'bg-base-200 text-base-content hover:bg-base-300'
             }`}
         >
           Non lette
@@ -481,9 +481,9 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Caricamento...</div>
+        <div className="text-center py-12 text-secondary">Caricamento...</div>
       ) : groupedItems.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-secondary">
           <Bell size={48} className="mx-auto mb-4 opacity-30" />
           <p>
             {filter === 'unread'

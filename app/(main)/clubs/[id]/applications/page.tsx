@@ -21,8 +21,8 @@ export default function ClubApplicationsRedirectPage() {
   }, [clubId, router])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="text-center text-gray-600">
+    <div className="min-h-screen glass-page-bg flex items-center justify-center px-4 text-base-content">
+      <div className="text-center glass-subtle-text">
         Reindirizzamento alla gestione candidature...
       </div>
     </div>

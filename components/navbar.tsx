@@ -25,6 +25,7 @@ import {
     LinkIcon as LinkSolid,
     IdentificationIcon as IdentificationSolid,
 } from '@heroicons/react/24/solid'
+import ThemeToggle from './ui/theme-toggle'
 
 const NotificationBell = dynamic(() => import('./notification-bell'), { ssr: false })
 const ProfileDropdown = dynamic(() => import('./ui/ProfileDropdown'), { ssr: false })
@@ -39,7 +40,7 @@ export default function Navbar() {
     const isActive = (href: string, exact = false) =>
         exact ? pathname === href : pathname.startsWith(href)
     const navCls = (href: string, exact = false) =>
-        `group relative flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-xl transition ${isActive(href, exact) ? 'text-white bg-brand-600/25 border border-brand-400/30' : 'text-secondary/80 hover:text-white hover:bg-base-300/45 border border-transparent'}`
+        `group relative flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-xl transition ${isActive(href, exact) ? 'text-base-content bg-primary/15 border border-primary/30' : 'text-secondary hover:text-base-content hover:bg-base-300/50 border border-transparent'}`
 
     useEffect(() => {
         if (!isAuthenticated) return
@@ -75,18 +76,18 @@ export default function Navbar() {
                 <div className="glass-nav rounded-2xl px-4 md:px-5 py-3 flex items-center gap-4">
                     {/* Logo + ricerca */}
                     <div className="flex items-center gap-3 min-w-[220px]">
-                        <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-white font-bold leading-tight">
+                        <Link href={isAuthenticated ? '/home' : '/'} className="flex flex-col items-center text-base-content font-bold leading-tight">
                             <span className="text-sm md:text-base tracking-[0.18em] uppercase">SPRINTA</span>
-                            <span className="text-[11px] text-secondary/85">Sport Network</span>
+                            <span className="text-[11px] text-secondary">Sport Network</span>
                         </Link>
                         <div className="hidden lg:flex items-center bg-base-200/65 border border-base-300/70 rounded-xl px-3 py-1.5 gap-2 w-56 backdrop-blur">
-                            <MagnifyingGlassIcon className="w-5 h-5 text-secondary/60" />
+                            <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Ricerca globale"
-                                className="bg-transparent text-secondary/90 placeholder:text-secondary/45 focus:outline-none text-sm w-full"
+                                className="bg-transparent text-base-content placeholder:text-secondary focus:outline-none text-sm w-full"
                             />
                         </div>
                     </div>
@@ -163,6 +164,7 @@ export default function Navbar() {
 
                     {/* Azioni a destra */}
                     <div className="flex items-center gap-3 shrink-0">
+                        <ThemeToggle />
                         {isAuthenticated && user ? (
                             <>
                                 <NotificationBell userId={String(user.id)} />
@@ -170,7 +172,7 @@ export default function Navbar() {
                             </>
                         ) : (
                             <>
-                                <Link href="/login" className="px-3 py-1.5 btn btn-ghost btn-sm text-secondary hover:text-white hover:bg-base-300/40">Login</Link>
+                                <Link href="/login" className="px-3 py-1.5 btn btn-ghost btn-sm text-secondary hover:text-base-content hover:bg-base-300/40">Login</Link>
                                 <Link href="/signup" className="px-4 py-2 btn btn-primary btn-sm">Registrati</Link>
                             </>
                         )}

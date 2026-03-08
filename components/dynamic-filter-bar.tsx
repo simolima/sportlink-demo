@@ -189,7 +189,7 @@ export default function DynamicFilterBar({
             {/* Header */}
             <div className="flex items-center gap-2 mb-6">
                 <FunnelIcon className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-lg text-white">Filtra Ricerca</h2>
+                <h2 className="font-bold text-lg text-base-content">Filtra Ricerca</h2>
             </div>
 
             {/* Search Input */}
@@ -608,7 +608,7 @@ export default function DynamicFilterBar({
             {/* Reset Button */}
             <button
                 onClick={resetFilters}
-                className="w-full py-2 bg-base-300/75 hover:bg-base-300 text-white font-semibold rounded-lg transition-colors duration-200"
+                className="w-full py-2 bg-base-300/75 hover:bg-base-300 text-base-content font-semibold rounded-lg transition-colors duration-200"
             >
                 Azzera Filtri
             </button>

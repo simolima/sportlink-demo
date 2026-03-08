@@ -38,7 +38,26 @@ const config: Config = {
     daisyui: {
         themes: [
             {
-                sprinta: {
+                "sprinta-light": {
+                    "primary": "#3B52F5",
+                    "primary-focus": "#3248DA",
+                    "primary-content": "#FFFFFF",
+                    "secondary": "#334155",
+                    "secondary-content": "#0F172A",
+                    "accent": "#5168FF",
+                    "neutral": "#E2E8F0",
+                    "base-100": "#F8FAFC",
+                    "base-200": "#EEF2FF",
+                    "base-300": "#E2E8F0",
+                    "base-content": "#0F172A",
+                    "info": "#3b82f6",
+                    "success": "#10b981",
+                    "warning": "#f59e0b",
+                    "error": "#dc2626",
+                },
+            },
+            {
+                "sprinta-dark": {
                     "primary": "#3B52F5",
                     "primary-focus": "#5168FF",
                     "primary-content": "#FFFFFF",
@@ -49,6 +68,7 @@ const config: Config = {
                     "base-100": "#10174A",
                     "base-200": "#141B4D",
                     "base-300": "#1A2360",
+                    "base-content": "#EEF2FF",
                     "info": "#3b82f6",
                     "success": "#10b981",
                     "warning": "#f59e0b",

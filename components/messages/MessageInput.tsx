@@ -121,7 +121,8 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             }
         } finally {
             setSending(false)
-            textareaRef.current?.focus()
+            // setTimeout assicura che il focus venga ripristinato dopo il re-render di React
+            setTimeout(() => textareaRef.current?.focus(), 0)
         }
     }
 

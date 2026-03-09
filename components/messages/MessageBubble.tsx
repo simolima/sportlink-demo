@@ -5,6 +5,7 @@ import { Message, GroupMessage, MessageReaction, ReplyPreview, ReactionType } fr
 import clsx from 'clsx'
 import { Check, CheckCheck, CornerUpRight, Pencil } from 'lucide-react'
 import MessageContextMenu, { MessageAction } from './MessageContextMenu'
+import MessageHoverToolbar from './MessageHoverToolbar'
 import ReactionsPopover from './ReactionsPopover'
 import { REACTION_ICONS, REACTION_LABELS } from './reactionIcons'
 
@@ -24,18 +25,24 @@ interface Props {
     senderAvatar?: string | null
     senderColor?: string | null
     currentUserId: string
+    /** Selection mode (multi-forward) */
+    selectionMode?: boolean
+    isSelected?: boolean
+    onToggleSelect?: (id: string) => void
     onReply: (msg: BubbleMessage) => void
     onEdit: (msg: BubbleMessage) => void
     onDeleteForAll: (id: string) => void
     onDeleteForMe: (id: string) => void
-    onForward: (msg: BubbleMessage) => void
+    onForwardSingle: (msg: BubbleMessage) => void
+    onStartMultiForward: (msg: BubbleMessage) => void
     onReact: (messageId: string, reaction: ReactionType) => void
 }
 
 export default function MessageBubble({
     message, isMine, showAvatar = false, showSenderName = false,
     senderName, senderAvatar, senderColor, currentUserId,
-    onReply, onEdit, onDeleteForAll, onDeleteForMe, onForward, onReact,
+    selectionMode = false, isSelected = false, onToggleSelect,
+    onReply, onEdit, onDeleteForAll, onDeleteForMe, onForwardSingle, onStartMultiForward, onReact,
 }: Props) {
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
     const [reactionPickerOpen, setReactionPickerOpen] = useState(false)
@@ -49,26 +56,38 @@ export default function MessageBubble({
     const replyTo: ReplyPreview | undefined = message.replyTo
 
     const handleContextMenu = (e: React.MouseEvent) => {
-        if (deletedForAll) return
+        if (deletedForAll || selectionMode) return
         e.preventDefault()
         setContextMenu({ x: e.clientX, y: e.clientY })
     }
 
-    const handleLongPress = () => {
-        if (deletedForAll) return
-        const rect = bubbleRef.current?.getBoundingClientRect()
-        if (rect) setContextMenu({ x: rect.left, y: rect.bottom + 4 })
+    const handleMoreOptions = (anchor: HTMLElement) => {
+        const rect = anchor.getBoundingClientRect()
+        setContextMenu({ x: rect.left, y: rect.bottom + 4 })
     }
 
     const actions: MessageAction = {
-        canEdit,
         canDeleteForAll: isMine && !deletedForAll,
-        canReply: !deletedForAll,
         canForward: !deletedForAll && !!message.text,
     }
 
     return (
-        <div className={clsx('flex mb-2 group', isMine ? 'justify-end' : 'justify-start')}>
+        <div
+            className={clsx('flex mb-2 group', isMine ? 'justify-end' : 'justify-start')}
+            onClick={selectionMode ? () => onToggleSelect?.(String(message.id)) : undefined}
+        >
+            {/* Selection checkbox */}
+            {selectionMode && (
+                <div className="flex items-center self-center pr-2 flex-shrink-0">
+                    <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect?.(String(message.id))}
+                        onClick={e => e.stopPropagation()}
+                        className="checkbox checkbox-sm checkbox-primary"
+                    />
+                </div>
+            )}
             {/* Avatar */}
             {!isMine && showAvatar && (
                 <div className="mr-2 flex-shrink-0 self-end">
@@ -86,6 +105,18 @@ export default function MessageBubble({
             )}
 
             <div className="relative max-w-[70%] flex flex-col">
+                {/* Teams-style hover toolbar — hidden in selection mode */}
+                {!deletedForAll && !selectionMode && (
+                    <MessageHoverToolbar
+                        isMine={isMine}
+                        canEdit={canEdit}
+                        canReply={!deletedForAll}
+                        onReact={type => onReact(String(message.id), type)}
+                        onEdit={() => onEdit(message)}
+                        onReply={() => onReply(message)}
+                        onMoreOptions={handleMoreOptions}
+                    />
+                )}
                 {/* Sender name (groups) */}
                 {!isMine && showSenderName && senderName && (
                     <span
@@ -101,7 +132,8 @@ export default function MessageBubble({
                     ref={bubbleRef}
                     onContextMenu={handleContextMenu}
                     className={clsx(
-                        'rounded-2xl px-4 py-2.5 shadow-sm cursor-pointer select-text',
+                        'rounded-2xl px-4 py-2.5 shadow-sm select-text',
+                        selectionMode ? 'cursor-pointer' : 'cursor-default',
                         isMine ? 'bg-[#2341F0] text-white' : 'bg-base-200 text-base-content'
                     )}
                 >
@@ -189,40 +221,20 @@ export default function MessageBubble({
                                 </button>
                             )
                         })}
-                        {/* Tap to see who reacted */}
+                        {/* Tap pill to see who reacted */}
                         <div className="relative">
                             {reactionsPopoverOpen && (
-                                <ReactionsPopover reactions={reactions} onClose={() => setReactionsPopoverOpen(false)} />
+                                <ReactionsPopover
+                                    reactions={reactions}
+                                    onClose={() => setReactionsPopoverOpen(false)}
+                                />
                             )}
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Quick reaction picker (hover) */}
-            {!deletedForAll && (
-                <div className={clsx(
-                    'hidden group-hover:flex items-center gap-0.5 mx-1.5 self-center',
-                    isMine ? 'order-first' : 'order-last'
-                )}>
-                    {(Object.keys(REACTION_ICONS) as ReactionType[]).map(type => {
-                        const Icon = REACTION_ICONS[type]
-                        return (
-                            <button
-                                key={type}
-                                onClick={() => onReact(message.id as string, type)}
-                                className="btn btn-ghost btn-xs btn-circle hover:text-primary"
-                                title={REACTION_LABELS[type]}
-                                aria-label={REACTION_LABELS[type]}
-                            >
-                                <Icon size={13} />
-                            </button>
-                        )
-                    })}
-                </div>
-            )}
-
-            {/* Context menu */}
+            {/* More-options context menu (right-click or ⋯ button) */}
             {contextMenu && (
                 <MessageContextMenu
                     x={contextMenu.x}
@@ -230,11 +242,10 @@ export default function MessageBubble({
                     isMine={isMine}
                     actions={actions}
                     onClose={() => setContextMenu(null)}
-                    onReply={() => onReply(message)}
-                    onEdit={() => onEdit(message)}
-                    onDeleteForAll={() => onDeleteForAll(message.id as string)}
-                    onDeleteForMe={() => onDeleteForMe(message.id as string)}
-                    onForward={() => onForward(message)}
+                    onForwardSingle={() => onForwardSingle(message)}
+                    onForwardMulti={() => onStartMultiForward(message)}
+                    onDeleteForAll={() => onDeleteForAll(String(message.id))}
+                    onDeleteForMe={() => onDeleteForMe(String(message.id))}
                     onCopy={() => navigator.clipboard.writeText(message.text || '')}
                 />
             )}

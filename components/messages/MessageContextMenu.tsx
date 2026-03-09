@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { Pencil, Trash2, EyeOff, Reply, Forward, Copy } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Trash2, EyeOff, Forward, Copy, ChevronRight } from 'lucide-react'
 import clsx from 'clsx'
 
 export interface MessageAction {
-    canEdit: boolean
     canDeleteForAll: boolean
-    canReply: boolean
     canForward: boolean
 }
 
@@ -17,19 +15,19 @@ interface Props {
     isMine: boolean
     actions: MessageAction
     onClose: () => void
-    onReply: () => void
-    onEdit: () => void
+    onForwardSingle: () => void
+    onForwardMulti: () => void
     onDeleteForAll: () => void
     onDeleteForMe: () => void
-    onForward: () => void
     onCopy: () => void
 }
 
 export default function MessageContextMenu({
     x, y, isMine, actions, onClose,
-    onReply, onEdit, onDeleteForAll, onDeleteForMe, onForward, onCopy,
+    onForwardSingle, onForwardMulti, onDeleteForAll, onDeleteForMe, onCopy,
 }: Props) {
     const menuRef = useRef<HTMLDivElement>(null)
+    const [forwardExpanded, setForwardExpanded] = useState(false)
 
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {
@@ -44,52 +42,79 @@ export default function MessageContextMenu({
         }
     }, [onClose])
 
-    // Adjust position to avoid overflow
-    const style: React.CSSProperties = {
-        position: 'fixed',
-        top: y,
-        left: x,
-        zIndex: 9999,
-    }
-
-    const Item = ({ icon: Icon, label, onClick, danger = false }: {
-        icon: React.ElementType; label: string; onClick: () => void; danger?: boolean
-    }) => (
-        <button
-            className={clsx(
-                'flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left rounded-lg transition-colors',
-                danger
-                    ? 'text-error hover:bg-error/10'
-                    : 'text-base-content hover:bg-base-200'
-            )}
-            onClick={() => { onClick(); onClose() }}
-        >
-            <Icon size={15} />
-            <span>{label}</span>
-        </button>
-    )
+    const style: React.CSSProperties = { position: 'fixed', top: y, left: x, zIndex: 9999 }
 
     return (
         <div
             ref={menuRef}
             style={style}
-            className="bg-base-100 border border-base-300 rounded-xl shadow-xl p-1.5 min-w-[160px]"
+            className="bg-base-100 border border-base-300 rounded-xl shadow-xl p-1.5 min-w-[190px]"
         >
-            {actions.canReply && (
-                <Item icon={Reply} label="Rispondi" onClick={onReply} />
-            )}
-            <Item icon={Copy} label="Copia testo" onClick={onCopy} />
+            {/* Forward with expandable submenu */}
             {actions.canForward && (
-                <Item icon={Forward} label="Inoltra" onClick={onForward} />
+                <>
+                    <button
+                        className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left rounded-lg transition-colors text-base-content hover:bg-base-200"
+                        onClick={() => setForwardExpanded(v => !v)}
+                    >
+                        <Forward size={15} />
+                        <span className="flex-1">Inoltra</span>
+                        <ChevronRight
+                            size={14}
+                            className={clsx('text-secondary transition-transform duration-150', forwardExpanded && 'rotate-90')}
+                        />
+                    </button>
+                    {forwardExpanded && (
+                        <div className="ml-4 border-l border-base-300 pl-2 pb-1 space-y-0.5">
+                            <button
+                                className="w-full text-left text-sm px-2 py-1.5 rounded-lg hover:bg-base-200 transition-colors text-base-content"
+                                onClick={() => { onForwardSingle(); onClose() }}
+                            >
+                                Questo messaggio
+                            </button>
+                            <button
+                                className="w-full text-left text-sm px-2 py-1.5 rounded-lg hover:bg-base-200 transition-colors text-base-content"
+                                onClick={() => { onForwardMulti(); onClose() }}
+                            >
+                                Più messaggi…
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
-            {actions.canEdit && (
-                <Item icon={Pencil} label="Modifica" onClick={onEdit} />
-            )}
+
+            {/* Copy */}
+            <button
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left rounded-lg transition-colors text-base-content hover:bg-base-200"
+                onClick={() => { onCopy(); onClose() }}
+            >
+                <Copy size={15} />
+                <span>Copia testo</span>
+            </button>
+
             <div className="my-1 border-t border-base-300" />
+
+            {/* Delete for all (only own messages) */}
             {actions.canDeleteForAll && (
-                <Item icon={Trash2} label="Elimina per tutti" onClick={onDeleteForAll} danger />
+                <button
+                    className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left rounded-lg transition-colors text-error hover:bg-error/10"
+                    onClick={() => { onDeleteForAll(); onClose() }}
+                >
+                    <Trash2 size={15} />
+                    <span>Elimina per tutti</span>
+                </button>
             )}
-            <Item icon={EyeOff} label="Elimina per me" onClick={onDeleteForMe} danger />
+
+            {/* Delete for me */}
+            <button
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left rounded-lg transition-colors text-error hover:bg-error/10"
+                onClick={() => { onDeleteForMe(); onClose() }}
+            >
+                <EyeOff size={15} />
+                <span>Elimina per me</span>
+            </button>
         </div>
     )
 }
+
+

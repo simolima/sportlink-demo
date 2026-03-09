@@ -13,16 +13,25 @@ interface User {
     email?: string
 }
 
+interface ForwardItem {
+    id: string
+    text: string | null
+    isGroup: boolean
+}
+
 interface Props {
     currentUserId: string
-    message: { id: string; text: string | null; isGroup: boolean }
+    /** Single-message forward */
+    message: ForwardItem
+    /** Multi-message forward — when provided overrides `message` */
+    messages?: ForwardItem[]
     groups: GroupConversationSummary[]
     onClose: () => void
-    /** Called after successful forward so caller can optionally navigate to destination */
     onForwarded?: (destinationId: string, isGroup: boolean) => void
 }
 
-export default function ForwardMessageModal({ currentUserId, message, groups, onClose, onForwarded }: Props) {
+export default function ForwardMessageModal({ currentUserId, message, messages, groups, onClose, onForwarded }: Props) {
+    const items: ForwardItem[] = messages && messages.length > 0 ? messages : [message]
     const [searchQuery, setSearchQuery] = useState('')
     const [directUsers, setDirectUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(false)
@@ -43,29 +52,37 @@ export default function ForwardMessageModal({ currentUserId, message, groups, on
     }, [searchQuery, currentUserId])
 
     const forwardTo = async (targetId: string, isGroup: boolean) => {
-        if (!message.text) return
+        const toSend = items.filter(i => i.text)
+        if (toSend.length === 0) return
         setForwarding(true)
         setError(null)
         try {
             const headers = await getAuthHeaders()
-            if (isGroup) {
-                await fetch(`/api/groups/${targetId}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...headers },
-                    body: JSON.stringify({ text: message.text, forwardFromId: message.id }),
-                })
-            } else {
-                await fetch('/api/messages', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...headers },
-                    body: JSON.stringify({
-                        senderId: currentUserId,
-                        receiverId: targetId,
-                        text: message.text,
-                        forwardFromId: message.id,
-                    }),
-                })
-            }
+            await Promise.allSettled(toSend.map(item => {
+                // Cross-type forward (1:1 → group or group → 1:1):
+                // FK self-referencing constraint prevents passing the original id across tables.
+                // In that case we forward as plain text (no forwardFromId).
+                const isCrossType = item.isGroup !== isGroup
+                const forwardFromId = isCrossType ? undefined : item.id
+                if (isGroup) {
+                    return fetch(`/api/groups/${targetId}/messages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...headers },
+                        body: JSON.stringify({ text: item.text, forwardFromId }),
+                    })
+                } else {
+                    return fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...headers },
+                        body: JSON.stringify({
+                            senderId: currentUserId,
+                            receiverId: targetId,
+                            text: item.text,
+                            forwardFromId,
+                        }),
+                    })
+                }
+            }))
             onForwarded?.(targetId, isGroup)
             onClose()
         } catch {
@@ -86,7 +103,9 @@ export default function ForwardMessageModal({ currentUserId, message, groups, on
         >
             <div className="glass-widget w-full max-w-sm mx-4 rounded-2xl overflow-hidden shadow-2xl">
                 <div className="glass-widget-header flex items-center justify-between px-5 py-4">
-                    <h2 id="forward-msg-title" className="font-semibold text-base-content">Inoltra messaggio</h2>
+                    <h2 id="forward-msg-title" className="font-semibold text-base-content">
+                        {items.length > 1 ? `Inoltra ${items.length} messaggi` : 'Inoltra messaggio'}
+                    </h2>
                     <button onClick={onClose} className="btn btn-ghost btn-sm btn-square">
                         <X size={18} />
                     </button>
@@ -94,9 +113,15 @@ export default function ForwardMessageModal({ currentUserId, message, groups, on
 
                 <div className="p-4 space-y-3">
                     {/* Preview */}
-                    <div className="bg-base-200 rounded-xl px-3 py-2 text-sm text-secondary italic line-clamp-2">
-                        {message.text || '(messaggio eliminato)'}
-                    </div>
+                    {items.length === 1 ? (
+                        <div className="bg-base-200 rounded-xl px-3 py-2 text-sm text-secondary italic line-clamp-2">
+                            {items[0].text || '(messaggio eliminato)'}
+                        </div>
+                    ) : (
+                        <div className="bg-base-200 rounded-xl px-3 py-2 text-sm text-secondary">
+                            {items.length} messaggi selezionati
+                        </div>
+                    )}
 
                     {/* Groups */}
                     {groups.length > 0 && (

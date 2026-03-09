@@ -744,17 +744,94 @@ export type NotificationWithDetails = Notification & {
 // LEGACY TYPES (da rimuovere gradualmente)
 // ============================================================================
 
+export type ReactionType = 'like' | 'love' | 'fire' | 'trophy' | 'zap' | 'star'
+
+export type MessageReaction = {
+  type: ReactionType
+  count: number
+  users: { userId: string; name: string }[]
+  hasMyReaction: boolean
+}
+
+export type ReplyPreview = {
+  id: string
+  senderName: string
+  text: string
+}
+
 export type Message = {
   id: number | string
   senderId: string
   receiverId: string
-  text: string
+  text: string | null
   timestamp: string
   read: boolean
+  // extended fields
+  replyTo?: ReplyPreview
+  forwardedFrom?: boolean
+  editedAt?: string | null
+  isDeletedForAll?: boolean
+  reactions?: MessageReaction[]
 }
 
 export type ConversationSummary = {
   peerId: string
   lastMessage: Message
   unread: number
+  firstUnreadMessageId?: string | null
+}
+
+// ============================================================================
+// GROUP CHAT TYPES
+// ============================================================================
+
+export type GroupMember = {
+  userId: string
+  role: 'admin' | 'member'
+  joinedAt: string
+  firstName?: string
+  lastName?: string
+  email?: string
+  avatarUrl?: string | null
+}
+
+export type GroupMessage = {
+  id: string
+  groupId: string
+  senderId: string
+  senderName: string
+  senderAvatar?: string | null
+  senderColor?: string
+  text: string | null
+  timestamp: string
+  replyTo?: ReplyPreview
+  forwardedFrom?: boolean
+  editedAt?: string | null
+  isDeletedForAll?: boolean
+  reactions?: MessageReaction[]
+  readers?: { userId: string; name: string; readAt: string }[]
+}
+
+export type GroupConversationSummary = {
+  id: string
+  name: string
+  avatarUrl?: string | null
+  memberCount: number
+  lastMessage?: {
+    senderName: string
+    text: string | null
+    timestamp: string
+  } | null
+  unread: number
+  firstUnreadMessageId?: string | null
+  isGroup: true
+}
+
+export type GroupConversation = {
+  id: string
+  name: string
+  avatarUrl?: string | null
+  createdBy: string
+  members: GroupMember[]
+  createdAt: string
 }

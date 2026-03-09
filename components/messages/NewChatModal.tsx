@@ -1,7 +1,8 @@
 'use client'
 
-import { X, Search } from 'lucide-react'
+import { X, Search, Users } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
+import CreateGroupModal from './CreateGroupModal'
 
 interface User {
     id: string | number
@@ -18,6 +19,7 @@ interface Props {
     existingPeerIds: string[]
     onSelect: (userId: string) => void
     onClose: () => void
+    onGroupCreated?: (groupId: string, groupName: string) => void
 }
 
 /**
@@ -32,9 +34,11 @@ export default function NewChatModal({
     currentUserId,
     existingPeerIds,
     onSelect,
-    onClose
+    onClose,
+    onGroupCreated,
 }: Props) {
     const [search, setSearch] = useState('')
+    const [showCreateGroup, setShowCreateGroup] = useState(false)
 
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -74,6 +78,19 @@ export default function NewChatModal({
                         className="p-2 text-secondary hover:text-base-content hover:bg-base-300/60 rounded-full transition-colors"
                     >
                         <X size={20} />
+                    </button>
+                </div>
+
+                {/* Crea gruppo CTA */}
+                <div className="px-4 pt-3 pb-2 border-b border-base-300/70">
+                    <button
+                        onClick={() => setShowCreateGroup(true)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium text-sm transition-colors"
+                    >
+                        <span className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                            <Users size={18} className="text-primary" />
+                        </span>
+                        Nuovo gruppo
                     </button>
                 </div>
 
@@ -143,6 +160,18 @@ export default function NewChatModal({
                     )}
                 </div>
             </div>
+
+            {showCreateGroup && (
+                <CreateGroupModal
+                    currentUserId={currentUserId}
+                    onClose={() => setShowCreateGroup(false)}
+                    onCreated={(groupId, groupName) => {
+                        setShowCreateGroup(false)
+                        onClose()
+                        onGroupCreated?.(groupId, groupName)
+                    }}
+                />
+            )}
         </div>
     )
 }

@@ -434,29 +434,59 @@ Ruoli:
 - confrontare i ruoli sempre normalizzati lowercase (`agent`, `player`, ecc.)
 - evitare confronti case-sensitive con label UI capitalizzate
 
-## Messages UX — Glass Split View (Marzo 2026)
+## Messages UX — Glass Split View + Group Chat (Marzo 2026)
 
-La pagina `app/(main)/messages/page.tsx` usa ora una shell dark glass coerente con Home/Dashboard:
+La pagina `app/(main)/messages/page.tsx` usa una shell dark glass coerente con Home/Dashboard.
 
-- contenitore pagina: `glass-page-bg`
-- split panel lista/chat: `glass-panel` con bordi `base-300`
-- `ConversationList`, `ChatHeader`, `MessageInput` allineati a `glass-widget`/`glass-widget-header`
+### URL Deep-link
+- `?chat=<peerId>` → chat 1:1 (`ChatPanel`)
+- `?group=<groupId>` → chat di gruppo (`GroupChatPanel`)
 
-Regole:
-- preservare deep-link `?chat=<peerId>`
-- mantenere comportamento responsive (mobile toggle list/chat)
-- evitare nuovi hardcoded `bg-white` / `text-gray-*` nei componenti messaggistica principali
+### ConversationList — Unified Feed
+`ConversationList` ora mostra in un'unica lista ordinata per timestamp:
+- Chat 1:1 (`ConversationSummary`)
+- Gruppi (`GroupConversationSummary`) — con avatar iniziali + icona `Users` in overlay
+
+Props obbligatorie della nuova versione: `groups`, `selectedGroupId`, `onSelectGroup`
+
+### GroupChatPanel — Architettura
+- Fetch da `/api/groups/${groupId}/messages?userId=U` → `{ messages, firstUnreadMessageId }`- Fetch da `/api/groups/${groupId}` → `{ name, members }`
+- Realtime INSERT/UPDATE via Supabase `postgres_changes` su `group_messages`
+- Batch read receipts: POST `/api/groups/${groupId}/reads` con tutti gli `id` messaggi al mount
+- Stessa logica scroll `isFirstLoadRef` → instant primo caricamento, smooth dopo
+- `showSenderName={!isMine}`, `senderColor={msg.senderColor}` passati a `MessageBubble`
+- Props: `{ groupId, currentUserId, groups, onBack, showBackButton, onGroupDeleted }`
+
+### NewChatModal — Crea Gruppo CTA
+Il modal ha ora un pulsante "Nuovo gruppo" sopra la lista utenti che apre `CreateGroupModal`.
+- Props aggiuntive: `onGroupCreated?: (groupId: string, groupName: string) => void`
+- `CreateGroupModal` si sovrappone al `NewChatModal`, poi entrambi si chiudono a creazione avvenuta.
+
+### Tipi Chiave Per i Messaggi Di Gruppo
+- `GroupConversationSummary.id` — campo group ID (NON `groupId`)
+- `GroupConversationSummary.name` — nome gruppo (NON `groupName`)  
+- `GroupConversationSummary.unread` — badge non letti (NON `unreadCount`)
+- `GroupMessage` NON ha `read` o `readCount` — usare `reactions?: MessageReaction[]` e `readers?`
+- `BubbleMessage` ha `read?: boolean` (opzionale) per compatibilità con `GroupMessage`
+- `ReplyPreview.text` è `string` (non nullable) — usare `?? ''` quando si assegna da `string | null`
+
+### Reazioni — Sistema
+- Tipi: `'like' | 'love' | 'fire' | 'trophy' | 'zap' | 'star'` — verificati server-side
+- Icone: `REACTION_ICONS` e `REACTION_LABELS` in `components/messages/reactionIcons.ts`
+- Toggle: POST `/api/messages/${id}/reactions` o `/api/groups/${gId}/messages/${mId}/reactions`
+- UI: pill con icona + count sul bubble; hovering mostra quick-picker; click pill → `ReactionsPopover`
+
+### Regole
+- Preservare deep-link `?chat=<peerId>` e `?group=<groupId>`
+- Comportamento responsive: toggle lista/chat su mobile
+- NO emoji in UI — solo Lucide icons + testo italiano
+- Soft-delete sempre (mai hard delete di messaggi)
+- Finestra modifica: 15 minuti (`EDIT_WINDOW_MS`) — enforced server-side
 
 ### New Chat Modal — Accessibilità
-
-Il modal `components/messages/NewChatModal.tsx` deve seguire questo pattern:
-
 - root con `role="dialog"` + `aria-modal="true"` + `aria-labelledby`
 - chiusura tastiera con tasto `Escape`
 - superfici allineate a `glass-widget` / `glass-widget-header`
-
-Regola:
-- evitare modal chat con palette light legacy non coerente con la shell dark della pagina messaggi
 
 ## Discover UX — Filter Surface (Marzo 2026)
 

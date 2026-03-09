@@ -744,7 +744,7 @@ export type NotificationWithDetails = Notification & {
 // LEGACY TYPES (da rimuovere gradualmente)
 // ============================================================================
 
-export type ReactionType = 'like' | 'love' | 'fire' | 'trophy' | 'zap' | 'star'
+export type ReactionType = string
 
 export type MessageReaction = {
   type: ReactionType

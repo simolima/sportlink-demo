@@ -173,7 +173,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         timestamp: msg.created_at,
         editedAt: null,
         isDeletedForAll: false,
-        forwardedFrom: false,
+        forwardedFrom: !!msg.forwarded_from_id,
         reactions: [],
         readCount: 1,
     }, { status: 201 }))

@@ -19,6 +19,11 @@ interface ForwardItem {
     isGroup: boolean
 }
 
+interface ForwardTarget {
+    id: string
+    isGroup: boolean
+}
+
 interface Props {
     currentUserId: string
     /** Single-message forward */
@@ -36,6 +41,7 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
     const [directUsers, setDirectUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(false)
     const [forwarding, setForwarding] = useState(false)
+    const [selectedTargets, setSelectedTargets] = useState<ForwardTarget[]>([])
     const [error, setError] = useState<string | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -51,39 +57,58 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
             .finally(() => setLoading(false))
     }, [searchQuery, currentUserId])
 
-    const forwardTo = async (targetId: string, isGroup: boolean) => {
+    const toggleTarget = (target: ForwardTarget) => {
+        setSelectedTargets(prev => {
+            const exists = prev.some(t => t.id === target.id && t.isGroup === target.isGroup)
+            return exists
+                ? prev.filter(t => !(t.id === target.id && t.isGroup === target.isGroup))
+                : [...prev, target]
+        })
+    }
+
+    const forwardSelected = async () => {
         const toSend = items.filter(i => i.text)
-        if (toSend.length === 0) return
+        if (toSend.length === 0 || selectedTargets.length === 0) return
         setForwarding(true)
         setError(null)
         try {
             const headers = await getAuthHeaders()
-            await Promise.allSettled(toSend.map(item => {
-                // Cross-type forward (1:1 → group or group → 1:1):
-                // FK self-referencing constraint prevents passing the original id across tables.
-                // In that case we forward as plain text (no forwardFromId).
-                const isCrossType = item.isGroup !== isGroup
-                const forwardFromId = isCrossType ? undefined : item.id
-                if (isGroup) {
-                    return fetch(`/api/groups/${targetId}/messages`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', ...headers },
-                        body: JSON.stringify({ text: item.text, forwardFromId }),
-                    })
-                } else {
-                    return fetch('/api/messages', {
+            const requests = selectedTargets.flatMap(target =>
+                toSend.map(async item => {
+                    // Cross-type forward (1:1 → group or group → 1:1):
+                    // FK self-referencing constraint prevents passing the original id across tables.
+                    // In that case we forward as plain text (no forwardFromId).
+                    const isCrossType = item.isGroup !== target.isGroup
+                    const forwardFromId = isCrossType ? undefined : item.id
+                    if (target.isGroup) {
+                        const res = await fetch(`/api/groups/${target.id}/messages`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', ...headers },
+                            body: JSON.stringify({ text: item.text, forwardFromId }),
+                        })
+                        if (!res.ok) throw new Error('forward_failed')
+                        return res
+                    }
+                    const res = await fetch('/api/messages', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...headers },
                         body: JSON.stringify({
                             senderId: currentUserId,
-                            receiverId: targetId,
+                            receiverId: target.id,
                             text: item.text,
                             forwardFromId,
                         }),
                     })
-                }
-            }))
-            onForwarded?.(targetId, isGroup)
+                    if (!res.ok) throw new Error('forward_failed')
+                    return res
+                })
+            )
+
+            const results = await Promise.allSettled(requests)
+            const failed = results.some(r => r.status === 'rejected')
+            if (failed) throw new Error('partial_failure')
+
+            selectedTargets.forEach(t => onForwarded?.(t.id, t.isGroup))
             onClose()
         } catch {
             setError('Errore durante l\'inoltro del messaggio')
@@ -93,6 +118,19 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
     }
 
     const displayName = (u: User) => `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || 'Utente'
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    const filteredGroups = normalizedQuery
+        ? groups.filter(g => g.name.toLowerCase().includes(normalizedQuery))
+        : groups
+    const filteredUsers = normalizedQuery
+        ? directUsers.filter(u => {
+            const name = displayName(u).toLowerCase()
+            const email = (u.email || '').toLowerCase()
+            return name.includes(normalizedQuery) || email.includes(normalizedQuery)
+        })
+        : directUsers
+    const isSelected = (target: ForwardTarget) =>
+        selectedTargets.some(t => t.id === target.id && t.isGroup === target.isGroup)
 
     return (
         <div
@@ -124,27 +162,35 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
                     )}
 
                     {/* Groups */}
-                    {groups.length > 0 && (
+                    {filteredGroups.length > 0 && (
                         <div>
                             <p className="text-xs text-secondary uppercase tracking-wide mb-1 font-medium">I tuoi gruppi</p>
                             <div className="space-y-1 max-h-36 overflow-y-auto">
-                                {groups.map(g => (
-                                    <button
+                                {filteredGroups.map(g => (
+                                    <label
                                         key={g.id}
-                                        onClick={() => forwardTo(g.id, true)}
-                                        disabled={forwarding}
-                                        className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-base-200 transition-colors text-left"
+                                        className={clsx(
+                                            'flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-colors text-left cursor-pointer',
+                                            isSelected({ id: g.id, isGroup: true })
+                                                ? 'bg-base-200'
+                                                : 'hover:bg-base-200'
+                                        )}
                                     >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected({ id: g.id, isGroup: true })}
+                                            onChange={() => toggleTarget({ id: g.id, isGroup: true })}
+                                            className="checkbox checkbox-sm checkbox-primary"
+                                        />
                                         <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-semibold text-primary flex-shrink-0">
                                             {g.name[0]?.toUpperCase()}
                                         </div>
                                         <span className="text-sm text-base-content truncate">{g.name}</span>
-                                    </button>
+                                    </label>
                                 ))}
                             </div>
                         </div>
                     )}
-
                     {/* Direct search */}
                     <div>
                         <p className="text-xs text-secondary uppercase tracking-wide mb-1 font-medium">Invia direttamente</p>
@@ -161,23 +207,49 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
                         </div>
                         <div className="space-y-1 max-h-36 overflow-y-auto">
                             {loading && <p className="text-xs text-secondary text-center py-2">Ricerca...</p>}
-                            {!loading && directUsers.map(u => (
-                                <button
+                            {!loading && filteredUsers.map(u => (
+                                <label
                                     key={u.id}
-                                    onClick={() => forwardTo(u.id, false)}
-                                    disabled={forwarding}
-                                    className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-base-200 transition-colors text-left"
+                                    className={clsx(
+                                        'flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-colors text-left cursor-pointer',
+                                        isSelected({ id: u.id, isGroup: false })
+                                            ? 'bg-base-200'
+                                            : 'hover:bg-base-200'
+                                    )}
                                 >
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected({ id: u.id, isGroup: false })}
+                                        onChange={() => toggleTarget({ id: u.id, isGroup: false })}
+                                        className="checkbox checkbox-sm checkbox-primary"
+                                    />
                                     <div className="w-8 h-8 rounded-full bg-base-300 flex items-center justify-center text-xs font-semibold flex-shrink-0">
                                         {displayName(u)[0]?.toUpperCase()}
                                     </div>
                                     <span className="text-sm text-base-content">{displayName(u)}</span>
-                                </button>
+                                </label>
                             ))}
                         </div>
                     </div>
 
                     {error && <p className="text-error text-xs text-center">{error}</p>}
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                        <button
+                            onClick={onClose}
+                            className="btn btn-ghost btn-sm"
+                            disabled={forwarding}
+                        >
+                            Annulla
+                        </button>
+                        <button
+                            onClick={forwardSelected}
+                            className="btn btn-primary btn-sm"
+                            disabled={forwarding || selectedTargets.length === 0}
+                        >
+                            Inoltra{selectedTargets.length > 0 ? ` (${selectedTargets.length})` : ''}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

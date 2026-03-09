@@ -66,10 +66,27 @@ export async function GET(req: Request) {
             }, { status: 500 }))
         }
 
-        const { data: profiles, error } = await supabaseServer
+        const url = new URL(req.url)
+        const search = (url.searchParams.get('search') || '').trim()
+        const limitParam = url.searchParams.get('limit')
+        const limit = limitParam ? Math.max(1, parseInt(limitParam, 10)) : null
+
+        let query = supabaseServer
             .from('profiles')
             .select('*')
+            .is('deleted_at', null)
             .order('created_at', { ascending: false })
+
+        if (search) {
+            const like = `%${search}%`
+            query = query.or(
+                `first_name.ilike.${like},last_name.ilike.${like},email.ilike.${like},username.ilike.${like}`
+            )
+        }
+
+        if (limit) query = query.limit(limit)
+
+        const { data: profiles, error } = await query
 
         if (error) {
             console.error('Supabase GET error:', error)

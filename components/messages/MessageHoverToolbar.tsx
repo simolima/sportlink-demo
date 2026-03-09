@@ -1,13 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SmilePlus, Pencil, MessageSquare, MoreHorizontal } from 'lucide-react'
 import { REACTION_ICONS, REACTION_LABELS } from './reactionIcons'
 import { ReactionType } from '@/lib/types'
 import clsx from 'clsx'
+import dynamic from 'next/dynamic'
+import { useTheme } from '@/lib/hooks/useTheme'
 
-// First 4 reactions shown as quick-pick shortcuts
-const QUICK_REACTIONS: ReactionType[] = ['like', 'love', 'fire', 'trophy']
+// Lazy-load emoji-mart: same pattern as MessageInput
+const EmojiPicker = dynamic(
+    () => import('@emoji-mart/react').then(m => m.default ?? m),
+    { ssr: false, loading: () => null }
+)
+
+// Quick-pick shortcuts now use real emoji chars
+const QUICK_REACTIONS: Array<{ emoji: string; label: string }> = [
+    { emoji: '👍', label: 'Mi piace' },
+    { emoji: '❤️', label: 'Adoro' },
+    { emoji: '🔥', label: 'Fuoco' },
+    { emoji: '🏆', label: 'Trofeo' },
+]
 
 interface Props {
     isMine: boolean
@@ -24,6 +37,26 @@ export default function MessageHoverToolbar({
     isMine, canEdit, canReply, onReact, onEdit, onReply, onMoreOptions,
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false)
+    const [emojiData, setEmojiData] = useState<any>(null)
+    const pickerContainerRef = useRef<HTMLDivElement>(null)
+    const { theme } = useTheme()
+
+    // Preload emoji data in background
+    useEffect(() => {
+        import('@emoji-mart/data').then(m => setEmojiData(m.default ?? m))
+    }, [])
+
+    // Close picker on outside click
+    useEffect(() => {
+        if (!pickerOpen) return
+        const handleOutside = (e: MouseEvent) => {
+            if (pickerContainerRef.current && !pickerContainerRef.current.contains(e.target as Node)) {
+                setPickerOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleOutside)
+        return () => document.removeEventListener('mousedown', handleOutside)
+    }, [pickerOpen])
 
     return (
         <div
@@ -33,24 +66,21 @@ export default function MessageHoverToolbar({
                 isMine ? 'right-0' : 'left-0'
             )}
         >
-            {/* 4 quick-reaction shortcuts */}
-            {QUICK_REACTIONS.map(type => {
-                const Icon = REACTION_ICONS[type]
-                return (
-                    <button
-                        key={type}
-                        onClick={() => onReact(type)}
-                        className="btn btn-ghost btn-xs btn-circle text-secondary hover:text-primary"
-                        title={REACTION_LABELS[type]}
-                        aria-label={REACTION_LABELS[type]}
-                    >
-                        <Icon size={15} />
-                    </button>
-                )
-            })}
+            {/* 4 quick-reaction shortcuts as emoji chars */}
+            {QUICK_REACTIONS.map(({ emoji, label }) => (
+                <button
+                    key={emoji}
+                    onClick={() => onReact(emoji)}
+                    className="btn btn-ghost btn-xs btn-circle text-[15px] leading-none hover:scale-110 transition-transform"
+                    title={label}
+                    aria-label={label}
+                >
+                    {emoji}
+                </button>
+            ))}
 
-            {/* SmilePlus → full picker with all 6 reactions */}
-            <div className="relative">
+            {/* SmilePlus → full emoji-mart picker */}
+            <div className="relative" ref={pickerContainerRef}>
                 <button
                     onClick={() => setPickerOpen(v => !v)}
                     className={clsx(
@@ -63,21 +93,28 @@ export default function MessageHoverToolbar({
                     <SmilePlus size={15} />
                 </button>
                 {pickerOpen && (
-                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-base-100 border border-base-300 rounded-full shadow-xl px-2 py-1 z-30">
-                        {(Object.keys(REACTION_ICONS) as ReactionType[]).map(type => {
-                            const Icon = REACTION_ICONS[type]
-                            return (
-                                <button
-                                    key={type}
-                                    onClick={() => { onReact(type); setPickerOpen(false) }}
-                                    className="btn btn-ghost btn-xs btn-circle text-secondary hover:text-primary"
-                                    title={REACTION_LABELS[type]}
-                                    aria-label={REACTION_LABELS[type]}
-                                >
-                                    <Icon size={15} />
-                                </button>
-                            )
-                        })}
+                    <div
+                        className={clsx(
+                            'absolute bottom-full mb-2 z-30',
+                            // Position: right-align for own messages, left-align for others
+                            isMine ? 'right-0' : 'left-0'
+                        )}
+                        // Stop mouse events from bubbling and triggering outside-click
+                        onMouseDown={e => e.stopPropagation()}
+                    >
+                        <EmojiPicker
+                            data={emojiData}
+                            theme={theme === 'sprinta-dark' ? 'dark' : 'light'}
+                            locale="it"
+                            onEmojiSelect={(emoji: { native: string }) => {
+                                onReact(emoji.native)
+                                setPickerOpen(false)
+                            }}
+                            previewPosition="none"
+                            skinTonePosition="none"
+                            perLine={8}
+                            maxFrequentRows={1}
+                        />
                     </div>
                 )}
             </div>
@@ -121,3 +158,4 @@ export default function MessageHoverToolbar({
         </div>
     )
 }
+

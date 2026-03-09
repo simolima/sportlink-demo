@@ -9,7 +9,8 @@ import { NextResponse } from 'next/server'
 import { supabaseServer, getUserIdFromAuthToken } from '@/lib/supabase-server'
 import { withCors, handleOptions } from '@/lib/cors'
 
-const VALID_REACTIONS = ['like', 'love', 'fire', 'trophy', 'zap', 'star'] as const
+// Accept any non-empty string up to 100 chars (emoji or legacy type names)
+const isValidReaction = (r: string) => typeof r === 'string' && r.trim().length > 0 && r.length <= 100
 
 export async function OPTIONS() {
     return handleOptions()
@@ -32,9 +33,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const messageId = params.id
     const body = await req.json()
-    const reaction = body.reaction as string
+    const reaction = (body.reaction as string || '').trim()
 
-    if (!VALID_REACTIONS.includes(reaction as any)) {
+    if (!isValidReaction(reaction)) {
         return withCors(NextResponse.json({ error: 'invalid_reaction' }, { status: 400 }))
     }
 

@@ -1,10 +1,11 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ConversationSummary } from '@/lib/types'
+import { ConversationSummary, GroupConversationSummary } from '@/lib/types'
 import { useRequireAuth } from '@/lib/hooks/useAuth'
 import { ConversationList, ChatPanel, NewChatModal } from '@/components/messages'
+import GroupChatPanel from '@/components/messages/GroupChatPanel'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 
 interface User {
@@ -23,7 +24,8 @@ interface User {
  * - Desktop: lista conversazioni (1/3) + chat (2/3) affiancate
  * - Mobile: lista o chat a schermo intero con toggle
  * 
- * URL: /messages?chat=<peerId> per deep linking
+ * URL: /messages?chat=<peerId> per chat diretta
+ *      /messages?group=<groupId> per chat di gruppo
  */
 export default function MessagesPage() {
     const router = useRouter()
@@ -32,6 +34,7 @@ export default function MessagesPage() {
 
     // Stato
     const [conversations, setConversations] = useState<ConversationSummary[]>([])
+    const [groups, setGroups] = useState<GroupConversationSummary[]>([])
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [showNewChatModal, setShowNewChatModal] = useState(false)
@@ -41,11 +44,11 @@ export default function MessagesPage() {
 
     const currentUserId = user?.id ? String(user.id) : null
     const selectedPeerId = searchParams.get('chat')
+    const selectedGroupId = searchParams.get('group')
 
-    // Fetch conversazioni
+    // Fetch conversazioni 1:1
     const fetchConversations = useCallback(async () => {
         if (!currentUserId) return
-        setLoading(true)
         try {
             const authHeaders = await getAuthHeaders()
             const res = await fetch(`/api/messages?userId=${currentUserId}`, { headers: authHeaders })
@@ -53,8 +56,19 @@ export default function MessagesPage() {
             setConversations(Array.isArray(data) ? data : [])
         } catch (e) {
             console.error('Errore caricamento conversazioni:', e)
-        } finally {
-            setLoading(false)
+        }
+    }, [currentUserId])
+
+    // Fetch gruppi
+    const fetchGroups = useCallback(async () => {
+        if (!currentUserId) return
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/groups?userId=${currentUserId}`, { headers: authHeaders })
+            const data = await res.json()
+            setGroups(Array.isArray(data) ? data : [])
+        } catch (e) {
+            console.error('Errore caricamento gruppi:', e)
         }
     }, [currentUserId])
 
@@ -69,23 +83,30 @@ export default function MessagesPage() {
 
     // Init
     useEffect(() => {
-        fetchConversations()
-        fetchUsers()
-    }, [fetchConversations, fetchUsers])
+        if (!currentUserId) return
+        setLoading(true)
+        Promise.all([fetchConversations(), fetchGroups(), fetchUsers()]).finally(() => setLoading(false))
+    }, [fetchConversations, fetchGroups, fetchUsers, currentUserId])
 
-    // Se c'è un peerId nell'URL, mostra la chat su mobile
+    // Se c'Ã¨ un param nell'URL, mostra la chat su mobile
     useEffect(() => {
-        if (selectedPeerId) {
+        if (selectedPeerId || selectedGroupId) {
             setMobileView('chat')
         }
-    }, [selectedPeerId])
+    }, [selectedPeerId, selectedGroupId])
 
-    // Seleziona conversazione
+    // Seleziona conversazione 1:1
     const handleSelectConversation = (peerId: string) => {
         router.push(`/messages?chat=${peerId}`, { scroll: false })
         setMobileView('chat')
-        // Refresh conversazioni per aggiornare unread
         setTimeout(fetchConversations, 500)
+    }
+
+    // Seleziona gruppo
+    const handleSelectGroup = (groupId: string) => {
+        router.push(`/messages?group=${groupId}`, { scroll: false })
+        setMobileView('chat')
+        setTimeout(fetchGroups, 500)
     }
 
     // Torna alla lista (mobile)
@@ -93,12 +114,29 @@ export default function MessagesPage() {
         router.push('/messages', { scroll: false })
         setMobileView('list')
         fetchConversations()
+        fetchGroups()
     }
 
-    // Nuova chat
+    // Nuova chat diretta
     const handleNewChat = (peerId: string) => {
         setShowNewChatModal(false)
         handleSelectConversation(peerId)
+    }
+
+    // Gruppo creato
+    const handleGroupCreated = (groupId: string) => {
+        setShowNewChatModal(false)
+        fetchGroups()
+        handleSelectGroup(groupId)
+    }
+
+    // Gruppo eliminato
+    const handleGroupDeleted = (groupId: string) => {
+        setGroups(prev => prev.filter(g => g.id !== groupId))
+        if (selectedGroupId === groupId) {
+            router.push('/messages', { scroll: false })
+            setMobileView('list')
+        }
     }
 
     // Auth check
@@ -131,27 +169,42 @@ export default function MessagesPage() {
             `}>
                     <ConversationList
                         conversations={conversations}
+                        groups={groups}
                         users={users}
                         selectedPeerId={selectedPeerId}
+                        selectedGroupId={selectedGroupId}
                         onSelectConversation={handleSelectConversation}
+                        onSelectGroup={handleSelectGroup}
                         onNewChat={() => setShowNewChatModal(true)}
                         currentUserId={currentUserId}
                         loading={loading}
                     />
                 </div>
 
-                {/* Chat Panel - Desktop: sempre visibile, Mobile: solo se mobileView === 'chat' */}
+                {/* Chat / Group Panel - Desktop: sempre visibile, Mobile: solo se mobileView === 'chat' */}
                 <div className={`
                 flex-1 
                 ${mobileView === 'chat' ? 'block' : 'hidden lg:block'}
             `}>
-                    <ChatPanel
-                        peerId={selectedPeerId}
-                        currentUserId={currentUserId}
-                        users={users}
-                        onBack={handleBack}
-                        showBackButton={true}
-                    />
+                    {selectedGroupId ? (
+                        <GroupChatPanel
+                            groupId={selectedGroupId}
+                            currentUserId={currentUserId}
+                            groups={groups}
+                            onBack={handleBack}
+                            showBackButton={true}
+                            onGroupDeleted={handleGroupDeleted}
+                        />
+                    ) : (
+                        <ChatPanel
+                            peerId={selectedPeerId}
+                            currentUserId={currentUserId}
+                            users={users}
+                            groups={groups}
+                            onBack={handleBack}
+                            showBackButton={true}
+                        />
+                    )}
                 </div>
 
                 {/* Modal nuova chat */}
@@ -162,6 +215,7 @@ export default function MessagesPage() {
                         existingPeerIds={existingPeerIds}
                         onSelect={handleNewChat}
                         onClose={() => setShowNewChatModal(false)}
+                        onGroupCreated={handleGroupCreated}
                     />
                 )}
             </div>

@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { Paperclip, Send, Smile } from 'lucide-react'
+import { Paperclip, Send, Smile, X } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useTheme } from '@/lib/hooks/useTheme'
@@ -11,22 +11,30 @@ const EmojiPicker = dynamic(
     { ssr: false, loading: () => null }
 )
 
+export interface ReplyingTo {
+    senderName: string
+    text: string | null
+}
+
 interface Props {
     onSend: (text: string) => Promise<void>
     onTyping?: () => void
     disabled?: boolean
     placeholder?: string
+    replyingTo?: ReplyingTo | null
+    onCancelReply?: () => void
 }
 
-export default function MessageInput({ onSend, onTyping, disabled = false, placeholder = 'Scrivi un messaggio...' }: Props) {
+export default function MessageInput({ onSend, onTyping, disabled = false, placeholder = 'Scrivi un messaggio...', replyingTo, onCancelReply }: Props) {
     const [text, setText] = useState('')
     const [sending, setSending] = useState(false)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-    // Preload data dopo il primo render così il picker si apre istantaneamente
+    // Preload data dopo il primo render cosÃ¬ il picker si apre istantaneamente
     const [emojiData, setEmojiData] = useState<any>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const emojiPickerRef = useRef<HTMLDivElement>(null)
     const cursorPosRef = useRef<number>(0)
+    const cursorPosRef2 = useRef<number>(0)
     const { theme } = useTheme()
 
     // Preload emoji data in background (non blocca il render)
@@ -42,6 +50,11 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`
         }
     }, [text])
+
+    // Focus textarea when replying changes
+    useEffect(() => {
+        if (replyingTo) textareaRef.current?.focus()
+    }, [replyingTo])
 
     // Chiudi emoji picker click fuori
     useEffect(() => {
@@ -99,11 +112,33 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             e.preventDefault()
             handleSend()
         }
+        if (e.key === 'Escape' && replyingTo) {
+            onCancelReply?.()
+        }
     }
 
     return (
-        <div className="border-t border-base-300/70 bg-base-200/55 p-4">
-            <div className="flex items-end gap-3">
+        <div className="border-t border-base-300/70 bg-base-200/55">
+            {/* Reply preview banner */}
+            {replyingTo && (
+                <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                    <div className="flex-1 border-l-2 border-primary bg-primary/5 rounded-r-lg px-3 py-1.5 min-w-0">
+                        <p className="text-xs font-semibold text-primary truncate">{replyingTo.senderName}</p>
+                        <p className="text-xs text-secondary truncate">
+                            {replyingTo.text == null ? 'Messaggio eliminato' : replyingTo.text}
+                        </p>
+                    </div>
+                    <button
+                        onClick={onCancelReply}
+                        className="btn btn-ghost btn-xs btn-square flex-shrink-0"
+                        aria-label="Annulla risposta"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+            )}
+
+            <div className="flex items-end gap-3 p-4">
                 {/* Icone azioni */}
                 <div className="flex items-center gap-1 pb-2 relative" ref={emojiPickerRef}>
                     {/* emoji-mart Picker */}
@@ -174,9 +209,10 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             </div>
 
             {/* Hint */}
-            <p className="text-[11px] glass-quiet-text mt-2 text-center">
+            <p className="text-[11px] glass-quiet-text mt-1 mb-3 text-center">
                 Premi <kbd className="px-1 py-0.5 bg-base-300/80 rounded text-secondary">Invio</kbd> per inviare, <kbd className="px-1 py-0.5 bg-base-300/80 rounded text-secondary">Shift+Invio</kbd> per nuova riga
             </p>
         </div>
     )
 }
+

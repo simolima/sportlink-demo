@@ -264,3 +264,11 @@ const fallbackPoll = setInterval(async () => {
 | `/api/studios/[id]/external-blockers` | Creazione blocchi orari manuali (occupato personale) |
 | `/api/studios/[id]/reviews` | Recensioni studio (GET/POST) |
 | `/api/studios/[id]/reviews/[reviewId]` | Recensione singola (PATCH/DELETE) |
+| `/api/messages/[id]/reactions` | Toggle reazione su messaggio 1:1 (POST) — tipi: like/love/fire/trophy/zap/star |
+| `/api/groups` | Lista gruppi utente (GET) + crea gruppo (POST) |
+| `/api/groups/[id]` | Info gruppo + membri (GET), aggiorna nome/avatar (PATCH admin), soft-delete (DELETE admin) |
+| `/api/groups/[id]/messages` | Messaggi gruppo (GET → `{ messages, firstUnreadMessageId }`), invia (POST) |
+| `/api/groups/[id]/messages/[msgId]` | Modifica testo (PATCH 15-min window), elimina per tutti/solo me (PATCH scope) |
+| `/api/groups/[id]/messages/[msgId]/reactions` | Toggle reazione su messaggio di gruppo (POST) |
+| `/api/groups/[id]/members` | Lista membri (GET), aggiungi (POST admin), promuovi/declassa (PATCH admin), rimuovi/esci (DELETE) |
+| `/api/groups/[id]/reads` | Batch mark-as-read (POST `{ messageIds[] }`) — upsert in `group_message_reads` |

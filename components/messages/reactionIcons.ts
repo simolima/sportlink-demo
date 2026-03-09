@@ -1,8 +1,8 @@
 import { ThumbsUp, Heart, Flame, Trophy, Zap, Star } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { ReactionType } from '@/lib/types'
 
-export const REACTION_ICONS: Record<ReactionType, LucideIcon> = {
+/** Legacy reactions stored as type strings — kept for backward compatibility */
+export const REACTION_ICONS: { [key: string]: LucideIcon | undefined } = {
     like: ThumbsUp,
     love: Heart,
     fire: Flame,
@@ -11,7 +11,7 @@ export const REACTION_ICONS: Record<ReactionType, LucideIcon> = {
     star: Star,
 }
 
-export const REACTION_LABELS: Record<ReactionType, string> = {
+export const REACTION_LABELS: { [key: string]: string } = {
     like: 'Mi piace',
     love: 'Adoro',
     fire: 'Fuoco',

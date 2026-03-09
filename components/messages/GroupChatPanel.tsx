@@ -127,7 +127,7 @@ export default function GroupChatPanel({
                 const incoming: GroupMessage = {
                     id: raw.id, groupId: raw.group_id, senderId: raw.sender_id, senderName,
                     text: raw.content, timestamp: raw.created_at,
-                    isDeletedForAll: false, forwardedFrom: false, reactions: [],
+                    isDeletedForAll: false, forwardedFrom: !!raw.forwarded_from_id, reactions: [],
                 }
                 setMessages(prev => prev.some(m => String(m.id) === String(incoming.id)) ? prev : [...prev, incoming])
                 playNotificationSound(getSoundVariant('message_received'))

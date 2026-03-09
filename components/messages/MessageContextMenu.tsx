@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Trash2, EyeOff, Forward, Copy, ChevronRight } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -44,7 +44,7 @@ export default function MessageContextMenu({
     }, [onClose])
 
     // Dynamically position menu: above/below based on space, left/right based on isMine
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!menuRef.current) return
         const rect = menuRef.current.getBoundingClientRect()
         const viewportHeight = window.innerHeight

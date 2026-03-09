@@ -202,21 +202,24 @@ export default function MessageBubble({
                         className={clsx('flex flex-wrap gap-1 mt-1', isMine ? 'justify-end' : 'justify-start')}
                     >
                         {reactions.map(r => {
-                            const Icon = REACTION_ICONS[r.type as ReactionType]
+                            const Icon = REACTION_ICONS[r.type]
                             return (
                                 <button
                                     key={r.type}
-                                    onClick={() => onReact(message.id as string, r.type as ReactionType)}
+                                    onClick={() => onReact(message.id as string, r.type)}
                                     className={clsx(
                                         'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] border transition-all hover:scale-105',
                                         r.hasMyReaction
                                             ? 'bg-primary/20 border-primary/50 text-primary font-semibold hover:bg-primary/30 cursor-pointer'
                                             : 'bg-base-200 border-base-300 text-secondary hover:bg-base-300 hover:border-base-400'
                                     )}
-                                    title={r.hasMyReaction ? `Rimuovi ${REACTION_LABELS[r.type as ReactionType]}` : REACTION_LABELS[r.type as ReactionType]}
-                                    aria-label={r.hasMyReaction ? `Rimuovi ${REACTION_LABELS[r.type as ReactionType]} (${r.count})` : `${REACTION_LABELS[r.type as ReactionType]}: ${r.count}`}
+                                    title={r.hasMyReaction ? `Rimuovi reazione` : REACTION_LABELS[r.type] || r.type}
+                                    aria-label={r.hasMyReaction ? `Rimuovi reazione (${r.count})` : `${REACTION_LABELS[r.type] || r.type}: ${r.count}`}
                                 >
-                                    {Icon && <Icon size={14} strokeWidth={2} />}
+                                    {Icon
+                                        ? <Icon size={14} strokeWidth={2} />
+                                        : <span className="text-[14px] leading-none">{r.type}</span>
+                                    }
                                     <span>{r.count}</span>
                                 </button>
                             )

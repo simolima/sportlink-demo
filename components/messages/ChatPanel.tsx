@@ -146,7 +146,7 @@ export default function ChatPanel({
                 const incoming: Message = {
                     id: raw.id, senderId: raw.sender_id, receiverId: raw.receiver_id,
                     text: raw.content, timestamp: raw.created_at, read: raw.is_read,
-                    editedAt: null, isDeletedForAll: false, forwardedFrom: !!raw.forwarded_from_id, reactions: [],
+                    editedAt: null, isDeletedForAll: false, forwardedFrom: raw.is_forwarded || !!raw.forwarded_from_id, reactions: [],
                     replyTo: raw.reply_to_id ? { id: raw.reply_to_id, senderName: 'Utente', text: '(caricamento...)' } : undefined,
                 }
                 setMessages(prev => prev.some(m => String(m.id) === String(incoming.id)) ? prev : [...prev, incoming])

@@ -108,7 +108,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 timestamp: m.created_at,
                 editedAt: m.edited_at ?? null,
                 isDeletedForAll: m.is_deleted_for_all ?? false,
-                forwardedFrom: !!m.forwarded_from_id,
+                forwardedFrom: m.is_forwarded || !!m.forwarded_from_id,
                 replyTo: replyRaw ? {
                     id: replyRaw.id,
                     senderName: replyRaw.reply_sender
@@ -152,6 +152,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             content: text,
             reply_to_id: body.replyToId || null,
             forwarded_from_id: body.forwardFromId || null,
+            is_forwarded: !!(body.forwardFromId || body.isForwarded),
         })
         .select()
         .single()
@@ -173,7 +174,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         timestamp: msg.created_at,
         editedAt: null,
         isDeletedForAll: false,
-        forwardedFrom: !!msg.forwarded_from_id,
+        forwardedFrom: msg.is_forwarded || !!msg.forwarded_from_id,
         reactions: [],
         readCount: 1,
     }, { status: 201 }))

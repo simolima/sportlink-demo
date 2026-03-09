@@ -84,7 +84,7 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
                         const res = await fetch(`/api/groups/${target.id}/messages`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', ...headers },
-                            body: JSON.stringify({ text: item.text, forwardFromId }),
+                            body: JSON.stringify({ text: item.text, forwardFromId, isForwarded: true }),
                         })
                         if (!res.ok) throw new Error('forward_failed')
                         return res
@@ -97,6 +97,7 @@ export default function ForwardMessageModal({ currentUserId, message, messages, 
                             receiverId: target.id,
                             text: item.text,
                             forwardFromId,
+                            isForwarded: true,
                         }),
                     })
                     if (!res.ok) throw new Error('forward_failed')

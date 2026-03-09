@@ -47,7 +47,17 @@ export default function MessageBubble({
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
     const [reactionPickerOpen, setReactionPickerOpen] = useState(false)
     const [reactionsPopoverOpen, setReactionsPopoverOpen] = useState(false)
+    const [toolbarVisible, setToolbarVisible] = useState(false)
     const bubbleRef = useRef<HTMLDivElement>(null)
+    const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const handleMouseEnter = () => {
+        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current)
+        setToolbarVisible(true)
+    }
+    const handleMouseLeave = () => {
+        leaveTimerRef.current = setTimeout(() => setToolbarVisible(false), 200)
+    }
 
     const time = new Date(message.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
     const canEdit = isMine && !message.isDeletedForAll && (Date.now() - new Date(message.timestamp).getTime()) < EDIT_WINDOW_MS
@@ -104,13 +114,18 @@ export default function MessageBubble({
                 </div>
             )}
 
-            <div className="relative max-w-[70%] flex flex-col group">
+            <div
+                className="relative max-w-[70%] flex flex-col"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
                 {/* Teams-style hover toolbar — hidden in selection mode */}
                 {!deletedForAll && !selectionMode && (
                     <MessageHoverToolbar
                         isMine={isMine}
                         canEdit={canEdit}
                         canReply={!deletedForAll}
+                        visible={toolbarVisible}
                         onReact={type => onReact(String(message.id), type)}
                         onEdit={() => onEdit(message)}
                         onReply={() => onReply(message)}

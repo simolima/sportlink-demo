@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Bell, BellOff } from 'lucide-react'
 import { playNotificationSound, getSoundVariant, isSoundEnabled, toggleSound, unlockAudioContext } from '@/lib/notification-sound'
 import Link from 'next/link'
@@ -16,7 +16,6 @@ interface NotificationBellProps {
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
   const router = useRouter()
-  const pathname = usePathname()
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
@@ -99,7 +98,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     }
   }, [userId, fetchNotifications])
 
-  // Suono campanella per messaggi in arrivo quando l'utente non è nella chat
+  // Suono per messaggi 1:1 in arrivo — sempre attivo, su qualsiasi pagina
   useEffect(() => {
     if (!userId) return
     const channel = supabase
@@ -113,8 +112,41 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
           filter: `receiver_id=eq.${userId}`,
         },
         () => {
-          // ChatPanel gestisce il suono in-chat; qui suona solo se si è altrove
-          if (!pathname?.startsWith('/messages')) {
+          playNotificationSound(getSoundVariant('message_received'))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId])
+
+  // Suono per messaggi di gruppo in arrivo
+  useEffect(() => {
+    if (!userId) return
+    const channel = supabase
+      .channel(`group-msg-sound:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages',
+        },
+        async (payload: { new: Record<string, any> }) => {
+          const raw = payload.new
+          // Ignora i propri messaggi
+          if (String(raw.sender_id) === String(userId)) return
+          // Verifica membership nel gruppo
+          const { data } = await supabase
+            .from('group_members')
+            .select('id')
+            .eq('group_id', raw.group_id)
+            .eq('user_id', userId)
+            .is('deleted_at', null)
+            .maybeSingle()
+          if (data) {
             playNotificationSound(getSoundVariant('message_received'))
           }
         }
@@ -124,7 +156,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId, pathname])
+  }, [userId])
 
   const markAsRead = async (id: number) => {
     try {

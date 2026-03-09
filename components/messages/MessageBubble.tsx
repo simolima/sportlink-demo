@@ -73,7 +73,7 @@ export default function MessageBubble({
 
     return (
         <div
-            className={clsx('flex mb-2 group', isMine ? 'justify-end' : 'justify-start')}
+            className={clsx('flex mb-2', isMine ? 'justify-end' : 'justify-start')}
             onClick={selectionMode ? () => onToggleSelect?.(String(message.id)) : undefined}
         >
             {/* Selection checkbox */}
@@ -104,7 +104,7 @@ export default function MessageBubble({
                 </div>
             )}
 
-            <div className="relative max-w-[70%] flex flex-col">
+            <div className="relative max-w-[70%] flex flex-col group">
                 {/* Teams-style hover toolbar — hidden in selection mode */}
                 {!deletedForAll && !selectionMode && (
                     <MessageHoverToolbar
@@ -208,15 +208,15 @@ export default function MessageBubble({
                                     key={r.type}
                                     onClick={() => onReact(message.id as string, r.type as ReactionType)}
                                     className={clsx(
-                                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border transition-colors',
+                                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] border transition-all hover:scale-105',
                                         r.hasMyReaction
-                                            ? 'bg-primary/15 border-primary/40 text-primary'
-                                            : 'bg-base-200 border-base-300 text-secondary hover:bg-base-300'
+                                            ? 'bg-primary/20 border-primary/50 text-primary font-semibold hover:bg-primary/30 cursor-pointer'
+                                            : 'bg-base-200 border-base-300 text-secondary hover:bg-base-300 hover:border-base-400'
                                     )}
-                                    title={REACTION_LABELS[r.type as ReactionType]}
-                                    aria-label={`${REACTION_LABELS[r.type as ReactionType]}: ${r.count}`}
+                                    title={r.hasMyReaction ? `Rimuovi ${REACTION_LABELS[r.type as ReactionType]}` : REACTION_LABELS[r.type as ReactionType]}
+                                    aria-label={r.hasMyReaction ? `Rimuovi ${REACTION_LABELS[r.type as ReactionType]} (${r.count})` : `${REACTION_LABELS[r.type as ReactionType]}: ${r.count}`}
                                 >
-                                    {Icon && <Icon size={11} />}
+                                    {Icon && <Icon size={14} strokeWidth={2} />}
                                     <span>{r.count}</span>
                                 </button>
                             )

@@ -28,6 +28,7 @@ export default function MessageContextMenu({
 }: Props) {
     const menuRef = useRef<HTMLDivElement>(null)
     const [forwardExpanded, setForwardExpanded] = useState(false)
+    const [position, setPosition] = useState<{ top: number; left: number; transformOrigin: string }>({ top: y, left: x, transformOrigin: 'top center' })
 
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {
@@ -42,7 +43,43 @@ export default function MessageContextMenu({
         }
     }, [onClose])
 
-    const style: React.CSSProperties = { position: 'fixed', top: y, left: x, zIndex: 9999 }
+    // Dynamically position menu: above/below based on space, left/right based on isMine
+    useEffect(() => {
+        if (!menuRef.current) return
+        const rect = menuRef.current.getBoundingClientRect()
+        const viewportHeight = window.innerHeight
+        const viewportWidth = window.innerWidth
+        const menuHeight = rect.height
+
+        // Decide if menu should go above or below the anchor
+        const spaceBelow = viewportHeight - y
+        const positionAbove = spaceBelow < menuHeight + 20
+
+        let finalTop = positionAbove ? y - menuHeight - 8 : y + 8
+        let finalLeft = x
+        let transformOrigin = positionAbove ? 'bottom center' : 'top center'
+
+        // Adjust left/right based on isMine and viewport width
+        if (isMine) {
+            // Own message (right side): menu appears to the left of anchor
+            finalLeft = x - rect.width - 8
+            if (finalLeft < 8) finalLeft = x + 8  // fallback right if no space left
+            transformOrigin = positionAbove ? 'bottom right' : 'top right'
+        } else {
+            // Other message (left side): menu appears to the right of anchor
+            finalLeft = x + 8
+            if (finalLeft + rect.width > viewportWidth - 8) finalLeft = x - rect.width - 8  // fallback left if no space right
+            transformOrigin = positionAbove ? 'bottom left' : 'top left'
+        }
+
+        // Clamp to viewport
+        finalLeft = Math.max(8, Math.min(finalLeft, viewportWidth - rect.width - 8))
+        finalTop = Math.max(8, Math.min(finalTop, viewportHeight - menuHeight - 8))
+
+        setPosition({ top: finalTop, left: finalLeft, transformOrigin })
+    }, [x, y, isMine])
+
+    const style: React.CSSProperties = { position: 'fixed', top: position.top, left: position.left, zIndex: 9999, transformOrigin: position.transformOrigin }
 
     return (
         <div

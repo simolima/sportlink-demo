@@ -10,7 +10,6 @@ import MultiForwardBar from './MultiForwardBar'
 import { MessageSquare, ArrowDown } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase-browser'
-import { playNotificationSound, getSoundVariant } from '@/lib/notification-sound'
 import SprintaLoader from '@/components/ui/SprintaLoader'
 import { GroupConversationSummary } from '@/lib/types'
 
@@ -140,18 +139,36 @@ export default function ChatPanel({
             .on('postgres_changes', {
                 event: 'INSERT', schema: 'public', table: 'messages',
                 filter: `receiver_id=eq.${currentUserId}`,
-            }, (payload: { new: Record<string, any> }) => {
+            }, async (payload: { new: Record<string, any> }) => {
                 const raw = payload.new
                 if (String(raw.sender_id) !== String(peerId)) return
+
+                // Resolve reply reference if present
+                let replyTo: Message['replyTo'] = undefined
+                if (raw.reply_to_id) {
+                    const { data: replyRow } = await supabase
+                        .from('messages')
+                        .select('id, content, is_deleted_for_all, sender_id, sender:sender_id(first_name, last_name)')
+                        .eq('id', raw.reply_to_id)
+                        .single()
+                    if (replyRow) {
+                        const s = replyRow.sender as any
+                        replyTo = {
+                            id: replyRow.id,
+                            senderName: s ? `${s.first_name || ''} ${s.last_name || ''}`.trim() : 'Utente',
+                            text: replyRow.is_deleted_for_all ? null : replyRow.content,
+                        }
+                    }
+                }
+
                 const incoming: Message = {
                     id: raw.id, senderId: raw.sender_id, receiverId: raw.receiver_id,
                     text: raw.content, timestamp: raw.created_at, read: raw.is_read,
                     editedAt: null, isDeletedForAll: false, forwardedFrom: raw.is_forwarded || !!raw.forwarded_from_id, reactions: [],
-                    replyTo: raw.reply_to_id ? { id: raw.reply_to_id, senderName: 'Utente', text: '(caricamento...)' } : undefined,
+                    replyTo,
                 }
                 setMessages(prev => prev.some(m => String(m.id) === String(incoming.id)) ? prev : [...prev, incoming])
                 setIsPeerTyping(false)
-                playNotificationSound(getSoundVariant('message_received'))
                 getAuthHeaders().then(authHeaders => {
                     fetch('/api/messages', {
                         method: 'PATCH',
@@ -239,7 +256,7 @@ export default function ChatPanel({
             })
             const newMsg = await res.json()
             if (newMsg?.id) {
-                setMessages(prev => prev.map(m => String(m.id) === tempId ? newMsg : m))
+                setMessages(prev => prev.map(m => String(m.id) === tempId ? { ...newMsg, replyTo: newMsg.replyTo || m.replyTo } : m))
             } else {
                 setMessages(prev => prev.filter(m => String(m.id) !== tempId))
                 setSendError('Impossibile inviare il messaggio. Riprova.')
@@ -474,7 +491,8 @@ export default function ChatPanel({
                     onTyping={broadcastTyping}
                     replyingTo={replyingTo}
                     onCancelReply={() => { setReplyingTo(null); setReplyingToId(null) }}
-                    placeholder={editingMsg ? `Modifica: ${editingMsg.text || ''}` : 'Scrivi un messaggio...'}
+                    editText={editingMsg ? (editingMsg.text ?? '') : undefined}
+                    onCancelEdit={() => setEditingMsg(null)}
                 />
             )}
 

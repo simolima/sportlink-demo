@@ -11,7 +11,6 @@ import MultiForwardBar from './MultiForwardBar'
 import { ArrowDown } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase-browser'
-import { playNotificationSound, getSoundVariant } from '@/lib/notification-sound'
 import SprintaLoader from '@/components/ui/SprintaLoader'
 
 interface Props {
@@ -124,13 +123,32 @@ export default function GroupChatPanel({
                 const senderName = profile
                     ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
                     : 'Utente'
+
+                // Resolve reply reference if present
+                let replyTo: GroupMessage['replyTo'] = undefined
+                if (raw.reply_to_id) {
+                    const { data: replyRow } = await supabase
+                        .from('group_messages')
+                        .select('id, content, is_deleted_for_all, sender_id, sender:sender_id(first_name, last_name)')
+                        .eq('id', raw.reply_to_id)
+                        .single()
+                    if (replyRow) {
+                        const s = replyRow.sender as any
+                        replyTo = {
+                            id: replyRow.id,
+                            senderName: s ? `${s.first_name || ''} ${s.last_name || ''}`.trim() : 'Utente',
+                            text: replyRow.is_deleted_for_all ? null : replyRow.content,
+                        }
+                    }
+                }
+
                 const incoming: GroupMessage = {
                     id: raw.id, groupId: raw.group_id, senderId: raw.sender_id, senderName,
                     text: raw.content, timestamp: raw.created_at,
                     isDeletedForAll: false, forwardedFrom: raw.is_forwarded || !!raw.forwarded_from_id, reactions: [],
+                    replyTo,
                 }
                 setMessages(prev => prev.some(m => String(m.id) === String(incoming.id)) ? prev : [...prev, incoming])
-                playNotificationSound(getSoundVariant('message_received'))
                 // Mark as read
                 getAuthHeaders().then(headers => {
                     fetch(`/api/groups/${groupId}/reads`, {

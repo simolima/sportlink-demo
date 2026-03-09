@@ -23,9 +23,12 @@ interface Props {
     placeholder?: string
     replyingTo?: ReplyingTo | null
     onCancelReply?: () => void
+    /** Pre-fills textarea when entering edit mode */
+    editText?: string | null
+    onCancelEdit?: () => void
 }
 
-export default function MessageInput({ onSend, onTyping, disabled = false, placeholder = 'Scrivi un messaggio...', replyingTo, onCancelReply }: Props) {
+export default function MessageInput({ onSend, onTyping, disabled = false, placeholder = 'Scrivi un messaggio...', replyingTo, onCancelReply, editText, onCancelEdit }: Props) {
     const [text, setText] = useState('')
     const [sending, setSending] = useState(false)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -50,6 +53,20 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`
         }
     }, [text])
+
+    // Seed text when edit mode activates
+    useEffect(() => {
+        if (editText != null) {
+            setText(editText)
+            // Move cursor to end
+            setTimeout(() => {
+                const ta = textareaRef.current
+                if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length) }
+            }, 0)
+        } else {
+            // Exiting edit mode — clear text only if it was an edit
+        }
+    }, [editText])
 
     // Focus textarea when replying changes
     useEffect(() => {
@@ -98,12 +115,13 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
         try {
             await onSend(trimmed)
             setText('')
-            // Reset height
+            // Reset height and re-focus so user can type immediately
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto'
             }
         } finally {
             setSending(false)
+            textareaRef.current?.focus()
         }
     }
 
@@ -112,13 +130,30 @@ export default function MessageInput({ onSend, onTyping, disabled = false, place
             e.preventDefault()
             handleSend()
         }
-        if (e.key === 'Escape' && replyingTo) {
-            onCancelReply?.()
+        if (e.key === 'Escape') {
+            if (editText != null) { onCancelEdit?.(); setText(''); return }
+            if (replyingTo) onCancelReply?.()
         }
     }
 
     return (
         <div className="border-t border-base-300/70 bg-base-200/55">
+            {/* Edit mode banner */}
+            {editText != null && (
+                <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                    <div className="flex-1 border-l-2 border-warning bg-warning/5 rounded-r-lg px-3 py-1.5 min-w-0">
+                        <p className="text-xs font-semibold text-warning">Modifica messaggio</p>
+                    </div>
+                    <button
+                        onClick={() => { onCancelEdit?.(); setText('') }}
+                        className="btn btn-ghost btn-xs btn-square flex-shrink-0"
+                        aria-label="Annulla modifica"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+            )}
+
             {/* Reply preview banner */}
             {replyingTo && (
                 <div className="flex items-center gap-2 px-4 pt-3 pb-1">

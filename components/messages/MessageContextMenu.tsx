@@ -50,15 +50,15 @@ export default function MessageContextMenu({
         const viewportHeight = window.innerHeight
         const viewportWidth = window.innerWidth
         const menuHeight = rect.height
-        
+
         // Decide if menu should go above or below the anchor
         const spaceBelow = viewportHeight - y
         const positionAbove = spaceBelow < menuHeight + 20
-        
+
         let finalTop = positionAbove ? y - menuHeight - 8 : y + 8
         let finalLeft = x
         let transformOrigin = positionAbove ? 'bottom center' : 'top center'
-        
+
         // Adjust left/right based on isMine and viewport width
         if (isMine) {
             // Own message (right side): menu appears to the left of anchor
@@ -71,11 +71,11 @@ export default function MessageContextMenu({
             if (finalLeft + rect.width > viewportWidth - 8) finalLeft = x - rect.width - 8  // fallback left if no space right
             transformOrigin = positionAbove ? 'bottom left' : 'top left'
         }
-        
+
         // Clamp to viewport
         finalLeft = Math.max(8, Math.min(finalLeft, viewportWidth - rect.width - 8))
         finalTop = Math.max(8, Math.min(finalTop, viewportHeight - menuHeight - 8))
-        
+
         setPosition({ top: finalTop, left: finalLeft, transformOrigin })
     }, [x, y, isMine])
 

@@ -169,6 +169,8 @@ export async function POST(req: Request) {
             return withCors(NextResponse.json({ error: 'invalid_receiver_id' }, { status: 400 }))
         }
 
+        const isForwarded = !!forwardFromId || !!body.isForwarded
+
         const { data: newMsg, error } = await supabaseServer
             .from('messages')
             .insert({
@@ -178,6 +180,7 @@ export async function POST(req: Request) {
                 is_read: false,
                 reply_to_id: replyToId,
                 forwarded_from_id: forwardFromId,
+                is_forwarded: isForwarded,
             })
             .select()
             .single()
@@ -335,7 +338,7 @@ function mapMessage(m: any, reactions?: any) {
         read: m.is_read,
         editedAt: m.edited_at ?? null,
         isDeletedForAll: m.is_deleted_for_all ?? false,
-        forwardedFrom: !!m.forwarded_from_id,
+        forwardedFrom: m.is_forwarded || !!m.forwarded_from_id,
         replyTo: replyRaw ? {
             id: replyRaw.id,
             senderName: replyRaw.reply_sender

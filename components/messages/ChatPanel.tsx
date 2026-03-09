@@ -1,11 +1,12 @@
 ﻿'use client'
 
 import { Message, ReactionType } from '@/lib/types'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ChatHeader from './ChatHeader'
 import MessageBubble, { BubbleMessage } from './MessageBubble'
 import MessageInput, { ReplyingTo } from './MessageInput'
 import ForwardMessageModal from './ForwardMessageModal'
+import MultiForwardBar from './MultiForwardBar'
 import { MessageSquare, ArrowDown } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase-browser'
@@ -52,6 +53,10 @@ export default function ChatPanel({
     const [replyingToId, setReplyingToId] = useState<string | null>(null)
     const [editingMsg, setEditingMsg] = useState<Message | null>(null)
     const [forwardMsg, setForwardMsg] = useState<BubbleMessage | null>(null)
+    // Multi-forward selection mode
+    const [selectionMode, setSelectionMode] = useState(false)
+    const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set())
+    const [multiForwardItems, setMultiForwardItems] = useState<{ id: string; text: string | null; isGroup: boolean }[] | null>(null)
 
     const bottomRef = useRef<HTMLDivElement>(null)
     const unreadRef = useRef<HTMLDivElement>(null)
@@ -104,8 +109,8 @@ export default function ChatPanel({
         fetchMessages()
     }, [peerId, currentUserId])
 
-    // Auto-scroll: instant on first load (to unread or bottom), smooth after
-    useEffect(() => {
+    // Auto-scroll: useLayoutEffect fires before paint — no visible scroll jump
+    useLayoutEffect(() => {
         if (loading) return
         if (isFirstLoadRef.current) {
             isFirstLoadRef.current = false
@@ -400,6 +405,13 @@ export default function ChatPanel({
                                             senderName={peerName}
                                             senderAvatar={peerAvatar}
                                             currentUserId={currentUserId}
+                                            selectionMode={selectionMode}
+                                            isSelected={selectedMsgIds.has(String(msg.id))}
+                                            onToggleSelect={id => setSelectedMsgIds(prev => {
+                                                const next = new Set(prev)
+                                                next.has(id) ? next.delete(id) : next.add(id)
+                                                return next
+                                            })}
                                             onReply={m => {
                                                 setReplyingToId(String(m.id))
                                                 setReplyingTo({ senderName: peerName || 'Utente', text: m.text })
@@ -407,7 +419,11 @@ export default function ChatPanel({
                                             onEdit={m => setEditingMsg(m as Message)}
                                             onDeleteForAll={handleDeleteForAll}
                                             onDeleteForMe={handleDeleteForMe}
-                                            onForward={m => setForwardMsg(m)}
+                                            onForwardSingle={m => setForwardMsg(m)}
+                                            onStartMultiForward={m => {
+                                                setSelectionMode(true)
+                                                setSelectedMsgIds(new Set([String(m.id)]))
+                                            }}
                                             onReact={handleReact}
                                         />
                                     </div>
@@ -434,21 +450,51 @@ export default function ChatPanel({
             {sendError && (
                 <div className="px-4 py-2 bg-error/10 border-t border-error/30 text-error text-sm">{sendError}</div>
             )}
-            <MessageInput
-                onSend={editingMsg ? handleEditSend : handleSend}
-                onTyping={broadcastTyping}
-                replyingTo={replyingTo}
-                onCancelReply={() => { setReplyingTo(null); setReplyingToId(null) }}
-                placeholder={editingMsg ? `Modifica: ${editingMsg.text || ''}` : 'Scrivi un messaggio...'}
-            />
 
-            {/* Forward modal */}
+            {/* Multi-forward bar replaces input while in selection mode */}
+            {selectionMode ? (
+                <MultiForwardBar
+                    count={selectedMsgIds.size}
+                    onCancel={() => { setSelectionMode(false); setSelectedMsgIds(new Set()) }}
+                    onForward={() => {
+                        const msgsToForward = messages
+                            .filter(m => selectedMsgIds.has(String(m.id)))
+                            .map(m => ({ id: String(m.id), text: m.text, isGroup: false }))
+                        setForwardMsg(null)
+                        setSelectionMode(false)
+                        setSelectedMsgIds(new Set())
+                        // Open ForwardMessageModal with all selected messages
+                        setMultiForwardItems(msgsToForward)
+                    }}
+                />
+            ) : (
+                <MessageInput
+                    onSend={editingMsg ? handleEditSend : handleSend}
+                    onTyping={broadcastTyping}
+                    replyingTo={replyingTo}
+                    onCancelReply={() => { setReplyingTo(null); setReplyingToId(null) }}
+                    placeholder={editingMsg ? `Modifica: ${editingMsg.text || ''}` : 'Scrivi un messaggio...'}
+                />
+            )}
+
+            {/* Single forward modal */}
             {forwardMsg && (
                 <ForwardMessageModal
                     currentUserId={currentUserId}
                     message={{ id: String(forwardMsg.id), text: forwardMsg.text, isGroup: false }}
                     groups={groups}
                     onClose={() => setForwardMsg(null)}
+                />
+            )}
+
+            {/* Multi-forward modal */}
+            {multiForwardItems && multiForwardItems.length > 0 && (
+                <ForwardMessageModal
+                    currentUserId={currentUserId}
+                    message={multiForwardItems[0]}
+                    messages={multiForwardItems}
+                    groups={groups}
+                    onClose={() => setMultiForwardItems(null)}
                 />
             )}
         </div>

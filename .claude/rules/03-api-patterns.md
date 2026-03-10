@@ -167,7 +167,8 @@ export async function POST(req: Request) {
 - `/api/affiliations` POST — verifica `agentId`
 - `/api/affiliations` PUT — verifica JWT + ownership `player_id` (accept/reject solo dal player autenticato)
 - `/api/studios/[id]/reviews` POST — cliente attivo può creare la propria recensione
-- `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna rating/commento, owner modera `isPublished`
+- `/api/studios/[id]/reviews` POST — cliente attivo **oppure** utente con almeno un appuntamento `completed` nello studio può creare la propria recensione
+- `/api/studios/[id]/reviews/[reviewId]` PATCH — autore aggiorna `rating/title/comment` (reset `isVerified=false`), owner modera `isPublished`/`isVerified` e può gestire `ownerResponse`
 - `/api/users/roles` POST — creazione ruolo multi-profile autenticata (usa `authenticatedUserId` dal token)
 - `/api/users` PATCH — verifica che `userId` corrisponda al token
 - `/api/follows` POST/DELETE — verifica `followerId`

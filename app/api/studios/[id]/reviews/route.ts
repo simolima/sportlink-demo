@@ -35,6 +35,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             .from('studio_reviews')
             .select(`
                 id, studio_id, reviewer_profile_id, rating, title, comment, is_verified, is_published,
+                owner_response, owner_responded_at,
                 created_at, updated_at, deleted_at,
                 reviewer:profiles!reviewer_profile_id(
                     id, first_name, last_name, avatar_url
@@ -60,6 +61,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             comment: r.comment,
             isVerified: !!r.is_verified,
             isPublished: !!r.is_published,
+            ownerResponse: r.owner_response ?? undefined,
+            ownerRespondedAt: r.owner_responded_at ?? undefined,
             createdAt: r.created_at,
             updatedAt: r.updated_at,
             reviewer: r.reviewer ? {
@@ -106,7 +109,18 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             .is('deleted_at', null)
             .maybeSingle()
 
-        if (!activeClientLink) {
+        const { data: completedAppointment } = await supabase
+            .from('studio_appointments')
+            .select('id')
+            .eq('studio_id', params.id)
+            .eq('client_id', authenticatedUserId)
+            .eq('status', 'completed')
+            .is('deleted_at', null)
+            .maybeSingle()
+
+        const canReview = !!activeClientLink || !!completedAppointment
+
+        if (!canReview) {
             return withCors(NextResponse.json({ error: 'forbidden_not_active_client' }, { status: 403 }))
         }
 

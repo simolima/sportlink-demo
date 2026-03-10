@@ -1,17 +1,15 @@
 import { BuildingOffice2Icon, MapPinIcon, PhoneIcon, GlobeAltIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import type { ProfessionalStudio } from '@/lib/types'
-import type { PublicStudioMockData } from '@/lib/studio-mock-data'
 
 interface Props {
     studio: ProfessionalStudio
-    mockData: PublicStudioMockData | null
     onBookingClick: () => void
     onCallClick?: () => void
     isAuthenticated: boolean
 }
 
-export default function StudioPublicHero({ studio, mockData, onBookingClick, onCallClick, isAuthenticated }: Props) {
+export default function StudioPublicHero({ studio, onBookingClick, onCallClick, isAuthenticated }: Props) {
     const roleLabels = {
         physio: 'Fisioterapista',
         nutritionist: 'Nutrizionista',
@@ -49,15 +47,19 @@ export default function StudioPublicHero({ studio, mockData, onBookingClick, onC
                         )}
 
                         {/* Badge esperienza e lingue */}
-                        {mockData && (
+                        {(studio.yearsOfExperience !== undefined || studio.languages?.length || studio.workModes?.length) && (
                             <div className="flex flex-wrap gap-3 mb-6">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-primary rounded-full text-sm font-medium border border-primary/20">
-                                    🎯 {mockData.yearsOfExperience} anni di esperienza
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-base-content rounded-full text-sm font-medium border border-base-300">
-                                    🌍 {mockData.languages.join(', ')}
-                                </span>
-                                {mockData.workModes.includes('remote') && (
+                                {studio.yearsOfExperience !== undefined && (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-primary rounded-full text-sm font-medium border border-primary/20">
+                                        🎯 {studio.yearsOfExperience} anni di esperienza
+                                    </span>
+                                )}
+                                {studio.languages && studio.languages.length > 0 && (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-base-content rounded-full text-sm font-medium border border-base-300">
+                                        🌍 {studio.languages.join(', ')}
+                                    </span>
+                                )}
+                                {studio.workModes?.includes('remote') && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-base-200 text-base-content rounded-full text-sm font-medium border border-base-300">
                                         💻 Consulenze online
                                     </span>

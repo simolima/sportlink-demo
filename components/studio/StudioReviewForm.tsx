@@ -43,26 +43,29 @@ export default function StudioReviewForm({ studioId, onSuccess }: StudioReviewFo
             }
 
             try {
-                // Check if user is active client
+                // Eligible if user has at least one completed appointment in this studio.
                 const authHeaders = await getAuthHeaders()
-                const clientsRes = await fetch(`/api/studios/${studioId}/clients`, {
+                const appointmentsRes = await fetch(`/api/studios/${studioId}/appointments`, {
                     credentials: 'include',
                     headers: authHeaders,
                 })
 
-                if (clientsRes.ok) {
-                    const clients = await clientsRes.json()
-                    const isActive = clients.some(
-                        (client: any) => client.clientProfileId === user.id && client.status === 'active'
+                if (appointmentsRes.ok) {
+                    const appointments = await appointmentsRes.json()
+                    const hasCompletedAppointment = appointments.some(
+                        (appointment: any) => appointment.clientId === user.id && appointment.status === 'completed'
                     )
-                    setIsActiveClient(isActive)
+                    setIsActiveClient(hasCompletedAppointment)
                 }
 
                 // Check if user already has a review
-                const reviewsRes = await fetch(`/api/studios/${studioId}/reviews`)
+                const reviewsRes = await fetch(`/api/studios/${studioId}/reviews`, {
+                    credentials: 'include',
+                    headers: authHeaders,
+                })
                 if (reviewsRes.ok) {
                     const reviews = await reviewsRes.json()
-                    const hasReview = reviews.some((review: any) => review.reviewerProfile.id === user.id)
+                    const hasReview = reviews.some((review: any) => String(review.reviewerProfileId) === String(user.id))
                     setHasExistingReview(hasReview)
                 }
             } catch (error) {
@@ -145,7 +148,7 @@ export default function StudioReviewForm({ studioId, onSuccess }: StudioReviewFo
         return (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
                 <p className="text-red-800">
-                    ⚠️ <strong>Solo i clienti attivi</strong> possono lasciare una recensione per questo studio.
+                    ⚠️ Puoi lasciare una recensione dopo aver completato almeno un appuntamento in questo studio.
                 </p>
             </div>
         )

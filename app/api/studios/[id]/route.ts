@@ -11,6 +11,9 @@ export async function OPTIONS() {
 // GET /api/studios/[id] — dettaglio studio
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
+        // Auth opzionale: se owner, vede anche le recensioni non pubblicate
+        const authenticatedUserId = await getUserIdFromAuthToken(req)
+
         const { data, error } = await supabase
             .from('professional_studios')
             .select(`
@@ -20,6 +23,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 ),
                 reviews:studio_reviews(
                     id, studio_id, reviewer_profile_id, rating, title, comment, is_verified, is_published,
+                    owner_response, owner_responded_at,
                     created_at, updated_at, deleted_at,
                     reviewer:profiles!reviewer_profile_id(
                         id, first_name, last_name, avatar_url
@@ -40,8 +44,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             return withCors(NextResponse.json({ error: 'studio not found' }, { status: 404 }))
         }
 
+        const isOwner = authenticatedUserId && String(authenticatedUserId) === String(data.owner_id)
+
         const reviews = (data.reviews || [])
-            .filter((r: any) => !r.deleted_at && r.is_published)
+            .filter((r: any) => {
+                if (r.deleted_at) return false
+                if (isOwner) return true
+                return r.is_published || String(r.reviewer_profile_id) === String(authenticatedUserId)
+            })
             .map((r: any) => ({
                 id: r.id,
                 studioId: r.studio_id,
@@ -51,6 +61,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 comment: r.comment,
                 isVerified: !!r.is_verified,
                 isPublished: !!r.is_published,
+                ownerResponse: r.owner_response ?? undefined,
+                ownerRespondedAt: r.owner_responded_at ?? undefined,
                 createdAt: r.created_at,
                 updatedAt: r.updated_at,
                 deletedAt: r.deleted_at,

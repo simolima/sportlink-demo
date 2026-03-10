@@ -1,16 +1,21 @@
 "use client"
 import { useState } from 'react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
-import type { PublicStudioMockData } from '@/lib/studio-mock-data'
 
-interface Props {
-    mockData: PublicStudioMockData
+interface FAQ {
+    id: string
+    question: string
+    answer: string
 }
 
-export default function StudioFaqSection({ mockData }: Props) {
+interface Props {
+    faqs: FAQ[]
+}
+
+export default function StudioFaqSection({ faqs }: Props) {
     const [openIndex, setOpenIndex] = useState<number | null>(null)
 
-    if (mockData.faq.length === 0) return null
+    if (!faqs || faqs.length === 0) return null
 
     return (
         <section className="py-16 bg-base-100">
@@ -19,9 +24,9 @@ export default function StudioFaqSection({ mockData }: Props) {
                 <div className="w-16 h-1 bg-brand-600 rounded-full mb-12 mx-auto" />
 
                 <div className="space-y-4">
-                    {mockData.faq.map((item, idx) => (
+                    {faqs.map((item, idx) => (
                         <div
-                            key={idx}
+                            key={item.id}
                             className="border border-base-300 rounded-xl overflow-hidden bg-base-100 hover:border-primary/40 transition-colors"
                         >
                             <button

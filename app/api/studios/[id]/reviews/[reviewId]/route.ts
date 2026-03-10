@@ -50,6 +50,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
 
         const body = await req.json()
         const updates: Record<string, any> = {}
+        let reviewerEdited = false
 
         // Reviewer fields
         if (isReviewer) {
@@ -59,11 +60,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
                     return withCors(NextResponse.json({ error: 'rating_must_be_integer_between_1_and_5' }, { status: 400 }))
                 }
                 updates.rating = rating
+                reviewerEdited = true
             }
 
             if (body.title !== undefined) {
                 const title = body.title?.toString?.()?.trim() || null
                 updates.title = title
+                reviewerEdited = true
             }
 
             if (body.comment !== undefined) {
@@ -72,6 +75,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
                     return withCors(NextResponse.json({ error: 'comment_required' }, { status: 400 }))
                 }
                 updates.comment = comment
+                reviewerEdited = true
+            }
+
+            if (reviewerEdited) {
+                updates.is_verified = false
             }
         }
 
@@ -82,6 +90,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
             }
             if (body.isVerified !== undefined) {
                 updates.is_verified = !!body.isVerified
+            }
+            if (body.ownerResponse !== undefined) {
+                const normalizedResponse = body.ownerResponse?.toString?.()?.trim() || ''
+                if (normalizedResponse.length > 500) {
+                    return withCors(NextResponse.json({ error: 'owner_response_too_long_max_500' }, { status: 400 }))
+                }
+
+                updates.owner_response = normalizedResponse || null
+                updates.owner_responded_at = normalizedResponse ? new Date().toISOString() : null
             }
         }
 
@@ -108,6 +125,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
             comment: updated.comment,
             isVerified: updated.is_verified,
             isPublished: updated.is_published,
+            ownerResponse: updated.owner_response ?? undefined,
+            ownerRespondedAt: updated.owner_responded_at ?? undefined,
             createdAt: updated.created_at,
             updatedAt: updated.updated_at,
         }))

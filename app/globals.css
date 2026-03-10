@@ -177,7 +177,8 @@ small {
 }
 
 /* Button styles */
-.btn-primary {
+/* Keep custom filled primary style only for non-outline buttons. */
+.btn-primary:not(.btn-outline) {
     background: var(--blue);
     color: var(--white);
     border: none;
@@ -188,7 +189,7 @@ small {
     transition: background 0.2s ease;
 }
 
-.btn-primary:hover {
+.btn-primary:not(.btn-outline):hover {
     background: var(--blue-hover);
 }
 

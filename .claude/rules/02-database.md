@@ -208,6 +208,7 @@ studio_reviews        — Recensioni clienti verso studio (nuovo, Marzo 2026)
   ├── id (UUID), studio_id FK, reviewer_profile_id FK
   ├── rating (1..5), title, comment
   ├── is_verified, is_published
+  ├── owner_response (text, nullable), owner_responded_at (timestamptz, nullable)  ← Marzo 2026
   └── deleted_at, created_at, updated_at
 
 studio_specializations — Specializzazioni pubbliche mostrabili nella pagina studio (nuovo)

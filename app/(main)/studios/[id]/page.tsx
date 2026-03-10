@@ -4,11 +4,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PencilSquareIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { MEDICAL_ROLES, type MedicalRole, type ProfessionalStudio } from '@/lib/types'
+import { type ProfessionalStudio } from '@/lib/types'
 import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import { useToast } from '@/lib/toast-context'
-import { getStudioMockDataByRole } from '@/lib/studio-mock-data'
 import StudioPublicHero from '@/components/studio-public/StudioPublicHero'
 import StudioTrustBar from '@/components/studio-public/StudioTrustBar'
 import StudioAboutSection from '@/components/studio-public/StudioAboutSection'
@@ -62,14 +61,20 @@ export default function StudioDetailPage() {
     const [firstAvailableLabel, setFirstAvailableLabel] = useState('')
 
     useEffect(() => {
-        fetch(`/api/studios/${studioId}`)
-            .then(r => r.json())
-            .then(data => {
+        const loadStudio = async () => {
+            try {
+                const authHeaders = await getAuthHeaders()
+                const r = await fetch(`/api/studios/${studioId}`, { headers: authHeaders })
+                const data = await r.json()
                 if (data.error) { router.replace('/studios'); return }
                 setStudio(data)
-            })
-            .catch(() => router.replace('/studios'))
-            .finally(() => setLoading(false))
+            } catch {
+                router.replace('/studios')
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadStudio()
     }, [studioId, router])
 
     const isOwner = user && studio && String(user.id) === String(studio.ownerId)
@@ -190,46 +195,6 @@ export default function StudioDetailPage() {
 
     if (!studio) return null
 
-    const roleLower = studio.owner?.roleId?.toLowerCase() as MedicalRole | undefined
-    const baseMockData = roleLower && MEDICAL_ROLES.includes(roleLower)
-        ? getStudioMockDataByRole(roleLower)
-        : null
-
-    // Progressively replace mock content with real DB content when available.
-    const mergedMockData = baseMockData ? {
-        ...baseMockData,
-        // Professional profile fields from DB (with fallback to mock)
-        yearsOfExperience: studio.yearsOfExperience ?? baseMockData.yearsOfExperience,
-        languages: (studio.languages && studio.languages.length > 0) ? studio.languages : baseMockData.languages,
-        workModes: (studio.workModes && studio.workModes.length > 0) ? studio.workModes : baseMockData.workModes,
-        certifications: (studio.certifications && studio.certifications.length > 0) ? studio.certifications : baseMockData.certifications,
-        methodology: studio.methodology || baseMockData.methodology,
-        // Dynamic content from DB (with fallback to mock)
-        reviews: (studio.reviews && studio.reviews.length > 0)
-            ? studio.reviews.map(r => ({
-                id: r.id,
-                clientName: r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : 'Cliente verificato',
-                rating: r.rating,
-                text: r.comment,
-                date: r.createdAt,
-                verified: r.isVerified,
-            }))
-            : baseMockData.reviews,
-        specializations: (studio.specializations && studio.specializations.length > 0)
-            ? studio.specializations.map(s => ({
-                name: s.name,
-                description: s.description || '',
-                icon: s.icon || '⭐',
-            }))
-            : baseMockData.specializations,
-        faq: (studio.faqs && studio.faqs.length > 0)
-            ? studio.faqs.map(f => ({
-                question: f.question,
-                answer: f.answer,
-            }))
-            : baseMockData.faq,
-    } : null
-
     return (
         <div className="glass-page-bg min-h-screen">
             {/* Admin controls sticky bar */}
@@ -260,53 +225,74 @@ export default function StudioDetailPage() {
             {/* Hero Section */}
             <StudioPublicHero
                 studio={studio}
-                mockData={mergedMockData}
                 onBookingClick={openBookingModal}
                 onCallClick={studio.phone ? () => window.location.href = `tel:${studio.phone}` : undefined}
                 isAuthenticated={!!user}
             />
 
             {/* Trust Bar */}
-            {mergedMockData && <StudioTrustBar mockData={mergedMockData} />}
+            <StudioTrustBar
+                yearsOfExperience={studio.yearsOfExperience}
+                languages={studio.languages}
+                workModes={studio.workModes}
+                reviews={studio.reviews}
+            />
 
             {/* About Section */}
             <StudioAboutSection studio={studio} />
 
             {/* Specializations Grid */}
-            {mergedMockData && <StudioSpecializations mockData={mergedMockData} />}
+            {studio.specializations && studio.specializations.length > 0 && (
+                <StudioSpecializations specializations={studio.specializations} />
+            )}
 
             {/* Services Section */}
             <StudioServicesSection studio={studio} />
 
             {/* Methodology Section */}
-            {mergedMockData && <StudioMethodology mockData={mergedMockData} />}
+            {studio.methodology && (
+                <StudioMethodology
+                    methodology={studio.methodology}
+                    certifications={studio.certifications}
+                />
+            )}
 
             {/* Reviews Section */}
-            {mergedMockData && (
-                <div className="bg-white py-16">
-                    <div className="max-w-6xl mx-auto px-4 space-y-12">
-                        <StudioReviewsSection mockData={mergedMockData} />
-                        <StudioReviewForm
+            <div className="bg-white py-16">
+                <div className="max-w-6xl mx-auto px-4 space-y-12">
+                    {studio.reviews && studio.reviews.length > 0 && (
+                        <StudioReviewsSection
                             studioId={studioId}
-                            onSuccess={() => {
-                                // Reload studio data to refresh reviews
-                                fetch(`/api/studios/${studioId}`)
+                            reviews={studio.reviews}
+                            onUpdated={async () => {
+                                const authHeaders = await getAuthHeaders()
+                                fetch(`/api/studios/${studioId}`, { headers: authHeaders })
                                     .then(r => r.json())
-                                    .then(data => {
-                                        if (!data.error) setStudio(data)
-                                    })
+                                    .then(data => { if (!data.error) setStudio(data) })
                                     .catch(() => { })
                             }}
                         />
-                    </div>
+                    )}
+                    <StudioReviewForm
+                        studioId={studioId}
+                        onSuccess={async () => {
+                            const authHeaders = await getAuthHeaders()
+                            fetch(`/api/studios/${studioId}`, { headers: authHeaders })
+                                .then(r => r.json())
+                                .then(data => { if (!data.error) setStudio(data) })
+                                .catch(() => { })
+                        }}
+                    />
                 </div>
-            )}
+            </div>
 
             {/* Location & Contact */}
             <StudioLocationContact studio={studio} />
 
             {/* FAQ Section */}
-            {mergedMockData && <StudioFaqSection mockData={mergedMockData} />}
+            {studio.faqs && studio.faqs.length > 0 && (
+                <StudioFaqSection faqs={studio.faqs} />
+            )}
 
             {/* Final CTA */}
             <StudioFinalCta onBookingClick={openBookingModal} />

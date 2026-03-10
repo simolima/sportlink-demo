@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 
@@ -11,13 +11,32 @@ type Review = {
     comment: string | null
     isVerified: boolean
     isPublished: boolean
+    ownerResponse?: string
+    ownerRespondedAt?: string
     createdAt: string
-    reviewerProfile: {
+    reviewer?: {
         id: string
         firstName: string
         lastName: string
         avatarUrl: string | null
     }
+    reviewerProfile?: {
+        id: string
+        firstName: string
+        lastName: string
+        avatarUrl: string | null
+    }
+}
+
+const REVIEW_FILTERS = ['all', 'published', 'hidden', 'verified', 'to_verify'] as const
+type ReviewFilter = (typeof REVIEW_FILTERS)[number]
+
+const FILTER_LABELS: Record<ReviewFilter, string> = {
+    all: 'Tutte',
+    published: 'Pubblicate',
+    hidden: 'Nascoste',
+    verified: 'Verificate',
+    to_verify: 'Da verificare',
 }
 
 function StarIcon({ filled }: { filled: boolean }) {
@@ -39,6 +58,10 @@ export default function StudioDashboardReviewsPage() {
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
+    const [filter, setFilter] = useState<ReviewFilter>('all')
+    const [editingResponseReviewId, setEditingResponseReviewId] = useState<string | null>(null)
+    const [responseDraft, setResponseDraft] = useState('')
+    const [savingResponseReviewId, setSavingResponseReviewId] = useState<string | null>(null)
 
     useEffect(() => {
         async function loadReviews() {
@@ -55,6 +78,14 @@ export default function StudioDashboardReviewsPage() {
 
         loadReviews()
     }, [studioId])
+
+    const visibleReviews = useMemo(() => {
+        if (filter === 'all') return reviews
+        if (filter === 'published') return reviews.filter((review) => review.isPublished)
+        if (filter === 'hidden') return reviews.filter((review) => !review.isPublished)
+        if (filter === 'verified') return reviews.filter((review) => review.isVerified)
+        return reviews.filter((review) => !review.isVerified)
+    }, [reviews, filter])
 
     const handleTogglePublished = async (reviewId: string, currentValue: boolean) => {
         const authHeaders = await getAuthHeaders()
@@ -121,63 +152,227 @@ export default function StudioDashboardReviewsPage() {
         }
     }
 
+    const startResponseEditing = (review: Review) => {
+        setEditingResponseReviewId(review.id)
+        setResponseDraft(review.ownerResponse || '')
+        setMessage('')
+    }
+
+    const handleSaveOwnerResponse = async (reviewId: string) => {
+        const trimmed = responseDraft.trim()
+        if (trimmed.length > 500) {
+            setMessage('La risposta dello studio non puo superare i 500 caratteri')
+            return
+        }
+
+        setSavingResponseReviewId(reviewId)
+        setMessage('')
+        try {
+            const authHeaders = await getAuthHeaders()
+            const res = await fetch(`/api/studios/${studioId}/reviews/${reviewId}`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders,
+                },
+                body: JSON.stringify({ ownerResponse: trimmed || null }),
+            })
+
+            const data = await res.json()
+            if (!res.ok) {
+                setMessage(data.error || 'Impossibile salvare la risposta')
+                return
+            }
+
+            setReviews((prev) => prev.map((review) => (
+                review.id === reviewId
+                    ? {
+                        ...review,
+                        ownerResponse: data.ownerResponse,
+                        ownerRespondedAt: data.ownerRespondedAt,
+                    }
+                    : review
+            )))
+            setEditingResponseReviewId(null)
+            setResponseDraft('')
+            setMessage(trimmed ? 'Risposta dello studio salvata' : 'Risposta dello studio rimossa')
+        } finally {
+            setSavingResponseReviewId(null)
+        }
+    }
+
+    const countByFilter = (targetFilter: ReviewFilter) => {
+        if (targetFilter === 'all') return reviews.length
+        if (targetFilter === 'published') return reviews.filter((r) => r.isPublished).length
+        if (targetFilter === 'hidden') return reviews.filter((r) => !r.isPublished).length
+        if (targetFilter === 'verified') return reviews.filter((r) => r.isVerified).length
+        return reviews.filter((r) => !r.isVerified).length
+    }
+
+    const filterDescription = () => {
+        if (filter === 'all') return 'Mostra tutte le recensioni'
+        if (filter === 'published') return 'Mostra solo recensioni pubblicate'
+        if (filter === 'hidden') return 'Mostra solo recensioni nascoste'
+        if (filter === 'verified') return 'Mostra solo recensioni verificate'
+        return 'Mostra solo recensioni da verificare'
+    }
+
     if (loading) {
-        return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">Caricamento recensioni...</div>
+        return <div className="glass-widget rounded-2xl p-6">Caricamento recensioni...</div>
     }
 
     return (
-        <section className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="space-y-5 glass-widget rounded-2xl p-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Recensioni</h1>
-                <p className="mt-1 text-sm text-gray-600">Modera le recensioni lasciate dai clienti.</p>
+                <h1 className="text-2xl font-bold text-base-content">Recensioni</h1>
+                <p className="mt-1 text-sm text-secondary">Modera le recensioni lasciate dai clienti.</p>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                    {REVIEW_FILTERS.map((item) => (
+                        <button
+                            key={item}
+                            type="button"
+                            className={`btn btn-sm ${filter === item ? 'btn-primary' : 'btn-ghost'}`}
+                            onClick={() => setFilter(item)}
+                        >
+                            {FILTER_LABELS[item]} ({countByFilter(item)})
+                        </button>
+                    ))}
+                </div>
+                <p className="text-xs text-secondary">{filterDescription()}</p>
             </div>
 
             {reviews.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-600">
+                <div className="rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center text-secondary">
                     Nessuna recensione.
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {reviews.map((review) => (
-                        <div key={review.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                            <div className="flex items-start gap-4">
-                                <img
-                                    src={review.reviewerProfile.avatarUrl || '/avatars/default-avatar.jpg'}
-                                    alt={`${review.reviewerProfile.firstName} ${review.reviewerProfile.lastName}`}
-                                    className="h-12 w-12 rounded-full object-cover"
-                                />
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-semibold text-gray-900">
-                                            {review.reviewerProfile.firstName} {review.reviewerProfile.lastName}
-                                        </span>
-                                        {review.isVerified && (
-                                            <span className="badge badge-sm badge-success">✓ Verificata</span>
-                                        )}
-                                        {!review.isPublished && (
-                                            <span className="badge badge-sm badge-warning">Nascosta</span>
-                                        )}
+                    {visibleReviews.length === 0 && (
+                        <div className="rounded-lg border border-base-300 bg-base-100 p-4 text-sm text-secondary">
+                            Nessuna recensione corrisponde ai filtri selezionati.
+                        </div>
+                    )}
+
+                    {visibleReviews.map((review) => (
+                        <div key={review.id} className="rounded-xl border border-base-300 bg-base-100 p-4">
+                            {(() => {
+                                const reviewer = review.reviewer ?? review.reviewerProfile
+                                const avatarUrl = reviewer?.avatarUrl || '/avatars/default-avatar.jpg'
+                                const reviewerName = reviewer
+                                    ? `${reviewer.firstName} ${reviewer.lastName}`
+                                    : 'Cliente verificato'
+
+                                return (
+                                    <div className="flex items-start gap-4">
+                                        <img
+                                            src={avatarUrl}
+                                            alt={reviewerName}
+                                            className="h-12 w-12 rounded-full object-cover"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-semibold text-base-content">
+                                                    {reviewerName}
+                                                </span>
+                                                {review.isVerified && (
+                                                    <span className="badge badge-sm badge-success">✓ Verificata</span>
+                                                )}
+                                                {!review.isPublished && (
+                                                    <span className="badge badge-sm badge-warning">Nascosta</span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1 mb-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <StarIcon key={star} filled={star <= review.rating} />
+                                                ))}
+                                            </div>
+                                            {review.title && (
+                                                <div className="font-semibold text-base-content mb-1">{review.title}</div>
+                                            )}
+                                            {review.comment && (
+                                                <div className="text-sm text-secondary mb-2">{review.comment}</div>
+                                            )}
+                                            <div className="text-xs text-secondary">
+                                                {new Date(review.createdAt).toLocaleDateString('it-IT', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric',
+                                                })}
+                                            </div>
+
+                                            {review.ownerResponse && (
+                                                <div className="mt-3 rounded-lg border border-brand-200 bg-brand-50/40 p-3">
+                                                    <p className="text-xs font-semibold text-primary">Risposta dello studio</p>
+                                                    <p className="mt-1 text-sm text-base-content">{review.ownerResponse}</p>
+                                                    {review.ownerRespondedAt && (
+                                                        <p className="mt-1 text-xs text-secondary">
+                                                            Aggiornata il {new Date(review.ownerRespondedAt).toLocaleDateString('it-IT', {
+                                                                day: 'numeric',
+                                                                month: 'long',
+                                                                year: 'numeric',
+                                                            })}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1 mb-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <StarIcon key={star} filled={star <= review.rating} />
-                                        ))}
-                                    </div>
-                                    {review.title && (
-                                        <div className="font-semibold text-gray-800 mb-1">{review.title}</div>
-                                    )}
-                                    {review.comment && (
-                                        <div className="text-sm text-gray-600 mb-2">{review.comment}</div>
-                                    )}
-                                    <div className="text-xs text-gray-500">
-                                        {new Date(review.createdAt).toLocaleDateString('it-IT', {
-                                            day: 'numeric',
-                                            month: 'long',
-                                            year: 'numeric',
-                                        })}
+                                )
+                            })()}
+
+                            {editingResponseReviewId === review.id ? (
+                                <div className="mt-4 rounded-lg border border-base-300 bg-base-200 p-3">
+                                    <label className="block text-xs font-medium text-secondary mb-2">
+                                        Risposta dello studio (max 500 caratteri)
+                                    </label>
+                                    <textarea
+                                        value={responseDraft}
+                                        onChange={(e) => setResponseDraft(e.target.value)}
+                                        className="textarea textarea-bordered w-full"
+                                        rows={3}
+                                        maxLength={500}
+                                        placeholder="Scrivi una risposta professionale alla recensione"
+                                    />
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <span className="text-xs text-secondary">{responseDraft.length}/500</span>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-primary"
+                                                onClick={() => handleSaveOwnerResponse(review.id)}
+                                                disabled={savingResponseReviewId === review.id}
+                                            >
+                                                {savingResponseReviewId === review.id ? 'Salvataggio...' : 'Salva risposta'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-ghost"
+                                                onClick={() => {
+                                                    setEditingResponseReviewId(null)
+                                                    setResponseDraft('')
+                                                }}
+                                                disabled={savingResponseReviewId === review.id}
+                                            >
+                                                Annulla
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="mt-3">
+                                    <button
+                                        type="button"
+                                        className="btn btn-xs btn-ghost"
+                                        onClick={() => startResponseEditing(review)}
+                                    >
+                                        {review.ownerResponse ? 'Modifica risposta' : 'Aggiungi risposta'}
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Moderation Actions */}
                             <div className="mt-4 flex flex-wrap gap-2">
@@ -186,21 +381,21 @@ export default function StudioDashboardReviewsPage() {
                                     className={`btn btn-sm ${review.isPublished ? 'btn-warning' : 'btn-success'}`}
                                     onClick={() => handleTogglePublished(review.id, review.isPublished)}
                                 >
-                                    {review.isPublished ? '👁️ Nascondi' : '👁️ Pubblica'}
+                                    {review.isPublished ? 'Nascondi' : 'Pubblica'}
                                 </button>
                                 <button
                                     type="button"
                                     className={`btn btn-sm ${review.isVerified ? 'btn-outline' : 'btn-info'}`}
                                     onClick={() => handleToggleVerified(review.id, review.isVerified)}
                                 >
-                                    {review.isVerified ? '✓ Verificata' : '✓ Verifica'}
+                                    {review.isVerified ? 'Verificata' : 'Verifica'}
                                 </button>
                                 <button
                                     type="button"
                                     className="btn btn-sm btn-error btn-outline"
                                     onClick={() => handleDelete(review.id)}
                                 >
-                                    🗑️ Elimina
+                                    Elimina
                                 </button>
                             </div>
                         </div>
@@ -208,7 +403,7 @@ export default function StudioDashboardReviewsPage() {
                 </div>
             )}
 
-            {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
+            {message && <p className="text-sm text-secondary mt-4">{message}</p>}
         </section>
     )
 }

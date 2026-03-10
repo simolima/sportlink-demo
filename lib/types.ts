@@ -582,6 +582,8 @@ export type StudioReview = {
   comment: string;
   isVerified: boolean;
   isPublished: boolean;
+  ownerResponse?: string;
+  ownerRespondedAt?: string;
   createdAt: string;
   updatedAt?: string;
   deletedAt?: string;

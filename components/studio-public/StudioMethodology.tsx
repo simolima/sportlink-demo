@@ -4,7 +4,7 @@ interface Props {
 }
 
 export default function StudioMethodology({ methodology, certifications = [] }: Props) {
-    if (!methodology) return null
+    if (!methodology && certifications.length === 0) return null
 
     return (
         <section className="py-16 bg-base-100">
@@ -12,11 +12,13 @@ export default function StudioMethodology({ methodology, certifications = [] }: 
                 <h2 className="text-3xl font-bold text-base-content mb-2 text-center">Come Lavoro</h2>
                 <div className="w-16 h-1 bg-brand-600 rounded-full mb-12 mx-auto" />
 
-                <div className="glass-widget p-8 rounded-xl">
-                    <p className="text-secondary leading-relaxed whitespace-pre-line text-lg">
-                        {methodology}
-                    </p>
-                </div>
+                {methodology && (
+                    <div className="glass-widget p-8 rounded-xl">
+                        <p className="text-secondary leading-relaxed whitespace-pre-line text-lg">
+                            {methodology}
+                        </p>
+                    </div>
+                )}
 
                 {/* Certificazioni */}
                 {certifications && certifications.length > 0 && (

@@ -50,6 +50,36 @@ export default function StudioDashboardSettingsPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
+    const [newLanguage, setNewLanguage] = useState('')
+    const [newCertification, setNewCertification] = useState('')
+
+    const normalizeStringArray = (input: unknown): string[] => {
+        if (!Array.isArray(input)) return []
+        return input
+            .filter((item): item is string => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter(Boolean)
+    }
+
+    const addLanguage = () => {
+        const value = newLanguage.trim()
+        if (!value) return
+        setSettings((prev) => {
+            if (prev.languages.some((lang) => lang.toLowerCase() === value.toLowerCase())) return prev
+            return { ...prev, languages: [...prev.languages, value] }
+        })
+        setNewLanguage('')
+    }
+
+    const addCertification = () => {
+        const value = newCertification.trim()
+        if (!value) return
+        setSettings((prev) => {
+            if (prev.certifications.some((cert) => cert.toLowerCase() === value.toLowerCase())) return prev
+            return { ...prev, certifications: [...prev.certifications, value] }
+        })
+        setNewCertification('')
+    }
 
     useEffect(() => {
         async function loadSettings() {
@@ -72,9 +102,9 @@ export default function StudioDashboardSettingsPage() {
                 slotIncrementMinutes: (data.slotIncrementMinutes || 30) as 15 | 30 | 60,
                 defaultBufferBetweenAppointments: Number(data.defaultBufferBetweenAppointments || 5),
                 yearsOfExperience: data.yearsOfExperience ?? '',
-                languages: data.languages ?? [],
+                languages: normalizeStringArray(data.languages),
                 workModes: data.workModes ?? [],
-                certifications: data.certifications ?? [],
+                certifications: normalizeStringArray(data.certifications),
                 methodology: data.methodology ?? '',
             })
 
@@ -100,6 +130,8 @@ export default function StudioDashboardSettingsPage() {
                 },
                 body: JSON.stringify({
                     ...settings,
+                    languages: normalizeStringArray(settings.languages),
+                    certifications: normalizeStringArray(settings.certifications),
                     yearsOfExperience: settings.yearsOfExperience === '' ? null : Number(settings.yearsOfExperience),
                 }),
             })
@@ -293,13 +325,14 @@ export default function StudioDashboardSettingsPage() {
                     {/* Languages */}
                     <div className="form-control">
                         <span className="label-text mb-1 block text-sm text-gray-600">Lingue parlate</span>
-                        <div className="flex flex-wrap gap-2 mb-2">
+                        <div className="mb-2 flex flex-wrap gap-2">
                             {settings.languages.map((lang, idx) => (
-                                <div key={idx} className="badge badge-lg badge-primary gap-2">
+                                <div key={idx} className="badge badge-lg badge-primary gap-2 pr-1 text-primary-content">
                                     {lang}
                                     <button
                                         type="button"
-                                        className="btn btn-circle btn-ghost btn-xs"
+                                        aria-label={`Rimuovi lingua ${lang}`}
+                                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary-content/40 text-xs text-primary-content transition hover:bg-primary-content/20"
                                         onClick={() => {
                                             setSettings((prev) => ({
                                                 ...prev,
@@ -312,26 +345,25 @@ export default function StudioDashboardSettingsPage() {
                                 </div>
                             ))}
                         </div>
+                        {settings.languages.length === 0 && <p className="mb-2 text-xs text-gray-500">Nessuna lingua inserita.</p>}
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 className="input input-bordered bg-white flex-1"
                                 placeholder="Es. Italiano"
-                                id="add-language-input"
+                                value={newLanguage}
+                                onChange={(e) => setNewLanguage(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault()
+                                        addLanguage()
+                                    }
+                                }}
                             />
                             <button
                                 type="button"
                                 className="btn btn-outline"
-                                onClick={() => {
-                                    const input = document.getElementById('add-language-input') as HTMLInputElement
-                                    if (input?.value.trim()) {
-                                        setSettings((prev) => ({
-                                            ...prev,
-                                            languages: [...prev.languages, input.value.trim()],
-                                        }))
-                                        input.value = ''
-                                    }
-                                }}
+                                onClick={addLanguage}
                             >
                                 Aggiungi
                             </button>
@@ -411,13 +443,14 @@ export default function StudioDashboardSettingsPage() {
                     {/* Certifications */}
                     <div className="form-control">
                         <span className="label-text mb-1 block text-sm text-gray-600">Certificazioni</span>
-                        <div className="flex flex-wrap gap-2 mb-2">
+                        <div className="mb-2 flex flex-wrap gap-2">
                             {settings.certifications.map((cert, idx) => (
                                 <div key={idx} className="badge badge-lg badge-outline gap-2">
                                     {cert}
                                     <button
                                         type="button"
-                                        className="btn btn-circle btn-ghost btn-xs"
+                                        aria-label={`Rimuovi certificazione ${cert}`}
+                                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-base-content/20 text-xs text-base-content transition hover:bg-base-300"
                                         onClick={() => {
                                             setSettings((prev) => ({
                                                 ...prev,
@@ -430,26 +463,25 @@ export default function StudioDashboardSettingsPage() {
                                 </div>
                             ))}
                         </div>
+                        {settings.certifications.length === 0 && <p className="mb-2 text-xs text-gray-500">Nessuna certificazione inserita.</p>}
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 className="input input-bordered bg-white flex-1"
                                 placeholder="Es. Certificazione nazionale"
-                                id="add-certification-input"
+                                value={newCertification}
+                                onChange={(e) => setNewCertification(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault()
+                                        addCertification()
+                                    }
+                                }}
                             />
                             <button
                                 type="button"
                                 className="btn btn-outline"
-                                onClick={() => {
-                                    const input = document.getElementById('add-certification-input') as HTMLInputElement
-                                    if (input?.value.trim()) {
-                                        setSettings((prev) => ({
-                                            ...prev,
-                                            certifications: [...prev.certifications, input.value.trim()],
-                                        }))
-                                        input.value = ''
-                                    }
-                                }}
+                                onClick={addCertification}
                             >
                                 Aggiungi
                             </button>

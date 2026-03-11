@@ -9,6 +9,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { DateSelectArg } from '@fullcalendar/core'
 import type { EventInput } from '@fullcalendar/core/index.js'
+import { DEFAULT_STUDIO_TIMEZONE } from '@/lib/date-timezone'
 
 type CalendarItem = {
     id: string
@@ -41,6 +42,7 @@ export default function StudioDashboardCalendarPage() {
     const [message, setMessage] = useState('')
     const [events, setEvents] = useState<CalendarEvent[]>([])
     const [eventsLoading, setEventsLoading] = useState(false)
+    const [studioTimezone, setStudioTimezone] = useState(DEFAULT_STUDIO_TIMEZONE)
 
     const loadCalendarEvents = async () => {
         setEventsLoading(true)
@@ -65,22 +67,33 @@ export default function StudioDashboardCalendarPage() {
     }
 
     useEffect(() => {
-        async function loadStatus() {
+        async function loadStatusAndTimezone() {
             const authHeaders = await getAuthHeaders()
-            const res = await fetch(`/api/studios/${studioId}/google-calendar`, {
-                credentials: 'include',
-                headers: authHeaders,
-            })
+            const [statusRes, studioRes] = await Promise.all([
+                fetch(`/api/studios/${studioId}/google-calendar`, {
+                    credentials: 'include',
+                    headers: authHeaders,
+                }),
+                fetch(`/api/studios/${studioId}`, {
+                    credentials: 'include',
+                    headers: authHeaders,
+                }),
+            ])
 
-            if (res.ok) {
-                const data = await res.json()
+            if (statusRes.ok) {
+                const data = await statusRes.json()
                 setStatus(data)
                 setSelectedCalendarId(data.selectedCalendar?.id || '')
+            }
+
+            if (studioRes.ok) {
+                const studioData = await studioRes.json()
+                setStudioTimezone(studioData.timezone || DEFAULT_STUDIO_TIMEZONE)
             }
             setLoading(false)
         }
 
-        loadStatus()
+        loadStatusAndTimezone()
         loadCalendarEvents()
     }, [studioId])
 
@@ -334,7 +347,10 @@ export default function StudioDashboardCalendarPage() {
                     <p className="text-sm text-secondary">
                         Vista unificata appuntamenti e impegni esterni. Seleziona uno slot per marcarlo come occupato personale.
                     </p>
-                    {eventsLoading && <span className="text-xs text-secondary">Aggiornamento...</span>}
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-secondary">Fuso: {studioTimezone}</span>
+                        {eventsLoading && <span className="text-xs text-secondary">Aggiornamento...</span>}
+                    </div>
                 </div>
 
                 <FullCalendar
@@ -352,6 +368,7 @@ export default function StudioDashboardCalendarPage() {
                         day: 'Giorno',
                     }}
                     locale="it"
+                    timeZone={studioTimezone}
                     selectable
                     selectMirror
                     select={handleCreateManualBlocker}

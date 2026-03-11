@@ -17,6 +17,7 @@ import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer } from '@/lib/supabase-server'
 import { computeAvailableSlots } from '@/lib/booking-engine'
+import { DEFAULT_STUDIO_TIMEZONE, getTodayInTimezone, getDateInTimezone } from '@/lib/date-timezone'
 
 export async function OPTIONS() {
     return handleOptions()
@@ -44,7 +45,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         // 2. Verify studio exists and booking is enabled
         const { data: studio, error: studioError } = await supabaseServer
             .from('professional_studios')
-            .select('booking_enabled')
+            .select('booking_enabled, timezone')
             .eq('id', studioId)
             .is('deleted_at', null)
             .single()
@@ -52,6 +53,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         if (studioError || !studio) {
             return withCors(NextResponse.json({ error: 'studio_not_found' }, { status: 404 }))
         }
+
+        const studioTimezone = studio.timezone || DEFAULT_STUDIO_TIMEZONE
 
         if (!studio.booking_enabled) {
             return withCors(
@@ -78,10 +81,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         const byDay: Record<string, any[]> = {}
         let firstAvailable: { date: string; slot: any } | null = null
 
+        const todayInStudioTz = getTodayInTimezone(studioTimezone)
+        const baseDate = new Date(`${todayInStudioTz}T00:00:00Z`)
+
         for (let i = 0; i < daysAhead; i++) {
-            const targetDate = new Date()
-            targetDate.setDate(targetDate.getDate() + i)
-            const dateIso = targetDate.toISOString().slice(0, 10)
+            const targetDate = new Date(baseDate)
+            targetDate.setUTCDate(targetDate.getUTCDate() + i)
+            const dateIso = getDateInTimezone(targetDate.toISOString(), studioTimezone)
 
             const daySlots = await computeAvailableSlots(studioId, appointmentTypeId, dateIso)
             byDay[dateIso] = daySlots

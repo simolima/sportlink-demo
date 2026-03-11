@@ -180,6 +180,7 @@ export async function createEvent(
         description?: string
         start: string // ISO 8601 datetime
         end: string // ISO 8601 datetime
+        timeZone?: string
         attendees?: { email: string }[]
     }
 ): Promise<string> {
@@ -190,8 +191,8 @@ export async function createEvent(
         requestBody: {
             summary: event.summary,
             description: event.description,
-            start: { dateTime: event.start },
-            end: { dateTime: event.end },
+            start: { dateTime: event.start, timeZone: event.timeZone },
+            end: { dateTime: event.end, timeZone: event.timeZone },
             attendees: event.attendees,
         },
     })
@@ -216,6 +217,7 @@ export async function updateEvent(
         description?: string
         start?: string
         end?: string
+        timeZone?: string
         attendees?: { email: string }[]
     }
 ): Promise<void> {
@@ -224,8 +226,8 @@ export async function updateEvent(
     const updateBody: any = {}
     if (event.summary) updateBody.summary = event.summary
     if (event.description) updateBody.description = event.description
-    if (event.start) updateBody.start = { dateTime: event.start }
-    if (event.end) updateBody.end = { dateTime: event.end }
+    if (event.start) updateBody.start = { dateTime: event.start, timeZone: event.timeZone }
+    if (event.end) updateBody.end = { dateTime: event.end, timeZone: event.timeZone }
     if (event.attendees) updateBody.attendees = event.attendees
 
     await calendar.events.patch({

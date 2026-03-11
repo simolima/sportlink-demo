@@ -18,6 +18,12 @@ import {
     timeSlotsOverlap,
     addMinutesToTime,
 } from './availability-engine'
+import {
+    DEFAULT_STUDIO_TIMEZONE,
+    getDateInTimezone,
+    getTimeInTimezone,
+    getUtcDayBoundsForTimezoneDate,
+} from './date-timezone'
 
 // ============================================================================
 // TYPES
@@ -72,7 +78,7 @@ export async function computeAvailableSlots(
     // 2. Fetch studio settings (slot increment)
     const { data: studio, error: studioError } = await supabaseServer
         .from('professional_studios')
-        .select('slot_increment_minutes')
+        .select('slot_increment_minutes, timezone')
         .eq('id', studioId)
         .is('deleted_at', null)
         .single()
@@ -82,6 +88,7 @@ export async function computeAvailableSlots(
     }
 
     const slotIncrement = studio.slot_increment_minutes || 30
+    const studioTimezone = studio.timezone || DEFAULT_STUDIO_TIMEZONE
 
     // 3. Get base availability (weekly schedule - blackout dates)
     const dayAvailability = await getDayAvailability(studioId, date)
@@ -94,7 +101,7 @@ export async function computeAvailableSlots(
     const potentialSlots = generateTimeSlots(dayAvailability.slots, slotIncrement, durationMinutes)
 
     // 5. Fetch occupied slots (existing bookings + external events)
-    const occupiedSlots = await getOccupiedSlots(studioId, date)
+    const occupiedSlots = await getOccupiedSlots(studioId, date, studioTimezone)
 
     // 6. Filter out occupied slots and apply buffers
     const availableSlots: AvailableSlot[] = []
@@ -135,12 +142,11 @@ export async function computeAvailableSlots(
  * @param date - Date string in YYYY-MM-DD format
  * @returns Array of occupied slots with source attribution
  */
-async function getOccupiedSlots(studioId: string, date: string): Promise<OccupiedSlot[]> {
+async function getOccupiedSlots(studioId: string, date: string, studioTimezone: string): Promise<OccupiedSlot[]> {
     const occupiedSlots: OccupiedSlot[] = []
 
     // 1. Fetch existing bookings for this date
-    const startOfDay = `${date}T00:00:00Z`
-    const endOfDay = `${date}T23:59:59Z`
+    const { startUtcIso, endUtcIso } = getUtcDayBoundsForTimezoneDate(date, studioTimezone)
 
     const { data: bookings, error: bookingsError } = await supabaseServer
         .from('studio_appointments')
@@ -148,13 +154,13 @@ async function getOccupiedSlots(studioId: string, date: string): Promise<Occupie
         .eq('studio_id', studioId)
         .is('deleted_at', null)
         .in('status', ['pending', 'confirmed']) // Exclude completed/cancelled
-        .gte('start_time', startOfDay)
-        .lte('start_time', endOfDay)
+        .lt('start_time', endUtcIso)
+        .gt('end_time', startUtcIso)
 
     if (!bookingsError && bookings) {
         for (const booking of bookings) {
-            const startTime = new Date(booking.start_time).toISOString().substring(11, 16) // Extract HH:MM
-            const endTime = new Date(booking.end_time).toISOString().substring(11, 16)
+            const startTime = getTimeInTimezone(booking.start_time, studioTimezone)
+            const endTime = getTimeInTimezone(booking.end_time, studioTimezone)
 
             occupiedSlots.push({
                 startTime,
@@ -170,16 +176,16 @@ async function getOccupiedSlots(studioId: string, date: string): Promise<Occupie
         .select('start_time, end_time, is_all_day')
         .eq('professional_studio_id', studioId)
         .is('deleted_at', null)
-        .gte('start_time', startOfDay)
-        .lte('start_time', endOfDay)
+        .lt('start_time', endUtcIso)
+        .gt('end_time', startUtcIso)
 
     if (!eventsError && externalEvents) {
         for (const event of externalEvents) {
             // Skip all-day events (they don't block specific time slots)
             if (event.is_all_day) continue
 
-            const startTime = new Date(event.start_time).toISOString().substring(11, 16)
-            const endTime = new Date(event.end_time).toISOString().substring(11, 16)
+            const startTime = getTimeInTimezone(event.start_time, studioTimezone)
+            const endTime = getTimeInTimezone(event.end_time, studioTimezone)
 
             occupiedSlots.push({
                 startTime,
@@ -205,15 +211,24 @@ export async function validateBookingSlot(
     startTime: string,
     endTime: string
 ): Promise<boolean> {
-    // Extract date from startTime
-    const date = startTime.substring(0, 10) // YYYY-MM-DD
+    const { data: studio } = await supabaseServer
+        .from('professional_studios')
+        .select('timezone')
+        .eq('id', studioId)
+        .is('deleted_at', null)
+        .single()
+
+    const studioTimezone = studio?.timezone || DEFAULT_STUDIO_TIMEZONE
+
+    // Extract date from startTime in studio timezone
+    const date = getDateInTimezone(startTime, studioTimezone)
 
     // Get occupied slots for that date
-    const occupiedSlots = await getOccupiedSlots(studioId, date)
+    const occupiedSlots = await getOccupiedSlots(studioId, date, studioTimezone)
 
-    // Extract time portions (HH:MM)
-    const requestStartTime = startTime.substring(11, 16)
-    const requestEndTime = endTime.substring(11, 16)
+    // Extract time portions (HH:MM) in studio timezone
+    const requestStartTime = getTimeInTimezone(startTime, studioTimezone)
+    const requestEndTime = getTimeInTimezone(endTime, studioTimezone)
 
     // Check for conflicts
     for (const occupied of occupiedSlots) {

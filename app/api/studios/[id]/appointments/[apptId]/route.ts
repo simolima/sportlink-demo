@@ -6,6 +6,7 @@ import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supaba
 import { deleteEvent, updateEvent } from '@/lib/google-calendar-service'
 import { createNotification } from '@/lib/notifications-repository'
 import { dispatchToUser } from '@/lib/notification-dispatcher'
+import { DEFAULT_STUDIO_TIMEZONE, normalizeInputDateTimeToUtcIso } from '@/lib/date-timezone'
 
 async function getSelectedCalendarId(studioId: string): Promise<string | null> {
     const { data: connection } = await supabase
@@ -47,6 +48,15 @@ export async function PATCH(
             return withCors(NextResponse.json({ error: 'appointment not found' }, { status: 404 }))
         }
 
+        const { data: studio } = await supabase
+            .from('professional_studios')
+            .select('timezone')
+            .eq('id', params.id)
+            .is('deleted_at', null)
+            .single()
+
+        const studioTimezone = studio?.timezone || DEFAULT_STUDIO_TIMEZONE
+
         const isOwner = appointment.professional_id === authenticatedUserId
         const isClient = appointment.client_id === authenticatedUserId
 
@@ -83,8 +93,12 @@ export async function PATCH(
             return withCors(NextResponse.json({ error: 'solo il professionista può riprogrammare' }, { status: 403 }))
         }
 
-        const resolvedStartTime = startTime || appointment.start_time
-        const resolvedEndTime = endTime || appointment.end_time
+        const resolvedStartTime = startTime ? normalizeInputDateTimeToUtcIso(String(startTime), studioTimezone) : appointment.start_time
+        const resolvedEndTime = endTime ? normalizeInputDateTimeToUtcIso(String(endTime), studioTimezone) : appointment.end_time
+
+        if (new Date(resolvedEndTime).getTime() <= new Date(resolvedStartTime).getTime()) {
+            return withCors(NextResponse.json({ error: 'invalid_time_range' }, { status: 400 }))
+        }
 
         if (startTime || endTime) {
             const sameTimeAsCurrent = resolvedStartTime === appointment.start_time && resolvedEndTime === appointment.end_time
@@ -143,6 +157,7 @@ export async function PATCH(
                         description: updated.notes || undefined,
                         start: updated.start_time,
                         end: updated.end_time,
+                        timeZone: studioTimezone,
                     })
                     await supabase
                         .from('studio_appointments')

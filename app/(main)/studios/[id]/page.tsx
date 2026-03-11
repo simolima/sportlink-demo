@@ -250,7 +250,7 @@ export default function StudioDetailPage() {
             <StudioServicesSection studio={studio} />
 
             {/* Methodology Section */}
-            {studio.methodology && (
+            {(studio.methodology || (studio.certifications && studio.certifications.length > 0)) && (
                 <StudioMethodology
                     methodology={studio.methodology}
                     certifications={studio.certifications}

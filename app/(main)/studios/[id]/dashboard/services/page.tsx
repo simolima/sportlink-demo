@@ -41,6 +41,8 @@ export default function StudioDashboardServicesPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
+    const [showModal, setShowModal] = useState(false)
+    const [editingId, setEditingId] = useState<string | null>(null)
 
     const [form, setForm] = useState({
         name: '',
@@ -51,6 +53,44 @@ export default function StudioDashboardServicesPage() {
         priceAmount: '',
         colorHex: '#2341F0',
     })
+
+    const resetForm = () => {
+        setForm({
+            name: '',
+            description: '',
+            durationMinutes: 60,
+            bufferBeforeMinutes: 0,
+            bufferAfterMinutes: 0,
+            priceAmount: '',
+            colorHex: '#2341F0',
+        })
+    }
+
+    const handleOpenCreate = () => {
+        setEditingId(null)
+        resetForm()
+        setShowModal(true)
+    }
+
+    const handleOpenEdit = (service: AppointmentType) => {
+        setEditingId(service.id)
+        setForm({
+            name: service.name,
+            description: service.description ?? '',
+            durationMinutes: service.duration_minutes,
+            bufferBeforeMinutes: service.buffer_before_minutes,
+            bufferAfterMinutes: service.buffer_after_minutes,
+            priceAmount: service.price_amount === null ? '' : String(service.price_amount),
+            colorHex: service.color_hex,
+        })
+        setShowModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowModal(false)
+        setEditingId(null)
+        resetForm()
+    }
 
     useEffect(() => {
         async function loadServices() {
@@ -68,7 +108,7 @@ export default function StudioDashboardServicesPage() {
         loadServices()
     }, [studioId])
 
-    const handleCreate = async (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
         setSaving(true)
         setMessage('')
@@ -85,8 +125,12 @@ export default function StudioDashboardServicesPage() {
                 colorHex: form.colorHex,
             }
 
-            const res = await fetch(`/api/studios/${studioId}/appointment-types`, {
-                method: 'POST',
+            const endpoint = editingId
+                ? `/api/studios/${studioId}/appointment-types/${editingId}`
+                : `/api/studios/${studioId}/appointment-types`
+
+            const res = await fetch(endpoint, {
+                method: editingId ? 'PATCH' : 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,17 +145,14 @@ export default function StudioDashboardServicesPage() {
                 return
             }
 
-            setServices((prev) => [data, ...prev])
-            setForm({
-                name: '',
-                description: '',
-                durationMinutes: 60,
-                bufferBeforeMinutes: 0,
-                bufferAfterMinutes: 0,
-                priceAmount: '',
-                colorHex: '#2341F0',
+            setServices((prev) => {
+                if (editingId) {
+                    return prev.map((service) => (service.id === editingId ? data : service))
+                }
+                return [data, ...prev]
             })
-            setMessage('Servizio creato.')
+            handleCloseModal()
+            setMessage(editingId ? 'Servizio aggiornato.' : 'Servizio creato.')
         } finally {
             setSaving(false)
         }
@@ -177,122 +218,15 @@ export default function StudioDashboardServicesPage() {
 
     return (
         <section className="space-y-6 glass-widget rounded-2xl p-6">
-            <div>
-                <h1 className="text-2xl font-bold text-base-content">Servizi</h1>
-                <p className="mt-1 text-sm text-secondary">Gestisci tipi di appuntamento e opzioni di prenotazione.</p>
-            </div>
-
-            <form onSubmit={handleCreate} className="grid gap-3 rounded-xl border border-base-300 bg-base-100 p-4 md:grid-cols-2">
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Nome servizio</span>
-                    <input
-                        className="input input-bordered"
-                        placeholder="Es. Prima valutazione"
-                        value={form.name}
-                        onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                        required
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Descrizione servizio</span>
-                    <input
-                        className="input input-bordered"
-                        placeholder="Breve descrizione del servizio"
-                        value={form.description}
-                        onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Durata appuntamento (minuti)</span>
-                    <input
-                        type="number"
-                        className="input input-bordered"
-                        min={15}
-                        max={480}
-                        placeholder="60"
-                        value={form.durationMinutes}
-                        onChange={(e) => setForm((prev) => ({ ...prev, durationMinutes: Number(e.target.value) }))}
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Buffer prima (minuti)</span>
-                    <input
-                        type="number"
-                        className="input input-bordered"
-                        min={0}
-                        max={60}
-                        placeholder="0"
-                        value={form.bufferBeforeMinutes}
-                        onChange={(e) => setForm((prev) => ({ ...prev, bufferBeforeMinutes: Number(e.target.value) }))}
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Buffer dopo (minuti)</span>
-                    <input
-                        type="number"
-                        className="input input-bordered"
-                        min={0}
-                        max={60}
-                        placeholder="0"
-                        value={form.bufferAfterMinutes}
-                        onChange={(e) => setForm((prev) => ({ ...prev, bufferAfterMinutes: Number(e.target.value) }))}
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Prezzo (EUR)</span>
-                    <input
-                        type="number"
-                        className="input input-bordered"
-                        min={0}
-                        placeholder="Es. 50"
-                        value={form.priceAmount}
-                        onChange={(e) => setForm((prev) => ({ ...prev, priceAmount: e.target.value }))}
-                    />
-                </label>
-
-                <label className="form-control">
-                    <span className="label-text mb-1 block text-sm text-secondary">Colore servizio</span>
-                    <select
-                        className="select select-bordered w-full"
-                        value={form.colorHex}
-                        onChange={(e) => setForm((prev) => ({ ...prev, colorHex: e.target.value }))}
-                    >
-                        {SERVICE_COLOR_PRESETS.map((preset) => (
-                            <option key={preset.value} value={preset.value}>
-                                {preset.label} ({preset.value})
-                            </option>
-                        ))}
-                    </select>
-                    <div className="mt-2 rounded-lg border border-base-300 bg-base-100 p-2">
-                        <p className="mb-2 text-xs text-secondary">Palette rapida</p>
-                        <div className="flex flex-wrap gap-2">
-                            {SERVICE_COLOR_PRESETS.map((preset) => {
-                                const isSelected = form.colorHex === preset.value
-                                return (
-                                    <button
-                                        key={`chip-${preset.value}`}
-                                        type="button"
-                                        title={`${preset.label} (${preset.value})`}
-                                        aria-label={`Seleziona ${preset.label}`}
-                                        className={`h-7 w-7 rounded-full border-2 transition hover:scale-105 ${isSelected ? 'border-base-content shadow-sm' : 'border-base-100 shadow'
-                                            }`}
-                                        style={{ backgroundColor: preset.value }}
-                                        onClick={() => setForm((prev) => ({ ...prev, colorHex: preset.value }))}
-                                    />
-                                )
-                            })}
-                        </div>
-                    </div>
-                </label>
-                <button className="btn btn-primary md:col-span-2" type="submit" disabled={saving}>
-                    Crea servizio
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <h1 className="text-2xl font-bold text-base-content">Servizi</h1>
+                    <p className="mt-1 text-sm text-secondary">Gestisci tipi di appuntamento e opzioni di prenotazione.</p>
+                </div>
+                <button type="button" className="btn btn-primary" onClick={handleOpenCreate}>
+                    Nuovo servizio
                 </button>
-            </form>
+            </div>
 
             <div className="space-y-2">
                 {services.length === 0 && <p className="text-sm text-secondary">Nessun servizio creato.</p>}
@@ -314,6 +248,9 @@ export default function StudioDashboardServicesPage() {
                             )}
                         </div>
                         <div className="flex items-center gap-2">
+                            <button className="btn btn-xs btn-ghost" onClick={() => handleOpenEdit(service)} disabled={saving}>
+                                Modifica
+                            </button>
                             <button className="btn btn-xs btn-ghost" onClick={() => toggleActive(service)} disabled={saving}>
                                 {service.is_active ? 'Disattiva' : 'Attiva'}
                             </button>
@@ -326,6 +263,131 @@ export default function StudioDashboardServicesPage() {
             </div>
 
             {message && <p className="text-sm text-secondary">{message}</p>}
+
+            {showModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-3xl">
+                        <h3 className="mb-4 text-lg font-bold text-base-content">{editingId ? 'Modifica servizio' : 'Nuovo servizio'}</h3>
+                        <form onSubmit={handleSubmit} className="grid gap-3 md:grid-cols-2">
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Nome servizio</span>
+                                <input
+                                    className="input input-bordered"
+                                    placeholder="Es. Prima valutazione"
+                                    value={form.name}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                                    required
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Descrizione servizio</span>
+                                <input
+                                    className="input input-bordered"
+                                    placeholder="Breve descrizione del servizio"
+                                    value={form.description}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Durata appuntamento (minuti)</span>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    min={15}
+                                    max={480}
+                                    placeholder="60"
+                                    value={form.durationMinutes}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, durationMinutes: Number(e.target.value) }))}
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Buffer prima (minuti)</span>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    min={0}
+                                    max={60}
+                                    placeholder="0"
+                                    value={form.bufferBeforeMinutes}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, bufferBeforeMinutes: Number(e.target.value) }))}
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Buffer dopo (minuti)</span>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    min={0}
+                                    max={60}
+                                    placeholder="0"
+                                    value={form.bufferAfterMinutes}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, bufferAfterMinutes: Number(e.target.value) }))}
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-1 block text-sm text-secondary">Prezzo (EUR)</span>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    min={0}
+                                    placeholder="Es. 50"
+                                    value={form.priceAmount}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, priceAmount: e.target.value }))}
+                                />
+                            </label>
+
+                            <label className="form-control md:col-span-2">
+                                <span className="label-text mb-1 block text-sm text-secondary">Colore servizio</span>
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={form.colorHex}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, colorHex: e.target.value }))}
+                                >
+                                    {SERVICE_COLOR_PRESETS.map((preset) => (
+                                        <option key={preset.value} value={preset.value}>
+                                            {preset.label} ({preset.value})
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="mt-2 rounded-lg border border-base-300 bg-base-100 p-2">
+                                    <p className="mb-2 text-xs text-secondary">Palette rapida</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {SERVICE_COLOR_PRESETS.map((preset) => {
+                                            const isSelected = form.colorHex === preset.value
+                                            return (
+                                                <button
+                                                    key={`chip-${preset.value}`}
+                                                    type="button"
+                                                    title={`${preset.label} (${preset.value})`}
+                                                    aria-label={`Seleziona ${preset.label}`}
+                                                    className={`h-7 w-7 rounded-full border-2 transition hover:scale-105 ${isSelected ? 'border-base-content shadow-sm' : 'border-base-100 shadow'
+                                                        }`}
+                                                    style={{ backgroundColor: preset.value }}
+                                                    onClick={() => setForm((prev) => ({ ...prev, colorHex: preset.value }))}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            </label>
+
+                            <div className="modal-action md:col-span-2">
+                                <button type="button" className="btn" onClick={handleCloseModal} disabled={saving}>
+                                    Annulla
+                                </button>
+                                <button className="btn btn-primary" type="submit" disabled={saving}>
+                                    {saving ? 'Salvataggio...' : editingId ? 'Salva modifiche' : 'Crea servizio'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </section>
     )
 }

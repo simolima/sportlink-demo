@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getAuthHeaders } from '@/lib/auth-fetch'
+import {
+    DEFAULT_STUDIO_TIMEZONE,
+    getDateInTimezone,
+    getTimeInTimezone,
+    zonedDateTimeToUtcIso,
+} from '@/lib/date-timezone'
 
 type Booking = {
     id: string
@@ -15,12 +21,6 @@ type Booking = {
         firstName?: string
         lastName?: string
     }
-}
-
-function toDateTimeLocalValue(isoString: string): string {
-    const date = new Date(isoString)
-    const pad = (value: number) => String(value).padStart(2, '0')
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 const FILTERS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'] as const
@@ -44,16 +44,50 @@ export default function StudioDashboardBookingsPage() {
     const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null)
     const [rescheduleStart, setRescheduleStart] = useState('')
     const [rescheduleEnd, setRescheduleEnd] = useState('')
+    const [studioTimezone, setStudioTimezone] = useState(DEFAULT_STUDIO_TIMEZONE)
+
+    const toStudioDateTimeLocalValue = (isoString: string): string => {
+        const datePart = getDateInTimezone(isoString, studioTimezone)
+        const timePart = getTimeInTimezone(isoString, studioTimezone)
+        return `${datePart}T${timePart}`
+    }
+
+    const formatStudioDateTime = (isoString: string): string => {
+        return new Intl.DateTimeFormat('it-IT', {
+            timeZone: studioTimezone,
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        }).format(new Date(isoString))
+    }
+
+    const formatStudioTime = (isoString: string): string => {
+        return getTimeInTimezone(isoString, studioTimezone)
+    }
 
     useEffect(() => {
         async function loadBookings() {
             const authHeaders = await getAuthHeaders()
-            const res = await fetch(`/api/studios/${studioId}/appointments`, {
-                credentials: 'include',
-                headers: authHeaders,
-            })
-            if (res.ok) {
-                setBookings(await res.json())
+            const [bookingsRes, studioRes] = await Promise.all([
+                fetch(`/api/studios/${studioId}/appointments`, {
+                    credentials: 'include',
+                    headers: authHeaders,
+                }),
+                fetch(`/api/studios/${studioId}`, {
+                    credentials: 'include',
+                    headers: authHeaders,
+                }),
+            ])
+
+            if (bookingsRes.ok) {
+                setBookings(await bookingsRes.json())
+            }
+            if (studioRes.ok) {
+                const studioData = await studioRes.json()
+                setStudioTimezone(studioData.timezone || DEFAULT_STUDIO_TIMEZONE)
             }
             setLoading(false)
         }
@@ -96,8 +130,8 @@ export default function StudioDashboardBookingsPage() {
 
     const openRescheduleModal = (booking: Booking) => {
         setRescheduleTarget(booking)
-        setRescheduleStart(toDateTimeLocalValue(booking.startTime))
-        setRescheduleEnd(toDateTimeLocalValue(booking.endTime))
+        setRescheduleStart(toStudioDateTimeLocalValue(booking.startTime))
+        setRescheduleEnd(toStudioDateTimeLocalValue(booking.endTime))
     }
 
     const handleReschedule = async () => {
@@ -120,8 +154,8 @@ export default function StudioDashboardBookingsPage() {
                     ...authHeaders,
                 },
                 body: JSON.stringify({
-                    startTime: new Date(rescheduleStart).toISOString(),
-                    endTime: new Date(rescheduleEnd).toISOString(),
+                    startTime: zonedDateTimeToUtcIso(`${rescheduleStart}:00`, studioTimezone),
+                    endTime: zonedDateTimeToUtcIso(`${rescheduleEnd}:00`, studioTimezone),
                 }),
             })
 
@@ -153,6 +187,7 @@ export default function StudioDashboardBookingsPage() {
             <div>
                 <h1 className="text-2xl font-bold text-base-content">Prenotazioni</h1>
                 <p className="mt-1 text-sm text-secondary">Controlla e aggiorna lo stato degli appuntamenti.</p>
+                <p className="mt-1 text-xs text-secondary">Fuso orario studio: {studioTimezone}</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -181,7 +216,7 @@ export default function StudioDashboardBookingsPage() {
                                 {booking.client?.firstName || 'Cliente'} {booking.client?.lastName || ''}
                             </p>
                             <p className="mt-1 text-sm text-secondary">
-                                {new Date(booking.startTime).toLocaleString('it-IT')} - {new Date(booking.endTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                                {formatStudioDateTime(booking.startTime)} - {formatStudioTime(booking.endTime)}
                             </p>
                             {booking.serviceType && <p className="text-sm text-secondary">Servizio: {booking.serviceType}</p>}
                             {booking.notes && <p className="text-xs text-secondary">{booking.notes}</p>}

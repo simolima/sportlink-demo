@@ -203,6 +203,16 @@ const fallbackPoll = setInterval(async () => {
 }, 30_000) // ogni 30 secondi
 ```
 
+## Timezone Booking Studio (Marzo 2026)
+
+Per gli endpoint studio booking/calendar, il timezone source-of-truth è `professional_studios.timezone` (fallback `Europe/Rome`).
+
+Regole:
+- In POST/PATCH appuntamenti, normalizzare `startTime/endTime` in UTC **dopo** aver interpretato input naive nel timezone studio.
+- In validazione slot (`available-slots`/booking engine), usare day boundaries timezone-aware; evitare range hardcoded `T00:00:00Z` / `T23:59:59Z` non contestualizzati.
+- In estrazione orari (`HH:MM`) per conflict detection, evitare `new Date(...).toISOString().substring(...)`.
+- Nel sync con Google Calendar, passare `timeZone` esplicito nel payload eventi per evitare interpretazioni implicite.
+
 ## Lista Endpoint Esistenti (35+ routes)
 
 ### `/api/club-memberships` — Role Scope (Marzo 2026)

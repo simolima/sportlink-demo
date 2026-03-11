@@ -4,6 +4,14 @@ import { NextResponse } from 'next/server'
 import { withCors, handleOptions } from '@/lib/cors'
 import { supabaseServer as supabase, getUserIdFromAuthToken } from '@/lib/supabase-server'
 
+const normalizeStringArray = (input: unknown): string[] => {
+    if (!Array.isArray(input)) return []
+    return input
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean)
+}
+
 export async function OPTIONS() {
     return handleOptions()
 }
@@ -115,9 +123,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             description: data.description,
             servicesOffered: data.services_offered ?? [],
             yearsOfExperience: data.years_of_experience ?? undefined,
-            languages: data.languages ?? [],
-            workModes: data.work_modes ?? [],
-            certifications: data.certifications ?? [],
+            languages: normalizeStringArray(data.languages),
+            workModes: (Array.isArray(data.work_modes) ? data.work_modes : []).filter((mode: any) => ['in-person', 'remote', 'hybrid'].includes(mode)),
+            certifications: normalizeStringArray(data.certifications),
             methodology: data.methodology ?? undefined,
             timezone: data.timezone,
             bookingEnabled: data.booking_enabled,
@@ -201,14 +209,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             if (!Number.isNaN(val) && val >= 0) updates.years_of_experience = val
         }
         if (Array.isArray(languages)) {
-            updates.languages = languages.filter((l: any) => typeof l === 'string')
+            updates.languages = normalizeStringArray(languages)
         }
         if (Array.isArray(workModes)) {
             const valid = workModes.filter((m: any) => ['in-person', 'remote', 'hybrid'].includes(m))
             updates.work_modes = valid
         }
         if (Array.isArray(certifications)) {
-            updates.certifications = certifications.filter((c: any) => typeof c === 'string')
+            updates.certifications = normalizeStringArray(certifications)
         }
         if (methodology !== undefined) {
             updates.methodology = methodology?.toString?.()?.trim() || null
@@ -241,6 +249,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             logoUrl: updated.logo_url,
             description: updated.description,
             servicesOffered: updated.services_offered ?? [],
+            yearsOfExperience: updated.years_of_experience ?? undefined,
+            languages: normalizeStringArray(updated.languages),
+            workModes: (Array.isArray(updated.work_modes) ? updated.work_modes : []).filter((mode: any) => ['in-person', 'remote', 'hybrid'].includes(mode)),
+            certifications: normalizeStringArray(updated.certifications),
+            methodology: updated.methodology ?? undefined,
             timezone: updated.timezone,
             bookingEnabled: updated.booking_enabled,
             autoConfirmBookings: updated.auto_confirm_bookings,

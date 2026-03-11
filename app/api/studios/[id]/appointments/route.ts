@@ -7,6 +7,7 @@ import { validateBookingSlot } from '@/lib/booking-engine'
 import { createEvent } from '@/lib/google-calendar-service'
 import { createNotification } from '@/lib/notifications-repository'
 import { dispatchToUser } from '@/lib/notification-dispatcher'
+import { DEFAULT_STUDIO_TIMEZONE, normalizeInputDateTimeToUtcIso } from '@/lib/date-timezone'
 
 async function getSelectedCalendarId(studioId: string): Promise<string | null> {
     const { data: connection } = await supabase
@@ -24,6 +25,7 @@ async function trySyncAppointmentToGoogle(input: {
     appointmentId: string
     startTime: string
     endTime: string
+    timezone: string
     serviceType?: string | null
     clientName?: string | null
     notes?: string | null
@@ -39,6 +41,7 @@ async function trySyncAppointmentToGoogle(input: {
             description: `Prenotazione da Sprinta${input.clientName ? `\nCliente: ${input.clientName}` : ''}${input.notes ? `\nNote: ${input.notes}` : ''}`,
             start: input.startTime,
             end: input.endTime,
+            timeZone: input.timezone,
         })
 
         await supabase
@@ -74,7 +77,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         // Verifica se è owner
         const { data: studio } = await supabase
             .from('professional_studios')
-            .select('owner_id')
+            .select('owner_id, timezone')
             .eq('id', params.id)
             .is('deleted_at', null)
             .single()
@@ -143,7 +146,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         const { data: studio } = await supabase
             .from('professional_studios')
-            .select('owner_id')
+            .select('owner_id, timezone')
             .eq('id', params.id)
             .is('deleted_at', null)
             .single()
@@ -159,7 +162,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return withCors(NextResponse.json({ error: 'startTime and endTime are required' }, { status: 400 }))
         }
 
-        const slotIsValid = await validateBookingSlot(params.id, startTime, endTime)
+        const studioTimezone = studio.timezone || DEFAULT_STUDIO_TIMEZONE
+        const normalizedStartTime = normalizeInputDateTimeToUtcIso(String(startTime), studioTimezone)
+        const normalizedEndTime = normalizeInputDateTimeToUtcIso(String(endTime), studioTimezone)
+
+        if (new Date(normalizedEndTime).getTime() <= new Date(normalizedStartTime).getTime()) {
+            return withCors(NextResponse.json({ error: 'invalid_time_range' }, { status: 400 }))
+        }
+
+        const slotIsValid = await validateBookingSlot(params.id, normalizedStartTime, normalizedEndTime)
         if (!slotIsValid) {
             return withCors(NextResponse.json({ error: 'slot_not_available' }, { status: 409 }))
         }
@@ -196,8 +207,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 studio_id: params.id,
                 client_id: authenticatedUserId,
                 professional_id: studio.owner_id,
-                start_time: startTime,
-                end_time: endTime,
+                start_time: normalizedStartTime,
+                end_time: normalizedEndTime,
                 status: 'pending',
                 service_type: resolvedServiceType,
                 appointment_type_id: appointmentTypeId || null,
@@ -223,6 +234,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             appointmentId: appointment.id,
             startTime: appointment.start_time,
             endTime: appointment.end_time,
+            timezone: studioTimezone,
             serviceType: appointment.service_type,
             clientName,
             notes: appointment.notes,

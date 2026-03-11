@@ -346,6 +346,16 @@ Regole:
 - La vista calendario usa `FullCalendar` con switch mese/settimana/giorno e legge eventi da `/api/studios/[id]/calendar-events`.
 - La selezione di uno slot libero in calendar crea un blocco personale su `studio_external_events` via `/api/studios/[id]/external-blockers`.
 
+### Timezone Studio — Source of Truth (Marzo 2026)
+
+- Il timezone dello studio (`professional_studios.timezone`, fallback `Europe/Rome`) è la fonte unica di verità per:
+  - selezione slot prenotabili
+  - validazione conflitti (`studio_appointments` + `studio_external_events`)
+  - rendering calendario dashboard (`FullCalendar timeZone` esplicito)
+  - conversioni datetime in creazione/riprogrammazione appuntamenti
+- Evitare conversioni implicite con `toISOString().substring(...)` per estrarre ore/minuti: producono drift UTC e bug +1/-1.
+- Le datetime inviate al backend possono essere naive solo se vengono interpretate server-side nel timezone studio e normalizzate in UTC prima della persistenza.
+
 ---
 
 ## Dashboard SaaS — Pattern (Marzo 2026)

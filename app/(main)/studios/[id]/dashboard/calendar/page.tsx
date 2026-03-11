@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getAuthHeaders } from '@/lib/auth-fetch'
 import FullCalendar from '@fullcalendar/react'
@@ -44,7 +44,7 @@ export default function StudioDashboardCalendarPage() {
     const [eventsLoading, setEventsLoading] = useState(false)
     const [studioTimezone, setStudioTimezone] = useState(DEFAULT_STUDIO_TIMEZONE)
 
-    const loadCalendarEvents = async () => {
+    const loadCalendarEvents = useCallback(async () => {
         setEventsLoading(true)
         try {
             const authHeaders = await getAuthHeaders()
@@ -64,7 +64,7 @@ export default function StudioDashboardCalendarPage() {
         } finally {
             setEventsLoading(false)
         }
-    }
+    }, [studioId])
 
     useEffect(() => {
         async function loadStatusAndTimezone() {
@@ -95,7 +95,7 @@ export default function StudioDashboardCalendarPage() {
 
         loadStatusAndTimezone()
         loadCalendarEvents()
-    }, [studioId])
+    }, [studioId, loadCalendarEvents])
 
     useEffect(() => {
         async function loadCalendars() {

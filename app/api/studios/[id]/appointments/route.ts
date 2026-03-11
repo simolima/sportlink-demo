@@ -146,7 +146,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         const { data: studio } = await supabase
             .from('professional_studios')
-            .select('owner_id')
+            .select('owner_id, timezone')
             .eq('id', params.id)
             .is('deleted_at', null)
             .single()

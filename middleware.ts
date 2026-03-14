@@ -35,8 +35,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         /*
-         * Match all request paths except static files and images.
+         * Run on page routes only — skip API routes, static files, and images.
+         * API routes authenticate via Authorization: Bearer header (getUserIdFromAuthToken),
+         * not via cookies, so the middleware session refresh is not needed there.
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|api/|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

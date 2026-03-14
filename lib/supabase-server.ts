@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient as createSSRClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -13,29 +14,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const effectiveSupabaseUrl = supabaseUrl || 'http://127.0.0.1:54321'
 const effectiveSupabaseAnonKey = supabaseAnonKey || 'public-anon-key-placeholder'
 
-// Server-side client with user context (respects RLS)
+// Server-side client with user context (respects RLS).
+// Uses @supabase/ssr so it reads the session from the cookies set by createBrowserClient.
+// setAll is intentionally a no-op: Server Components cannot write cookies at runtime;
+// token refresh is handled by middleware.ts.
 export async function createServerClient() {
     const cookieStore = await cookies()
 
-    return createClient(effectiveSupabaseUrl, effectiveSupabaseAnonKey, {
-        auth: {
-            // Must match the hardcoded storageKey in supabase-browser.ts ('sb-auth-token')
-            // so Server Actions and Server Components can read the session cookie set by the browser.
-            storageKey: 'sb-auth-token',
-            storage: {
-                getItem: (key: string) => {
-                    return cookieStore.get(key)?.value ?? null
-                },
-                setItem: (key: string, value: string) => {
-                    cookieStore.set(key, value)
-                },
-                removeItem: (key: string) => {
-                    cookieStore.delete(key)
-                }
-            },
-            autoRefreshToken: true,
-            persistSession: true
-        }
+    return createSSRClient(effectiveSupabaseUrl, effectiveSupabaseAnonKey, {
+        cookies: {
+            getAll: () => cookieStore.getAll(),
+            setAll: () => { /* no-op: read-only in Server Components */ },
+        },
     })
 }
 

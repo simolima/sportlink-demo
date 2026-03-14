@@ -17,7 +17,7 @@ export default function LoginPage() {
     // Se l'utente ha già una sessione valida, redirect a home
     useEffect(() => {
         if (!authLoading && isAuthenticated) {
-            router.replace('/home')
+            window.location.assign('/home')
             return
         }
         // Anche se useAuth non vede la sessione (localStorage vuoto),
@@ -29,7 +29,7 @@ export default function LoginPage() {
                         // Sessione valida ma localStorage non sincronizzato → redirect
                         localStorage.setItem('currentUserId', session.user.id)
                         localStorage.setItem('currentUserEmail', session.user.email || '')
-                        router.push('/home')
+                        window.location.assign('/home')
                     }
                 })
             })
@@ -49,7 +49,7 @@ export default function LoginPage() {
                 return
             }
 
-            router.push('/home')
+            window.location.assign('/home')
         } catch (err: any) {
             setError(err?.message || 'Errore durante l\'accesso. Riprova.')
             setLoading(false)

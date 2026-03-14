@@ -4,14 +4,14 @@ import HomeClientDashboard from '@/components/dashboard-ui/HomeClientDashboard'
 
 export default async function HomePage() {
     const client = await createServerClient()
-    const { data: { user } } = await client.auth.getUser()
+    const { data: { session } } = await client.auth.getSession()
 
-    if (!user) redirect('/login')
+    if (!session) redirect('/login')
 
     const { data: profile } = await client
         .from('profiles')
         .select('role_id, first_name, last_name')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .is('deleted_at', null)
         .maybeSingle()
 
@@ -19,7 +19,7 @@ export default async function HomePage() {
         redirect('/complete-profile')
     }
 
-    const userId = user.id
+    const userId = session.user.id
     const userRole = profile.role_id.toLowerCase()
     const userName = `${profile.first_name} ${profile.last_name}`
 

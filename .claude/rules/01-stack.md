@@ -4,7 +4,7 @@
 
 ## Framework & Runtime
 
-- **Next.js 14** (App Router) — la maggior parte delle pagine usa `"use client"`. Eccezioni: `dashboard/page.tsx` (Server Component), `components/widgets/` (Server Components async), `app/actions/` (`'use server'`)
+- **Next.js 14** (App Router) — la maggior parte delle pagine usa `"use client"`. Eccezioni: `dashboard/page.tsx` (Server Component), `app/(main)/home/page.tsx` (Server Component, legge sessione da cookie), `components/widgets/` (Server Components async), `app/actions/` (`'use server'`)
 - **React 18** (web) / **React Native 0.81.5** (mobile)
 - **TypeScript** — loosely typed in molti punti, `any` usato di frequente
 - **Node.js** — tutte le API routes devono avere `export const runtime = 'nodejs'`
@@ -13,6 +13,8 @@
 
 - **Supabase PostgreSQL** — unico database attivo
 - **Supabase Storage** — per avatar e immagini
+- **`@supabase/ssr` `^0.9.0`** — abilita session cookie-based per Server Components e middleware. Richiede `@supabase/supabase-js ^2.99.1` (attualmente in uso). `createBrowserClient` (browser) scrive la sessione su `document.cookie`; `createServerClient` (server) la legge tramite `getAll/setAll`. Vedi `lib/supabase-browser.ts` e `lib/supabase-server.ts`.
+- **`middleware.ts`** (root del progetto) — eseguito su ogni richiesta di pagina (esclude `/api/`, `_next/static`, immagini). Chiama `supabase.auth.getUser()` per validare e refreshare i token scaduti, propagando i cookie aggiornati al browser.
 - **Prisma**: **NON installato e NON presente** nel progetto. Non generare mai query Prisma.
 - Tutte le operazioni DB passano per `lib/supabase-server.ts` o `lib/supabase-browser.ts`.
 

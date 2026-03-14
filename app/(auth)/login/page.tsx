@@ -29,7 +29,7 @@ export default function LoginPage() {
                         // Sessione valida ma localStorage non sincronizzato → redirect
                         localStorage.setItem('currentUserId', session.user.id)
                         localStorage.setItem('currentUserEmail', session.user.email || '')
-                        window.location.href = '/home'
+                        router.push('/home')
                     }
                 })
             })

@@ -7,10 +7,15 @@
 | Client | File | Chiave | Bypassa RLS? | Quando usare |
 |--------|------|--------|--------------|--------------|
 | `supabaseServer` | `lib/supabase-server.ts` | Service Role Key (se configurata) | ✅ SÌ | API routes admin, operazioni che richiedono pieno accesso |
-| `createServerClient()` | `lib/supabase-server.ts` | Anon Key + cookies | ❌ NO | API routes che rispettano i permessi utente |
+| `createServerClient()` | `lib/supabase-server.ts` | Anon Key + cookies | ❌ NO | Server Components, API routes che rispettano i permessi utente |
 | `supabase` | `lib/supabase-browser.ts` | Anon Key | ❌ NO | Componenti client-side |
 
-**Regola**: Usare `supabaseServer` con parsimonia. Preferire `createServerClient()` nelle API routes normali se le RLS policies sono configurate correttamente.
+**Regola**: Usare `supabaseServer` con parsimonia. Preferire `createServerClient()` nei Server Components e nelle API routes normali se le RLS policies sono configurate correttamente.
+
+**Come funziona il ciclo cookie (Marzo 2026):**
+1. **Browser**: `createBrowserClient` (da `@supabase/ssr`) scrive la sessione su `document.cookie` dopo il login
+2. **Middleware** (`middleware.ts`): legge il cookie, chiama `getUser()` per validare/refreshare il token, riscrive il cookie aggiornato nella response
+3. **Server Component**: `createServerClient()` legge il cookie via `getAll()` e può verificare la sessione senza chiamate di rete extra (`getSession()`)
 
 ## snake_case ↔ camelCase — Mapping Manuale
 

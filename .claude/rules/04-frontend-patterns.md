@@ -4,12 +4,32 @@
 
 ## Auth — Sistema Ibrido
 
-Il sistema di autenticazione usa **due layer** che lavorano insieme:
+Il sistema di autenticazione usa **tre layer** che lavorano insieme:
 
 ### Layer 1: Supabase Auth (reale)
 `lib/hooks/useAuth.tsx` chiama `supabase.auth.signInWithPassword(email, password)` — autenticazione vera con Supabase.
 
-### Layer 2: Snapshot localStorage (legacy + compatibilità)
+### Layer 2: Cookie SSR (Marzo 2026)
+Dopo il login, `createBrowserClient` (da `@supabase/ssr`) scrive automaticamente la sessione su **`document.cookie`** (oltre che su localStorage). Questo permette ai Server Components e al middleware di leggere la sessione senza JS.
+
+- `lib/supabase-browser.ts` usa `createBrowserClient` da `@supabase/ssr`
+- `lib/supabase-server.ts` usa `createServerClient` da `@supabase/ssr` con `getAll/setAll`
+- `middleware.ts` (root) refresha i token scaduti su ogni richiesta di pagina
+
+**Navigazione post-login — regola critica**: usare **sempre** `window.location.assign('/home')` dopo un login riuscito. **MAI** `router.push('/home')` né `router.replace('/home')`.
+
+Motivo: Next.js App Router mette in cache i risultati di prefetch. Il componente `<Link href="/home">` nella navbar prefetcha `/home` prima del login. Il Server Component vede sessione assente → esegue `redirect('/login')` → questo risultato viene **cachato**. Dopo il login, `router.push` usa la cache client-side senza fare una vera richiesta HTTP, quindi i cookie non vengono mai inviati al server. `window.location.assign` forza una navigazione HTTP completa che bypassa la cache e invia tutti i cookie.
+
+```typescript
+// ✅ CORRETTO dopo login riuscito
+window.location.assign('/home')
+
+// ❌ VIETATO — usa il prefetch cache di Next.js, i cookie non arrivano al server
+router.push('/home')
+router.replace('/home')
+```
+
+### Layer 3: Snapshot localStorage (legacy + compatibilità)
 Dopo il login, l'app scrive uno snapshot dello stato utente in `localStorage` per:
 - Compatibilità con le pagine legacy che leggono localStorage direttamente
 - Persistenza della sessione tra refresh
@@ -94,8 +114,22 @@ const hasCompletedProfile = !!(
 
 La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
 - `app/(main)/dashboard/page.tsx` — **Server Component** (async, accede ai cookie server-side)
+- `app/(main)/home/page.tsx` — **Server Component** (async, legge `getSession()` dal cookie, query profilo, renderizza `<HomeClientDashboard>`)
 - `components/widgets/` — **Server Components** async (NO 'use client'), wrappati in `<Suspense>`
 - `app/actions/` — **Server Actions** con direttiva `'use server'`
+
+**Pattern `app/(main)/home/page.tsx`:**
+```typescript
+// Server Component — nessuna direttiva 'use client'
+export default async function HomePage() {
+    const client = await createServerClient()
+    const { data: { session } } = await client.auth.getSession() // legge cookie, nessuna chiamata di rete
+    if (!session) redirect('/login')
+    // query profilo...
+    return <HomeClientDashboard userId={...} userRole={...} userName={...} />
+}
+```
+Usare `getSession()` (legge cookie in-memory) e non `getUser()` (fa una chiamata di rete a Supabase) nei Server Components — più affidabile su Vercel cold start.
 
 ```typescript
 "use client"  // ← prima riga in qualsiasi pagina/componente CLIENT
@@ -296,6 +330,8 @@ components/   → tutti "use client" (salvo widgets/ e future eccezioni SC)
   profile-*/  → componenti profilo
   navbar.tsx  → navigazione con toggle tema + auth context
   avatar.tsx  → componente avatar riutilizzabile
+  dashboard-ui/
+    HomeClientDashboard.tsx → ⭐ Client Component: tutta la logica tab/widget/club admin della home. Props: `{ userId: string, userRole: string, userName: string }`. Riceve i dati dal Server Component `app/(main)/home/page.tsx`.
   ui/
     theme-toggle.tsx → ⭐ Client Component: switch tema light/dark
     RoleSwitcher.tsx  → ⭐ Client Component: dropdown ruolo attivo (DaisyUI)

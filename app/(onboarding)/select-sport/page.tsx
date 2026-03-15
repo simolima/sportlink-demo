@@ -297,7 +297,7 @@ export default function SelectSportPage() {
                 verified: false
             })
 
-            // Salva dati utente per la sessione
+            // Salva dati utente per la sessione (localStorage legacy)
             setCurrentUserSession({
                 id: String(newUser.id),
                 email: newUser.email,
@@ -305,9 +305,23 @@ export default function SelectSportPage() {
                 avatar: newUser.avatarUrl || '',
                 role: newUser.professionalRole,
             })
+
+            // Stabilisce la sessione Supabase nel browser (scrive i cookie di auth).
+            // createUser() usa supabaseServer.auth.signUp() lato server — non scrive
+            // cookie nel browser. Senza questo passaggio il middleware vede sessione
+            // assente e rimanda a /login invece di /home.
+            const { supabase } = await import('@/lib/supabase-browser')
+            const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+            if (signInError) {
+                console.error('❌ Post-signup sign-in failed:', signInError)
+                setError('Account creato ma accesso automatico fallito. Accedi manualmente.')
+                setIsLoading(false)
+                return
+            }
+
             // Pulisci i dati temporanei di signup
             clearSignupDraft()
-            // Vai alla home
+            // Vai alla home con sessione cookie valida
             window.location.replace('/home')
         } catch (err: any) {
             console.error('Signup error:', err)

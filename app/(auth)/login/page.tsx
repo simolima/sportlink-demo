@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function LoginPage() {
     const router = useRouter()
-    const { login, loginWithGoogle, isAuthenticated, isLoading: authLoading } = useAuth()
+    const { login, loginWithGoogle, isLoading: authLoading } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
@@ -14,27 +14,23 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [googleLoading, setGoogleLoading] = useState(false)
 
-    // Se l'utente ha già una sessione valida, redirect a home
+    // Se l'utente ha già una sessione valida, redirect a home.
+    // ⚠️ Non usare `isAuthenticated` da useAuth: è derivato da localStorage e può essere
+    // truthy con dati stantii anche senza cookie validi, causando un loop /login ↔ /home.
+    // getSession() legge il cookie reale di Supabase — è la sola fonte affidabile qui.
     useEffect(() => {
-        if (!authLoading && isAuthenticated) {
-            window.location.assign('/home')
-            return
-        }
-        // Anche se useAuth non vede la sessione (localStorage vuoto),
-        // controlla Supabase direttamente (caso: OAuth completato ma localStorage non scritto)
-        if (!authLoading && !isAuthenticated) {
-            import('@/lib/supabase-browser').then(({ supabase }) => {
-                supabase.auth.getSession().then(({ data: { session } }: any) => {
-                    if (session?.user) {
-                        // Sessione valida ma localStorage non sincronizzato → redirect
-                        localStorage.setItem('currentUserId', session.user.id)
-                        localStorage.setItem('currentUserEmail', session.user.email || '')
-                        window.location.assign('/home')
-                    }
-                })
+        if (authLoading) return
+        import('@/lib/supabase-browser').then(({ supabase }) => {
+            supabase.auth.getSession().then(({ data: { session } }: any) => {
+                if (session?.user) {
+                    // Sessione cookie valida — sincronizza localStorage e vai a /home
+                    localStorage.setItem('currentUserId', session.user.id)
+                    localStorage.setItem('currentUserEmail', session.user.email || '')
+                    window.location.assign('/home')
+                }
             })
-        }
-    }, [authLoading, isAuthenticated, router])
+        })
+    }, [authLoading])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

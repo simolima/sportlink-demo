@@ -86,13 +86,14 @@ async function fetchAvailableRoles(userId: string): Promise<ProfessionalRole[]> 
 // PAGE — Server Component principale
 // ─────────────────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
-    // 1. Autenticazione — redirect gestito implicitamente dal layout (main)
+    // 1. Autenticazione — il middleware ha già validato il JWT via getUser().
+    // Usiamo getSession() per evitare un secondo round-trip alla rete.
     const supabase = await createServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
 
     if (!user) {
-        // In produzione il middleware/layout intercetta questo caso prima;
-        // lo gestiamo qui per type-safety.
+        // Fallback per type-safety; il middleware redirige a /login prima che si arrivi qui.
         return null
     }
 

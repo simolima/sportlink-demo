@@ -4,9 +4,13 @@ import HomeClientDashboard from '@/components/dashboard-ui/HomeClientDashboard'
 
 export default async function HomePage() {
     const client = await createServerClient()
-    const { data: { user }, error } = await client.auth.getUser()
+    // Use getSession() here — the middleware already validated the JWT via getUser().
+    // This avoids a second round-trip to Supabase auth servers and eliminates the
+    // flash redirect loop (middleware validates → Server Component just reads the cookie).
+    const { data: { session } } = await client.auth.getSession()
+    const user = session?.user
 
-    if (!user || error) redirect('/login')
+    if (!user) redirect('/login')
 
     const { data: profile } = await client
         .from('profiles')

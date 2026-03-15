@@ -26,8 +26,26 @@ export async function middleware(request: NextRequest) {
     )
 
     // Refresh session if expired — writes updated tokens back to cookies.
-    // getUser() is preferred over getSession() as it validates with the Supabase server.
-    await supabase.auth.getUser()
+    // getUser() validates the JWT with the Supabase server (preferred over getSession).
+    // This is the single security gate for all protected routes.
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Redirect unauthenticated requests away from protected paths before any
+    // Server Component runs. This prevents the double-getUser() flash loop where
+    // home/page.tsx would call getUser() a second time and race with token state.
+    const { pathname } = request.nextUrl
+    const isPublicPath =
+        pathname === '/' ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/signup') ||
+        pathname.startsWith('/auth') ||
+        pathname.startsWith('/complete-profile') ||
+        pathname.startsWith('/profile-setup') ||
+        pathname.startsWith('/select-sport')
+
+    if (!user && !isPublicPath) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
 
     return response
 }

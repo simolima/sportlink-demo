@@ -114,7 +114,7 @@ const hasCompletedProfile = !!(
 
 La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
 - `app/(main)/dashboard/page.tsx` — **Server Component** (async, accede ai cookie server-side)
-- `app/(main)/home/page.tsx` — **Server Component** (async, legge `getSession()` dal cookie, query profilo, renderizza `<HomeClientDashboard>`)
+- `app/(main)/home/page.tsx` — **Server Component** (async, usa `getUser()` per validazione server-side, query profilo, renderizza `<HomeClientDashboard>`)
 - `components/widgets/` — **Server Components** async (NO 'use client'), wrappati in `<Suspense>`
 - `app/actions/` — **Server Actions** con direttiva `'use server'`
 
@@ -123,13 +123,13 @@ La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
 // Server Component — nessuna direttiva 'use client'
 export default async function HomePage() {
     const client = await createServerClient()
-    const { data: { session } } = await client.auth.getSession() // legge cookie, nessuna chiamata di rete
-    if (!session) redirect('/login')
+    const { data: { user }, error } = await client.auth.getUser() // valida il JWT con il server Supabase
+    if (!user || error) redirect('/login')
     // query profilo...
     return <HomeClientDashboard userId={...} userRole={...} userName={...} />
 }
 ```
-Usare `getSession()` (legge cookie in-memory) e non `getUser()` (fa una chiamata di rete a Supabase) nei Server Components — più affidabile su Vercel cold start.
+Usare `getUser()` (valida il JWT con Supabase server) nei Server Components per decisioni di autorizzazione. **Non usare mai `getSession()`** per auth guard: legge solo il cookie locale senza verificarlo e un JWT contraffatto potrebbe superare il controllo. Il middleware esegue già `getUser()` su ogni richiesta di pagina, quindi il costo di rete aggiuntivo è minimo.
 
 ```typescript
 "use client"  // ← prima riga in qualsiasi pagina/componente CLIENT

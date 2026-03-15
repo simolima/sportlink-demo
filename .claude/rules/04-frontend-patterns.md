@@ -14,7 +14,7 @@ Dopo il login, `createBrowserClient` (da `@supabase/ssr`) scrive automaticamente
 
 - `lib/supabase-browser.ts` usa `createBrowserClient` da `@supabase/ssr`
 - `lib/supabase-server.ts` usa `createServerClient` da `@supabase/ssr` con `getAll/setAll`
-- `middleware.ts` (root) refresha i token scaduti su ogni richiesta di pagina
+- `middleware.ts` (root) è il **singolo gate di sicurezza**: chiama `getUser()` (validazione JWT con Supabase server), refresha i token scaduti, e redirige gli utenti non autenticati a `/login` prima che qualsiasi Server Component esegua. Percorsi pubblici esclusi: `/`, `/login`, `/signup`, `/auth/*`, `/complete-profile`, `/profile-setup`, `/select-sport`.
 
 **Navigazione post-login — regola critica**: usare **sempre** `window.location.assign('/home')` dopo un login riuscito. **MAI** `router.push('/home')` né `router.replace('/home')`.
 
@@ -44,6 +44,24 @@ currentUserSports    — JSON array di sport
 selectedClubId:<role> — club selezionato scoped per ruolo attivo (es. selectedClubId:coach)
 ```
 
+### Signup non-OAuth: signInWithPassword obbligatorio (Marzo 2026)
+
+`POST /api/users` (`createUser()`) usa `supabaseServer.auth.signUp()` lato server con la service role key — **non scrive cookie nel browser**. Dopo che `createUser()` ha avuto successo, è obbligatorio chiamare `supabase.auth.signInWithPassword({ email, password })` client-side per stabilire la sessione con cookie prima di navigare a `/home`. Senza questo passaggio il middleware vede sessione assente e rimanda a `/login`.
+
+```typescript
+// ✅ PATTERN OBBLIGATORIO in select-sport/page.tsx (regular signup flow)
+const { supabase } = await import('@/lib/supabase-browser')
+const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+if (signInError) {
+    setError('Account creato ma accesso automatico fallito. Accedi manualmente.')
+    return
+}
+clearSignupDraft()
+window.location.replace('/home')   // il middleware ora trova il cookie valido
+```
+
+Flusso OAuth non è interessato: in quel caso l'utente ha già una sessione cookie da Google.
+
 ### Club context scoped per ruolo (Home)
 
 - In Home/Club widgets, il contesto club deve essere filtrato per `professionalRoleId`.
@@ -72,6 +90,8 @@ const userId = localStorage.getItem('currentUserId')  // NO!
 ```
 
 **⚠️ Attenzione**: Molte pagine esistenti leggono localStorage direttamente. **Non rimuovere** quei pattern senza prima migrare completamente la pagina a `useAuth()`. Il localStorage deve restare funzionante come layer di compatibilità.
+
+**⚠️ `isAuthenticated` è inaffidabile per redirect**: `isAuthenticated` da `useAuth()` è derivato da localStorage e può essere `true` con dati stantii anche senza un cookie di sessione valido (es. dopo logout su un altro tab, o con token scaduto). Usare **sempre `supabase.auth.getSession()`** (browser, nessuna rete) per decidere se redirigere da pagine pubbliche come `/login`. Non usare mai `isAuthenticated` come condizione di redirect. Vedi `app/(auth)/login/page.tsx` per il pattern corretto.
 
 ### Fetch verso endpoint protetti (POST/PATCH/DELETE)
 
@@ -114,7 +134,7 @@ const hasCompletedProfile = !!(
 
 La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
 - `app/(main)/dashboard/page.tsx` — **Server Component** (async, accede ai cookie server-side)
-- `app/(main)/home/page.tsx` — **Server Component** (async, usa `getUser()` per validazione server-side, query profilo, renderizza `<HomeClientDashboard>`)
+- `app/(main)/home/page.tsx` — **Server Component** (async, usa `getSession()` per leggere la sessione già validata dal middleware, query profilo, renderizza `<HomeClientDashboard>`)
 - `components/widgets/` — **Server Components** async (NO 'use client'), wrappati in `<Suspense>`
 - `app/actions/` — **Server Actions** con direttiva `'use server'`
 
@@ -123,13 +143,16 @@ La maggior parte delle pagine e dei componenti usa `"use client"`. Eccezioni:
 // Server Component — nessuna direttiva 'use client'
 export default async function HomePage() {
     const client = await createServerClient()
-    const { data: { user }, error } = await client.auth.getUser() // valida il JWT con il server Supabase
-    if (!user || error) redirect('/login')
+    // getSession() è sicuro qui: il middleware ha già validato il JWT via getUser().
+    // Non serve una seconda chiamata di rete a Supabase — si legge solo il cookie.
+    const { data: { session } } = await client.auth.getSession()
+    const user = session?.user
+    if (!user) redirect('/login')
     // query profilo...
     return <HomeClientDashboard userId={...} userRole={...} userName={...} />
 }
 ```
-Usare `getUser()` (valida il JWT con Supabase server) nei Server Components per decisioni di autorizzazione. **Non usare mai `getSession()`** per auth guard: legge solo il cookie locale senza verificarlo e un JWT contraffatto potrebbe superare il controllo. Il middleware esegue già `getUser()` su ogni richiesta di pagina, quindi il costo di rete aggiuntivo è minimo.
+**Regola Server Components (Marzo 2026)**: Usare `getSession()` nei Server Components — il middleware è il gate di sicurezza che valida il JWT con `getUser()`. Chiamare `getUser()` anche nei Server Components causa un secondo round-trip a Supabase e una race condition che produce il flash `/home` → `/login`. `getSession()` legge il cookie localmente senza traffico di rete aggiuntivo. La sicurezza non è compromessa: un JWT contraffatto viene bloccato dal middleware prima che il Server Component esegua.
 
 ```typescript
 "use client"  // ← prima riga in qualsiasi pagina/componente CLIENT
